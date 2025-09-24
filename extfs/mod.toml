@@ -1,0 +1,34 @@
+[manifest]
+id = "extfs"
+display_name = "Extended Filesystem"
+description =  """
+A library providing APIs for replacing and modifying content in the game's filesystem.
+"""
+short_description = "Lets mods modify game filesystem content."
+
+version = "0.1.0"
+authors = [ "Shinx121" ]
+
+game_id = "dino-planet"
+minimum_recomp_version = "0.1.0"
+
+dependencies = [
+# Example dependency:
+#    "modname:1.0.0"
+]
+
+native_libraries = [
+# Example native library:
+#    { name = "my_native_library", funcs = ["my_native_library_function"] }
+]
+
+[inputs]
+elf_path = "build/mod.elf"
+mod_filename = "extfs"
+func_reference_syms_file = "../lib/dino-recomp-decomp-bridge/dino.syms.toml"
+data_reference_syms_files = [
+    "../lib/dino-recomp-decomp-bridge/dino.datasyms.toml", 
+    "../lib/dino-recomp-decomp-bridge/dino.datasyms_manual.toml", 
+    "../dino.datasyms_extra.toml"
+]
+additional_files = [ ]

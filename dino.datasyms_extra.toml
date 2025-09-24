@@ -1,0 +1,12 @@
+[[section]]
+name = ".segment"
+rom = 0x00001000
+vram = 0x80000400
+size = 0xA3AA0
+
+symbols = [
+    { name = "bcopy_recomp", vram = 0x8007C500, size = 0x310 },
+    { name = "bzero_recomp", vram = 0x8007CFE0, size = 0xA0 },
+    { name = "__fstAddress", vram = 0xA4970 },
+    { name = "__file1Address", vram = 0xA4AA0 },
+]

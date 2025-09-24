@@ -1,0 +1,16 @@
+*.d
+*.o
+*.elf
+*_binary.bin
+*_syms.bin
+*.exe
+*.dll
+*.lib
+*.pdb
+*.exp
+./funcs.h
+patches.map
+build/
+.vscode/
+N64Recomp
+RecompModTool

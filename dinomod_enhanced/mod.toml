@@ -1,0 +1,40 @@
+[manifest]
+id = "dinomod_enhanced"
+display_name = "Dinomod Enhanced"
+description =  """
+A work-in-progress mod porting over Dinomod Enhanced's ROM fixes to recomp.
+"""
+short_description = "WIP port of Dinomod Enhanced patches"
+
+version = "0.1.0"
+authors = [ "Banjeoin, jeebs2kx, LaminGaming, MusicalProgrammer" ]
+
+game_id = "dino-planet"
+minimum_recomp_version = "0.1.1"
+
+dependencies = [
+    "extfs:0.1.0"
+]
+
+native_libraries = [
+# Example native library:
+#    { name = "my_native_library", funcs = ["my_native_library_function"] }
+]
+
+[inputs]
+elf_path = "build/mod.elf"
+mod_filename = "dinomod_enhanced"
+func_reference_syms_file = "../lib/dino-recomp-decomp-bridge/dino.syms.toml"
+data_reference_syms_files = [
+    "../lib/dino-recomp-decomp-bridge/dino.datasyms.toml", 
+    "../lib/dino-recomp-decomp-bridge/dino.datasyms_manual.toml", 
+    "../dino.datasyms_extra.toml"
+]
+
+[[manifest.config_options]]
+id = "lamingaming_extra_description_text"
+name = "Add Extra Description Text"
+description = "Adds custom description text for inventory items, objects, and characters that had yet to have text created for them. Many of these strings are sourced from DP leftovers in Star Fox Adventures' Kiosk build, or from appropriate counterparts in SFA itself.\n\nA restart is required for this change to take effect.\n\n[Originally created by LaminGaming]"
+type = "Enum"
+options = [ "Off", "On"]
+default = "Off"

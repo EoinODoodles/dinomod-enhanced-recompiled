@@ -1,0 +1,6 @@
+[submodule "lib/dino-recomp-mod-api"]
+	path = lib/dino-recomp-mod-api
+	url = https://github.com/DinosaurPlanetRecomp/dino-recomp-mod-api.git
+[submodule "lib/dino-recomp-decomp-bridge"]
+	path = lib/dino-recomp-decomp-bridge
+	url = https://github.com/DinosaurPlanetRecomp/dino-recomp-decomp-bridge.git
