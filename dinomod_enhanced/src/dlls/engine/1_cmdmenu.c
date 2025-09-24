@@ -12,7 +12,7 @@
 #include "types.h"
 #include "functions.h"
 
-s16 _data_20;
+extern s16 _data_20;
 extern InventoryItem _data_128[];
 extern InventoryItem _data_2E4[];
 extern InventoryItem _data_4A0[];
