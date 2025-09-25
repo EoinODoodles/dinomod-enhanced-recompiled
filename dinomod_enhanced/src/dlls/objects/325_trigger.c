@@ -307,7 +307,7 @@ RECOMP_PATCH void trigger_update(Object* self) {
         case OBJ_TriggerPlane:
             b_allBitsSet = TRUE;
             if (state->conditionBitFlagIDs[0] >= 0) {
-                // @recomp: Dino Mod condition bit extension for checking unset flags
+                // @recomp: Dino Mod condition bit extension for checking unset flags (originally by MusicalProgrammer)
                 if (state->conditionBitFlagIDs[0] & 0x4000) {
                     if (get_gplay_bitstring(state->conditionBitFlagIDs[0] & ~0x4000) != 0) {
                         b_allBitsSet = FALSE;
@@ -712,7 +712,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             gDLL_29_Gplay->vtbl->func_958(&self->srt.transl, (s16) ((s16) self->srt.yaw >> 8), (s32) cmd->param2, func_80048498());
             break;
         case TRG_CMD_MAP_LAYER:
-            // @recomp: Dino Mod trigger mapLayer command extension
+            // @recomp: Dino Mod trigger mapLayer command extension (originally by MusicalProgrammer)
             if ((s8)cmd->param2 == -1) {
                 recomp_printf("[DinoMod] Trigger [%d], Set MapLayer [%d]\n", i, cmd->param1);
                 set_map_layer(cmd->param1);
