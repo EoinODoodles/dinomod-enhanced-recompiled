@@ -1,3 +1,5 @@
+#pragma once
+
 /** Helper functions for getting player's SpellStone/Spirit/Duster counts */
 
 #include "PR/ultratypes.h"
