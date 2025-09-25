@@ -23,7 +23,7 @@ RECOMP_PATCH void set_gplay_bitstring(s32 entry, u32 value) {
 
     //@recomp: Prevent data corruption
     if (entry < 0){
-        recomp_eprintf("Attempted to increment negative flagID (%04d)!", entry);
+        recomp_eprintf("Attempted to increment negative flagID (%04d)!\n", entry);
         return;
     }
 
@@ -72,7 +72,7 @@ RECOMP_PATCH s32 increment_gplay_bitstring(s32 entry) {
 
     //@recomp: Prevent data corruption
     if (entry < 0){
-        recomp_eprintf("Attempted to increment negative flagID (%04d)!", entry);
+        recomp_eprintf("Attempted to increment negative flagID (%04d)!\n", entry);
         return 0;
     }
 
@@ -93,7 +93,7 @@ RECOMP_PATCH s32 decrement_gplay_bitstring(s32 entry) {
 
     //@recomp: Prevent data corruption
     if (entry < 0){
-        recomp_eprintf("Attempted to decrement negative flagID (%04d)!", entry);
+        recomp_eprintf("Attempted to decrement negative flagID (%04d)!\n", entry);
         return 0;
     }
 
