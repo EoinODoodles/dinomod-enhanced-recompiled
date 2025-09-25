@@ -4,6 +4,7 @@
 
 #include "recomp/dlls/engine/1_cmdmenu_recomp.h"
 #include "dlls/engine/1_ui.h"
+#include "game/objects/inventory_items.h"
 
 #include "PR/ultratypes.h"
 #include "sys/gfx/texture.h"

@@ -26,13 +26,9 @@ mips
 -DF3DEX_GBI_2
 -DMIPS
 -I
-../lib/dino-recomp-mod-api/include
+../dino-recomp-mod-api/include
 -I
-../lib/dino-recomp-decomp-bridge/include
+../dino-recomp-decomp-bridge/include
 -I
-../lib/dino-recomp-decomp-bridge/dinosaur-planet/include
--I
-include
--I
-src
+../dino-recomp-decomp-bridge/dinosaur-planet/include
 -c
