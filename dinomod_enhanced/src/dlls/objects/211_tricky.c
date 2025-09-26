@@ -35,10 +35,11 @@ static void tricky_update_hijack(Object *self) {
 
 RECOMP_PATCH void dll_211_func_940C(Object *self, void *state) {
     u32 *unk4c = (u32*)((u32)state + 0x4c);
-    *unk4c &= 0xfffff7ff;
+    *unk4c &= ~0x800;
     *unk4c |= 0x1000;
 
     void **unk0 = (void**)((u32)state + 0x0);
+    // @recomp: Do a null check first
     if (*unk0 != NULL) {
         dll_unload(*unk0);
     }
