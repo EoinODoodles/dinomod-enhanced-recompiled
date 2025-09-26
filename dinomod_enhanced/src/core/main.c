@@ -70,13 +70,14 @@ RECOMP_PATCH s32 increment_gplay_bitstring(s32 entry) {
 
     val = get_gplay_bitstring(entry) + 1;
 
+    maxVal = 1 << ((gFile_BITTABLE[entry].field_0x2 & 0x1f) + 1);
+
     //@recomp: Prevent data corruption
     if (entry < 0){
         recomp_eprintf("Attempted to increment negative flagID (%04d)!\n", entry);
-        return 0;
+        return val < maxVal ? val : val - 1;
     }
 
-    maxVal = 1 << ((gFile_BITTABLE[entry].field_0x2 & 0x1f) + 1);
 
     if (val < maxVal) {
         set_gplay_bitstring(entry, val);
@@ -94,7 +95,7 @@ RECOMP_PATCH s32 decrement_gplay_bitstring(s32 entry) {
     //@recomp: Prevent data corruption
     if (entry < 0){
         recomp_eprintf("Attempted to decrement negative flagID (%04d)!\n", entry);
-        return 0;
+        return val > 0 ? val - 1 : 0;
     }
 
     if (val != 0) {
