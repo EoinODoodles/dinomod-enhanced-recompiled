@@ -11,8 +11,9 @@
 
 extern GplayStruct7 *gGplayState;
 extern BitTableEntry *gFile_BITTABLE;
+extern s16 gSizeBittable;
 
-/** Prevents cases where the game would try to set flag -1, which would cause data corruption */
+/** Prevents cases where the game would try to set out of bounds flags, which would cause data corruption */
 RECOMP_PATCH void set_gplay_bitstring(s32 entry, u32 value) {
     u8 *bitString;
     u8 _pad[12]; // fake match
@@ -22,8 +23,8 @@ RECOMP_PATCH void set_gplay_bitstring(s32 entry, u32 value) {
     s32 startBit;
 
     //@recomp: Prevent data corruption
-    if (entry < 0){
-        recomp_eprintf("Attempted to increment negative flagID (%04d)!\n", entry);
+    if (entry < -1 || entry >= gSizeBittable) {
+        recomp_eprintf("Attempted to set out of bounds flagID (%04d)!\n", entry);
         return;
     }
 
@@ -63,21 +64,23 @@ RECOMP_PATCH void set_gplay_bitstring(s32 entry, u32 value) {
     }
 }
 
-/** Prevents cases where the game would try to increment flag -1, which would cause data corruption */
+/** Prevents cases where the game would try to increment out of bounds flags, which would cause data corruption */
 RECOMP_PATCH s32 increment_gplay_bitstring(s32 entry) {
     s32 val;
     s32 maxVal;
 
+    //@recomp: Prevent data corruption
+    if (entry == -1) {
+        return 0;
+    }
+    if (entry < 0 || entry >= gSizeBittable) {
+        recomp_eprintf("Attempted to increment out of bounds flagID (%04d)!\n", entry);
+        return 0;
+    }
+
     val = get_gplay_bitstring(entry) + 1;
 
     maxVal = 1 << ((gFile_BITTABLE[entry].field_0x2 & 0x1f) + 1);
-
-    //@recomp: Prevent data corruption
-    if (entry < 0){
-        recomp_eprintf("Attempted to increment negative flagID (%04d)!\n", entry);
-        return val < maxVal ? val : val - 1;
-    }
-
 
     if (val < maxVal) {
         set_gplay_bitstring(entry, val);
@@ -88,19 +91,23 @@ RECOMP_PATCH s32 increment_gplay_bitstring(s32 entry) {
     return val;
 }
 
-/** Prevents cases where the game would try to decrement flag -1, which would cause data corruption */
+/** Prevents cases where the game would try to decrement out of bounds flags, which would cause data corruption */
 RECOMP_PATCH s32 decrement_gplay_bitstring(s32 entry) {
     s32 val = get_gplay_bitstring(entry);
 
     //@recomp: Prevent data corruption
-    if (entry < 0){
-        recomp_eprintf("Attempted to decrement negative flagID (%04d)!\n", entry);
-        return val > 0 ? val - 1 : 0;
+    if (entry == -1) {
+        return 0;
+    }
+    if (entry < 0 || entry >= gSizeBittable) {
+        recomp_eprintf("Attempted to decrement out of bounds flagID (%04d)!\n", entry);
+        return 0;
     }
 
     if (val != 0) {
         set_gplay_bitstring(entry, --val);
         return val;
     }
+
     return 0;
 }
