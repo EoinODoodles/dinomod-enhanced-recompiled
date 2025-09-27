@@ -14,3 +14,4 @@ build/
 .vscode/
 N64Recomp
 RecompModTool
+.venv/
