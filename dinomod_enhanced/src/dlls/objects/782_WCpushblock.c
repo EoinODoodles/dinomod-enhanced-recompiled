@@ -1,8 +1,8 @@
 #include "modding.h"
 #include "recomputils.h"
-#include "sidekick_util.h"
 
 #include "sys/dll.h"
+#include "sys/objects.h"
 
 #include "recomp/dlls/_asm/782_recomp.h"
 
