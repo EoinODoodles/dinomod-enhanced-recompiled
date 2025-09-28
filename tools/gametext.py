@@ -102,6 +102,7 @@ class GameTextBinParser:
 
             file_str_counts: list[int] = []
             for file_idx in range(file_count):
+                # HACK: for original dinomod gametext tab
                 if len(tab.peek(1)) == 0:
                     print('BAD FILE STR COUNTS', file_idx, hex(tab.tell()))
                     file_str_counts.append(0)
@@ -110,6 +111,7 @@ class GameTextBinParser:
 
             file_sizes: list[int] = []
             for file_idx in range(file_count):
+                # HACK: for original dinomod gametext tab
                 if len(tab.peek(1)) == 0:
                     print('BAD FILE STR SIZES', file_idx, hex(tab.tell()))
                     file_sizes.append(0)
@@ -118,6 +120,7 @@ class GameTextBinParser:
 
             file_offsets: list[int] = []
             for file_idx in range(file_count):
+                # HACK: for original dinomod gametext tab
                 if len(tab.peek(1)) == 0:
                     print('BAD FILE STR OFFSETS', file_idx, hex(tab.tell()))
                     file_offsets.append(0 if len(file_offsets) == 0 else file_offsets[len(file_offsets) - 1])
@@ -323,7 +326,7 @@ class GameTextSpecParser:
             c = string[i]
             i += 1
             if escaped or (c != "\\" and c != "#"):
-                data.append(ord(c))
+                data.extend(c.encode(encoding="windows-1252", errors="strict"))
             
             if not escaped:
                 if c == "\\":
