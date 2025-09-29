@@ -14,3 +14,8 @@ build/
 .vscode/
 N64Recomp
 RecompModTool
+.venv/
+__pycache__/
+/extract/
+*.z64
+/bin/

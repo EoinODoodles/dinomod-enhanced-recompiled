@@ -12,3 +12,24 @@ For more information about Dinomod Enhanced, visit:
 <li><a href="http://www.dinosaurpla.net/">www.dinosaurpla.net (the Dinosaur Planet Fansite)</a></li>
 <li><a href="https://discord.gg/yPDYXzYFb4">The Dinosaur Planet Community Discord</a></li>
 </ul>
+
+## Building
+
+### Assets
+1. Place an unmodified Dinosaur Planet ROM into the root of this repository as `baserom.z64` (MD5: `49f7bb346ade39d1915c22e090ffd748`).
+2. Install `xdelta3`.
+    - For Windows users, place `xdelta3.exe` into the root of this repository.
+    - For Linux users, `xdelta3` must be on your `PATH`.
+3. Install Python dependencies.
+    - (optional) Create a virtual environment: `python -m venv .venv`
+    - Install: `pip install -r requirements.txt`
+4. Extract vanilla assets from ROM.
+    - `python tools/extract.py`
+5. Build patched assets.
+    - `python tools/build_assets.py`
+6. The directory `dinomod_enhanced/assets` will now contain all patched asset files.
+
+### Mod
+Patched assets [must be built first](#assets)!
+
+See [BUILDING.md](BUILDING.md) for instructions on compiling the recomp mod.
