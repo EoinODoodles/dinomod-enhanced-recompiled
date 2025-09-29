@@ -16,4 +16,6 @@ N64Recomp
 RecompModTool
 .venv/
 __pycache__/
-extract/
+/extract/
+*.z64
+/bin/
