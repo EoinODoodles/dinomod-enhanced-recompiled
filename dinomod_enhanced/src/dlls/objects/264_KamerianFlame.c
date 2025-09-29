@@ -5,10 +5,12 @@
 #include "sys/objects.h"
 #include "dlls/engine/17.h"
 
+#include "recomp/dlls/objects/264_kamerian_flame_recomp.h"
+
 extern DLL_17 *gDLL_17;
 
 //Allows the Kamerian Dragon's fireballs to be visible (originally by MusicalProgrammer)
-RECOMP_PATCH void dll_264_func_118(Object* self) {
+RECOMP_PATCH void kamerian_flame_create_flame_billboards(Object* self) {
     Vec3f delta;
     SRT transform;
 
