@@ -49,7 +49,7 @@ def build_gametext():
     
     spec_parser = GameTextSpecParser()
     for patch in patches:
-        with open(patch, "r") as spec_file:
+        with open(patch, "r", encoding="utf-8") as spec_file:
             patch_gametext = spec_parser.parse(spec_file)
         gametext.apply_patch(patch_gametext)
 
@@ -97,7 +97,7 @@ def build_warptab():
         warptab = WarpTab.from_binary_file(base_file)
     
     for patch in patches:
-        with open(patch, "r") as yaml_file:
+        with open(patch, "r", encoding="utf-8") as yaml_file:
             patch_warptab = WarpTab.from_yaml_file(yaml_file)
         warptab.apply_patch(patch_warptab)
     

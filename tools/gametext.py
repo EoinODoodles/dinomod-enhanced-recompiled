@@ -613,10 +613,10 @@ def main():
     bin2spec_cmd = subparsers.add_parser("bin2spec", help="Convert GAMETEXT.bin/tab to gametext.spec.")
     bin2spec_cmd.add_argument("--tab", type=argparse.FileType("rb"), help="The GAMETEXT.tab file to read.", required=True)
     bin2spec_cmd.add_argument("--bin", type=argparse.FileType("rb"), help="The GAMETEXT.bin file to read.", required=True)
-    bin2spec_cmd.add_argument("-o", "--output", type=argparse.FileType("w"), help="The spec file to write.", required=True)
+    bin2spec_cmd.add_argument("-o", "--output", type=argparse.FileType("w", encoding="utf-8"), help="The spec file to write.", required=True)
 
     spec2bin_cmd = subparsers.add_parser("spec2bin", help="Convert gametext.spec files to GAMETEXT.bin/tab.")
-    spec2bin_cmd.add_argument("spec", nargs="+", action="extend", type=argparse.FileType("r"), 
+    spec2bin_cmd.add_argument("spec", nargs="+", action="extend", type=argparse.FileType("r", encoding="utf-8"), 
                               help="The spec files to read. Later files will be merged onto earlier files.")
     spec2bin_cmd.add_argument("--tab", type=argparse.FileType("wb"), help="The GAMETEXT.tab file to write.", required=True)
     spec2bin_cmd.add_argument("--bin", type=argparse.FileType("wb"), help="The GAMETEXT.bin file to write.", required=True)
@@ -626,7 +626,7 @@ def main():
     mkpatch_cmd.add_argument("--bin1", type=argparse.FileType("rb"), help="The base GAMETEXT.bin file.", required=True)
     mkpatch_cmd.add_argument("--tab2", type=argparse.FileType("rb"), help="The target GAMETEXT.tab file.", required=True)
     mkpatch_cmd.add_argument("--bin2", type=argparse.FileType("rb"), help="The target GAMETEXT.bin file.", required=True)
-    mkpatch_cmd.add_argument("-o", "--output", type=argparse.FileType("w"), help="The patch spec file to write.", required=True)
+    mkpatch_cmd.add_argument("-o", "--output", type=argparse.FileType("w", encoding="utf-8"), help="The patch spec file to write.", required=True)
 
     args, _ = parser.parse_known_args()
     cmd = args.command

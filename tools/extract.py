@@ -27,7 +27,7 @@ def extract_gametext():
          open(bin, "rb") as bin_file:
         gametext = GameTextBinParser().parse(tab_file, bin_file)
     
-    with open(gametext_spec, "w") as gametext_spec_file:
+    with open(gametext_spec, "w", encoding="utf-8") as gametext_spec_file:
         GameTextSpecWriter().write(gametext, gametext_spec_file)
 
 def extract_objects():
@@ -56,7 +56,7 @@ def extract_warp():
     with open(warptab_bin, "rb") as warptab_bin_file:
         warptab = WarpTab.from_binary_file(warptab_bin_file)
     
-    with open(warp_yaml, "w") as warp_yaml_file:
+    with open(warp_yaml, "w", encoding="utf-8") as warp_yaml_file:
         warptab.write_yaml(warp_yaml_file)
 
 def extract_bin(rom: BufferedReader, fs: FSTab):
