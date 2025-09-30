@@ -114,7 +114,7 @@ DINO_FILENAMES = [
     "MAPS.bin", # 1F
     "MAPS.tab", # 20
     "MAPINFO.bin", # 21
-    "MAPSETUP_IND", # 22
+    "MAPSETUP.ind", # 22
     "MAPSETUP.tab", # 23
     "TEX1.bin", # 24
     "TEX1.tab", # 25

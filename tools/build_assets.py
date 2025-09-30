@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 
+from assetlib.mpeg import MPEGList
 from assetlib.objects import ObjectList
 from assetlib.warp import WarpTab
 from gametext import GameTextBinParser, GameTextBinWriter, GameTextSpecParser
@@ -59,6 +60,26 @@ def build_gametext():
     with open(new_tab, "wb") as new_tab_file, \
          open(new_bin, "wb") as new_bin_file:
         GameTextBinWriter().write(gametext, new_tab_file, new_bin_file)
+
+def build_mpeg():
+    print("Building MPEG...")
+    base_tab = BIN_DIR.joinpath("MPEG.tab")
+    base_bin = BIN_DIR.joinpath("MPEG.bin")
+
+    with open(base_tab, "rb") as base_tab_file, \
+         open(base_bin, "rb") as base_bin_file:
+        mpeg_list = MPEGList.from_binary(base_tab_file, base_bin_file)
+
+    patch_mpegs = MPEGList.from_directory(ASSETS_DIR.joinpath("MPEG"))
+    
+    mpeg_list.apply_patch(patch_mpegs)
+
+    new_tab = OUTPUT_DIR.joinpath("MPEG.tab")
+    new_bin = OUTPUT_DIR.joinpath("MPEG.bin")
+
+    with open(new_tab, "wb") as new_tab_file, \
+         open(new_bin, "wb") as new_bin_file:
+        mpeg_list.write_binary(new_tab_file, new_bin_file)
 
 def build_objects():
     print("Building OBJECTS...")
@@ -154,8 +175,7 @@ def main():
     build_xdelta_asset("MODLINES.bin")
     build_xdelta_asset("MODLINES.tab")
 
-    build_xdelta_asset("MPEG.bin")
-    build_xdelta_asset("MPEG.tab")
+    build_mpeg()
     
     build_xdelta_asset("MUSICACTIONS.bin")
 
