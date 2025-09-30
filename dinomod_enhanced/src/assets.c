@@ -18,7 +18,7 @@ EXTFS_ON_LOAD_FST_REPLACEMENTS_CALLBACK void dinomod_extfs_fst_replacements() {
     INCFST(ANIMCURVES_BIN, ANIMCURVES, bin)
     INCFST(ANIMCURVES_TAB, ANIMCURVES, tab)
 
-    // TODO: audio bin
+    INCFST(AUDIO_BIN, AUDIO, bin)
 
     INCFST(BITTABLE_BIN, BITTABLE, bin)
 
@@ -51,7 +51,8 @@ EXTFS_ON_LOAD_FST_REPLACEMENTS_CALLBACK void dinomod_extfs_fst_replacements() {
     INCFST(MODLINES_BIN, MODLINES, bin)
     INCFST(MODLINES_TAB, MODLINES, tab)
 
-    // TODO: mpeg bin/tab
+    INCFST(MPEG_BIN, MPEG, bin)
+    INCFST(MPEG_TAB, MPEG, tab)
 
     INCFST(MUSICACTIONS_BIN, MUSICACTIONS, bin)
 
