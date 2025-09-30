@@ -1,12 +1,19 @@
+#include "recompconfig.h"
+
 #include "PR/ultratypes.h"
 #include "sys/fs.h"
 
 #include "mod_common.h"
 #include "extfs.h"
 
+typedef enum {
+    GAMETEXT_VANILLA,
+    GAMETEXT_COSMETIC,
+} GametextFlavor;
+
 #define INCFST(fileID, filename, ext) \
-    INCBIN(fst_##fileID, "assets/" #filename "."#ext); \
-    extfs_set_fst_file_replacement(fileID, fst_##fileID, fst_##fileID##_end - fst_##fileID);
+    INCBIN(fst_assets_##filename##_##ext, "assets/" #filename "."#ext); \
+    extfs_set_fst_file_replacement(fileID, fst_assets_##filename##_##ext, fst_assets_##filename##_##ext##_end - fst_assets_##filename##_##ext);
 
 EXTFS_ON_LOAD_FST_REPLACEMENTS_CALLBACK void dinomod_extfs_fst_replacements() {
     INCFST(AMAP_BIN, AMAP, bin)
@@ -29,8 +36,13 @@ EXTFS_ON_LOAD_FST_REPLACEMENTS_CALLBACK void dinomod_extfs_fst_replacements() {
     INCFST(ENVFXACT_BIN, ENVFXACT, bin)
     INCFST(FONTS_BIN, FONTS, bin)
 
-    INCFST(GAMETEXT_BIN, GAMETEXT, bin)
-    INCFST(GAMETEXT_TAB, GAMETEXT, tab)
+    if (recomp_get_config_u32("gametext_flavor") == GAMETEXT_COSMETIC) {
+        INCFST(GAMETEXT_BIN, GAMETEXT_cosmetic, bin)
+        INCFST(GAMETEXT_TAB, GAMETEXT_cosmetic, tab)
+    } else {
+        INCFST(GAMETEXT_BIN, GAMETEXT, bin)
+        INCFST(GAMETEXT_TAB, GAMETEXT, tab)
+    }
 
     INCFST(GLOBALMAP_BIN, GLOBALMAP, bin)
 

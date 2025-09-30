@@ -7,10 +7,10 @@ import shutil
 import subprocess
 import sys
 
+from assetlib.gametext import GameTextBinParser, GameTextBinWriter, GameTextSpecParser
 from assetlib.mpeg import MPEGList
 from assetlib.objects import ObjectList
 from assetlib.warp import WarpTab
-from gametext import GameTextBinParser, GameTextBinWriter, GameTextSpecParser
 
 SCRIPT_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 PROJECT_DIR = SCRIPT_DIR.parent
@@ -42,20 +42,37 @@ def build_gametext():
     base_tab = BIN_DIR.joinpath("GAMETEXT.tab")
     base_bin = BIN_DIR.joinpath("GAMETEXT.bin")
 
-    patches = [p for p in ASSETS_DIR.joinpath("GAMETEXT").rglob("*.spec")]
+    # Base
+    base_patches = [p for p in ASSETS_DIR.joinpath("GAMETEXT/base").rglob("*.spec")]
 
     with open(base_tab, "rb") as base_tab_file, \
          open(base_bin, "rb") as base_bin_file:
         gametext = GameTextBinParser().parse(base_tab_file, base_bin_file)
     
     spec_parser = GameTextSpecParser()
-    for patch in patches:
+    for patch in base_patches:
         with open(patch, "r", encoding="utf-8") as spec_file:
             patch_gametext = spec_parser.parse(spec_file)
         gametext.apply_patch(patch_gametext)
 
     new_tab = OUTPUT_DIR.joinpath("GAMETEXT.tab")
     new_bin = OUTPUT_DIR.joinpath("GAMETEXT.bin")
+
+    with open(new_tab, "wb") as new_tab_file, \
+         open(new_bin, "wb") as new_bin_file:
+        GameTextBinWriter().write(gametext, new_tab_file, new_bin_file)
+
+    # Cosmetic
+    cosmetic_patches = [p for p in ASSETS_DIR.joinpath("GAMETEXT/cosmetic").rglob("*.spec")]
+
+    spec_parser = GameTextSpecParser()
+    for patch in cosmetic_patches:
+        with open(patch, "r") as spec_file:
+            patch_gametext = spec_parser.parse(spec_file)
+        gametext.apply_patch(patch_gametext)
+
+    new_tab = OUTPUT_DIR.joinpath("GAMETEXT_cosmetic.tab")
+    new_bin = OUTPUT_DIR.joinpath("GAMETEXT_cosmetic.bin")
 
     with open(new_tab, "wb") as new_tab_file, \
          open(new_bin, "wb") as new_bin_file:

@@ -38,3 +38,16 @@ description = "Adds custom description text for inventory items, objects, and ch
 type = "Enum"
 options = [ "Off", "On"]
 default = "Off"
+
+[[manifest.config_options]]
+id = "gametext_flavor"
+name = "Text Flavor"
+description = '''
+Which version of Dinomod Enhanced's subtitle/text patches to use.
+
+- Vanilla: Preserves vanilla subtitles and text while including fixes and new translations.
+- Cosmetic: In addition to Vanilla, adds coloured subtitles along with additional subtitles for various things like sound effects. 
+'''
+type = "Enum"
+options = [ "Vanilla", "Cosmetic" ]
+default = "Vanilla"
