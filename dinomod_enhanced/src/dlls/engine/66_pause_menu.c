@@ -139,7 +139,7 @@ RECOMP_PATCH void n_pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
             printWithDropshadow(completionPercentage, 264, 36, colour_main, colour_shadow, opacity_main, ALIGN_TOP_CENTER);
     
             //Draw gameplay time
-            gDLL_7_Newday->vtbl->convert_ticks_to_real_time(gDLL_29_Gplay->vtbl->func_1270(), &hours, &minutes, &seconds);
+            gDLL_7_Newday->vtbl->convert_ticks_to_real_time(gDLL_29_Gplay->vtbl->get_time_played(), &hours, &minutes, &seconds);
             sprintf(gameplayTime, formatGameplayTime, hours, minutes, seconds);
             printWithDropshadow(gameplayTime, 74, 36, colour_main, colour_shadow, opacity_main, ALIGN_TOP_CENTER);
     
@@ -273,7 +273,7 @@ RECOMP_PATCH s32 n_pausemenu_update(void) {
     } else if (pauseScreenState == PAUSE_MENU_GAME_SAVED) {
 
         if (gameSavedMessageTimer == 0) {
-            gDLL_29_Gplay->vtbl->func_6AC();
+            gDLL_29_Gplay->vtbl->save_game();
         }
 
         gameSavedMessageTimer += delayFloat;
