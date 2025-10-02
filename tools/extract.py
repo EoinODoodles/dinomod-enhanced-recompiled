@@ -9,10 +9,10 @@ import subprocess
 import sys
 
 from assetlib.fs import FSTab, DINO_FILENAMES
+from assetlib.gametext import GameTextBinParser, GameTextSpecWriter
 from assetlib.mpeg import MPEGList
 from assetlib.objects import ObjectList
 from assetlib.warp import WarpTab
-from gametext import GameTextBinParser, GameTextSpecWriter
 
 SCRIPT_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 PROJECT_DIR = SCRIPT_DIR.parent
