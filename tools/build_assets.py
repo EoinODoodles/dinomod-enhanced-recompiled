@@ -15,6 +15,7 @@ from assetlib.warp import WarpTab
 SCRIPT_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 PROJECT_DIR = SCRIPT_DIR.parent
 OUTPUT_DIR = PROJECT_DIR.joinpath("dinomod_enhanced/assets")
+ASSETS_C = PROJECT_DIR.joinpath("dinomod_enhanced/src/assets.c")
 ASSETS_DIR = PROJECT_DIR.joinpath("assets")
 BIN_DIR = PROJECT_DIR.joinpath("bin")
 
@@ -211,6 +212,9 @@ def main():
     build_xdelta_asset("TEX1.tab")
 
     build_warptab()
+
+    # Make sure assets.c gets recompiled
+    ASSETS_C.touch()
 
     print("Done.")
 
