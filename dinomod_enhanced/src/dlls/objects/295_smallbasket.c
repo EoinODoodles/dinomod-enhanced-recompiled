@@ -22,12 +22,12 @@ s32 sound;
 s32 unkC;
 s32 unk10;
 s16 shakeSoundTimer;
-} SmallBasketStruct;
+} SmallBasketState;
 
 // Frees the Small Basket objects' memory properly (originally by MusicalProgrammer)
 // Prevent crash if the player's holding the basket when it unloads
 RECOMP_PATCH void dll_295_func_D04(Object* self, s32 arg1) {
-    SmallBasketStruct* state = self->state;
+    SmallBasketState* state = self->state;
     Object* player; //@recomp
     PlayerState* playerState; //@recomp
     
@@ -35,7 +35,8 @@ RECOMP_PATCH void dll_295_func_D04(Object* self, s32 arg1) {
     player = get_player();
     if (player){
         playerState = player->state;
-        if (playerState->unk868 && playerState->unk868->group == 0x12){
+        if (playerState->unk868 && 
+            (playerState->unk868->id == OBJ_SmallBasket || playerState->unk868->id == OBJ_SmallCrate)){
             playerState->unk868 = NULL;
         }
     }
