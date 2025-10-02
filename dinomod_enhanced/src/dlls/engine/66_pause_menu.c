@@ -35,14 +35,12 @@ extern char gameplayTime[0xa];
 extern char spiritCount[0x2];
 extern char spellStoneCount[0x2];
 extern char dusterCount[0x2];
-extern char _bss_20[0x4];
 extern char completionPercentage[4];
-extern char _bss_28[0x2];
 extern u8 pauseScreenState;
 extern s8 gameSavedMessageTimer;
 extern s16 pauseMenuOpacity;
 
-void getPlayerStats(void){
+static void getPlayerStats(void){
     s8 dusters = getCountDusters();
     s8 spellStones = getCountSpellStones();
     s8 spirits = getCountSpirits();
@@ -52,7 +50,7 @@ void getPlayerStats(void){
     sprintf(spiritCount, formatSpiritCount, spirits);
 }
 
-void printWithDropshadow(char message[], s16 x, s16 y, s32 colour_main, s32 colour_shadow, s8 opacity, s8 alignment){ 
+static void printWithDropshadow(char message[], s16 x, s16 y, s32 colour_main, s32 colour_shadow, s8 opacity, s8 alignment){ 
     //Main text
     font_window_set_text_colour(1, 
         (colour_main >> 24) & 0xFF, 
