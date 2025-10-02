@@ -16,10 +16,10 @@ extern u8 sCompletionIdx;
 extern s8 sRecentlyCompletedNextIdx;
 
 //Recomp mod-specific
-s8 firstZero = -1;
-s8 nextNonzero = -1;
-s8 taskHistory[5] = {0,0,0,0,0};
-s8 DEBUG = FALSE;
+static s8 firstZero = -1;
+static s8 nextNonzero = -1;
+static s8 taskHistory[5] = {0,0,0,0,0};
+static s8 DEBUG = FALSE;
 
 /** Finds the index of the first zero in the task history (or -1 if none found), and the index of the first nonzero item after that zero (or -1 if none found) */
 static void get_first_zero_and_next_nonzero(s8 taskHistory[], s8* firstZero, s8 *nextNonzero){
@@ -82,6 +82,7 @@ static void cleanup_task_history(){
 }
 
 /** Prints the task history throughout gameplay */
+// TODO: ifdef DEBUG
 RECOMP_CALLBACK("*", recomp_on_game_tick_start) void printTaskHistory() {
     if (!DEBUG)
         return;
@@ -132,7 +133,7 @@ RECOMP_PATCH void task_mark_task_completed(u8 task) {
 
     // Set checkpoint and bail if task0
     if (task == 0) {
-        gDLL_29_Gplay->vtbl->func_958(NULL, 0, 1, func_80048498());
+        gDLL_29_Gplay->vtbl->checkpoint(NULL, 0, 1, func_80048498());
         return;
     }
 

@@ -4,7 +4,7 @@
 #include "sys/dll.h"
 #include "sys/objects.h"
 
-#include "recomp/dlls/_asm/782_recomp.h"
+#include "recomp/dlls/objects/782_WCpushblock_recomp.h"
 
 typedef struct {
 s8 unk0[0x276 - 0];

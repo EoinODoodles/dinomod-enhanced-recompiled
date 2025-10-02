@@ -9,7 +9,7 @@
 #include "types.h"
 #include "dlls/engine/29_gplay.h"
 
-extern GplayStruct7 *gGplayState;
+extern GameState *gGplayState;
 extern BitTableEntry *gFile_BITTABLE;
 extern s16 gSizeBittable;
 
@@ -34,13 +34,13 @@ RECOMP_PATCH void set_gplay_bitstring(s32 entry, u32 value) {
                 bitString = &gGplayState->bitString[0];
                 break;
             case 1:
-                bitString = &gGplayState->unk0.unk0.bitString[0];
+                bitString = &gGplayState->save.unk0.bitString[0];
                 break;
             case 2:
-                bitString = &gGplayState->unk0.unk0.unk0.bitString[0];
+                bitString = &gGplayState->save.unk0.file.bitString[0];
                 break;
             case 3:
-                bitString = &gGplayState->unk0.bitString[0];
+                bitString = &gGplayState->save.bitString[0];
                 break;
         }
 

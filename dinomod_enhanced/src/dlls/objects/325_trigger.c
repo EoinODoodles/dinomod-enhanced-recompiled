@@ -494,10 +494,10 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             recomp_printf("Trigger [%d], Sound FX,           Action Num [%d],Handle Num [%d]\n", 
                 i, (cmd->param2 | (cmd->param1 << 8)), state->soundHandles[i]);
             if (dir >= 0) {
-                gDLL_6_AMSFX->vtbl->func14(self, (cmd->param2 | (cmd->param1 << 8)), &state->soundHandles[i]);
+                gDLL_6_AMSFX->vtbl->func_10D0(self, (cmd->param2 | (cmd->param1 << 8)), &state->soundHandles[i]);
             } else {
                 if (state->soundHandles[i] != 0) {
-                    gDLL_6_AMSFX->vtbl->func6(state->soundHandles[i]);
+                    gDLL_6_AMSFX->vtbl->func_A1C(state->soundHandles[i]);
                     state->soundHandles[i] = 0;
                 }
             }
@@ -645,18 +645,18 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
         case TRG_CMD_ENABLE_OBJ_GROUP:
             // "Trigger [%d], Object Load\n"
             recomp_printf("Trigger [%d], Object Load [%d]\n", i, cmd->param2 | (cmd->param1 << 8));
-            gDLL_29_Gplay->vtbl->func_16C4((s32) self->mapID, cmd->param2 | (cmd->param1 << 8), 1);
+            gDLL_29_Gplay->vtbl->set_obj_group_status((s32) self->mapID, cmd->param2 | (cmd->param1 << 8), 1);
             break;
         case TRG_CMD_DISABLE_OBJ_GROUP:
             // "Trigger [%d], Object Free\n"
             recomp_printf("Trigger [%d], Object Free [%d]\n", i, cmd->param2 | (cmd->param1 << 8));
-            gDLL_29_Gplay->vtbl->func_16C4((s32) self->mapID, cmd->param2 | (cmd->param1 << 8), 0);
+            gDLL_29_Gplay->vtbl->set_obj_group_status((s32) self->mapID, cmd->param2 | (cmd->param1 << 8), 0);
             break;
         case TRG_CMD_TOGGLE_OBJ_GROUP:
             // "Trigger [%d], Object Toggle\n"
             recomp_printf("Trigger [%d], Object Toggle [%d]\n", i, cmd->param2 | (cmd->param1 << 8));
             temp_a1 = (cmd->param2 | (cmd->param1 << 8));
-            gDLL_29_Gplay->vtbl->func_16C4((s32) self->mapID, temp_a1, gDLL_29_Gplay->vtbl->func_14F0((s32) self->mapID, temp_a1) ^ 1);
+            gDLL_29_Gplay->vtbl->set_obj_group_status((s32) self->mapID, temp_a1, gDLL_29_Gplay->vtbl->get_obj_group_status((s32) self->mapID, temp_a1) ^ 1);
             break;
         case TRG_CMD_TEXTURE_LOAD:
             // "Trigger [%d], Tex Load\n"
@@ -670,7 +670,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             break;
         case TRG_CMD_SET_MAP_SETUP:
             recomp_printf("Trigger [%d], SetMapSetup [%d]\n", i, cmd->param2 | (cmd->param1 << 8));
-            gDLL_29_Gplay->vtbl->func_139C((s32) self->mapID, cmd->param2 | (cmd->param1 << 8));
+            gDLL_29_Gplay->vtbl->set_map_setup((s32) self->mapID, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_SCRIPT:
             // "TRIGGER: warning DLL not loaded\n"
@@ -683,12 +683,12 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
         case TRG_CMD_WORLD_ENABLE_OBJ_GROUP:
             // "Trigger [%d], Object Load\n"
             recomp_printf("Trigger [%d], WorldObjectLoad [%d, %d]\n", i, cmd->param2, cmd->param1);
-            gDLL_29_Gplay->vtbl->func_16C4((s32) cmd->param2, (s32) cmd->param1, 1);
+            gDLL_29_Gplay->vtbl->set_obj_group_status((s32) cmd->param2, (s32) cmd->param1, 1);
             break;
         case TRG_CMD_WORLD_DISABLE_OBJ_GROUP:
             // "Trigger [%d], Object Free\n"
             recomp_printf("Trigger [%d], WorldObjectFree [%d, %d]\n", i, cmd->param2, cmd->param1);
-            gDLL_29_Gplay->vtbl->func_16C4((s32) cmd->param2, (s32) cmd->param1, 0);
+            gDLL_29_Gplay->vtbl->set_obj_group_status((s32) cmd->param2, (s32) cmd->param1, 0);
             break;
         case TRG_CMD_KYTE_FLIGHT_GROUP:
             recomp_printf("Trigger [%d], KyteFlightGroup [%d]\n", i, cmd->param2 | (cmd->param1 << 8));
@@ -700,7 +700,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             break;
         case TRG_CMD_WORLD_SET_MAP_SETUP:
             recomp_printf("Trigger [%d], WorldSetMapSetup [%d, %d]\n", i, cmd->param2, cmd->param1);
-            gDLL_29_Gplay->vtbl->func_139C((s32) cmd->param2, (s32) cmd->param1);
+            gDLL_29_Gplay->vtbl->set_map_setup((s32) cmd->param2, (s32) cmd->param1);
             break;
         case TRG_CMD_11:
             // Tricky related?
@@ -709,7 +709,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             break;
         case TRG_CMD_SAVE_GAME:
             recomp_printf("Trigger [%d], SaveGame [%d]\n", i, cmd->param2);
-            gDLL_29_Gplay->vtbl->func_958(&self->srt.transl, (s16) ((s16) self->srt.yaw >> 8), (s32) cmd->param2, func_80048498());
+            gDLL_29_Gplay->vtbl->checkpoint(&self->srt.transl, (s16) ((s16) self->srt.yaw >> 8), (s32) cmd->param2, func_80048498());
             break;
         case TRG_CMD_MAP_LAYER:
             // @recomp: Dino Mod trigger mapLayer command extension (originally by MusicalProgrammer)

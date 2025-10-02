@@ -8,7 +8,7 @@
 #include "sys/objtype.h"
 #include "functions.h"
 
-#include "recomp/dlls/_asm/638_recomp.h"
+#include "recomp/dlls/objects/638_DFPlevcontrol_recomp.h"
 
 extern s32 dll_638_func_62C(Object* self, s32 arg1, s32 arg2, s32 arg3);
 
@@ -21,15 +21,15 @@ RECOMP_PATCH void dll_638_func_18(Object* self, s32 arg1, s32 arg2) {
     obj_add_object_type(self, 0xA);
     _data_0 = queue_load_texture_proxy(0x46C);
     self->unk0xbc = (void*)dll_638_func_62C;
-    gDLL_29_Gplay->vtbl->func_139C(self->mapID, 1);
-    mapSetup = gDLL_29_Gplay->vtbl->func_143C(self->mapID);
+    gDLL_29_Gplay->vtbl->set_map_setup(self->mapID, 1);
+    mapSetup = gDLL_29_Gplay->vtbl->get_map_setup(self->mapID);
 
     switch (mapSetup) { 
         case 0:
             func_80000860(self, self, 261, 0);
             func_80000860(self, self, 262, 0);
             func_80000860(self, self, 263, 0);
-            gDLL_29_Gplay->vtbl->func_16C4(0x32, 2, 1);
+            gDLL_29_Gplay->vtbl->set_obj_group_status(0x32, 2, 1);
             break;
         case 1:
             func_80000860(self, self, 415, 0);

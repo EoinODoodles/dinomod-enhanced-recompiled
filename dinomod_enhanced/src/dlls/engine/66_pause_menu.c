@@ -35,14 +35,12 @@ extern char gameplayTime[0xa];
 extern char spiritCount[0x2];
 extern char spellStoneCount[0x2];
 extern char dusterCount[0x2];
-extern char _bss_20[0x4];
 extern char completionPercentage[4];
-extern char _bss_28[0x2];
 extern u8 pauseScreenState;
 extern s8 gameSavedMessageTimer;
 extern s16 pauseMenuOpacity;
 
-void getPlayerStats(void){
+static void getPlayerStats(void){
     s8 dusters = getCountDusters();
     s8 spellStones = getCountSpellStones();
     s8 spirits = getCountSpirits();
@@ -52,7 +50,7 @@ void getPlayerStats(void){
     sprintf(spiritCount, formatSpiritCount, spirits);
 }
 
-void printWithDropshadow(char message[], s16 x, s16 y, s32 colour_main, s32 colour_shadow, s8 opacity, s8 alignment){ 
+static void printWithDropshadow(char message[], s16 x, s16 y, s32 colour_main, s32 colour_shadow, s8 opacity, s8 alignment){ 
     //Main text
     font_window_set_text_colour(1, 
         (colour_main >> 24) & 0xFF, 
@@ -139,7 +137,7 @@ RECOMP_PATCH void n_pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
             printWithDropshadow(completionPercentage, 264, 36, colour_main, colour_shadow, opacity_main, ALIGN_TOP_CENTER);
     
             //Draw gameplay time
-            gDLL_7_Newday->vtbl->convert_ticks_to_real_time(gDLL_29_Gplay->vtbl->func_1270(), &hours, &minutes, &seconds);
+            gDLL_7_Newday->vtbl->convert_ticks_to_real_time(gDLL_29_Gplay->vtbl->get_time_played(), &hours, &minutes, &seconds);
             sprintf(gameplayTime, formatGameplayTime, hours, minutes, seconds);
             printWithDropshadow(gameplayTime, 74, 36, colour_main, colour_shadow, opacity_main, ALIGN_TOP_CENTER);
     
@@ -249,12 +247,12 @@ RECOMP_PATCH s32 n_pausemenu_update(void) {
         
         if (action == PICMENU_ACTION_SELECT) {
             if (!selectedItem){
-                gDLL_6_AMSFX->vtbl->func2(0, 2931, 0x7F, 0, 0, 0, 0);
+                gDLL_6_AMSFX->vtbl->play_sound(0, 2931, 0x7F, 0, 0, 0, 0);
                 menu_set(MENU_GAMEPLAY);
                 unpause();
                 set_button_mask(0, A_BUTTON | B_BUTTON);
             } else {
-                gDLL_6_AMSFX->vtbl->func2(0, 2930, 0x7F, 0, 0, 0, 0);
+                gDLL_6_AMSFX->vtbl->play_sound(0, 2930, 0x7F, 0, 0, 0, 0);
                 gameSavedMessageTimer = 0;
                 pauseScreenState = 1;
                 
@@ -273,7 +271,7 @@ RECOMP_PATCH s32 n_pausemenu_update(void) {
     } else if (pauseScreenState == PAUSE_MENU_GAME_SAVED) {
 
         if (gameSavedMessageTimer == 0) {
-            gDLL_29_Gplay->vtbl->func_6AC();
+            gDLL_29_Gplay->vtbl->save_game();
         }
 
         gameSavedMessageTimer += delayFloat;
