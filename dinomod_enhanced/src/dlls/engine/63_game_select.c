@@ -60,6 +60,15 @@ extern void dll_63_load_save_game_info();
 extern void dll_63_goto_game_confirm();
 extern void dll_63_init_submenu(GameSelectSubmenu *submenu);
 
+/** If no name is entered when starting a save, display "Krystal"/"Sabre" instead of nothing */
+static const char *dinomod_get_save_filename(const GameSelectSaveInfo *saveInfo) {
+    if (saveInfo->filename[0] != '\0') {
+        return saveInfo->filename;
+    } else {
+        return saveInfo->playerno == PLAYER_KRYSTAL ? "KRYSTAL" : "SABRE";
+    }
+}
+
 /** Retains your save slot selection when backing out to the top-level menu page (i.e. exiting the menu page that shows info about the save slot) */
 RECOMP_PATCH void dll_63_goto_game_select(s32 param1) {
     GameSelectSubmenu *submenu;
@@ -111,11 +120,42 @@ RECOMP_PATCH void dll_63_act_game_recap(PicMenuAction action, s32 selected) {
     }
 }
 
-static const char *dinomod_get_save_filename(const GameSelectSaveInfo *saveInfo) {
-    if (saveInfo->filename[0] != '\0') {
-        return saveInfo->filename;
-    } else {
-        return saveInfo->playerno == PLAYER_KRYSTAL ? "KRYSTAL" : "SABRE";
+/** Read each slot's Spirit and SpellStone counts */
+RECOMP_PATCH void dll_63_load_save_game_info() {
+    s32 i;
+    Savefile *saveFile;
+    char *filenamePtr;
+
+    for (i = 0; i < 3; i++) {
+        if ((u8)gDLL_29_Gplay->vtbl->load_save(i, /*startGame*/FALSE) == 0) {
+            // failed to load save?
+            gDLL_29_Gplay->vtbl->erase_save(i);
+            bzero(&sSaveGameInfo[i], sizeof(GameSelectSaveInfo));
+            sSaveGameInfo[i].isEmpty = TRUE;
+        } else {
+            saveFile = &gDLL_29_Gplay->vtbl->get_state()->save.unk0.file;
+
+            if (!saveFile->isEmpty) {
+                sSaveGameInfo[i].playerno = saveFile->playerno;
+                // sSaveGameInfo[i].spiritBits = get_gplay_bitstring(0x489);
+                sSaveGameInfo[i].spiritBits = getCountSpirits(); //@recomp: Changing flag for consistency with Pause Menu, but may switch to 0x489 later
+                sSaveGameInfo[i].unk3  = getCountSpellStones(); //@recomp: Store SpellStone count in unused field (which may have been intended for it!)
+
+                filenamePtr = sSaveGameInfo[i].filename;
+
+                gDLL_7_Newday->vtbl->convert_ticks_to_real_time(
+                    saveFile->timePlayed,
+                    &sSaveGameInfo[i].timeHours, &sSaveGameInfo[i].timeMinutes, &sSaveGameInfo[i].timeSeconds);
+
+                sSaveGameInfo[i].unkA = 0;
+                sSaveGameInfo[i].isEmpty = FALSE;
+
+                bcopy(saveFile->name, filenamePtr, sizeof(saveFile->name) - 1); // 1 less to preserve null terminator
+            } else {
+                bzero(&sSaveGameInfo[i], sizeof(GameSelectSaveInfo));
+                sSaveGameInfo[i].isEmpty = TRUE;
+            }
+        }
     }
 }
 
@@ -142,10 +182,6 @@ RECOMP_PATCH void dll_63_draw_save_game_box(Gfx **gdl, s32 x, s32 y, GameSelectS
         }
     }
 
-    // @recomp: Load save (for reading SpellStone/Spirit counts)
-    // TODO: don't do this every frame!
-    gDLL_29_Gplay->vtbl->load_save(sSelectedSaveIdx, /*startGame*/FALSE);
-
     // Draw player icon
     func_8003825C(gdl, sSaveGameTextures[saveInfo->playerno], x + 14, y + 8, 0, 0, 0xFF, 0);
     // Draw spirit icon
@@ -163,12 +199,12 @@ RECOMP_PATCH void dll_63_draw_save_game_box(Gfx **gdl, s32 x, s32 y, GameSelectS
     sprintf(sSaveGameTimeStr, "%3d:%02d:%02d", saveInfo->timeHours, saveInfo->timeMinutes, saveInfo->timeSeconds);
     font_window_add_string_xy(1, x + 156, y + 49, sSaveGameTimeStr, 1, ALIGN_TOP_CENTER);
 
-    // @recomp: Get actual spirit count
-    sprintf(sSpiritCountStr, "%1d", getCountSpirits());
+    // @recomp: Use Spirit count
+    sprintf(sSpiritCountStr, "%1d", saveInfo->spiritBits);
     font_window_add_string_xy(1, x + 234, y + 81, sSpiritCountStr, 1, ALIGN_TOP_CENTER);
 
-    // @recomp: Get actual spell stone count
-    sprintf(sSpellStoneCountStr, "%1d", getCountSpellStones());
+    // @recomp: Use SpellStone count
+    sprintf(sSpellStoneCountStr, "%1d", saveInfo->unk3);
     font_window_add_string_xy(1, x + 84, y + 81, sSpellStoneCountStr, 1, ALIGN_TOP_CENTER);
 }
 
