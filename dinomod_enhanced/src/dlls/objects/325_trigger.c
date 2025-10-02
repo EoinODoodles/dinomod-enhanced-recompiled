@@ -494,10 +494,10 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             recomp_printf("Trigger [%d], Sound FX,           Action Num [%d],Handle Num [%d]\n", 
                 i, (cmd->param2 | (cmd->param1 << 8)), state->soundHandles[i]);
             if (dir >= 0) {
-                gDLL_6_AMSFX->vtbl->func14(self, (cmd->param2 | (cmd->param1 << 8)), &state->soundHandles[i]);
+                gDLL_6_AMSFX->vtbl->func_10D0(self, (cmd->param2 | (cmd->param1 << 8)), &state->soundHandles[i]);
             } else {
                 if (state->soundHandles[i] != 0) {
-                    gDLL_6_AMSFX->vtbl->func6(state->soundHandles[i]);
+                    gDLL_6_AMSFX->vtbl->func_A1C(state->soundHandles[i]);
                     state->soundHandles[i] = 0;
                 }
             }
