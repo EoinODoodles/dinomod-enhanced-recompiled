@@ -7,14 +7,14 @@
 #include "sys/objects.h"
 #include "dlls/objects/210_player.h"
 
-#include "recomp/dlls/_asm/277_recomp.h"
+#include "recomp/dlls/objects/277_iceblast_recomp.h"
 
 typedef struct {
 s16 timer;
 } IceBlastState;
 
-//Fixes the direction of the Ice Blast when used by Sabre (originally by MusicalProgrammer)
-RECOMP_PATCH void dll_277_func_80(Object* self) {
+// Fixes the direction of the Ice Blast when used by Sabre (originally by MusicalProgrammer)
+RECOMP_PATCH void iceblast_update(Object* self) {
     Object* player;
     Object* weapon;
     IceBlastState* state;
@@ -41,7 +41,6 @@ RECOMP_PATCH void dll_277_func_80(Object* self) {
         self->speed.y = -5.0f;
         self->speed.z = 0.0f; 
 
-        
         transform.transl.x = 0.0f;
         transform.transl.y = 0.0f;
         transform.transl.z = 0.0f;
@@ -67,8 +66,12 @@ RECOMP_PATCH void dll_277_func_80(Object* self) {
     self->positionMirror2.x = self->srt.transl.x;
     self->positionMirror2.y = self->srt.transl.y;
     self->positionMirror2.z = self->srt.transl.z;
-    self->srt.transl.x += (self->speed.x * delayFloat);
-    self->srt.transl.y += (self->speed.y * delayFloat);
-    self->srt.transl.z += (self->speed.z * delayFloat);
+    self->srt.transl.x += self->speed.x * delayFloatMirror;
+    self->srt.transl.y += self->speed.y * delayFloatMirror;
+    self->srt.transl.z += self->speed.z * delayFloatMirror;
+}
 
+// Hide debug cubes
+RECOMP_PATCH void iceblast_draw(Object* self, Gfx** gfx, Mtx** mtx, Vertex** vtx, Triangle** pols, s32 visibility) {
+    // draw_object(self, gfx, mtx, vtx, pols, 1.0f);
 }
