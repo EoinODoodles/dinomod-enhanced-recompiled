@@ -42,7 +42,7 @@ RECOMP_PATCH void dll_295_func_D04(Object* self, s32 arg1) {
     }
 
     gDLL_14_Modgfx->vtbl->func5(self);
-    obj_free_object_type(self, 0x12); //@recomp: free objects in category 0x12 (StaticCamera)
+    obj_free_object_type(self, 0x12); //@recomp: remove SmallBasket type objects from category 0x12
     dll_unload((void*)_data_0[0]);
     if (state->sound) {
         gDLL_6_AMSFX->vtbl->func_A1C(state->sound);
