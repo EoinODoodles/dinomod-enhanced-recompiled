@@ -3,6 +3,7 @@
 #include "sidekick_util.h"
 
 #include "sys/dll.h"
+#include "sys/objects.h"
 
 #include "recomp/dlls/_asm/211_recomp.h"
 
@@ -33,17 +34,34 @@ static void tricky_update_hijack(Object *self) {
     tricky_update_func(self);
 }
 
+// TODO: replace with a real decomp of this function
 RECOMP_PATCH void dll_211_func_940C(Object *self, void *state) {
+    // Note: This function is probably only meant to be called when state+4C has the 0x800 bit set...
+    //       It won't necessarily when unloading tricky manually, since destroy calls this without checking the state.
     u32 *unk4c = (u32*)((u32)state + 0x4c);
     *unk4c &= ~0x800;
     *unk4c |= 0x1000;
 
+    // @recomp: Do null checks before unloading stuff, also reset pointers to null after.
+    //          obj_destroy_object will crash if given a null/invalid pointer.
     void **unk0 = (void**)((u32)state + 0x0);
-    // @recomp: Do a null check first
     if (*unk0 != NULL) {
         dll_unload(*unk0);
+        *unk0 = NULL;
     }
 
-    // @recomp: Skip the nonsense calls to obj_destroy_object that are usually at this point.
-    //          They are never given real Object pointers.
+    Object **unk5f0 = (Object**)((u32)state + 0x5f0);
+    if (*unk5f0 != NULL) {
+        obj_destroy_object(*unk5f0);
+        *unk5f0 = NULL;
+    }
+
+    for (s32 i = 0; i < 3; i++) {
+        Object **ptr = (Object**)((u32)state + (0x5e4 + (i * 4)));
+        if (*ptr != NULL) {
+            obj_destroy_object(*ptr);
+            *ptr = NULL;
+        }
+
+    }
 }
