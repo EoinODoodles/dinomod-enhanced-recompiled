@@ -36,9 +36,13 @@ static void tricky_update_hijack(Object *self) {
 
 // TODO: replace with a real decomp of this function
 RECOMP_PATCH void dll_211_func_940C(Object *self, void *state) {
-    // Note: This function is probably only meant to be called when state+4C has the 0x800 bit set...
-    //       It won't necessarily when unloading tricky manually, since destroy calls this without checking the state.
     u32 *unk4c = (u32*)((u32)state + 0x4c);
+    // @recomp: Don't run this function if unk4c & 0x800 is not set. The pointers loaded
+    //          below will not be valid in that case. It seems that area of state is a union
+    //          that holds unrelated memory when Tricky is in other states.
+    if (!(*unk4c & 0x800)) {
+        return;
+    }
     *unk4c &= ~0x800;
     *unk4c |= 0x1000;
 
@@ -62,6 +66,5 @@ RECOMP_PATCH void dll_211_func_940C(Object *self, void *state) {
             obj_destroy_object(*ptr);
             *ptr = NULL;
         }
-
     }
 }
