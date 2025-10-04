@@ -1,5 +1,6 @@
 #include "modding.h"
 #include "recomputils.h"
+#include "dll_util.h"
 #include "sidekick_util.h"
 
 #include "sys/dll.h"
@@ -7,17 +8,12 @@
 
 #include "recomp/dlls/_asm/211_recomp.h"
 
-#define DLL_EXPORT(num) (num + 1)
-
 typedef void (*ObjUpdateFunc)(Object *obj);
-
 static ObjUpdateFunc tricky_update_func; 
 static void tricky_update_hijack(Object *self);
 
 RECOMP_HOOK_DLL(dll_211_ctor) void tricky_ctor_hook(DLLFile *dll) {
-    u32 *vtbl = DLL_FILE_TO_EXPORTS(dll);
-    tricky_update_func = (ObjUpdateFunc)vtbl[DLL_EXPORT(1)];
-    vtbl[DLL_EXPORT(1)] = (u32)&tricky_update_hijack;
+    tricky_update_func = dinomod_hijack_dll_export(dll, 1, tricky_update_hijack);
 }
 
 RECOMP_HOOK_RETURN_DLL(dll_211_dtor) void tricky_dtor_hook() {
