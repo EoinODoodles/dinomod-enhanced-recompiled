@@ -40,7 +40,7 @@ typedef struct {
 // Clamps the PortalTexAnimator's 16-bit opacity value into an 8-bit range, fixing a bug where the vertices' alpha would suddenly wrap around to a low value 
 RECOMP_PATCH void dll_362_func_310(PortalTexAnimatorState* state, PortalTexAnimatorCreateInfo* createInfo, Block* block) {
     BlockShape *shapes;
-    Vtx_t *vertices;
+    Vtx_t *animatedVertices;
     s32 shapeIndex;
     s32 vertexIndex;
     
@@ -51,7 +51,7 @@ RECOMP_PATCH void dll_362_func_310(PortalTexAnimatorState* state, PortalTexAnima
         state->vertexOpacity = 0;
     }
 
-    vertices = block->vertices2[block->vtxFlags & 1];
+    animatedVertices = block->vertices2[block->vtxFlags & 1];
 
     shapeIndex = 0;
     shapes = block->shapes;
@@ -61,7 +61,11 @@ RECOMP_PATCH void dll_362_func_310(PortalTexAnimatorState* state, PortalTexAnima
         
         if (state->animatorID == shapes[shapeIndex].unk_0x14){
             for (vertexIndex = shapes[shapeIndex].vtxBase; vertexIndex < shapes[shapeIndex + 1].vtxBase; vertexIndex++){
-                vertices[vertexIndex].cn[3] = state->vertexOpacity; //@bug: setting a 16-bit value on an 8-bit colour field
+                //@recomp: ignore vertices with 0 base opacity (i.e. preserve vertex alpha based texture blending)
+                if (block->vertices[vertexIndex].cn[3] == 0)
+                    continue;
+
+                animatedVertices[vertexIndex].cn[3] = state->vertexOpacity;
             }
             
             //Switch shape's draw flags when opacity is zero
