@@ -434,7 +434,6 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
         switch (cmd->id) {                  /* switch 1 */
         case TRG_CMD_HAZARD: 
             // "Trigger [%d], Gamplay Vulnerable"
-            recomp_printf("Trigger [%d], Gamplay Vulnerable [%d]\n", i, cmd->param1);
             switch (cmd->param1) {              /* switch 2 */
             case 0:                         /* switch 2 */
             case 1:                         /* switch 2 */
@@ -481,18 +480,14 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
         case TRG_CMD_MUSIC_ACTION: 
             if ((dir < 0) && (gDLL_5_AMSEQ->vtbl->func2(self, (cmd->param2 | (cmd->param1 << 8))) != 0)) {
                 // "Trigger [%d], Music Action,       Action Num [%d] Free"
-                recomp_printf("Trigger [%d], Music Action,       Action Num [%d] Free\n", i, (cmd->param2 | (cmd->param1 << 8)));
                 gDLL_5_AMSEQ2->vtbl->func1(self, (cmd->param2 | (cmd->param1 << 8)), 0, 0, 0);
             } else {
                 // "Trigger [%d], Music Action,       Action Num [%d] Set"
-                recomp_printf("Trigger [%d], Music Action,       Action Num [%d] Set\n", i, (cmd->param2 | (cmd->param1 << 8)));
                 gDLL_5_AMSEQ2->vtbl->func0(self, (cmd->param2 | (cmd->param1 << 8)), 0, 0, 0);
             }
             break;
         case TRG_CMD_SOUND: 
             // "Trigger [%d], Sound FX,           Action Num [%d],Handle Num [%d]"
-            recomp_printf("Trigger [%d], Sound FX,           Action Num [%d],Handle Num [%d]\n", 
-                i, (cmd->param2 | (cmd->param1 << 8)), state->soundHandles[i]);
             if (dir >= 0) {
                 gDLL_6_AMSFX->vtbl->func_10D0(self, (cmd->param2 | (cmd->param1 << 8)), &state->soundHandles[i]);
             } else {
@@ -504,8 +499,6 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             break;
         case TRG_CMD_CAMERA_ACTION: 
             // "Trigger [%d], Camera,             Action [%d], Camera Num [%d], PassDir [%d]"
-            recomp_printf("Trigger [%d], Camera,             Action [%d], Camera Num [%d], PassDir [%d]\n", 
-                i, cmd->param1, cmd->param2, dir);
             gDLL_2_Camera->vtbl->func8(cmd->param1, cmd->param2);
             break;
         case TRG_CMD_TRACK: 
@@ -519,7 +512,6 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             // "Trigger [%d], Track Dome Off"
             // "Trigger [%d], Track MrSheen On %d"
             // "Trigger [%d], Track MrSheen Off"
-            recomp_printf("Trigger [%d], Track [%d, %d]\n", i, cmd->param1, cmd->param2);
             switch (cmd->param1) {              /* switch 3 */
             case 0:                         /* switch 3 */
                 if ((s32) cmd->param2 >= 2) {
@@ -583,145 +575,120 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             }
             break;
         case TRG_CMD_5: 
-            recomp_printf("Trigger [%d], CMD_5\n", i);
             if ((state->radiusSquared != 0.0f) && (activatorDistSquared != 0) && (createInfo->base.objId == OBJ_TriggerPlane)) {
 
             }
             break;
         case TRG_CMD_ENV_FX:
             // "Trigger [%d], Environment Effect, Action Num [%d], Range [%d]"
-            recomp_printf("Trigger [%d], Environment Effect, Action Num [%d], Range [%d]\n", 
-                i, (cmd->param2 | (cmd->param1 << 8)), activatorDistSquared);
             func_80000860(self, activator, (cmd->param2 | (cmd->param1 << 8)), activatorDistSquared);
             break;
         case TRG_CMD_LIGHTING:
             // "Trigger [%d], Lighting,           Action      [%d], Range [%d], PassDir [%d]"
-            recomp_printf("Trigger [%d], Lighting,           Action      [%d], Range [%d], PassDir [%d]\n", 
-                i, (cmd->param2 | (cmd->param1 << 8)), activatorDistSquared, dir);
             func_80000450(self, activator, (cmd->param2 | (cmd->param1 << 8)), dir, activatorDistSquared, 0);
             break;
         case TRG_CMD_ANIM_SEQ:
             switch (cmd->param1) {
                 case 0:
                 case 3:
-                    recomp_printf("Trigger [%d], Anim Sequence,      SequenceID [%d], Activate\n", i, cmd->param2);
+                    // "Trigger [%d], Anim Sequence,      SequenceID [%d], Activate"
                     gDLL_3_Animation->vtbl->func1(cmd->param2, 0); // should be 3 params?
                     break;
                 case 1:
-                    recomp_printf("Trigger [%d], Anim Sequence,      SequenceID [%d], Flag = 1\n", i, cmd->param2);
+                    // "Trigger [%d], Anim Sequence,      SequenceID [%d], Flag = 1"
                     gDLL_3_Animation->vtbl->func2(cmd->param2, 1);
                     break;
                 case 2:
-                    recomp_printf("Trigger [%d], Anim Sequence,      SequenceID [%d], Flag = 0\n", i, cmd->param2);
+                    // "Trigger [%d], Anim Sequence,      SequenceID [%d], Flag = 0"
                     gDLL_3_Animation->vtbl->func2(cmd->param2, 0);
                     break;
             }
             break;
         case TRG_CMD_TRIGGER:
-            recomp_printf("Trigger [%d], Trigger,            Local ID   [%d]\n", i, cmd->param2 | (cmd->param1 << 8));
+            // "Trigger [%d], Trigger,            Local ID   [%d]"
             trigger_func_29C0((cmd->param2 | (cmd->param1 << 8)), activator, dir, activatorDistSquared);
             break;
         // case TRG_CMD_?
             // "Storyboard disabled, please remove trigger\n"
         case TRG_CMD_LOD_MODEL:
-            recomp_printf("Trigger [%d], LOD Model [%d]\n", i, cmd->param1);
+            // "Trigger [%d], LOD Model [%d]"
             func_80023A18(get_player(), (s32) cmd->param1);
             break;
         case TRG_CMD_F:
             // "Trigger [%d], Setup Point,        Level      [%d], SetupPoint [%d]"
             // ?
-            recomp_printf("Trigger [%d], Setup Point,        Level      [%d], SetupPoint [%d]\n", i, cmd->param1, cmd->param2);
             trigger_func_1754(cmd->param1, cmd->param2);
             break;
         case TRG_CMD_FLAG:
             // "Trigger [%d], Bits\n"
-            recomp_printf("Trigger [%d], Bits [0x%x]\n", i, cmd->param2 | (cmd->param1 << 8));
             trigger_func_1764((cmd->param2 | (cmd->param1 << 8)));
             break;
         case TRG_CMD_FLAG_TOGGLE:
-            recomp_printf("Trigger [%d], Bits Toggle [0x%x]\n", i, cmd->param2 | (cmd->param1 << 8));
             trigger_func_17FC((cmd->param2 | (cmd->param1 << 8)));
             break;
         case TRG_CMD_ENABLE_OBJ_GROUP:
             // "Trigger [%d], Object Load\n"
-            recomp_printf("Trigger [%d], Object Load [%d]\n", i, cmd->param2 | (cmd->param1 << 8));
             gDLL_29_Gplay->vtbl->set_obj_group_status((s32) self->mapID, cmd->param2 | (cmd->param1 << 8), 1);
             break;
         case TRG_CMD_DISABLE_OBJ_GROUP:
             // "Trigger [%d], Object Free\n"
-            recomp_printf("Trigger [%d], Object Free [%d]\n", i, cmd->param2 | (cmd->param1 << 8));
             gDLL_29_Gplay->vtbl->set_obj_group_status((s32) self->mapID, cmd->param2 | (cmd->param1 << 8), 0);
             break;
         case TRG_CMD_TOGGLE_OBJ_GROUP:
             // "Trigger [%d], Object Toggle\n"
-            recomp_printf("Trigger [%d], Object Toggle [%d]\n", i, cmd->param2 | (cmd->param1 << 8));
             temp_a1 = (cmd->param2 | (cmd->param1 << 8));
             gDLL_29_Gplay->vtbl->set_obj_group_status((s32) self->mapID, temp_a1, gDLL_29_Gplay->vtbl->get_obj_group_status((s32) self->mapID, temp_a1) ^ 1);
             break;
         case TRG_CMD_TEXTURE_LOAD:
             // "Trigger [%d], Tex Load\n"
-            recomp_printf("Trigger [%d], Tex Load\n", i, cmd->param2 | (cmd->param1 << 8));
             trigger_func_1868((cmd->param2 | (cmd->param1 << 8)));
             break;
         case TRG_CMD_TEXTURE_FREE:
             // "Trigger [%d], Tex Free\n"
-            recomp_printf("Trigger [%d], Tex Free\n", i, cmd->param2 | (cmd->param1 << 8));
             trigger_func_1920((cmd->param2 | (cmd->param1 << 8)));
             break;
         case TRG_CMD_SET_MAP_SETUP:
-            recomp_printf("Trigger [%d], SetMapSetup [%d]\n", i, cmd->param2 | (cmd->param1 << 8));
             gDLL_29_Gplay->vtbl->set_map_setup((s32) self->mapID, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_SCRIPT:
             // "TRIGGER: warning DLL not loaded\n"
             // "Script [%d], Subscript [%d]\n"
-            recomp_printf("Script [%d], Subscript [%d]\n", cmd->param1, cmd->param2);
             if (state->scripts[i] != NULL) {
                 state->scripts[i]->vtbl->subscripts[cmd->param2](self, activator, dir, activatorDistSquared);
             }
             break;
         case TRG_CMD_WORLD_ENABLE_OBJ_GROUP:
             // "Trigger [%d], Object Load\n"
-            recomp_printf("Trigger [%d], WorldObjectLoad [%d, %d]\n", i, cmd->param2, cmd->param1);
             gDLL_29_Gplay->vtbl->set_obj_group_status((s32) cmd->param2, (s32) cmd->param1, 1);
             break;
         case TRG_CMD_WORLD_DISABLE_OBJ_GROUP:
             // "Trigger [%d], Object Free\n"
-            recomp_printf("Trigger [%d], WorldObjectFree [%d, %d]\n", i, cmd->param2, cmd->param1);
             gDLL_29_Gplay->vtbl->set_obj_group_status((s32) cmd->param2, (s32) cmd->param1, 0);
             break;
         case TRG_CMD_KYTE_FLIGHT_GROUP:
-            recomp_printf("Trigger [%d], KyteFlightGroup [%d]\n", i, cmd->param2 | (cmd->param1 << 8));
             set_gplay_bitstring(0x46E, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_KYTE_TALK_SEQ:
-            recomp_printf("Trigger [%d], KyteTalkSeq [%d]\n", i, cmd->param2 | (cmd->param1 << 8));
             set_gplay_bitstring(0x488, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_WORLD_SET_MAP_SETUP:
-            recomp_printf("Trigger [%d], WorldSetMapSetup [%d, %d]\n", i, cmd->param2, cmd->param1);
             gDLL_29_Gplay->vtbl->set_map_setup((s32) cmd->param2, (s32) cmd->param1);
             break;
         case TRG_CMD_11:
             // Tricky related?
-            recomp_printf("Trigger [%d], Tricky Bit 0x4E2 = [%d]\n", i, cmd->param2 | (cmd->param1 << 8));
             set_gplay_bitstring(0x4E2, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_SAVE_GAME:
-            recomp_printf("Trigger [%d], SaveGame [%d]\n", i, cmd->param2);
             gDLL_29_Gplay->vtbl->checkpoint(&self->srt.transl, (s16) ((s16) self->srt.yaw >> 8), (s32) cmd->param2, func_80048498());
             break;
         case TRG_CMD_MAP_LAYER:
             // @recomp: Dino Mod trigger mapLayer command extension (originally by MusicalProgrammer)
             if ((s8)cmd->param2 == -1) {
-                recomp_printf("[DinoMod] Trigger [%d], Set MapLayer [%d]\n", i, cmd->param1);
                 set_map_layer(cmd->param1);
             } else {
                 if (cmd->param1 == 0) {
-                    recomp_printf("Trigger [%d], Increment MapLayer\n", i);
                     func_80047374();
                 } else {
-                    recomp_printf("Trigger [%d], Decrement MapLayer\n", i);
                     func_800473BC();
                 }
             }
@@ -729,15 +696,15 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
         case TRG_CMD_RESTART:
             switch (cmd->param1) {            /* switch 4; irregular */
             case 0:                         /* switch 4 */
-                recomp_printf("Restart Set [%d]\n", i);
+                // "Restart Set [%d]\n"
                 gDLL_29_Gplay->vtbl->restart_set(&self->srt.transl, self->srt.yaw, func_80048498());
                 break;
             case 1:                         /* switch 4 */
-                recomp_printf("Restart Clear [%d]\n", i);
+                // "Restart Clear [%d]\n"
                 gDLL_29_Gplay->vtbl->restart_clear();
                 break;
             case 2:                         /* switch 4 */
-                recomp_printf("Restart Goto [%d]\n", i);
+                // "Restart Goto [%d]\n"
                 gDLL_29_Gplay->vtbl->restart_goto();
                 break;
             }
@@ -747,16 +714,14 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             if (sidekick != NULL) {
                 switch (cmd->param1) {       /* switch 5; irregular */
                 case 0:                     /* switch 5 */
-                    recomp_printf("Trigger [%d], sidekick func23\n", i);
                     ((DLL_ISidekick *)sidekick->dll)->vtbl->func23(sidekick);
                     break;
                 case 1:                     /* switch 5 */
-                    recomp_printf("killing sidekick\n");
+                    // "killing sidekick\n"
                     obj_destroy_object(get_sidekick());
                     break;
                 case 2:                     /* switch 5 */
                     // "findobj %i \n"
-                    recomp_printf("Trigger [%d], sidekick findobj\n", i);
                     var_v0_2 = obj_get_nearest_type_to(0x34, sidekick, NULL);
                     if (var_v0_2 == NULL) {
                         var_v0_2 = obj_get_nearest_type_to(0x33, sidekick, NULL);
@@ -770,7 +735,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             break;
         case TRG_CMD_WATER_FALLS_FLAGS:
         case TRG_CMD_WATER_FALLS_FLAGS2:
-            recomp_printf("Trigger [%d], amSfxWaterFallsSetFlags,   Action [%d], PassDir [%d]\n", i, cmd->param1, dir);
+            // "Trigger [%d], amSfxWaterFallsSetFlags,   Action [%d], PassDir [%d]"
             gDLL_6_AMSFX->vtbl->water_falls_set_flags(cmd->param1);
             break;
         }
