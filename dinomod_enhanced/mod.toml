@@ -51,3 +51,13 @@ Which version of Dinomod Enhanced's subtitle/text patches to use.
 type = "Enum"
 options = [ "Vanilla", "Cosmetic" ]
 default = "Vanilla"
+
+[[manifest.config_options]]
+id = "upcoming_subtitle_trans"
+name = "Upcoming Subtitle Transparency"
+description = '''
+In the vanilla game, the upcoming subtitle text is shown behind the current subtitle text with low transparency. This option lets you turn upcoming text invisible instead, for improved clarity. This is left as an option since the upcoming text being visible early may have been an intentional style choice by Rare. 
+'''
+type = "Enum"
+options = [ "Vanilla", "Invisible" ]
+default = "Invisible"
