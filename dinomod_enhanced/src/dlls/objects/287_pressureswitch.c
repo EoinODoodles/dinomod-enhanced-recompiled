@@ -33,10 +33,12 @@ RECOMP_PATCH void dll_287_func_628(Object* self, Object* objectOnSwitch) {
     PressureSwitchState *state = self->state;
     u8 objectIndex;
     
-    objectIndex = 0;
-    //@recomp: fix broken loop condition
-    while (state->objectsOnSwitch[objectIndex] && objectIndex < 4){ 
-        objectIndex++; 
+    //@recomp: fix loop condition, and check if object already in list
+    for (objectIndex = 0; objectIndex < 10; objectIndex++){
+        if (state->objectsOnSwitch[objectIndex] == NULL || 
+            state->objectsOnSwitch[objectIndex] == objectOnSwitch){
+            break;
+        }
     }
     
     state->objectsOnSwitch[objectIndex] = objectOnSwitch;    
