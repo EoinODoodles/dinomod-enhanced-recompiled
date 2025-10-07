@@ -74,7 +74,8 @@ RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
         temp_v0_2 = ((DLL_210_Player*)player->dll)->vtbl->func50(player);
         if ((temp_v0_2 != 0x40) && (temp_v0_2 != 0x1D7) && (get_gplay_bitstring(0x2F3) == 0)) {
             // @recomp: Instead of warping, play a cutscene for the GuardClaw in Warlock Mountain, 
-            //          to avoid crashing the game after you deposit the spirit. The set bits plays the cutscene.
+            //          to avoid crashing the game after you deposit the spirit. 
+            //          The set bits plays the cutscene. (originally by MusicalProgrammer)
             //warpPlayer(WARP_WM_SABRE_KRAZOA_CORRIDOR, /*fadeToBlack=*/FALSE);
             set_gplay_bitstring(0x1DE, 1);
         }
@@ -117,7 +118,8 @@ RECOMP_PATCH void WL_LevelControl_setup6_tick(Object* self) {
         ((DLL_Unknown*)temp_v0->dll)->vtbl->func[11].withTwoArgs((s32)temp_v0, 4);
         set_gplay_bitstring(0x2D, 1);
         set_gplay_bitstring(0x1D7, 1);
-        // @recomp: Stop Warlock Mountain from giving you back one of the Spirits. Possibly unwanted debug code?
+        // @recomp: Stop Warlock Mountain from giving you back one of the Spirits. 
+        //          Possibly unwanted debug code? (originally by MusicalProgrammer)
         //((DLL_210_Player*)player->dll)->vtbl->func39(player, 0x20, 1);
         _data_18 = 0;
     }
@@ -135,7 +137,8 @@ RECOMP_PATCH void WL_LevelControl_setup7_tick(Object* self) {
         set_gplay_bitstring(0x2D, 1);
         set_gplay_bitstring(0x1D7, 1);
         player = get_player();
-        // @recomp: Stop Warlock Mountain from giving you back one of the Spirits. Possibly unwanted debug code?
+        // @recomp: Stop Warlock Mountain from giving you back one of the Spirits.
+        //          Possibly unwanted debug code? (originally by MusicalProgrammer)
         //((DLL_210_Player*)player->dll)->vtbl->func39(player, 0x40, 1);
         ((DLL_210_Player*)player->dll)->vtbl->func14(player, 0x14);
         _data_1C = 0;
