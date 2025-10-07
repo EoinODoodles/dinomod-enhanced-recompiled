@@ -26,7 +26,7 @@ s16 shakeSoundTimer;
 
 // Frees the Small Basket objects' memory properly (originally by MusicalProgrammer)
 // Prevent crash if the player's holding the basket when it unloads
-RECOMP_PATCH void dll_295_func_D04(Object* self, s32 arg1) {
+RECOMP_PATCH void dll_295_destroy(Object* self, s32 arg1) {
     SmallBasketState* state = self->state;
     Object* player; //@recomp
     PlayerState* playerState; //@recomp
