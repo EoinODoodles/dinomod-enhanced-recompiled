@@ -29,8 +29,8 @@ extern u16 sWarlockMountainWarps[2];
 extern u16 sSwapStoneWarps[2];
 
 extern s32 SHswapstone_func_448(Object* self, Object* a1, AnimObjState* a2, void* a3);
-extern s32 SHswapstone_func_C04(void);
-extern s32 SHswapstone_func_D0C(void);
+extern s32 SHswapstone_get_held_spirit(void);
+extern s32 SHswapstone_has_spellstone(void);
 extern void SHswapstone_func_A8C(Object* self, s32 arg1, s32 arg2);
 extern s32 SHswapstone_func_AD4(Object* self, s32 arg1, s32 arg2);
 
@@ -47,10 +47,10 @@ RECOMP_PATCH s32 SHswapstone_func_448(Object* self, Object* a1, AnimObjState* a2
     a2->unkF4 = SHswapstone_func_A8C;
     if (a2->unk62 != 0) {
         state->unk2 &= ~3;
-        if (SHswapstone_func_C04() != 0) {
+        if (SHswapstone_get_held_spirit() != 0) {
             state->unk2 |= 1;
         }
-        if (SHswapstone_func_D0C() != 0) {
+        if (SHswapstone_has_spellstone() != 0) {
             state->unk2 |= 2;
         }
         a2->unk62 = 0;
@@ -88,7 +88,7 @@ RECOMP_PATCH s32 SHswapstone_func_448(Object* self, Object* a1, AnimObjState* a2
             break;
         case 7:
             playerno = gDLL_29_Gplay->vtbl->get_playerno();
-            switch (SHswapstone_func_C04()) {
+            switch (SHswapstone_get_held_spirit()) {
             case 0x2:
             case 0x8:
             case 0x10:

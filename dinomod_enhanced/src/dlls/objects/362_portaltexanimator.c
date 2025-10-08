@@ -7,7 +7,7 @@
 #include "sys/objects.h"
 #include "sys/map.h"
 
-#include "recomp/dlls/_asm/362_recomp.h"
+#include "recomp/dlls/objects/362_portaltexanimator_recomp.h"
 
 typedef struct {
 /*00*/ ObjCreateInfo base;
@@ -38,7 +38,7 @@ typedef struct {
 } PortalTexAnimatorState;
 
 // Clamps the PortalTexAnimator's 16-bit opacity value into an 8-bit range, fixing a bug where the vertices' alpha would suddenly wrap around to a low value 
-RECOMP_PATCH void dll_362_func_310(PortalTexAnimatorState* state, PortalTexAnimatorCreateInfo* createInfo, Block* block) {
+RECOMP_PATCH void portaltexanimator_animate_vertices(PortalTexAnimatorState* state, PortalTexAnimatorCreateInfo* createInfo, Block* block) {
     BlockShape *shapes;
     Vtx_t *animatedVertices;
     s32 shapeIndex;
