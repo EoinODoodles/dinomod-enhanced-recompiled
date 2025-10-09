@@ -4,17 +4,17 @@
 #include "recompconfig.h"
 
 #include "dll.h"
-#include "sys/dll.h"
-#include "game/objects/object.h"
 #include "sys/main.h"
+#include "sys/dll.h"
 #include "sys/objects.h"
 #include "sys/objtype.h"
 #include "sys/objanim.h"
 #include "sys/print.h"
-#include "functions.h"
-#include "types.h"
+#include "game/objects/object.h"
 #include "dlls/objects/214_animobj.h"
 #include "dlls/objects/227_tumbleweed.h"
+#include "functions.h"
+#include "types.h"
 
 #include "recomp/dlls/objects/496_snowhorn_recomp.h"
 
@@ -172,7 +172,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHornState* state, SnowHorn
             if (func_80032538(self)) {
                 gDLL_3_Animation->vtbl->func17(0, self, -1);
                 state->flags = 2;
-                set_gplay_bitstring(0x115, state->flags);
+                main_set_bits(0x115, state->flags);
             }
             break;
         case 2:
@@ -196,7 +196,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHornState* state, SnowHorn
                     if (state->garundaTe_weedsEaten > FROSTWEED_MAX_OVERRIDE) {
                         state->garundaTe_weedsEaten = FROSTWEED_MAX_OVERRIDE;
                     }
-                    set_gplay_bitstring(0x48B, state->garundaTe_weedsEaten);
+                    main_set_bits(0x48B, state->garundaTe_weedsEaten);
                     state->flags = 3;
                 }
             }
@@ -210,9 +210,9 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHornState* state, SnowHorn
             if (state->unk424 & 8) {
                 weeds = state->garundaTe_weedsEaten;
                 if (weeds >= FROSTWEED_MAX_OVERRIDE) {
-                    set_gplay_bitstring(0x102, 1);
+                    main_set_bits(0x102, 1);
                     state->flags = 5;
-                    set_gplay_bitstring(0x115, state->flags);
+                    main_set_bits(0x115, state->flags);
                     break;
                 }
                 if (weeds % 3 == 0) {
@@ -237,9 +237,9 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHornState* state, SnowHorn
             if (func_80032538(self)) {
                 gDLL_3_Animation->vtbl->func17(4, self, -1);
             } else if (gDLL_1_UI->vtbl->func7(0x123)) {
-                set_gplay_bitstring(0x22B, 1);
+                main_set_bits(0x22B, 1);
                 state->flags = 7;
-                set_gplay_bitstring(0x115, state->flags);
+                main_set_bits(0x115, state->flags);
             }
             break;
         case 7:
