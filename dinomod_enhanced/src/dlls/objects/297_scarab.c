@@ -11,7 +11,7 @@
 
 #include "dlls/engine/6_amsfx.h"
 #include "dlls/objects/210_player.h"
-#include "recomp/dlls/_asm/297_recomp.h"
+#include "recomp/dlls/objects/297_scarab_recomp.h"
 
 typedef struct {
 s32 soundHandle;
@@ -48,7 +48,7 @@ RECOMP_PATCH void dll_297_func_1284(Object* self, Object* player, ScarabState* s
   ScarabValues values = _data_20;
 
   //@recomp: enable Scarab counter UI
-  set_gplay_bitstring(0x919, 1);
+  main_set_bits(0x919, 1);
     
   ((DLL_Unknown*)player->dll)->vtbl->func[19].withTwoArgs((s32) player, values.bytes[state->unk29]);
     

@@ -309,11 +309,11 @@ RECOMP_PATCH void trigger_update(Object* self) {
             if (state->conditionBitFlagIDs[0] >= 0) {
                 // @recomp: Dino Mod condition bit extension for checking unset flags (originally by MusicalProgrammer)
                 if (state->conditionBitFlagIDs[0] & 0x4000) {
-                    if (get_gplay_bitstring(state->conditionBitFlagIDs[0] & ~0x4000) != 0) {
+                    if (main_get_bits(state->conditionBitFlagIDs[0] & ~0x4000) != 0) {
                         b_allBitsSet = FALSE;
                     }
                 } else {
-                    if (get_gplay_bitstring(state->conditionBitFlagIDs[0]) == 0) {
+                    if (main_get_bits(state->conditionBitFlagIDs[0]) == 0) {
                         b_allBitsSet = FALSE;
                     }
                 }
@@ -343,7 +343,7 @@ RECOMP_PATCH void trigger_update(Object* self) {
             b_allBitsSet = TRUE;
             for (i = 0; i < 4 && b_allBitsSet; i++) {
                 if (state->conditionBitFlagIDs[i] >= 0) {
-                    if (get_gplay_bitstring(state->conditionBitFlagIDs[i]) == 0) {
+                    if (main_get_bits(state->conditionBitFlagIDs[i]) == 0) {
                         b_allBitsSet = FALSE;
                     }
                 }
@@ -666,17 +666,17 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             gDLL_29_Gplay->vtbl->set_obj_group_status((s32) cmd->param2, (s32) cmd->param1, 0);
             break;
         case TRG_CMD_KYTE_FLIGHT_GROUP:
-            set_gplay_bitstring(0x46E, cmd->param2 | (cmd->param1 << 8));
+            main_set_bits(0x46E, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_KYTE_TALK_SEQ:
-            set_gplay_bitstring(0x488, cmd->param2 | (cmd->param1 << 8));
+            main_set_bits(0x488, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_WORLD_SET_MAP_SETUP:
             gDLL_29_Gplay->vtbl->set_map_setup((s32) cmd->param2, (s32) cmd->param1);
             break;
         case TRG_CMD_11:
             // Tricky related?
-            set_gplay_bitstring(0x4E2, cmd->param2 | (cmd->param1 << 8));
+            main_set_bits(0x4E2, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_SAVE_GAME:
             gDLL_29_Gplay->vtbl->checkpoint(&self->srt.transl, (s16) ((s16) self->srt.yaw >> 8), (s32) cmd->param2, func_80048498());
@@ -744,7 +744,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
     if (dir > 0) {
         // In
         state->flags |= TRG_ACTIVATOR_ENTERED;
-        set_gplay_bitstring(state->bitFlagID, 1);
+        main_set_bits(state->bitFlagID, 1);
     } else if (dir < 0) {
         // Out
         state->flags |= TRG_ACTIVATOR_EXITED;

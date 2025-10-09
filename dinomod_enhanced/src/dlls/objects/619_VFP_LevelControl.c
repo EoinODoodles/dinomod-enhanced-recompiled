@@ -2,6 +2,7 @@
 
 #include "PR/ultratypes.h"
 #include "dlls/objects/210_player.h"
+#include "game/gamebits.h"
 #include "game/objects/object.h"
 #include "sys/main.h"
 #include "sys/objects.h"
@@ -72,7 +73,7 @@ RECOMP_PATCH void VFP_LevelControl_update(Object* self) {
                 func_80000450(self, self, 0x174, 0, 0, 0);
                 func_80000450(self, self, 0x178, 0, 0, 0);
                 // @recomp: Don't give SpellStone back (breaks progression)
-                //set_gplay_bitstring(0x123, 1); // spellstone 1
+                //main_set_bits(BIT_SpellStone_1, 1); // spellstone 1
             }
         }
         VFP_LevelControl_func_8EC(self);
@@ -83,7 +84,7 @@ RECOMP_PATCH void VFP_LevelControl_update(Object* self) {
             _data_0 -= (s16)delayFloat;
             if (_data_0 <= 0) {
                 _data_0 = 0;
-                set_gplay_bitstring(0x4E9, 1);
+                main_set_bits(BIT_Increment_DB_By_1, 1);
                 func_80000860(self, self, 0x105, 0);
                 func_80000860(self, self, 0x106, 0);
                 func_80000860(self, self, 0x107, 0);
@@ -94,8 +95,8 @@ RECOMP_PATCH void VFP_LevelControl_update(Object* self) {
                 func_80000450(self, self, 0x174, 0, 0, 0);
                 func_80000450(self, self, 0x178, 0, 0, 0);
                 // @recomp: Don't give SpellStone back (breaks progression)
-                //set_gplay_bitstring(0x83B, 1); // spellstone 2
-                set_gplay_bitstring(0x22B, 1);
+                //main_set_bits(BIT_SpellStone_2, 1); // spellstone 2
+                main_set_bits(BIT_DIM_Leap_of_Faith_Completed, 1);
             }
         }
         VFP_LevelControl_func_A08(self);
@@ -105,8 +106,8 @@ RECOMP_PATCH void VFP_LevelControl_update(Object* self) {
             _data_0 -= (s16)delayFloat;
             if (_data_0 <= 0) {
                 _data_0 = 0;
-                set_gplay_bitstring(0x4E9, 1);
-                set_gplay_bitstring(0x63C, 1);
+                main_set_bits(BIT_Increment_DB_By_1, 1);
+                main_set_bits(BIT_DB_Increment_Map_Setup, 1);
                 func_80000860(self, self, 0x105, 0);
                 func_80000860(self, self, 0x106, 0);
                 func_80000860(self, self, 0x107, 0);
@@ -115,7 +116,7 @@ RECOMP_PATCH void VFP_LevelControl_update(Object* self) {
                 func_80000450(self, self, 0x168, 0, 0, 0);
                 func_80000450(self, self, 0x169, 0, 0, 0);
                 func_80000450(self, self, 0x174, 0, 0, 0);
-                set_gplay_bitstring(0x83C, 1);
+                main_set_bits(BIT_Fire_Crystal, 1);
             }
         }
         VFP_LevelControl_func_AAC(self);

@@ -11,7 +11,7 @@
 #include "functions.h"
 
 #include "dlls/objects/745_DR_Cage.h"
-#include "recomp/dlls/_asm/714_recomp.h"
+#include "recomp/dlls/objects/714_DR_CloudRunner_recomp.h"
 
 typedef struct {
 s32 unk0;
@@ -74,7 +74,7 @@ RECOMP_PATCH s32 dll_714_func_1968(Object* self, DRCloudRunnerState* state, s32 
     }
     
     new_var = 4;
-    if (get_gplay_bitstring(createInfo->unk1E)) {
+    if (main_get_bits(createInfo->unk1E)) {
         self->unk0xc4 = NULL;
         state2->unk920 = (((new_var * (state2->unk910 > 0)) * 4) & 0x10) | (state2->unk920 & 0xFFEF);
         return 3;
