@@ -80,7 +80,7 @@ RECOMP_PATCH s32 SHswapstone_func_448(Object* self, Object* a1, AnimObjState* a2
                 }
             } else {
                 gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_SWAPSTONE_CIRCLE, 0, 1);
-                gDLL_29_Gplay->vtbl->set_map_setup(MAP_SWAPSTONE_CIRCLE, 2);
+                //gDLL_29_Gplay->vtbl->set_map_setup(MAP_SWAPSTONE_CIRCLE, 2); // @recomp: Don't reset SwapStone circle act
                 set_gplay_bitstring(state->unkA, 1);
             }
             menu_set(MENU_GAMEPLAY); // @recomp: Reactivate gameplay menu (so spells/bag can be used again)
