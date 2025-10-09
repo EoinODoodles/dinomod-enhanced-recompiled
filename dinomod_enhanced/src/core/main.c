@@ -3,6 +3,7 @@
 #include "recomputils.h"
 
 #include "PR/ultratypes.h"
+#include "game/gamebits.h"
 #include "sys/main.h"
 #include "sys/objects.h"
 #include "sys/print.h"
@@ -14,7 +15,7 @@ extern BitTableEntry *gFile_BITTABLE;
 extern s16 gSizeBittable;
 
 /** Prevents cases where the game would try to set out of bounds flags, which would cause data corruption */
-RECOMP_PATCH void set_gplay_bitstring(s32 entry, u32 value) {
+RECOMP_PATCH void main_set_bits(s32 entry, u32 value) {
     u8 *bitString;
     u8 _pad[12]; // fake match
     s32 idx;
@@ -28,19 +29,19 @@ RECOMP_PATCH void set_gplay_bitstring(s32 entry, u32 value) {
         return;
     }
 
-    if (entry != 149 && entry != 150 && entry != -1) {
+    if (entry != BIT_ALWAYS_1 && entry != BIT_ALWAYS_0 && entry != -1) {
         switch (gFile_BITTABLE[entry].field_0x2 >> 6) {
-            case 0:
+            case 0: // Never saved to savegame
                 bitString = &gGplayState->bitString[0];
                 break;
-            case 1:
-                bitString = &gGplayState->save.unk0.bitString[0];
+            case 1: // Saved with checkpoints
+                bitString = &gGplayState->save.chkpnt.bitString[0];
                 break;
-            case 2:
-                bitString = &gGplayState->save.unk0.file.bitString[0];
+            case 2: // Always saved
+                bitString = &gGplayState->save.file.bitString[0];
                 break;
-            case 3:
-                bitString = &gGplayState->save.bitString[0];
+            case 3: // Saved with map saves
+                bitString = &gGplayState->save.map.bitString[0];
                 break;
         }
 
@@ -65,7 +66,7 @@ RECOMP_PATCH void set_gplay_bitstring(s32 entry, u32 value) {
 }
 
 /** Prevents cases where the game would try to increment out of bounds flags, which would cause data corruption */
-RECOMP_PATCH s32 increment_gplay_bitstring(s32 entry) {
+RECOMP_PATCH s32 main_increment_bits(s32 entry) {
     s32 val;
     s32 maxVal;
 
@@ -78,12 +79,12 @@ RECOMP_PATCH s32 increment_gplay_bitstring(s32 entry) {
         return 0;
     }
 
-    val = get_gplay_bitstring(entry) + 1;
+    val = main_get_bits(entry) + 1;
 
     maxVal = 1 << ((gFile_BITTABLE[entry].field_0x2 & 0x1f) + 1);
 
     if (val < maxVal) {
-        set_gplay_bitstring(entry, val);
+        main_set_bits(entry, val);
     } else {
         val -= 1;
     }
@@ -92,8 +93,8 @@ RECOMP_PATCH s32 increment_gplay_bitstring(s32 entry) {
 }
 
 /** Prevents cases where the game would try to decrement out of bounds flags, which would cause data corruption */
-RECOMP_PATCH s32 decrement_gplay_bitstring(s32 entry) {
-    s32 val = get_gplay_bitstring(entry);
+RECOMP_PATCH s32 main_decrement_bits(s32 entry) {
+    s32 val = main_get_bits(entry);
 
     //@recomp: Prevent data corruption
     if (entry == -1) {
@@ -105,7 +106,7 @@ RECOMP_PATCH s32 decrement_gplay_bitstring(s32 entry) {
     }
 
     if (val != 0) {
-        set_gplay_bitstring(entry, --val);
+        main_set_bits(entry, --val);
         return val;
     }
 

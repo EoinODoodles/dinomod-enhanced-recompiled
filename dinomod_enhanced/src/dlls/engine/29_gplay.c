@@ -20,7 +20,7 @@ RECOMP_HOOK_DLL(gplay_ctor) void gplay_patch_map_object_group_flags() {
   *  This is mostly intended for players who start out playing unmodded, since it'll put the Scarab UI into its correct state) 
   */
 RECOMP_HOOK_RETURN_DLL(gplay_start_game) void dll_gplay_hook_enable_scarabs_if_already_collected() {
-    if (get_gplay_bitstring(0x910) && get_gplay_bitstring(0x919) == 0){
-        set_gplay_bitstring(0x919, 1);
+    if (main_get_bits(0x910) && main_get_bits(0x919) == 0){
+        main_set_bits(0x919, 1);
     }
 }

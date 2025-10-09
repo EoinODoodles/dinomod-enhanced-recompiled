@@ -133,7 +133,7 @@ RECOMP_PATCH void dll_63_load_save_game_info() {
             bzero(&sSaveGameInfo[i], sizeof(GameSelectSaveInfo));
             sSaveGameInfo[i].isEmpty = TRUE;
         } else {
-            saveFile = &gDLL_29_Gplay->vtbl->get_state()->save.unk0.file;
+            saveFile = &gDLL_29_Gplay->vtbl->get_state()->save.file;
 
             if (!saveFile->isEmpty) {
                 sSaveGameInfo[i].playerno = saveFile->playerno;

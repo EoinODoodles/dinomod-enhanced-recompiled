@@ -3,6 +3,7 @@
 #include "recomp/dlls/engine/30_task_recomp.h"
 
 #include "PR/ultratypes.h"
+#include "game/gamebits.h"
 #include "sys/main.h"
 #include "sys/objects.h"
 #include "sys/print.h"
@@ -60,7 +61,7 @@ static void cleanup_task_history(){
 
     //Get the task history flags
     for (i = 0; i < 5; i++) {
-        taskHistory[i] = get_gplay_bitstring(311 + i);
+        taskHistory[i] = main_get_bits(BIT_Recent_Task_1 + i);
     }
 
     //Shift indices to remove any zeroes that sit in the middle of the list
@@ -77,7 +78,7 @@ static void cleanup_task_history(){
             sRecentlyCompletedNextIdx = i;
         sRecentlyCompleted[i] = taskHistory[i];
         if (player)
-            set_gplay_bitstring(311 + i, taskHistory[i]);
+            main_set_bits(BIT_Recent_Task_1 + i, taskHistory[i]);
     }
 }
 
@@ -88,12 +89,12 @@ RECOMP_CALLBACK("*", recomp_on_game_tick_start) void printTaskHistory() {
         return;
 
     diPrintf("Task history: [%-3d, %-3d, %-3d, %-3d, %-3d] (%d)\n", 
-        get_gplay_bitstring(311 + 0), 
-        get_gplay_bitstring(311 + 1), 
-        get_gplay_bitstring(311 + 2), 
-        get_gplay_bitstring(311 + 3), 
-        get_gplay_bitstring(311 + 4), 
-        get_gplay_bitstring(311 + 5));
+        main_get_bits(BIT_Recent_Task_1 + 0), 
+        main_get_bits(BIT_Recent_Task_1 + 1), 
+        main_get_bits(BIT_Recent_Task_1 + 2), 
+        main_get_bits(BIT_Recent_Task_1 + 3), 
+        main_get_bits(BIT_Recent_Task_1 + 4), 
+        main_get_bits(BIT_Recent_Task_1 + 5));
 
     diPrintf("First zero: %d\nNext nonzero: %d\n", firstZero, nextNonzero);
     diPrintf("Last occupied index: %d\n", sRecentlyCompletedNextIdx);
@@ -106,7 +107,7 @@ RECOMP_PATCH void task_load_recently_completed() {
     cleanup_task_history();
 
     //Store upcoming task
-    val = get_gplay_bitstring(316);
+    val = main_get_bits(BIT_Furthest_Completed_Task);
     sCompletionIdx = val;
     if (val == 0) {
         sCompletionIdx = 1;
@@ -143,7 +144,7 @@ RECOMP_PATCH void task_mark_task_completed(u8 task) {
         sRecentlyCompletedNextIdx++;
         sRecentlyCompleted[sRecentlyCompletedNextIdx] = task;
 
-        set_gplay_bitstring(sRecentlyCompletedNextIdx + 311, task);
+        main_set_bits(sRecentlyCompletedNextIdx + BIT_Recent_Task_1, task);
     } else {
         // Otherwise, shift everything down and add to the end
         for (i = 0; i < 4; i++) {
@@ -153,37 +154,37 @@ RECOMP_PATCH void task_mark_task_completed(u8 task) {
         sRecentlyCompleted[4] = task;
 
         for (i = 0; i < 5; i++) {
-            set_gplay_bitstring(311 + i, sRecentlyCompleted[i]);
+            main_set_bits(BIT_Recent_Task_1 + i, sRecentlyCompleted[i]);
         }
     }
 
     // Set bit for task in bitstring
     //
-    // This is a 256-bit bitstring from gplay bitstring entry 303 to 315 (8 entries)
-    bs_entry = (task / 32) + 303;
+    // This is a 256-bit bitstring from bit entry 303 to 315 (8 entries)
+    bs_entry = (task / 32) + BIT_Task_Bits_1;
 
-    bs_value = get_gplay_bitstring(bs_entry);
+    bs_value = main_get_bits(bs_entry);
     bit_idx = task % 32;
     bs_value = (1 << (bit_idx)) | bs_value;
 
-    set_gplay_bitstring(bs_entry, bs_value);
+    main_set_bits(bs_entry, bs_value);
 
     // Determine new completion index
     if (sCompletionIdx == task) {
         do {
             sCompletionIdx++;
 
-            bs_entry2 = (sCompletionIdx / 32) + 303;
+            bs_entry2 = (sCompletionIdx / 32) + BIT_Task_Bits_1;
             if (bs_entry2 != bs_entry) {
                 bs_entry = bs_entry2;
 
-                bs_value = get_gplay_bitstring(bs_entry2);
+                bs_value = main_get_bits(bs_entry2);
             }
             bit_idx = sCompletionIdx % 32;
 
         } while ((bs_value >> bit_idx) & 1);
 
-        set_gplay_bitstring(316, sCompletionIdx);
+        main_set_bits(BIT_Furthest_Completed_Task, sCompletionIdx);
     }
 }
 

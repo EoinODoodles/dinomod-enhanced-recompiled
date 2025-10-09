@@ -1,6 +1,7 @@
 /** Helper functions for getting player's SpellStone/Spirit/Duster counts */
 
 #include "player_stats.h"
+#include "sys/main.h"
 #include "sys/print.h"
 
 enum GameBits{
@@ -74,7 +75,7 @@ s8 getCountSpellStones(){
             if (spellStoneFlags[spellStoneIndex][stateIndex] == NULL){
                 continue;
             }
-            if (get_gplay_bitstring(spellStoneFlags[spellStoneIndex][stateIndex])){
+            if (main_get_bits(spellStoneFlags[spellStoneIndex][stateIndex])){
                 spellStones++;
                 break;
             }
@@ -89,7 +90,7 @@ s8 getCountSpellStones(){
 s8 getCountSpirits(){
     s8 spirits = 0;
 
-    spirits = get_gplay_bitstring(FLAG_WARLOCK_MOUNTAIN_SETUP) - 1;
+    spirits = main_get_bits(FLAG_WARLOCK_MOUNTAIN_SETUP) - 1;
     if (spirits < 0)
         spirits = 0;
     if (spirits > 8)

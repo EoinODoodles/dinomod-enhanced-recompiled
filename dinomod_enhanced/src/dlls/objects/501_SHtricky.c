@@ -2,6 +2,7 @@
 
 #include "PR/ultratypes.h"
 #include "dlls/objects/common/sidekick.h"
+#include "game/gamebits.h"
 #include "game/objects/object.h"
 #include "sys/main.h"
 #include "sys/objects.h"
@@ -19,10 +20,10 @@ RECOMP_PATCH void SHtricky_create(Object* self, ObjCreateInfo* createInfo, s32 a
     state = (SHtricky_State*)self->state;
     
     // @recomp: Stop Tricky from repeating: "That's my mom!" when arriving in SwapStone Hollow (originally by MusicalProgrammer)
-    if (get_gplay_bitstring(0xA1) != 0) {
+    if (main_get_bits(0xA1) != 0) {
         state->unk0 = 3;
     } else {
-        set_gplay_bitstring(0xC3, 0);
+        main_set_bits(BIT_Play_Seq_00D1, 0);
         state->unk0 = 0;
     }
 

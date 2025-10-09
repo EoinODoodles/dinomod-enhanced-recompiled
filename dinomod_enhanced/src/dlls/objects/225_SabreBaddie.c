@@ -7,7 +7,7 @@
 #include "sys/rand.h"
 #include "dll.h"
 
-#include "recomp/dlls/_asm/225_recomp.h"
+#include "recomp/dlls/objects/225_SabreBaddie_recomp.h"
 
 typedef struct {
 /*000*/ s8 unk0[0x33A - 0];
@@ -29,7 +29,7 @@ RECOMP_PATCH s32 dll_225_func_1F38(Object* self, SabreBaddieState* state, s32 ar
     }
     
     if (state->unk348 < 5) {
-        set_gplay_bitstring(0x5B2, 1); //@recomp: flagID changed
+        main_set_bits(0x5B2, 1); //@recomp: flagID changed
         state->unk348 = 1;
         return 3;
     }
