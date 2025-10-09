@@ -15,7 +15,7 @@ typedef struct {
 /*05*/ u8 mapID;
 } GP_LevelControl_State;
 
-// Sets down GPbonfire's kindling automatically, allowing gane progression to continue (originally by jeebs2kx)
+// Sets down GPbonfire's kindling automatically, allowing game progression to continue (originally by jeebs2kx)
 RECOMP_PATCH void GP_LevelControl_create(Object *self, ObjCreateInfo *createInfo, s32 arg2) {
     GP_LevelControl_State *state;
 
