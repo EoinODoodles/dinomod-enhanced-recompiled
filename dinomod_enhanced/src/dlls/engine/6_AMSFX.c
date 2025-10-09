@@ -138,7 +138,7 @@ RECOMP_PATCH u32 dll_6_play_sound(Object* obj, u16 soundID, u8 volume, u32* arg3
     dll_6_func_DE8(soundID, &soundEntry);
 
     //@recomp: intercept sound calls and edit as needed
-    recomp_eprintf("AMSFX: play sound #%d (%s)\n", soundID, soundEntry.unk0 & 0x8000 ? "MP3" : "WAV");
+    //recomp_eprintf("AMSFX: play sound #%d (%s)\n", soundID, soundEntry.unk0 & 0x8000 ? "MP3" : "WAV");
     recomp_intercept_soundIDs(soundID, (SoundEntry*)&soundEntry);
 
     if (!(soundEntry.unk0 & 0x7FFF)) {
