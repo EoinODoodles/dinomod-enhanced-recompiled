@@ -7,7 +7,7 @@ A work-in-progress mod porting over Dinomod Enhanced's ROM fixes to recomp.
 short_description = "WIP port of Dinomod Enhanced patches"
 
 version = "0.1.0"
-authors = [ "Banjeoin", "jeebs2kx", "LaminGaming", "MusicalProgrammer" ]
+authors = [ "Banjeoin", "jeebs2kx", "LaminGaming", "MusicalProgrammer", "shinx121" ]
 
 game_id = "dino-planet"
 minimum_recomp_version = "0.1.2"
@@ -61,3 +61,31 @@ In the vanilla game, the upcoming subtitle text is shown behind the current subt
 type = "Enum"
 options = [ "Vanilla", "Invisible" ]
 default = "Invisible"
+
+[[manifest.config_options]]
+id = "garunda_te_frostweeds_override"
+name = "Garunda Te - Total FrostWeeds"
+description = '''
+Modifies the total number of FrostWeeds that need to be fed to Garunda Te before he can free himself from the ice.
+
+12 are needed by default, but 4 is a bit more manageable!
+'''
+type = "Number"
+min = 1
+max = 20
+step = 1
+precision = 0
+percent = false
+default = 12
+
+[[manifest.config_options]]
+id = "garunda_te_frostweeds_accept_twigs"
+name = "Garunda Te - Accept FrostWeed Twigs"
+description = '''
+Garunda Te only eats whole FrostWeeds in the original December 2000 Prototype, and won't accept any FrostWeeds Sabre carries over in their twig form. Your only option was to herd FrostWeeds towards him, which can be easier said than done!
+
+This config switch gives you the option of directly carrying FrostWeeds over to Garunda Te.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "Off"
