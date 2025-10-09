@@ -147,7 +147,7 @@ static _Bool getFrostWeedTwigsConfigs() {
     return recomp_get_config_u32("garunda_te_frostweeds_accept_twigs");
 }
 
-// Prevents the pressure switches' object arrays from overflowing and crashing (originally by MusicalProgrammer)
+// Adds config options for Garunda Te's FrostWeed quest
 RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHornState* state, SnowHornCreateInfo* createInfo) {
     Object* frostWeed;
     s32 weeds;
