@@ -8,6 +8,7 @@
 #include "sys/controller.h"
 #include "sys/main.h"
 #include "sys/map.h"
+#include "sys/objanim.h"
 #include "functions.h"
 #include "types.h"
 #include "dll.h"
