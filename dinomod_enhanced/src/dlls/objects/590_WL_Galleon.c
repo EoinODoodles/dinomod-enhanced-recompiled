@@ -80,8 +80,14 @@ RECOMP_PATCH void WLgalleon_update(Object* self) {
         
         if (!arrivedAtWM) {
             player->srt.transl.x = -121.0f;
-            player->srt.transl.y = 116.0f; //@bug: slightly too high above Galleon, causes fall sound
+            // player->srt.transl.y = 116.0f;
             player->srt.transl.z = 5.0f;
+
+            //@recomp: fix issue where Krystal starts slightly too high above Galleon, causing fall sound (Banjeoin)
+            player->srt.transl.y = 100.0f; 
+            *((u16*)((u32)player + 0x0360)) = 0; //modanim
+            player->animProgress = 0.0f;
+
             func_8005B5B8(player, self, 0);
             ((DLL_Unknown*)player->dll)->vtbl->func[68].withOneArg((s32)player);
             self->unk_0xe0 = 1;
