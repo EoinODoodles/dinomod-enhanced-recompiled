@@ -14,8 +14,10 @@
 #include "recomp/dlls/objects/297_scarab_recomp.h"
 
 typedef struct {
-s32 soundHandle;
-s8 unk4[0x10 - 0x4];
+u32 soundHandle;
+f32 unk4; //speedX
+f32 unk8; //speedZ
+f32 unkC;
 f32 unk10; //y
 s16 unk14;
 s8 unk16[0x18 - 0x16];
@@ -28,13 +30,13 @@ s16 unk24;
 u8 unk26;
 s8 unk27[0x29 - 0x27];
 u8 unk29; //scarabTypeIndex
-} ScarabState;
+} Scarab_Data;
 
 typedef struct {
-ObjCreateInfo base;
+ObjSetup base;
 s16 unk18;
 s16 unk1A;
-} ScarabCreateInfo;
+} Scarab_Setup;
 
 typedef union {
     u8 bytes[4];
@@ -44,14 +46,14 @@ typedef union {
 /*0x20*/ extern ScarabValues _data_20;
 
 // Enables the Scarab UI counter upon collection
-RECOMP_PATCH void dll_297_func_1284(Object* self, Object* player, ScarabState* state) {
+RECOMP_PATCH void dll_297_func_1284(Object* self, Object* player, Scarab_Data* objdata) {
   ScarabValues values = _data_20;
 
   //@recomp: enable Scarab counter UI
   main_set_bits(0x919, 1);
     
-  ((DLL_Unknown*)player->dll)->vtbl->func[19].withTwoArgs((s32) player, values.bytes[state->unk29]);
+  ((DLL_Unknown*)player->dll)->vtbl->func[19].withTwoArgs((s32) player, values.bytes[objdata->unk29]);
     
-  state->unk14 = 0x50;
-  state->unk18 = 0;
+  objdata->unk14 = 0x50;
+  objdata->unk18 = 0;
 }

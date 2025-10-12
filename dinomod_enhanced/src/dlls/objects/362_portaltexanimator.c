@@ -10,7 +10,7 @@
 #include "recomp/dlls/objects/362_portaltexanimator_recomp.h"
 
 typedef struct {
-/*00*/ ObjCreateInfo base;
+/*00*/ ObjSetup base;
 /*18*/ s16 flagID;
 /*1A*/ s16 unk1A;
 /*1C*/ u8 maxOpacity;
@@ -20,7 +20,7 @@ typedef struct {
 /*20*/ s8 unk20;
 /*21*/ u8 unk21;
 /*22*/ u16 minDistance;
-} PortalTexAnimatorCreateInfo;
+} PortalTexAnimator_Setup;
 
 typedef struct {
 /*00*/ s32 animatedVertexCount;
@@ -35,20 +35,20 @@ typedef struct {
 /*19*/ s8 unk19;
 /*1A*/ s8 unk1A;
 /*1B*/ s8 unk1B;
-} PortalTexAnimatorState;
+} PortalTexAnimator_Data;
 
 // Clamps the PortalTexAnimator's 16-bit opacity value into an 8-bit range, fixing a bug where the vertices' alpha would suddenly wrap around to a low value 
-RECOMP_PATCH void portaltexanimator_animate_vertices(PortalTexAnimatorState* state, PortalTexAnimatorCreateInfo* createInfo, Block* block) {
+RECOMP_PATCH void portaltexanimator_animate_vertices(PortalTexAnimator_Data* objdata, PortalTexAnimator_Setup* setup, Block* block) {
     BlockShape *shapes;
     Vtx_t *animatedVertices;
     s32 shapeIndex;
     s32 vertexIndex;
     
     //@recomp: clamp the opacity value before it's applied (Banjeoin)
-    if (state->vertexOpacity > 0xFF){
-        state->vertexOpacity = 0xFF;
-    } else if (state->vertexOpacity < 0){
-        state->vertexOpacity = 0;
+    if (objdata->vertexOpacity > 0xFF){
+        objdata->vertexOpacity = 0xFF;
+    } else if (objdata->vertexOpacity < 0){
+        objdata->vertexOpacity = 0;
     }
 
     animatedVertices = block->vertices2[block->vtxFlags & 1];
@@ -59,24 +59,24 @@ RECOMP_PATCH void portaltexanimator_animate_vertices(PortalTexAnimatorState* sta
     //Iterate over shapes, and update all vertices' alpha on shapes with matching animatorID tag
     while (shapeIndex < block->shapeCount){
         
-        if (state->animatorID == shapes[shapeIndex].unk_0x14){
+        if (objdata->animatorID == shapes[shapeIndex].unk_0x14){
             for (vertexIndex = shapes[shapeIndex].vtxBase; vertexIndex < shapes[shapeIndex + 1].vtxBase; vertexIndex++){
                 //@recomp: ignore vertices with 0 base opacity (i.e. preserve vertex alpha based texture blending)
                 if (block->vertices[vertexIndex].cn[3] == 0)
                     continue;
 
-                animatedVertices[vertexIndex].cn[3] = state->vertexOpacity;
+                animatedVertices[vertexIndex].cn[3] = objdata->vertexOpacity;
             }
             
             //Switch shape's draw flags when opacity is zero
-            if (state->vertexOpacity == 0){
+            if (objdata->vertexOpacity == 0){
                 shapes[shapeIndex].flags |= 0x200000;
-                if (createInfo->unk21 != 0){
+                if (setup->unk21 != 0){
                     shapes[shapeIndex].flags |= 0x800;
                 }
             } else {
                 shapes[shapeIndex].flags &= 0xFFDFFFFF;
-                if (createInfo->unk21 != 0){
+                if (setup->unk21 != 0){
                     shapes[shapeIndex].flags &= ~0x800;
                 }
             }

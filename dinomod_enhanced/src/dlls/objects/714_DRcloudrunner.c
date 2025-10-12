@@ -23,34 +23,34 @@ s8 unk273[0x910 - 0x273];
 s16 unk910;
 s8 unk912[0x920 - 0x912];
 u8 unk920;
-} DRCloudRunnerState;
+} DRCloudRunner_Data;
 
 typedef struct {
-ObjCreateInfo base;
+ObjSetup base;
 s16 unk18;
 s16 unk1A;
 s16 unk1C;
 s16 unk1E;
-} DRCloudRunnerCreateInfo;
+} DRCloudRunner_Setup;
 
 // Stops the imprisoned CloudRunner from immediately disappearing through the floor in Dragon Rock (originally by MusicalProgrammer)
-RECOMP_PATCH s32 dll_714_func_1968(Object* self, DRCloudRunnerState* state, s32 arg2) {
-    DRCloudRunnerState* state2;
+RECOMP_PATCH s32 dll_714_func_1968(Object* self, DRCloudRunner_Data* objdata, s32 arg2) {
+    DRCloudRunner_Data* objdata2;
     u32 new_var;
-    DRCloudRunnerCreateInfo* createInfo;
+    DRCloudRunner_Setup* setup;
     Object* parent;
 
     //@recomp: switch off CloudRunner's gravity while in cage
-    state->unk0 = 0x200000;
+    objdata->unk0 = 0x200000;
 
-    createInfo = (DRCloudRunnerCreateInfo*)self->createInfo;
-    if (state->unk272) {
+    setup = (DRCloudRunner_Setup*)self->setup;
+    if (objdata->unk272) {
         func_800267A4(self);
-        state->unk25B = 0;
+        objdata->unk25B = 0;
         return 0;
     }
     
-    state2 = self->state;
+    objdata2 = self->data;
     
     // Randomly call out to player while in cage 
     // (Object parent hierarchy: DR_Cage -> DRPerch -> DR_CloudRunner)
@@ -74,9 +74,9 @@ RECOMP_PATCH s32 dll_714_func_1968(Object* self, DRCloudRunnerState* state, s32 
     }
     
     new_var = 4;
-    if (main_get_bits(createInfo->unk1E)) {
+    if (main_get_bits(setup->unk1E)) {
         self->unk0xc4 = NULL;
-        state2->unk920 = (((new_var * (state2->unk910 > 0)) * 4) & 0x10) | (state2->unk920 & 0xFFEF);
+        objdata2->unk920 = (((new_var * (objdata2->unk910 > 0)) * 4) & 0x10) | (objdata2->unk920 & 0xFFEF);
         return 3;
     }
     

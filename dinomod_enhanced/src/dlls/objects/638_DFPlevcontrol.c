@@ -16,7 +16,7 @@ extern s32 dll_638_func_62C(Object* self, s32 arg1, s32 arg2, s32 arg3);
 extern Texture* _data_0;
 
 /** Removes progress-breaking debug code that automatically granted the player CloudRunner Fortress' SpellStone (originally by MusicalProgrammer) */
-RECOMP_PATCH void dll_638_func_18(Object* self, s32 arg1, s32 arg2) {
+RECOMP_PATCH void dll_638_setup(Object* self, ObjSetup *setup, s32 arg2) {
     u8 mapSetup;
 
     obj_add_object_type(self, 0xA);

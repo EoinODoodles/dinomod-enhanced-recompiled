@@ -8,26 +8,26 @@
 
 #include "recomp/dlls/_asm/211_recomp.h"
 
-typedef void (*ObjUpdateFunc)(Object *obj);
-static ObjUpdateFunc tricky_update_func; 
-static void tricky_update_hijack(Object *self);
+typedef void (*ObjControlFunc)(Object *obj);
+static ObjControlFunc tricky_control_func; 
+static void tricky_control_hijack(Object *self);
 
 RECOMP_HOOK_DLL(dll_211_ctor) void tricky_ctor_hook(DLLFile *dll) {
-    tricky_update_func = dinomod_hijack_dll_export(dll, 1, tricky_update_hijack);
+    tricky_control_func = dinomod_hijack_dll_export(dll, OBJEXPORT_CONTROL, tricky_control_hijack);
 }
 
 RECOMP_HOOK_RETURN_DLL(dll_211_dtor) void tricky_dtor_hook() {
-    tricky_update_func = NULL;
+    tricky_control_func = NULL;
 }
 
-static void tricky_update_hijack(Object *self) {
-    // @recomp: If the map Tricky is on unloads, unload him and skip the update function.
+static void tricky_control_hijack(Object *self) {
+    // @recomp: If the map Tricky is on unloads, unload him and skip the control function.
     if (!dinomod_unload_sidekick_if_map_unloaded(self)) {
         recomp_printf("[dinomod] Unloading Tricky due to map unload!\n");
         return;
     }
 
-    tricky_update_func(self);
+    tricky_control_func(self);
 }
 
 // TODO: replace with a real decomp of this function

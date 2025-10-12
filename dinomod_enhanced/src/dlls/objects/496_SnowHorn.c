@@ -47,7 +47,7 @@ typedef struct {
 /*048*/ f32* unk48;
 /*04c*/ s32* chatSequenceList;
 /*050*/ f32 unk50;
-/*054*/ s32 unk54;
+/*054*/ f32 unk54;
 /*058*/ f32 walkSpeed; //has something to do with the struct at 0x60?
 /*05C*/ s32 unk5C;
 /*060*/ UnkCurvesStruct60 unk60;
@@ -119,25 +119,15 @@ typedef struct {
 /*429*/ s8 unk429;
 /*42A*/ s8 unk42A;
 /*42B*/ s8 unk42B;
-/*42C*/ f32 unk42C;
-/*42C*/ s8 unk430[0x16c];
-/*59c*/ s16 rEyeU;
-/*59e*/ s16 rEyeV;
-/*600*/ u32 unk600;
-/*604*/ u32 unk604;
-/*608*/ u32 unk608;
-/*60c*/ s16 lEyeU;
-/*60e*/ s16 lEyeV;
-} SnowHornState;
+} SnowHorn_Data;
 
 typedef struct{
-/*0x10*/ ObjCreateInfo base;
+/*0x10*/ ObjSetup base;
 /*0x18*/ s16 unkRadius;
 /*0x1A*/ s16 unk1A;
 /*0x1C*/ s8 rotation;
 /*0x1D*/ s8 unk1D;
-}
-SnowHornCreateInfo;
+} SnowHorn_Setup;
 
 static s32 getFrostWeedMaxOverride() {
     return recomp_get_config_u32("garunda_te_frostweeds_override");
@@ -148,7 +138,7 @@ static _Bool getFrostWeedTwigsConfigs() {
 }
 
 // Adds config options for Garunda Te's FrostWeed quest
-RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHornState* state, SnowHornCreateInfo* createInfo) {
+RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* state, SnowHorn_Setup* objsetup) {
     Object* frostWeed;
     s32 weeds;
     s8 FROSTWEED_MAX_OVERRIDE = getFrostWeedMaxOverride(); //@recomp
@@ -182,10 +172,10 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHornState* state, SnowHorn
             }
             
             frostWeed = obj_get_nearest_type_to(4, self, 0);
-            createInfo = (SnowHornCreateInfo*)self->createInfo;
+            objsetup = (SnowHorn_Setup*)self->setup;
             if (frostWeed && (frostWeed->id == OBJ_Tumbleweed2 || 
                 (FROSTWEED_TWIGS_ACCEPTED && frostWeed->id == OBJ_Tumbleweed2twig)) &&  //@recomp: option of accepting FrostWeed twigs as well
-                vec3_distance_xz_squared(&self->positionMirror, &frostWeed->positionMirror) < createInfo->unkRadius * createInfo->unkRadius) {
+                vec3_distance_xz_squared(&self->positionMirror, &frostWeed->positionMirror) < objsetup->unkRadius * objsetup->unkRadius) {
                 if (!((DLL_227_Tumbleweed*)frostWeed->dll)->vtbl->func4(frostWeed)) {
                     ((DLL_227_Tumbleweed*)(frostWeed->dll))->vtbl->func3(frostWeed, &state->playerPositionCopy);
                     state->frostWeed = frostWeed;

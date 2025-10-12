@@ -30,7 +30,7 @@ typedef struct {
 
 // Removes a flag check which could prevent the "Scales Escapes with Kyte" sequence from playing 
 // just before you teleport away to SwapStone Circle (originally by MusicalProgrammer)
-RECOMP_PATCH void kyteCage_draw(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** vtxs, Triangle** pols, s8 visibility) {
+RECOMP_PATCH void kyteCage_print(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** vtxs, Triangle** pols, s8 visibility) {
     KyteCageState* state;
     Object* kyte;
     u32 dYaw;
@@ -53,7 +53,7 @@ RECOMP_PATCH void kyteCage_draw(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** vt
     draw_object(self, gfx, mtxs, vtxs, pols, 1.0f);
 
     //Using the end of the cage's joint chain to update Kyte's transformation based on the cage's animation?
-    state = self->state;
+    state = self->data;
     if (state != NULL) {
         if (state->kyte != NULL) {
             kyte = state->kyte;

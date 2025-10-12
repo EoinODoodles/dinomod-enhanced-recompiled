@@ -22,24 +22,24 @@ typedef struct {
     u8 unk7;
     u8 unk8;
     u8 unk9;
-} WL_LevelControl_State;
+} WL_LevelControl_Data;
 
 /*0x14*/ extern u8 _data_14;
 RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
-    WL_LevelControl_State* state;
+    WL_LevelControl_Data* objdata;
     f32 sp40;
     Object* temp_v0;
     Object** var_a2;
     s32 sp34;
     s16 i;
     s16 temp_v0_2;
-    ObjCreateInfo *someCreateInfo;
+    ObjSetup *someObjsetup;
     Object* player;
     
     sp34 = 0;
     sp40 = 10000.0f;
     player = get_player();
-    state = self->state;
+    objdata = self->data;
     if ((_data_14 != 0) && (main_get_bits(BIT_318) == 0)) {
         main_set_bits(BIT_Spell_Projectile, 1);
         main_set_bits(BIT_Spell_Forcefield, 1);
@@ -59,13 +59,13 @@ RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
         if (temp_v0 != NULL) {
             obj_destroy_object(temp_v0);
         }
-        state->unk2 = 0x1E;
+        objdata->unk2 = 0x1E;
     }
     if (main_get_bits(BIT_2F7) != 0) {
         var_a2 = obj_get_all_of_type(OBJTYPE_4, &sp34);
         for (i = 0; i < sp34; i++) {
-            someCreateInfo = var_a2[i]->createInfo;
-            if ((someCreateInfo->uID == 0x296E) || (someCreateInfo->uID == 0x296F)) {
+            someObjsetup = var_a2[i]->setup;
+            if ((someObjsetup->uID == 0x296E) || (someObjsetup->uID == 0x296F)) {
                 obj_destroy_object(var_a2[i]);
             }
         }
@@ -86,12 +86,12 @@ RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
         if (main_get_bits(BIT_2F7) == 0) {
             main_set_bits(BIT_2F7, 1);
         }
-        state->unk2 -= (s16)delayByte;
-        if (state->unk2 <= 0) {
-            state->unk2 = 0;
+        objdata->unk2 -= (s16)delayByte;
+        if (objdata->unk2 <= 0) {
+            objdata->unk2 = 0;
             main_set_bits(BIT_2FA, 0);
             main_set_bits(BIT_2F3, 1);
-            state->unk2 = 0x1E;
+            objdata->unk2 = 0x1E;
         }
     }
 }
@@ -128,11 +128,11 @@ RECOMP_PATCH void WL_LevelControl_setup6_tick(Object* self) {
 
 /*0x1C*/ extern u8 _data_1C;
 RECOMP_PATCH void WL_LevelControl_setup7_tick(Object* self) {
-    WL_LevelControl_State* state;
+    WL_LevelControl_Data* objdata;
     Object* player;
 
     get_player();
-    state = (WL_LevelControl_State*)self->state;
+    objdata = (WL_LevelControl_Data*)self->data;
     if ((_data_1C != 0) && (main_get_bits(BIT_Play_Seq_020D) == 0)) {
         main_set_bits(BIT_Spell_Projectile, 1);
         main_set_bits(BIT_Spell_Forcefield, 1);
@@ -142,22 +142,22 @@ RECOMP_PATCH void WL_LevelControl_setup7_tick(Object* self) {
         //((DLL_210_Player*)player->dll)->vtbl->func39(player, 0x40, 1);
         ((DLL_210_Player*)player->dll)->vtbl->func14(player, 0x14);
         _data_1C = 0;
-        state->unk2 = 1;
+        objdata->unk2 = 1;
         func_80000860(self, self, 0x32, 0);
         func_80000860(self, self, 0x33, 0);
         main_set_bits(BIT_221, 1);
     }
     if (main_get_bits(BIT_36C) != 0) {
-        if (state->unk4 > 0) {
-            state->unk4 -= (s16)delayByte;
-            if (state->unk2 != 0) {
-                state->unk2 -= (s16)delayByte;
-                if (state->unk2 <= 0) {
+        if (objdata->unk4 > 0) {
+            objdata->unk4 -= (s16)delayByte;
+            if (objdata->unk2 != 0) {
+                objdata->unk2 -= (s16)delayByte;
+                if (objdata->unk2 <= 0) {
                     main_set_bits(BIT_36D, 1);
-                    if (state->unk6 >= 0xB) {
-                        state->unk6 = state->unk6 - 1;
+                    if (objdata->unk6 >= 0xB) {
+                        objdata->unk6 = objdata->unk6 - 1;
                     }
-                    state->unk2 = state->unk6;
+                    objdata->unk2 = objdata->unk6;
                 }
             }
         }

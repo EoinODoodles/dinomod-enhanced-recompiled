@@ -12,11 +12,11 @@ s32 dinomod_unload_sidekick_if_map_unloaded(Object *obj) {
     s32 i;
 
     if (obj->id == OBJ_Tricky) {
-        var_a2 = *((void**)((u32)obj->state + 0x46C));
+        var_a2 = *((void**)((u32)obj->data + 0x46C));
     } else if (obj->id == OBJ_Kyte) {
-        var_a2 = *((void**)((u32)obj->state + 0xA4));
+        var_a2 = *((void**)((u32)obj->data + 0xA4));
 
-        if (((u32)obj->state + 0x1F4) == (u32)var_a2) {
+        if (((u32)obj->data + 0x1F4) == (u32)var_a2) {
             return 1;
         }
     } else {

@@ -15,7 +15,7 @@
 
 // Removes a flag check which could prevent the "Scales Escapes with Kyte" sequence from playing 
 // just before you teleport away to SwapStone Circle (originally by MusicalProgrammer)
-RECOMP_PATCH void SBCageKyte_draw(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** vtxs, Triangle** pols, s8 visibility) {
+RECOMP_PATCH void SBCageKyte_print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** vtxs, Triangle** pols, s8 visibility) {
     if (visibility && 
         // !main_get_bits(BIT_WM_Played_Randorn_First_Meeting) && @recomp: removed
         !self->unk0xdc) {

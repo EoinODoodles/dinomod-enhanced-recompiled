@@ -12,24 +12,24 @@
 #include "recomp/dlls/objects/398_CFMagicWall_recomp.h"
 
 typedef struct {
-    ObjCreateInfo base;
+    ObjSetup base;
     u8 unk18;
     u8 unk19;
     u8 unk1A;
-} CFMagicWall_CreateInfo;
+} CFMagicWall_Setup;
 
 extern void CFMagicWall_func_384(Object* self, u8 opacity, s32 animatorID);
 
-RECOMP_PATCH void CFMagicWall_update(Object* self) {
-    CFMagicWall_CreateInfo* createInfo;
+RECOMP_PATCH void CFMagicWall_control(Object* self) {
+    CFMagicWall_Setup* setup;
     Object* player;
     u8 var_a1;
     f32 var_fv0;
     f32 var_ft1;
 
-    createInfo = (CFMagicWall_CreateInfo*)self->createInfo;
+    setup = (CFMagicWall_Setup*)self->setup;
     player = get_player();
-    var_ft1 = (f32) createInfo->unk1A;
+    var_ft1 = (f32) setup->unk1A;
 
     // @recomp: Don't crash if player or sidekick isn't found (original by MusicalProgrammer)
     Object *sidekick = get_sidekick();
@@ -51,11 +51,11 @@ RECOMP_PATCH void CFMagicWall_update(Object* self) {
 
     if (var_fv0 < var_ft1) {
         var_a1 = ((var_fv0 / var_ft1) * 255.0f);
-        if (createInfo->unk19 == 0) {
+        if (setup->unk19 == 0) {
             var_a1 = (255 - var_a1);
         }
     } else {
-        var_a1 = (createInfo->unk19 * 255);
+        var_a1 = (setup->unk19 * 255);
     }
-    CFMagicWall_func_384(self, var_a1, createInfo->unk18);
+    CFMagicWall_func_384(self, var_a1, setup->unk18);
 }

@@ -17,7 +17,7 @@ extern void VFP_LevelControl_func_8EC(Object *self);
 extern void VFP_LevelControl_func_A08(Object *self);
 extern void VFP_LevelControl_func_AAC(Object *self);
 
-RECOMP_PATCH void VFP_LevelControl_create(Object* self, ObjCreateInfo* createInfo, s32 a2) {
+RECOMP_PATCH void VFP_LevelControl_setup(Object* self, ObjSetup* setup, s32 a2) {
     u8 mapSetupID;
 
     obj_add_object_type(self, 0xA);
@@ -49,7 +49,7 @@ RECOMP_PATCH void VFP_LevelControl_create(Object* self, ObjCreateInfo* createInf
 
 /*0x0*/ extern s16 _data_0;
 
-RECOMP_PATCH void VFP_LevelControl_update(Object* self) {
+RECOMP_PATCH void VFP_LevelControl_control(Object* self) {
     Object* player;
     u8 mapSetupID;
 

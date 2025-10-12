@@ -9,7 +9,7 @@
 #include "recomp/dlls/objects/393_CFMainSlideDoor_recomp.h"
 
 typedef struct {
-    ObjCreateInfo base;
+    ObjSetup base;
     s16 unk18;
     s16 unk1A;
     s16 unk1C;
@@ -18,25 +18,25 @@ typedef struct {
     u8 unk20;
     u8 unk21;
     s16 unk22;
-} CFMainSlideDoor_CreateInfo;
+} CFMainSlideDoor_Setup;
 
 typedef struct {
     u8 unk0;
-} CFMainSlideDoor_State;
+} CFMainSlideDoor_Data;
 
-extern int CFMainSlideDoor_func_268(Object* a0, Object* a1, AnimObjState* a2, void* a3);
+extern int CFMainSlideDoor_func_268(Object* a0, Object* a1, AnimObj_Data* a2, void* a3);
 
-RECOMP_PATCH void CFMainSlideDoor_create(Object* self, CFMainSlideDoor_CreateInfo* createInfo, s32 arg2) {
-    CFMainSlideDoor_State* state;
+RECOMP_PATCH void CFMainSlideDoor_setup(Object* self, CFMainSlideDoor_Setup* setup, s32 arg2) {
+    CFMainSlideDoor_Data* objdata;
 
     self->unk0xdc = 0;
-    self->srt.yaw = createInfo->unk1F << 8;
+    self->srt.yaw = setup->unk1F << 8;
     self->unk0xbc = (ObjectCallback)CFMainSlideDoor_func_268;
-    self->srt.scale = createInfo->unk21 * 0.015625f;
+    self->srt.scale = setup->unk21 * 0.015625f;
     self->srt.scale *= self->def->scale;
-    state = (CFMainSlideDoor_State*)self->state;
+    objdata = (CFMainSlideDoor_Data*)self->data;
 
     // @recomp: Don't crash if player isn't found (original patch by MusicalProgrammer)
     Object *player = get_player();
-    state->unk0 = player == NULL ? FALSE : vec3_distance_xz(&self->positionMirror, &player->positionMirror) < 130.0f;
+    objdata->unk0 = player == NULL ? FALSE : vec3_distance_xz(&self->positionMirror, &player->positionMirror) < 130.0f;
 }

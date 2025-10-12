@@ -16,29 +16,30 @@ typedef struct {
 /*348*/ s8 unk348; //health?
 /*349*/ s8 unk349[0x3B6 - 0x349];
 /*3B6*/ s16 unk3B6;
-} SabreBaddieState;
+/*3B6*/ s8 unk3B8[0x3FC - 0x3B8];
+} SabreBaddie_Data;
 
 // Allows the Test of Character to be completed by changing the flag set when the phantom's health is low (originally by jeebs2kx)
-RECOMP_PATCH s32 dll_225_func_1F38(Object* self, SabreBaddieState* state, s32 arg2) {
-    SabreBaddieState* state2;
+RECOMP_PATCH s32 dll_225_func_1F38(Object* self, SabreBaddie_Data* objdata, s32 arg2) {
+    SabreBaddie_Data* objdata2;
 
-    state2 = self->state;
+    objdata2 = self->data;
     
-    if (state->unk348 <= 0) {
+    if (objdata->unk348 <= 0) {
         return 5;
     }
     
-    if (state->unk348 < 5) {
+    if (objdata->unk348 < 5) {
         main_set_bits(0x5B2, 1); //@recomp: flagID changed
-        state->unk348 = 1;
+        objdata->unk348 = 1;
         return 3;
     }
     
-    if (state->unk33A) {
-        if (state->unk348 < rand_next(2, 4)) {
+    if (objdata->unk33A) {
+        if (objdata->unk348 < rand_next(2, 4)) {
             return 4;
         }
-        state2->unk3B6 = 0x12C;
+        objdata2->unk3B6 = 0x12C;
         return 8;
     }
     return 0;

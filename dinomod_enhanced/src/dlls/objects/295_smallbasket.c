@@ -16,36 +16,37 @@
 extern s32 _data_0[];
 
 typedef struct{
-s32 unk0;
-s32 unk4;
-s32 sound;
-s32 unkC;
-s32 unk10;
-s16 shakeSoundTimer;
-} SmallBasketState;
+/*00*/ s32 unk0;
+/*04*/ s32 unk4;
+/*08*/ u32 soundHandle;
+/*0C*/ s32 unkC;
+/*10*/ s32 unk10;
+/*14*/ s16 shakeSoundTimer;
+/*16*/ s8 unk16[0x28 - 0x16];
+} SmallBasket_Data;
 
 // Frees the Small Basket objects' memory properly (originally by MusicalProgrammer)
 // Prevent crash if the player's holding the basket when it unloads
-RECOMP_PATCH void dll_295_destroy(Object* self, s32 arg1) {
-    SmallBasketState* state = self->state;
+RECOMP_PATCH void dll_295_free(Object* self, s32 arg1) {
+    SmallBasket_Data* objdata = self->data;
     Object* player; //@recomp
-    PlayerState* playerState; //@recomp
+    Player_Data* playerObjdata; //@recomp
     
     //@recomp: Remove basket if the player's holding it (Banjeoin)
     player = get_player();
     if (player){
-        playerState = player->state;
-        if (playerState->unk868 && 
-            (playerState->unk868->id == OBJ_SmallBasket || playerState->unk868->id == OBJ_SmallCrate)){
-            playerState->unk868 = NULL;
+        playerObjdata = player->data;
+        if (playerObjdata->unk868 && 
+            (playerObjdata->unk868->id == OBJ_SmallBasket || playerObjdata->unk868->id == OBJ_SmallCrate)){
+            playerObjdata->unk868 = NULL;
         }
     }
 
     gDLL_14_Modgfx->vtbl->func5(self);
     obj_free_object_type(self, 0x12); //@recomp: remove self from type category 0x12
     dll_unload((void*)_data_0[0]);
-    if (state->sound) {
-        gDLL_6_AMSFX->vtbl->func_A1C(state->sound);
-        state->sound = 0;
+    if (objdata->soundHandle) {
+        gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandle);
+        objdata->soundHandle = 0;
     }
 }

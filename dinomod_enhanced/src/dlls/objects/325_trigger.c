@@ -35,7 +35,7 @@ typedef struct {
 } TriggerCommand;
 
 typedef struct {
-/*00*/ ObjCreateInfo base;
+/*00*/ ObjSetup base;
 /*18*/ TriggerCommand commands[8];
 /*38*/ s16 localID; // TODO: needs verification
 /*3A*/ u8 sizeX; // unit depends on trigger type
@@ -64,7 +64,7 @@ typedef struct {
 // Only supported by TriggerPlane and TriggerBits (plane only supports one flag to check).
 // A negative ID indicates that there is no flag to check for that condition slot. 
 /*48*/ s16 conditionBitFlagIDs[4];
-} TriggerCreateInfo;
+} Trigger_Setup;
 
 DLL_INTERFACE(DLL_TriggerScript) {
     /*:*/ DLL_INTERFACE_BASE(DLL);
@@ -91,7 +91,7 @@ typedef struct {
 /*64*/ u32 soundHandles[8];
 // Special "script" DLLs where each export is a "subscript".
 /*84*/ DLL_TriggerScript *scripts[8];
-} TriggerState;
+} Trigger_Data;
 
 typedef enum {
     // Activator entered at least once
@@ -166,27 +166,27 @@ extern void trigger_func_17FC(u16 param1);
 extern void trigger_func_1868(u16 param1);
 extern void trigger_func_1920(u16 param1);
 
-extern void trigger_point_setup(Object *obj, TriggerCreateInfo *createInfo);
+extern void trigger_point_setup(Object *obj, Trigger_Setup *setup);
 extern void trigger_point_update(Object *self, Object *activator);
 
-extern void trigger_cylinder_setup(Object *obj, TriggerCreateInfo *createInfo);
+extern void trigger_cylinder_setup(Object *obj, Trigger_Setup *setup);
 extern void trigger_cylinder_update(Object *self, Object* activator);
 
-extern void trigger_plane_setup(Object *obj, TriggerCreateInfo *createInfo);
+extern void trigger_plane_setup(Object *obj, Trigger_Setup *setup);
 extern void trigger_plane_update(Object *self, Object *activator);
 
-extern void trigger_area_setup(Object *self, TriggerCreateInfo *createInfo);
+extern void trigger_area_setup(Object *self, Trigger_Setup *setup);
 extern void trigger_area_update(Object *self, Object *activator);
 extern s32 trigger_func_273C(Object *self, Vec3f *vec);
 extern void trigger_func_2884(Object *self, f32 *ox, f32 *oy, f32 *oz);
 extern void trigger_func_29C0(u16 localID, Object *activator, s8 dir, s32 activatorDistSquared);
 
-extern void trigger_curve_setup(Object *self, TriggerCreateInfo *createInfo);
+extern void trigger_curve_setup(Object *self, Trigger_Setup *setup);
 extern void trigger_curve_update(Object *self, Object *activator);
 
-RECOMP_PATCH void trigger_update(Object* self) {
-    TriggerState* state;
-    TriggerCreateInfo* createInfo;
+RECOMP_PATCH void trigger_control(Object* self) {
+    Trigger_Data* objdata;
+    Trigger_Setup* setup;
     Object* player;
     Object* temp_v0_2;
     Object* sidekick;
@@ -196,8 +196,8 @@ RECOMP_PATCH void trigger_update(Object* self) {
     s32 b_foundActivatorObj;
     f32 maxObjSearchDist;
 
-    state = (TriggerState*)self->state;
-    createInfo = (TriggerCreateInfo*)self->createInfo;
+    objdata = (Trigger_Data*)self->data;
+    setup = (Trigger_Setup*)self->setup;
     
     maxObjSearchDist = 200.0f;
    
@@ -212,21 +212,21 @@ RECOMP_PATCH void trigger_update(Object* self) {
     sidekick = get_sidekick();
     
     if ((player != NULL) || (sidekick != NULL)) {
-        if (state->flags & TRG_RESTORE_ENTERED_STATE) {
+        if (objdata->flags & TRG_RESTORE_ENTERED_STATE) {
             trigger_process_commands(self, player, 1, 0);
-            state->flags &= ~TRG_RESTORE_ENTERED_STATE;
-            state->flags |= TRG_ACTIVATOR_ENTERED;
+            objdata->flags &= ~TRG_RESTORE_ENTERED_STATE;
+            objdata->flags |= TRG_ACTIVATOR_ENTERED;
             return;
         }
         
         b_foundActivatorObj = TRUE;
-        if (createInfo->activatorObjType >= 3) {
-            activatorObj = obj_get_nearest_type_to(createInfo->activatorObjType, self, &maxObjSearchDist);
+        if (setup->activatorObjType >= 3) {
+            activatorObj = obj_get_nearest_type_to(setup->activatorObjType, self, &maxObjSearchDist);
             if (activatorObj == NULL) {
                 b_foundActivatorObj = FALSE;
             }
         } else {
-            switch (createInfo->activatorObjType) {
+            switch (setup->activatorObjType) {
             case 0:
                 activatorObj = player;
                 if (player == NULL) {
@@ -246,54 +246,54 @@ RECOMP_PATCH void trigger_update(Object* self) {
         }
         
         if (b_foundActivatorObj) {
-            if (state->flags & TRG_FIRST_TICK) {
-                switch (createInfo->activatorObjType) {
+            if (objdata->flags & TRG_FIRST_TICK) {
+                switch (setup->activatorObjType) {
                 default:
-                    state->activatorPrevPos.x = activatorObj->positionMirror2.x;
-                    state->activatorPrevPos.y = activatorObj->positionMirror2.y;
-                    state->activatorPrevPos.z = activatorObj->positionMirror2.z;
+                    objdata->activatorPrevPos.x = activatorObj->positionMirror2.x;
+                    objdata->activatorPrevPos.y = activatorObj->positionMirror2.y;
+                    objdata->activatorPrevPos.z = activatorObj->positionMirror2.z;
                     break;
                 case 2:
                     // Camera
-                    state->activatorPrevPos.x = activatorObj->srt.transl.x;
-                    state->activatorPrevPos.y = activatorObj->srt.transl.y;
-                    state->activatorPrevPos.z = activatorObj->srt.transl.z;
+                    objdata->activatorPrevPos.x = activatorObj->srt.transl.x;
+                    objdata->activatorPrevPos.y = activatorObj->srt.transl.y;
+                    objdata->activatorPrevPos.z = activatorObj->srt.transl.z;
                     break;
                 case 0:
                 case 1:
                     // Player/sidekick
-                    state->activatorPrevPos.x = activatorObj->positionMirror3.x;
-                    state->activatorPrevPos.y = activatorObj->positionMirror3.y;
-                    state->activatorPrevPos.z = activatorObj->positionMirror3.z;
+                    objdata->activatorPrevPos.x = activatorObj->positionMirror3.x;
+                    objdata->activatorPrevPos.y = activatorObj->positionMirror3.y;
+                    objdata->activatorPrevPos.z = activatorObj->positionMirror3.z;
                     break;
                 }
                 
-                state->flags &= ~TRG_FIRST_TICK;
+                objdata->flags &= ~TRG_FIRST_TICK;
             } else {
-                state->activatorPrevPos.x = state->activatorCurrPos.x;
-                state->activatorPrevPos.y = state->activatorCurrPos.y;
-                state->activatorPrevPos.z = state->activatorCurrPos.z;
+                objdata->activatorPrevPos.x = objdata->activatorCurrPos.x;
+                objdata->activatorPrevPos.y = objdata->activatorCurrPos.y;
+                objdata->activatorPrevPos.z = objdata->activatorCurrPos.z;
             }
             
-            switch (createInfo->activatorObjType) {
+            switch (setup->activatorObjType) {
             case 0:
             case 1:
                 // Player/sidekick
-                state->activatorCurrPos.x = activatorObj->positionMirror.x;
-                state->activatorCurrPos.y = activatorObj->positionMirror.y;
-                state->activatorCurrPos.z = activatorObj->positionMirror.z;
+                objdata->activatorCurrPos.x = activatorObj->positionMirror.x;
+                objdata->activatorCurrPos.y = activatorObj->positionMirror.y;
+                objdata->activatorCurrPos.z = activatorObj->positionMirror.z;
                 break;
             default:
             case 2:
                 // Camera/other
-                state->activatorCurrPos.x = activatorObj->srt.transl.x;
-                state->activatorCurrPos.y = activatorObj->srt.transl.y;
-                state->activatorCurrPos.z = activatorObj->srt.transl.z;
+                objdata->activatorCurrPos.x = activatorObj->srt.transl.x;
+                objdata->activatorCurrPos.y = activatorObj->srt.transl.y;
+                objdata->activatorCurrPos.z = activatorObj->srt.transl.z;
                 break;
             }
         }
         
-        switch (createInfo->base.objId) {
+        switch (setup->base.objId) {
         case OBJ_TriggerPoint:
             if (b_foundActivatorObj) {
                 trigger_point_update(self, activatorObj);
@@ -306,14 +306,14 @@ RECOMP_PATCH void trigger_update(Object* self) {
             break;
         case OBJ_TriggerPlane:
             b_allBitsSet = TRUE;
-            if (state->conditionBitFlagIDs[0] >= 0) {
+            if (objdata->conditionBitFlagIDs[0] >= 0) {
                 // @recomp: Dino Mod condition bit extension for checking unset flags (originally by MusicalProgrammer)
-                if (state->conditionBitFlagIDs[0] & 0x4000) {
-                    if (main_get_bits(state->conditionBitFlagIDs[0] & ~0x4000) != 0) {
+                if (objdata->conditionBitFlagIDs[0] & 0x4000) {
+                    if (main_get_bits(objdata->conditionBitFlagIDs[0] & ~0x4000) != 0) {
                         b_allBitsSet = FALSE;
                     }
                 } else {
-                    if (main_get_bits(state->conditionBitFlagIDs[0]) == 0) {
+                    if (main_get_bits(objdata->conditionBitFlagIDs[0]) == 0) {
                         b_allBitsSet = FALSE;
                     }
                 }
@@ -323,8 +323,8 @@ RECOMP_PATCH void trigger_update(Object* self) {
             }
             break;
         case OBJ_TriggerTime:
-            state->elapsedTicks += delayByte;
-            if (state->elapsedTicks >= createInfo->timerDuration) {
+            objdata->elapsedTicks += delayByte;
+            if (objdata->elapsedTicks >= setup->timerDuration) {
                 trigger_process_commands(self, NULL, 1, 0);
             }
             break;
@@ -342,8 +342,8 @@ RECOMP_PATCH void trigger_update(Object* self) {
         case OBJ_TriggerBits:
             b_allBitsSet = TRUE;
             for (i = 0; i < 4 && b_allBitsSet; i++) {
-                if (state->conditionBitFlagIDs[i] >= 0) {
-                    if (main_get_bits(state->conditionBitFlagIDs[i]) == 0) {
+                if (objdata->conditionBitFlagIDs[i] >= 0) {
+                    if (main_get_bits(objdata->conditionBitFlagIDs[i]) == 0) {
                         b_allBitsSet = FALSE;
                     }
                 }
@@ -373,8 +373,8 @@ static void set_map_layer(s8 layer) {
 }
 
 RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 dir, s32 activatorDistSquared) {
-    TriggerCreateInfo* createInfo; // sp+74
-    TriggerState* state; // sp+70
+    Trigger_Setup* setup; // sp+74
+    Trigger_Data* objdata; // sp+70
     //Object* player;
     s32 pad;
     TriggerCommand *cmd;
@@ -384,16 +384,16 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
     Object* sidekick;
     s32 pad2;
 
-    state = (TriggerState*)self->state;
-    createInfo = (TriggerCreateInfo*)self->createInfo;
+    objdata = (Trigger_Data*)self->data;
+    setup = (Trigger_Setup*)self->setup;
     
-    for (i = 0, cmd = createInfo->commands; i < 8; i++, cmd++) {
+    for (i = 0, cmd = setup->commands; i < 8; i++, cmd++) {
         if (cmd->id == 0) {
             // No command assigned to this slot
             continue;
         }
 
-        if ((state->flags & TRG_RESTORE_ENTERED_STATE) && !(cmd->condition & CMD_COND_RESTORE)) {
+        if ((objdata->flags & TRG_RESTORE_ENTERED_STATE) && !(cmd->condition & CMD_COND_RESTORE)) {
             continue;
         }
         
@@ -404,7 +404,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 if (!(cmd->condition & CMD_COND_IN)) {
                     continue;
                 }
-                if ((state->flags & TRG_ACTIVATOR_ENTERED) && !(cmd->condition & CMD_COND_RE_ENTER)) {
+                if ((objdata->flags & TRG_ACTIVATOR_ENTERED) && !(cmd->condition & CMD_COND_RE_ENTER)) {
                     continue;
                 }
             } else if (dir == -1) {
@@ -412,7 +412,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 if (!(cmd->condition & CMD_COND_OUT)) {
                     continue;
                 }
-                if ((state->flags & TRG_ACTIVATOR_EXITED) && !(cmd->condition & CMD_COND_RE_EXIT)) {
+                if ((objdata->flags & TRG_ACTIVATOR_EXITED) && !(cmd->condition & CMD_COND_RE_EXIT)) {
                     continue;
                 }
             } else {
@@ -489,11 +489,11 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
         case TRG_CMD_SOUND: 
             // "Trigger [%d], Sound FX,           Action Num [%d],Handle Num [%d]"
             if (dir >= 0) {
-                gDLL_6_AMSFX->vtbl->func_10D0(self, (cmd->param2 | (cmd->param1 << 8)), &state->soundHandles[i]);
+                gDLL_6_AMSFX->vtbl->func_10D0(self, (cmd->param2 | (cmd->param1 << 8)), &objdata->soundHandles[i]);
             } else {
-                if (state->soundHandles[i] != 0) {
-                    gDLL_6_AMSFX->vtbl->func_A1C(state->soundHandles[i]);
-                    state->soundHandles[i] = 0;
+                if (objdata->soundHandles[i] != 0) {
+                    gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandles[i]);
+                    objdata->soundHandles[i] = 0;
                 }
             }
             break;
@@ -575,7 +575,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             }
             break;
         case TRG_CMD_5: 
-            if ((state->radiusSquared != 0.0f) && (activatorDistSquared != 0) && (createInfo->base.objId == OBJ_TriggerPlane)) {
+            if ((objdata->radiusSquared != 0.0f) && (activatorDistSquared != 0) && (setup->base.objId == OBJ_TriggerPlane)) {
 
             }
             break;
@@ -653,8 +653,8 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
         case TRG_CMD_SCRIPT:
             // "TRIGGER: warning DLL not loaded\n"
             // "Script [%d], Subscript [%d]\n"
-            if (state->scripts[i] != NULL) {
-                state->scripts[i]->vtbl->subscripts[cmd->param2](self, activator, dir, activatorDistSquared);
+            if (objdata->scripts[i] != NULL) {
+                objdata->scripts[i]->vtbl->subscripts[cmd->param2](self, activator, dir, activatorDistSquared);
             }
             break;
         case TRG_CMD_WORLD_ENABLE_OBJ_GROUP:
@@ -743,10 +743,10 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
 
     if (dir > 0) {
         // In
-        state->flags |= TRG_ACTIVATOR_ENTERED;
-        main_set_bits(state->bitFlagID, 1);
+        objdata->flags |= TRG_ACTIVATOR_ENTERED;
+        main_set_bits(objdata->bitFlagID, 1);
     } else if (dir < 0) {
         // Out
-        state->flags |= TRG_ACTIVATOR_EXITED;
+        objdata->flags |= TRG_ACTIVATOR_EXITED;
     }
 }

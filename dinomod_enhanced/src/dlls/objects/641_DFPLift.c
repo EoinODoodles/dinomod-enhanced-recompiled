@@ -8,24 +8,24 @@
 #include "dll.h"
 
 typedef struct {
-/*0x00*/ ObjCreateInfo base;
+/*0x00*/ ObjSetup base;
 /*0x18*/ s8 rotation;
 /*0x1A*/ s16 unk1A;
 /*0x1C*/ s16 unk1C;
 /*0x1E*/ s16 unk1E;
 /*0x20*/ s16 unk20;
-} DFPLiftCreateInfo;
+} DFPLift_Setup;
 
 typedef struct {
 /*0x00*/ f32 unk0;
 /*0x04*/ u32 soundHandle;
-/*0x08*/ s16 stateType;
+/*0x08*/ s16 state;
 /*0x0A*/ s16 unkA;
 /*0x0C*/ s16 unkC;
 /*0x0E*/ s16 cooldown;
 /*0x10*/ u8 unk10;
 /*0x11*/ u8 unk11;
-} DFPLiftState;
+} DFPLift_Data;
 
 typedef enum {
     LIFT_STATE_INIT = 0,
@@ -54,113 +54,113 @@ static f32 dinomod_get_lift_down(Object *self) {
     }
 }
 
-RECOMP_PATCH void DFPLift_create(Object *self, DFPLiftCreateInfo *createInfo, s32 a2) {
-    DFPLiftState *state;
+RECOMP_PATCH void DFPLift_setup(Object *self, DFPLift_Setup *setup, s32 a2) {
+    DFPLift_Data *objdata;
 
-    state = (DFPLiftState*)self->state;
+    objdata = (DFPLift_Data*)self->data;
 
     self->unk0xbc = DFPLift_func_91C;
-    self->srt.yaw = createInfo->rotation * 256;
+    self->srt.yaw = setup->rotation * 256;
 
-    state->stateType = LIFT_STATE_INIT;
-    state->unkA = createInfo->unk20;
-    state->unkC = createInfo->unk1E;
-    state->unk0 = createInfo->unk1A;
-    state->unk10 = createInfo->unk1C;
+    objdata->state = LIFT_STATE_INIT;
+    objdata->unkA = setup->unk20;
+    objdata->unkC = setup->unk1E;
+    objdata->unk0 = setup->unk1A;
+    objdata->unk10 = setup->unk1C;
 
     // @recomp: Get LIFT_DOWN depending on object ID
     self->srt.transl.y -= dinomod_get_lift_down(self);
     self->unk0xb0 |= 0x2000;
 }
 
-RECOMP_PATCH void DFPLift_update(Object* self) {
-    DFPLiftCreateInfo* createInfo;
-    DFPLiftState* state;
+RECOMP_PATCH void DFPLift_control(Object* self) {
+    DFPLift_Setup* setup;
+    DFPLift_Data* objdata;
     Object* player;
 
-    createInfo = (DFPLiftCreateInfo*)self->createInfo;
-    state = (DFPLiftState*)self->state;
+    setup = (DFPLift_Setup*)self->setup;
+    objdata = (DFPLift_Data*)self->data;
     
     player = get_player();
     if (player == NULL) {
         return;
     }
     
-    switch (state->stateType) {
+    switch (objdata->state) {
     case LIFT_STATE_INIT:
-        if ((main_get_bits(state->unkA) != 0) && (state->unk10 != 1) && 
+        if ((main_get_bits(objdata->unkA) != 0) && (objdata->unk10 != 1) && 
                 (vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_INIT_ACTIVATE_RANGE)) {
             // go up with sound
-            if (self->srt.transl.y < (createInfo->base.y + LIFT_UP)) {
-                if (state->soundHandle == 0) {
-                    gDLL_6_AMSFX->vtbl->play_sound(self, 0x6EC, 0x75, &state->soundHandle, NULL, 0, NULL);
-                    state->unk11 = 1;
+            if (self->srt.transl.y < (setup->base.y + LIFT_UP)) {
+                if (objdata->soundHandle == 0) {
+                    gDLL_6_AMSFX->vtbl->play_sound(self, 0x6EC, 0x75, &objdata->soundHandle, NULL, 0, NULL);
+                    objdata->unk11 = 1;
                 }
                 self->srt.transl.y += delayFloat;
-                if ((createInfo->base.y + LIFT_UP) <= self->srt.transl.y) {
-                    self->srt.transl.y = (createInfo->base.y + LIFT_UP);
-                    state->stateType = LIFT_STATE_INIT_DONE;
-                    if (state->soundHandle != 0) {
-                        gDLL_6_AMSFX->vtbl->func_A1C(state->soundHandle);
-                        state->soundHandle = 0;
+                if ((setup->base.y + LIFT_UP) <= self->srt.transl.y) {
+                    self->srt.transl.y = (setup->base.y + LIFT_UP);
+                    objdata->state = LIFT_STATE_INIT_DONE;
+                    if (objdata->soundHandle != 0) {
+                        gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandle);
+                        objdata->soundHandle = 0;
                     }
                 }
                 return;
             }
-        } else if (state->unk10 == 1) {
+        } else if (objdata->unk10 == 1) {
             if (vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_INIT_ACTIVATE_RANGE) {
                 // go up without sound
-                if (self->srt.transl.y < (createInfo->base.y + LIFT_UP)) {
+                if (self->srt.transl.y < (setup->base.y + LIFT_UP)) {
                     self->srt.transl.y += delayFloat;
-                    if ((createInfo->base.y + LIFT_UP) <= self->srt.transl.y) {
-                        self->srt.transl.y = (createInfo->base.y + LIFT_UP);
-                        state->stateType = LIFT_STATE_INIT_DONE;
+                    if ((setup->base.y + LIFT_UP) <= self->srt.transl.y) {
+                        self->srt.transl.y = (setup->base.y + LIFT_UP);
+                        objdata->state = LIFT_STATE_INIT_DONE;
                     }
                 }
             }
         }
         break;
     case LIFT_STATE_INIT_DONE:
-        state->stateType = LIFT_STATE_STOPPED;
-        state->cooldown = LIFT_COOLDOWN;
+        objdata->state = LIFT_STATE_STOPPED;
+        objdata->cooldown = LIFT_COOLDOWN;
         break;
     case LIFT_STATE_STOPPED:
         // stopped
-        if (state->cooldown != 0) {
-            state->cooldown -= (s16)delayFloat;
-            if (state->cooldown <= 0) {
-                state->cooldown = 0;
+        if (objdata->cooldown != 0) {
+            objdata->cooldown -= (s16)delayFloat;
+            if (objdata->cooldown <= 0) {
+                objdata->cooldown = 0;
             }
         } else {
             if (vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_ACTIVATE_RANGE) {
                 // player is on lift, start moving
-                if (self->srt.transl.y == (createInfo->base.y + LIFT_UP)) {
+                if (self->srt.transl.y == (setup->base.y + LIFT_UP)) {
                     // at top, start going down
-                    state->stateType = LIFT_STATE_GO_DOWN;
-                    if (state->soundHandle == 0) {
-                        gDLL_6_AMSFX->vtbl->play_sound(self, 0x6EC, 0x6B, &state->soundHandle, NULL, 0, NULL);
-                        state->unk11 = 1;
+                    objdata->state = LIFT_STATE_GO_DOWN;
+                    if (objdata->soundHandle == 0) {
+                        gDLL_6_AMSFX->vtbl->play_sound(self, 0x6EC, 0x6B, &objdata->soundHandle, NULL, 0, NULL);
+                        objdata->unk11 = 1;
                     }
                 // @recomp: Get LIFT_DOWN depending on object ID
-                } else if (self->srt.transl.y == (createInfo->base.y - dinomod_get_lift_down(self))) {
+                } else if (self->srt.transl.y == (setup->base.y - dinomod_get_lift_down(self))) {
                     // at bottom, start going up
-                    state->stateType = LIFT_STATE_GO_UP;
-                    if (state->soundHandle == 0) {
-                        gDLL_6_AMSFX->vtbl->play_sound(self, 0x6EC, 0x43, &state->soundHandle, NULL, 0, NULL);
-                        state->unk11 = 1;
+                    objdata->state = LIFT_STATE_GO_UP;
+                    if (objdata->soundHandle == 0) {
+                        gDLL_6_AMSFX->vtbl->play_sound(self, 0x6EC, 0x43, &objdata->soundHandle, NULL, 0, NULL);
+                        objdata->unk11 = 1;
                     }
                 }
             } else {
                 // player is not on the lift, move to where they are
-                if (player->srt.transl.y < createInfo->base.y) {
-                    state->stateType = LIFT_STATE_GO_DOWN;
-                    if (state->unk11 == 1) {
-                        state->unk11 = 0;
+                if (player->srt.transl.y < setup->base.y) {
+                    objdata->state = LIFT_STATE_GO_DOWN;
+                    if (objdata->unk11 == 1) {
+                        objdata->unk11 = 0;
                     }
-                } else if (createInfo->base.y < player->srt.transl.y) {
-                    state->stateType = LIFT_STATE_GO_UP;
-                    if (state->unk11 == 1) {
-                        state->unk11 = 0;
+                } else if (setup->base.y < player->srt.transl.y) {
+                    objdata->state = LIFT_STATE_GO_UP;
+                    if (objdata->unk11 == 1) {
+                        objdata->unk11 = 0;
                     }
                 }
             }
@@ -169,58 +169,58 @@ RECOMP_PATCH void DFPLift_update(Object* self) {
     case LIFT_STATE_GO_DOWN:
         // going down
         // @recomp: Get LIFT_DOWN depending on object ID
-        if ((createInfo->base.y - dinomod_get_lift_down(self)) < self->srt.transl.y) {
+        if ((setup->base.y - dinomod_get_lift_down(self)) < self->srt.transl.y) {
             self->srt.transl.y -= delayFloat;
-            if (self->srt.transl.y <= (createInfo->base.y - dinomod_get_lift_down(self))) {
+            if (self->srt.transl.y <= (setup->base.y - dinomod_get_lift_down(self))) {
                 // reached bottom
-                self->srt.transl.y = (createInfo->base.y - dinomod_get_lift_down(self));
-                state->stateType = LIFT_STATE_STOPPED;
-                if (state->soundHandle != 0) {
-                    gDLL_6_AMSFX->vtbl->func_A1C(state->soundHandle);
-                    state->soundHandle = 0;
+                self->srt.transl.y = (setup->base.y - dinomod_get_lift_down(self));
+                objdata->state = LIFT_STATE_STOPPED;
+                if (objdata->soundHandle != 0) {
+                    gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandle);
+                    objdata->soundHandle = 0;
                 }
-                state->cooldown = LIFT_COOLDOWN;
+                objdata->cooldown = LIFT_COOLDOWN;
             }
-            if ((vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_ACTIVATE_RANGE) && (state->unk11 == 1)) {
+            if ((vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_ACTIVATE_RANGE) && (objdata->unk11 == 1)) {
                 
             }
         } else {
             // already at bottom
-            if (state->soundHandle != 0) {
-                gDLL_6_AMSFX->vtbl->func_A1C(state->soundHandle);
-                state->soundHandle = 0;
+            if (objdata->soundHandle != 0) {
+                gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandle);
+                objdata->soundHandle = 0;
             }
             vec3_distance_xz(&self->positionMirror, &player->positionMirror);
-            state->stateType = LIFT_STATE_STOPPED;
-            state->cooldown = LIFT_COOLDOWN;
+            objdata->state = LIFT_STATE_STOPPED;
+            objdata->cooldown = LIFT_COOLDOWN;
         }
         break;
     case LIFT_STATE_GO_UP:
         // going up
-        if (self->srt.transl.y < (createInfo->base.y + LIFT_UP)) {
+        if (self->srt.transl.y < (setup->base.y + LIFT_UP)) {
             self->srt.transl.y += delayFloat;
-            if ((createInfo->base.y + LIFT_UP) <= self->srt.transl.y) {
+            if ((setup->base.y + LIFT_UP) <= self->srt.transl.y) {
                 // reached top
-                self->srt.transl.y = (createInfo->base.y + LIFT_UP);
-                state->stateType = LIFT_STATE_STOPPED;
-                state->cooldown = LIFT_COOLDOWN;
-                if (state->soundHandle != 0) {
-                    gDLL_6_AMSFX->vtbl->func_A1C(state->soundHandle);
-                    state->soundHandle = 0;
+                self->srt.transl.y = (setup->base.y + LIFT_UP);
+                objdata->state = LIFT_STATE_STOPPED;
+                objdata->cooldown = LIFT_COOLDOWN;
+                if (objdata->soundHandle != 0) {
+                    gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandle);
+                    objdata->soundHandle = 0;
                 }
             }
-            if ((vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_ACTIVATE_RANGE) && (state->unk11 == 1)) {
+            if ((vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_ACTIVATE_RANGE) && (objdata->unk11 == 1)) {
                 
             }
         } else {
             // already at top
-            state->stateType = LIFT_STATE_STOPPED;
-            state->cooldown = LIFT_COOLDOWN;
-            if (state->soundHandle != 0) {
-                gDLL_6_AMSFX->vtbl->func_A1C(state->soundHandle);
-                state->soundHandle = 0;
+            objdata->state = LIFT_STATE_STOPPED;
+            objdata->cooldown = LIFT_COOLDOWN;
+            if (objdata->soundHandle != 0) {
+                gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandle);
+                objdata->soundHandle = 0;
             }
-            if ((vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_ACTIVATE_RANGE) && (state->unk11 == 1)) {
+            if ((vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_ACTIVATE_RANGE) && (objdata->unk11 == 1)) {
 
             }
         }

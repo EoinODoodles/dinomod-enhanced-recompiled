@@ -7,28 +7,37 @@
 #include "recomp/dlls/objects/782_WCpushblock_recomp.h"
 
 typedef struct {
-s8 unk0[0x276 - 0];
-s8 unk276;
-} WCPushBlockState;
+/*000*/    s8 unk0[0x260 - 0];
+/*260*/    Object* unk260; //WCLevelControl
+/*264*/    f32 unk264;
+/*268*/    f32 unk268;
+/*26C*/    u32 unk26C;
+/*270*/    s16 unk270;
+/*272*/    s16 unk272;
+/*274*/    u8 unk274;
+/*275*/    u8 unk275;
+/*276*/    u8 unk276;
+/*277*/    u8 unk277;
+} WCPushBlock_Data;
 
 typedef struct {
-/*00*/ ObjCreateInfo base;
+/*00*/ ObjSetup base;
 /*18*/ u8 unk18;
 /*19*/ s8 modelIndex;
 /*1A*/ s16 unk1A;
-} WCPushBlockCreateInfo;
+} WCPushBlock_Setup;
 
 //Prevents crash when the Sun Blocks loads in Walled City (originally by MusicalProgrammer)
-RECOMP_PATCH void dll_782_func_18(Object* self, WCPushBlockCreateInfo* createInfo, s32 arg2) {
-    WCPushBlockState* state = self->state;
+RECOMP_PATCH void dll_782_setup(Object* self, WCPushBlock_Setup* setup, s32 arg2) {
+    WCPushBlock_Data* objdata = self->data;
     ObjectHitInfo* hitInfo; //@recomp
     
     self->unk_0x36 = 0;
-    self->modelInstIdx = createInfo->modelIndex;
+    self->modelInstIdx = setup->modelIndex;
 
     //@recomp
     hitInfo = self->objhitInfo;
-    hitInfo->unk_0xa0 = createInfo->modelIndex;
+    hitInfo->unk_0xa0 = setup->modelIndex;
 
-    state->unk276 = createInfo->unk1A;
+    objdata->unk276 = setup->unk1A;
 }

@@ -24,16 +24,16 @@ typedef struct {
 /*22*/ s8 weedsDeposited;
 /*23*/ u8 updateFireEffect;         //replaces the modgfx fire effect when its size changes
 /*24*/ u8 callbackBool;             //Boolean associated with the cutscene callback function
-} GPBonfireState;
+} GPBonfire_Data;
 
 typedef struct {
-/*00*/ ObjCreateInfo base;
+/*00*/ ObjSetup base;
 /*18*/ u8 interactionDistance;
 /*1A*/ u16 kyteCurveID;
 /*1C*/ s16 unused1C;
 /*1E*/ s8 unused1E;
 /*1F*/ u8 yaw;
-} GPBonfireCreateInfo;
+} GPBonfire_Setup;
 
 typedef struct {
 s8 unk0[0x62 - 0];
@@ -70,21 +70,21 @@ extern void GPbonfire_func_A44(Object* self);
 extern s32 GPbonfire_callbackBC(Object* self, s32 arg1, CallbackBCUnkArg2* arg2, s32 arg3);
 
 //Allows GPbonfire to be lit and ChimneySweep immediately lifted (originally by jeebs2kx)
-RECOMP_PATCH void GPbonfire_create(Object* self, GPBonfireCreateInfo* createInfo, s32 arg2) {
-    GPBonfireState* state;
+RECOMP_PATCH void GPbonfire_setup(Object* self, GPBonfire_Setup* setup, s32 arg2) {
+    GPBonfire_Data* objdata;
 
-    state = self->state;
+    objdata = self->data;
     self->unk0xbc = (void*)&GPbonfire_callbackBC;
-    self->srt.yaw = createInfo->yaw << 8;
-    state->stateIndex = STATE_0_INITIALISE;
-    state->currentState = 0;
-    state->soundHandles[0] = 0;
-    state->soundHandles[1] = 0;
+    self->srt.yaw = setup->yaw << 8;
+    objdata->stateIndex = STATE_0_INITIALISE;
+    objdata->currentState = 0;
+    objdata->soundHandles[0] = 0;
+    objdata->soundHandles[1] = 0;
     obj_add_object_type(self, 0x30);
-    state->gameBitKindlingPlaced = BIT_GP_Bonfire_Kindling_Placed;
-    state->gameBitBurning = BIT_GP_ChimneySweep_Lifted; //@recomp: skip to bonfire end state
-    state->sequenceIndexKindling = 0;
-    state->sequenceIndexBurning = 1;
-    state->unused14 = 0;
-    state->weedsDeposited = 0;
+    objdata->gameBitKindlingPlaced = BIT_GP_Bonfire_Kindling_Placed;
+    objdata->gameBitBurning = BIT_GP_ChimneySweep_Lifted; //@recomp: skip to bonfire end state
+    objdata->sequenceIndexKindling = 0;
+    objdata->sequenceIndexBurning = 1;
+    objdata->unused14 = 0;
+    objdata->weedsDeposited = 0;
 }

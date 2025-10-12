@@ -13,14 +13,14 @@ typedef struct {
 /*00*/ f32 heatCutsceneTimer;
 /*04*/ u8 unk4; // ?
 /*05*/ u8 mapID;
-} GP_LevelControl_State;
+} GP_LevelControl_Data;
 
 // Sets down GPbonfire's kindling automatically, allowing game progression to continue (originally by jeebs2kx)
-RECOMP_PATCH void GP_LevelControl_create(Object *self, ObjCreateInfo *createInfo, s32 arg2) {
-    GP_LevelControl_State *state;
+RECOMP_PATCH void GP_LevelControl_setup(Object *self, ObjSetup *setup, s32 arg2) {
+    GP_LevelControl_Data *objdata;
 
-    state = self->state;
-    state->unk4 = 0;
+    objdata = self->data;
+    objdata->unk4 = 0;
 
     switch (gDLL_29_Gplay->vtbl->get_map_setup(self->mapID)) {
     case 1:
@@ -32,5 +32,5 @@ RECOMP_PATCH void GP_LevelControl_create(Object *self, ObjCreateInfo *createInfo
     }
 
     main_set_bits(BIT_GP_Bonfire_Kindling_Placed, 1); //@recomp: change initial flag set
-    state->mapID = 0xFF;
+    objdata->mapID = 0xFF;
 }

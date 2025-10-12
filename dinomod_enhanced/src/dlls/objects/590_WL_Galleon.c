@@ -28,7 +28,7 @@ typedef struct {
 
 // Removes a flag check which could prevent the "Scales Escapes with Kyte" sequence from playing 
 // just before you teleport away to SwapStone Circle (originally by MusicalProgrammer)
-RECOMP_PATCH void WLgalleon_update(Object* self) {
+RECOMP_PATCH void WLgalleon_control(Object* self) {
     u32 arrivedAtWM;
     Object* player;
     WLGalleonObjdata* state;
@@ -41,7 +41,7 @@ RECOMP_PATCH void WLgalleon_update(Object* self) {
         }
         
         player = get_player();
-        state = self->state;
+        state = self->data;
         
         if (main_get_bits(BIT_429)) {
             if (gDLL_29_Gplay->vtbl->get_obj_group_status(self->unk_0x34, 2)) {

@@ -107,7 +107,7 @@ s8 getCountDusters(){
     PlayerStats *playerStats;
 
     if (player){
-        playerStats = ((PlayerState*)player->state)->stats;
+        playerStats = ((Player_Data*)player->data)->stats;
         if (playerStats){
             dusters = playerStats->dusters;
         }

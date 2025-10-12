@@ -12,19 +12,19 @@
 
 typedef struct {
     u8 unk0;
-} SHtricky_State;
+} SHtricky_Data;
 
-RECOMP_PATCH void SHtricky_create(Object* self, ObjCreateInfo* createInfo, s32 arg2) {
-    SHtricky_State *state;
+RECOMP_PATCH void SHtricky_setup(Object* self, ObjSetup* setup, s32 arg2) {
+    SHtricky_Data *objdata;
 
-    state = (SHtricky_State*)self->state;
+    objdata = (SHtricky_Data*)self->data;
     
     // @recomp: Stop Tricky from repeating: "That's my mom!" when arriving in SwapStone Hollow (originally by MusicalProgrammer)
     if (main_get_bits(0xA1) != 0) {
-        state->unk0 = 3;
+        objdata->unk0 = 3;
     } else {
         main_set_bits(BIT_Play_Seq_00D1, 0);
-        state->unk0 = 0;
+        objdata->unk0 = 0;
     }
 
     self->unk0xb0 |= 0x2000;

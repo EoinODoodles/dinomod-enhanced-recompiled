@@ -10,18 +10,19 @@
 #include "recomp/dlls/objects/277_iceblast_recomp.h"
 
 typedef struct {
-s16 timer;
-} IceBlastState;
+    s16 timer;
+    u8 _unk2[2];
+} IceBlast_Data;
 
 // Fixes the direction of the Ice Blast when used by Sabre (originally by MusicalProgrammer)
-RECOMP_PATCH void iceblast_update(Object* self) {
+RECOMP_PATCH void iceblast_control(Object* self) {
     Object* player;
     Object* weapon;
-    IceBlastState* state;
+    IceBlast_Data* objdata;
     SRT transform;
 
     player = get_player();
-    state = self->state;
+    objdata = self->data;
     if (!player) {
         return;
     }
@@ -34,9 +35,9 @@ RECOMP_PATCH void iceblast_update(Object* self) {
     self->srt.roll = weapon->srt.roll;
     self->srt.pitch = weapon->srt.pitch;
     self->srt.yaw = weapon->srt.yaw;
-    state->timer -= (s16)delayFloat;
-    if (state->timer <= 0) {
-        state->timer = 0x1E;
+    objdata->timer -= (s16)delayFloat;
+    if (objdata->timer <= 0) {
+        objdata->timer = 0x1E;
         self->speed.x = 0.0f; 
         self->speed.y = -5.0f;
         self->speed.z = 0.0f; 
@@ -72,6 +73,6 @@ RECOMP_PATCH void iceblast_update(Object* self) {
 }
 
 // Hide debug cubes
-RECOMP_PATCH void iceblast_draw(Object* self, Gfx** gfx, Mtx** mtx, Vertex** vtx, Triangle** pols, s32 visibility) {
+RECOMP_PATCH void iceblast_print(Object* self, Gfx** gfx, Mtx** mtx, Vertex** vtx, Triangle** pols, s32 visibility) {
     // draw_object(self, gfx, mtx, vtx, pols, 1.0f);
 }
