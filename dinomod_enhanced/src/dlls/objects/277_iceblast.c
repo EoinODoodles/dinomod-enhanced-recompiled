@@ -54,7 +54,7 @@ RECOMP_PATCH void iceblast_control(Object* self) {
         if (weapon->id == OBJ_sword)
             transform.pitch -= 0x8000;
         
-        rotate_vec3((SRT* ) &transform, &self->speed);
+        rotate_vec3((SRT* ) &transform, (f32*)&self->speed);
         self->srt.transl.x = weapon->positionMirror.x;
         self->srt.transl.y = weapon->positionMirror.y;
         self->srt.transl.z = weapon->positionMirror.z;
