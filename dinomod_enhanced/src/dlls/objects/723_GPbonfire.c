@@ -82,7 +82,7 @@ RECOMP_PATCH void GPbonfire_setup(Object* self, GPBonfire_Setup* setup, s32 arg2
     objdata->soundHandles[1] = 0;
     obj_add_object_type(self, 0x30);
     objdata->gameBitKindlingPlaced = BIT_GP_Bonfire_Kindling_Placed;
-    objdata->gameBitBurning = BIT_GP_ChimneySweep_Lifted; //@recomp: skip to bonfire end state
+    objdata->gameBitBurning = BIT_GP_ChimneySwipe_Lifted; //@recomp: skip to bonfire end state
     objdata->sequenceIndexKindling = 0;
     objdata->sequenceIndexBurning = 1;
     objdata->unused14 = 0;

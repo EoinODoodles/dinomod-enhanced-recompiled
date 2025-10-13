@@ -21,7 +21,7 @@ typedef struct {
 
 RECOMP_PATCH s32 dll_274_func_2A74(Object* arg0, DLL274_Data* arg1) {
     if ((arg1->unkCC == 0.0f) && (arg1->unkC8 > 0.0f)) {
-        gDLL_6_AMSFX->vtbl->play_sound(arg0, SOUND_3D8, MAX_VOLUME, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play_sound(arg0, SOUND_3D8_Water_Splash, MAX_VOLUME, NULL, NULL, 0, NULL);
         // @recomp: Destroy Ice Block when it hits the water in DIM, stops a crash if it clips through the floor 
         //          (originally by MusicalProgrammer)
         obj_destroy_object(arg0);

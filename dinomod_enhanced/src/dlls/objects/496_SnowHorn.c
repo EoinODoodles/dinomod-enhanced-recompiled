@@ -1,3 +1,4 @@
+#include "dlls/engine/6_amsfx.h"
 #include "game/objects/object_id.h"
 #include "modding.h"
 #include "recomputils.h"
@@ -150,7 +151,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* state, SnowHorn
             //Calling out to the player periodically
             state->unk8 += delayByte;
             if (state->unk8 >= 0x3E9) {
-                gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_1E2, MAX_VOLUME, 0, 0, 0, 0);
+                gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_1E2_Garunda_Te_Will_somebody_get_me_out_of_here, MAX_VOLUME, 0, 0, 0, 0);
                 gDLL_22_Subtitles->vtbl->func_368(0xA);
                 state->unk8 = 0;
             }
@@ -206,7 +207,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* state, SnowHorn
                     break;
                 }
                 if (weeds % 3 == 0) {
-                    gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_74B, MAX_VOLUME, 0, 0, 0, 0);
+                    gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_74B_Garunda_Te_That_tastes_great_Hurry_up_boy, MAX_VOLUME, 0, 0, 0, 0);
                     gDLL_22_Subtitles->vtbl->func_368(2);
                 }
                 state->flags = 2;
