@@ -248,7 +248,7 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
             main_set_bits(BIT_14A, 0);
             main_set_bits(BIT_14B, 0);
             main_set_bits(BIT_14B, 0);
-            main_set_bits(BIT_5AF, 1); // TODO: confirm if this is needed
+            //main_set_bits(BIT_5AF, 1); // TODO: confirm if this is needed
             main_set_bits(BIT_148, 0);
             break;
         }
