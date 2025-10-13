@@ -9,4 +9,5 @@ symbols = [
     { name = "bzero_recomp", vram = 0x8007CFE0, size = 0xA0 },
     { name = "__fstAddress", vram = 0xA4970 },
     { name = "__file1Address", vram = 0xA4AA0 },
+    { name = "D_80092A7C", vram = 0x80092A7C },
 ]
