@@ -103,9 +103,9 @@ RECOMP_PATCH void SPShop_control(Object* self) {
         gDLL_28_ScreenFade->vtbl->fade_reversed(20, SCREEN_FADE_BLACK);
 
         if (player->id == OBJ_Sabre) {
-            warpPlayer(0xF, FALSE);
+            warpPlayer(WARP_SH_ROCKY_PODIUM, FALSE);
         } else {
-            warpPlayer(0xE, FALSE);
+            warpPlayer(WARP_SC_RUBBLE_PODIUM, FALSE);
         }
     }
 }
