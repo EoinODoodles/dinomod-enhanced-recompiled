@@ -7,7 +7,7 @@
 #include "sys/objtype.h"
 #include "sys/main.h"
 
-#include "recomp/dlls/_asm/702_recomp.h"
+#include "recomp/dlls/objects/702_KTrex_recomp.h"
 
 typedef struct {
     u8 unk0[0x25B - 0x0];

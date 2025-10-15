@@ -20,7 +20,7 @@
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/768_SPshop.h"
 
-#include "recomp/dlls/objects/768_SPshop_recomp.h"
+#include "recomp/dlls/objects/768_SPShop_recomp.h"
 
 extern ShopItem shopItemData[];
 
