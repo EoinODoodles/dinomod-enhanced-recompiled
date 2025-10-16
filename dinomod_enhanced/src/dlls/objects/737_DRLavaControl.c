@@ -1,10 +1,11 @@
 #include "modding.h"
+#include "recomputils.h"
 
 #include "common.h"
+#include "sys/objtype.h"
 #include "game/gamebits.h"
 
 #include "recomp/dlls/objects/737_DRLavaControl_recomp.h"
-#include "sys/objtype.h"
 
 typedef struct {
 /*0*/ Object* lfxEmitter;
@@ -13,9 +14,10 @@ typedef struct {
 /*7*/ s8 freezeDuration;
 /*8*/ s8 flags;
 /*9*/ s8 effectIndex; //used to switch between different effect presets during Ice Spell cooldown
-/*C*/ u32 soundHandleHiss; //@recomp: new
-/*10*/ u32 soundHandleCrackle; //@recomp: new
-} DRLavaControl_Data;
+//@recomp: extending struct
+/*C*/ u32 soundHandleHiss;    
+/*10*/ u32 soundHandleCrackle;
+} Extended_DRLavaControl_Data;
 
 typedef struct {
 /*00*/    ObjSetup base;
@@ -28,11 +30,11 @@ typedef struct {
 
 extern s16 lfxEmitterUnk1E[];
 
-extern void DRLavaControl_freeze_update_effects(Object* self, DRLavaControl_Data* objData, s32 effectIndex);
+extern void DRLavaControl_freeze_update_effects(Object* self, Extended_DRLavaControl_Data* objData, s32 effectIndex);
 extern Object* DRLavaControl_create_light(Object* self, s32 lfxSetupUnk1E);
 
 // Fix DRLavaControl LFXEmitters from crashing after you leave section, after cooling lava (originally by MusicalProgrammer)
-RECOMP_PATCH void DRLavaControl_freeze_update_effects(Object* self, DRLavaControl_Data* objData, s32 effectIndex) {
+RECOMP_PATCH void DRLavaControl_freeze_update_effects(Object* self, Extended_DRLavaControl_Data* objData, s32 effectIndex) {
     f32 distance;
     f32 temperature_tValue; //0.0 when cooled, 1.0 when hot
     u16 dataUnused[] = { 288, 287, 286, 282 }; //unused indices?
@@ -67,7 +69,7 @@ RECOMP_PATCH void DRLavaControl_freeze_update_effects(Object* self, DRLavaContro
 }
 
 RECOMP_PATCH void DRLavaControl_freeze(Object* self) {
-    DRLavaControl_Data* objData;
+    Extended_DRLavaControl_Data* objData;
     DRLavaControl_Setup* objSetup;
 
     objData = self->data;
@@ -85,7 +87,8 @@ RECOMP_PATCH void DRLavaControl_freeze(Object* self) {
         gDLL_17->vtbl->func1(self, 0x5B, NULL, 2, -1, NULL);
         objData->freezeTimer -= delayByte; //@recomp: framerate independent freezing (Banjeoin)
 
-        if (objData->freezeTimer == 0) {
+        if (objData->freezeTimer <= 0) {
+            objData->freezeTimer = 0;
             if (!objData->soundHandleCrackle){ //@recomp: use soundHandle
                 gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_80B_Crackling_Freezing, MAX_VOLUME, &objData->soundHandleCrackle, NULL, 0, NULL);
             }
@@ -102,7 +105,7 @@ RECOMP_PATCH void DRLavaControl_freeze(Object* self) {
 
 /** delayByte tends to be 2 or 3 on N64, so multiplying initial values to keep freeze durations equal across framerates */
 RECOMP_PATCH void DRLavaControl_setup(Object* self, DRLavaControl_Setup* objSetup, s32 arg2) {
-    DRLavaControl_Data* objData;
+    Extended_DRLavaControl_Data* objData;
     s32 isFrozen;
 
     objData = self->data;
@@ -126,11 +129,11 @@ RECOMP_PATCH void DRLavaControl_setup(Object* self, DRLavaControl_Setup* objSetu
 }
 
 RECOMP_PATCH u32 DRLavaControl_get_data_size(Object *self, u32 a1) {
-    return sizeof(DRLavaControl_Data);
+    return sizeof(Extended_DRLavaControl_Data);
 }
 
 RECOMP_PATCH void DRLavaControl_free(Object* self, s32 arg1) {
-    DRLavaControl_Data* objData = self->data;
+    Extended_DRLavaControl_Data* objData = self->data;
 
     if (objData->lfxEmitter && (arg1 == 0)) {
         obj_destroy_object(objData->lfxEmitter);
