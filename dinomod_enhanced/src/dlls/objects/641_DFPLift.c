@@ -59,7 +59,7 @@ RECOMP_PATCH void DFPLift_setup(Object *self, DFPLift_Setup *setup, s32 a2) {
 
     objdata = (DFPLift_Data*)self->data;
 
-    self->unk0xbc = DFPLift_func_91C;
+    self->unkBC = DFPLift_func_91C;
     self->srt.yaw = setup->rotation * 256;
 
     objdata->state = LIFT_STATE_INIT;
@@ -70,7 +70,7 @@ RECOMP_PATCH void DFPLift_setup(Object *self, DFPLift_Setup *setup, s32 a2) {
 
     // @recomp: Get LIFT_DOWN depending on object ID
     self->srt.transl.y -= dinomod_get_lift_down(self);
-    self->unk0xb0 |= 0x2000;
+    self->unkB0 |= 0x2000;
 }
 
 RECOMP_PATCH void DFPLift_control(Object* self) {

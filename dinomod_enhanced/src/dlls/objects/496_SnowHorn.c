@@ -98,7 +98,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
     s8 FROSTWEED_MAX_OVERRIDE = getFrostWeedMaxOverride(); //@recomp
     s8 FROSTWEED_TWIGS_ACCEPTED = getFrostWeedTwigsConfigs(); //@recomp
     
-    self->unk0xaf &= 0xFFF7;
+    self->unkAF &= 0xFFF7;
     switch (objdata->flags) {
         case 0:
             //Calling out to the player periodically
@@ -108,7 +108,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
                 gDLL_22_Subtitles->vtbl->func_368(0xA);
                 objdata->unk8 = 0;
             }
-            if (self->unk0xaf & 4) {
+            if (self->unkAF & 4) {
                 objdata->flags = 1;
             }
             break;
@@ -187,7 +187,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
             }
             break;
         case 7:
-            self->unk0xaf |= 8;
+            self->unkAF |= 8;
             break;
     }
     

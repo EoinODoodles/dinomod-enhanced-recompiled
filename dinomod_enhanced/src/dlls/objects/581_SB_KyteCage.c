@@ -57,16 +57,16 @@ RECOMP_PATCH void kyteCage_print(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** v
     if (state != NULL) {
         if (state->kyte != NULL) {
             kyte = state->kyte;
-            if (kyte->unk0xb0 & 0x40) {
+            if (kyte->unkB0 & 0x40) {
                 state->kyte = NULL;
             }
             objDef = self->def;
             model = self->modelInsts[self->modelInstIdx];
             
             if (objDef->numAttachPoints != 0) {
-                if (model->unk_0x34 & 8) { 
+                if (model->unk34 & 8) { 
                     boneIdx = objDef->pAttachPoints[1].bones[self->modelInstIdx];
-                    boneMatrix = (MtxF *) &(((f32 **)model->matrices)[(model->unk_0x34 & 1)][boneIdx << 4]);
+                    boneMatrix = (MtxF *) &(((f32 **)model->matrices)[(model->unk34 & 1)][boneIdx << 4]);
                     
                     boneTransform.transl.x = 200.0f;
                     boneTransform.transl.y = 0.0f;
@@ -81,7 +81,7 @@ RECOMP_PATCH void kyteCage_print(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** v
                     draw_object(kyte, gfx, mtxs, vtxs, pols, 1.0f);
                     func_80034FF0(NULL);
                 }
-                kyte->unk0xdc = 2;
+                kyte->unkDC = 2;
             }
 
             //Create a lightning strike from above (at a random angle)
@@ -95,7 +95,7 @@ RECOMP_PATCH void kyteCage_print(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** v
                 galleonTransform.scale = 1.0f;
 
                 boneIdx = self->def->pAttachPoints->bones[0];
-                boneMatrix = (MtxF *) &(((f32 **)model->matrices)[(model->unk_0x34 & 1)][boneIdx << 4]);
+                boneMatrix = (MtxF *) &(((f32 **)model->matrices)[(model->unk34 & 1)][boneIdx << 4]);
                 boneTransform.yaw = 0;
                 boneTransform.roll = 0;
                 boneTransform.pitch = 0;
@@ -130,7 +130,7 @@ RECOMP_PATCH void kyteCage_print(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** v
                 galleonTransform.scale = 1.0f;
 
                 boneIdx = self->def->pAttachPoints->bones[0];
-                boneMatrix = (MtxF *) &(((f32 **)model->matrices)[(model->unk_0x34 & 1)][boneIdx << 4]);
+                boneMatrix = (MtxF *) &(((f32 **)model->matrices)[(model->unk34 & 1)][boneIdx << 4]);
                 boneTransform.yaw = 0;
                 boneTransform.roll = 0;
                 boneTransform.pitch = 0;

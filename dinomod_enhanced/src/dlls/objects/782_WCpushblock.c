@@ -32,12 +32,12 @@ RECOMP_PATCH void dll_782_setup(Object* self, WCPushBlock_Setup* setup, s32 arg2
     WCPushBlock_Data* objdata = self->data;
     ObjectHitInfo* hitInfo; //@recomp
     
-    self->unk_0x36 = 0;
+    self->unk36 = 0;
     self->modelInstIdx = setup->modelIndex;
 
     //@recomp
     hitInfo = self->objhitInfo;
-    hitInfo->unk_0xa0 = setup->modelIndex;
+    hitInfo->unkA0 = setup->modelIndex;
 
     objdata->unk276 = setup->unk1A;
 }

@@ -21,12 +21,12 @@ RECOMP_PATCH void dll_652_func_364(Object* self) {
     bit2Val = main_get_bits(objdata->unk2);
     bit1Val = main_get_bits(objdata->unk0);
     if ((bit1Val == 0) && (bit2Val != 0) && (objdata->unk4 == 0)) {
-        self->unk0xaf &= ~8;
+        self->unkAF &= ~8;
         // @recomp: Accept the correct spellstone (original patch by jeebs2kx)
         if ((bit2Val != 0) && (gDLL_1_UI->vtbl->func7(0x83A) != 0)) {
             gDLL_3_Animation->vtbl->func17(1, self, -1);
             objdata->unk4 = 1;
-            self->unk0xaf |= 8;
+            self->unkAF |= 8;
         }
     }
 }

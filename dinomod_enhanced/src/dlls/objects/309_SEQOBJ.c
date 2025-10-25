@@ -77,7 +77,7 @@ RECOMP_PATCH void SeqObj_setup(Object* self, SeqObj_Setup* objSetup, s32 arg2) {
     }
 
     self->srt.yaw = objSetup->rotate << 8;
-    self->unk0xbc = (void*)&SeqObj_anim_callback;
+    self->unkBC = (void*)&SeqObj_anim_callback;
     
     objData = self->data;
     self->modelInstIdx = objSetup->modelInstIdx;
@@ -98,5 +98,5 @@ RECOMP_PATCH void SeqObj_setup(Object* self, SeqObj_Setup* objSetup, s32 arg2) {
     }
 
     objData->finished = FALSE;
-    self->unk0xb0 |= 0x2000;
+    self->unkB0 |= 0x2000;
 }

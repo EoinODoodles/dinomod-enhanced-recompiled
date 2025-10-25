@@ -28,7 +28,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
 
     objdata = self->data;
     prevQuestProgress = objdata->questProgress;
-    self->unk0xaf &= ~8;
+    self->unkAF &= ~8;
     if (self->curModAnimId != 1) {
         func_80023D30(self, 1, 0.0f, 0);
     }
@@ -39,7 +39,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
         objdata->questProgress = 2;
         break;
     case 2:
-        if (self->unk0xaf & 1) {
+        if (self->unkAF & 1) {
             set_button_mask(0, 0x8000);
             gDLL_3_Animation->vtbl->func17(1, self, -1);
             main_set_bits(BIT_SH_Move_Thorntail_Blocking_Hollow_Log, 1);
@@ -47,7 +47,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
         }
         break;
     case 3:
-        if (self->unk0xaf & 4) {
+        if (self->unkAF & 4) {
             if (gDLL_1_UI->vtbl->func7(BIT_Inventory_White_Mushrooms) != 0) {
                 set_button_mask(0, 0x8000);
                 objdata->eatenWhiteMushrooms += main_get_bits(BIT_Inventory_White_Mushrooms);
@@ -61,7 +61,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
                 }
                 main_set_bits(BIT_Inventory_White_Mushrooms, 0);
                 main_set_bits(BIT_SH_Queen_EW_White_Mushrooms_Eaten, objdata->eatenWhiteMushrooms);
-            } else if (self->unk0xaf & 1) {
+            } else if (self->unkAF & 1) {
                 set_button_mask(0, 0x8000);
                 gDLL_3_Animation->vtbl->func17(4, self, -1);
             }

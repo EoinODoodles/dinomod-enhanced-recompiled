@@ -18,7 +18,7 @@
 RECOMP_PATCH void SBCageKyte_print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** vtxs, Triangle** pols, s8 visibility) {
     if (visibility && 
         // !main_get_bits(BIT_WM_Played_Randorn_First_Meeting) && @recomp: removed
-        !self->unk0xdc) {
+        !self->unkDC) {
         draw_object(self, gdl, mtxs, vtxs, pols, 1.0f);
     }
 }
