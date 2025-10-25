@@ -140,12 +140,6 @@ extern s32 dll_702_move_and_check_turn(ObjFSA_Data* fsa, KTrex_Data* ktdata);
 extern void dll_702_push_state(s32 state);
 extern s32 dll_702_is_in_active_laser_wall(Object* self);
 
-RECOMP_HOOK_DLL(dll_702_setup) void dll702_setup_hook(Object* self, KTrex_ObjSetup* setup, s32 arg2) {
-    setup->chargeChance[1] = 50;
-    setup->chargeChance[2] = 50;
-    setup->chargeChance[3] = 50;
-}
-
 RECOMP_PATCH s32 dll_702_move_and_check_turn(ObjFSA_Data* fsa, KTrex_Data* ktdata) {
     f32 posDelta;
     s32 reversed;
