@@ -42,15 +42,15 @@ typedef struct {
 */
 RECOMP_HOOK_DLL(SPShop_ctor) void hook_edit_shop_item_data() {
     //Firefly Lantern
-    shopItemData[SPItem_Firefly_Lantern].sabre.hide = BIT_5D6;
-    shopItemData[SPItem_Firefly_Lantern].krystal.hide = BIT_13D;
+    shopItemData[SPItem_Firefly_Lantern].sabre.hide = BIT_Sabre_Fireflies;
+    shopItemData[SPItem_Firefly_Lantern].krystal.hide = BIT_Krystal_Fireflies;
     
     //Small Player Food Bag
     shopItemData[SPItem_Small_Player_Foodbag].sabre.show = BIT_190;
     
     //Krazoa Translator (repurposing Large Player Foodbag slot)
     shopItemData[SPItem_Large_Player_Foodbag].krystal.show = BIT_ALWAYS_1;
-    shopItemData[SPItem_Large_Player_Foodbag].krystal.hide = BIT_7BF;
+    shopItemData[SPItem_Large_Player_Foodbag].krystal.hide = BIT_Krazoa_Translator;
 }
 
 /** Adds a fade-to-black when leaving the shop (Banjeoin) */

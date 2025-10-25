@@ -51,47 +51,11 @@ typedef struct {
 /*054*/ f32 unk54;
 /*058*/ f32 walkSpeed; //has something to do with the struct at 0x60?
 /*05C*/ s32 unk5C;
-/*060*/ UnkCurvesStruct60 unk60;
-/*0E0*/ s32 unkE0;
-/*0E4*/ s32 unkE4;
-/*0E8*/ s32 unkE8;
-/*0EC*/ s32 unkEC;
-/*0F0*/ s32 unkF0;
-/*0F4*/ s32 unkF4;
-/*0F8*/ s32 unkF8;
-/*0FC*/ s32 unkFC;
-/*100*/ s32 unk100;
-/*104*/ s32 unk104;
-/*108*/ s32 unk108;
-/*10C*/ s32 unk10C;
-/*110*/ s32 unk110;
-/*114*/ s32 unk114;
-/*118*/ s32 unk118;
-/*11C*/ s32 unk11C;
-/*110*/ s32 unk120;
-/*114*/ s32 unk124;
-/*118*/ s32 unk128;
-/*11C*/ s32 unk12C;
-/*110*/ s32 unk130;
-/*114*/ s32 unk134;
-/*118*/ s32 unk138;
-/*11C*/ s32 unk13C;
-/*110*/ s32 unk140;
-/*114*/ s32 unk144;
-/*118*/ s32 unk148;
-/*11C*/ s32 unk14C;
-/*110*/ s32 unk150;
-/*114*/ s32 unk154;
-/*118*/ s32 unk158;
-/*11C*/ s32 unk15C;
-/*110*/ s32 unk160;
-/*114*/ s32 unk164;
-/*118*/ s32 unk168;
-/*11C*/ s32 unk16C;
-/*110*/ Vec3f* unk170;
-/*114*/ s32 unk174;
-/*118*/ Vec3f unk178[8]; //position samples/deltas - maybe for walk-related calculus?
-/*1d8*/ s8 unk1d8[0x208];
+/*060*/ UnkCurvesStruct unk60;
+/*168*/ s32 unk168;
+/*16C*/ s32 unk16C;
+/*170*/ DLL27_Data unk170;
+/*3d0*/ s8 _unk3D0[0x3E0-0x3D0];
 /*3e0*/ u32 unk3e0;
 /*3e4*/ u32 unk3e4;
 /*3e8*/ u32 unk3e8;
@@ -100,18 +64,7 @@ typedef struct {
 /*3f4*/ u32 unk3f4;
 /*3f8*/ u32 unk3f8;
 /*3fc*/ u32 unk3fc;
-/*400*/ s8 lookAtUnk;
-/*401*/ s8 unk401;
-/*402*/ s8 unk402;
-/*403*/ s8 unk403;
-/*404*/ f32 copyPlayerX;
-/*408*/ f32 copyPlayerY;
-/*40c*/ f32 copyPlayerZ;
-/*410*/ f32 unk410;
-/*414*/ f32 unk414;
-/*418*/ f32 unk418;
-/*41C*/ f32 unk41C;
-/*420*/ f32 unk420;
+/*400*/ Unk80032CF8 lookAtUnk;
 /*424*/ u8 unk424;
 /*425*/ u8 unk425;
 /*426*/ u8 unk426;
@@ -139,31 +92,31 @@ static _Bool getFrostWeedTwigsConfigs() {
 }
 
 // Adds config options for Garunda Te's FrostWeed quest
-RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* state, SnowHorn_Setup* objsetup) {
+RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHorn_Setup* objsetup) {
     Object* frostWeed;
     s32 weeds;
     s8 FROSTWEED_MAX_OVERRIDE = getFrostWeedMaxOverride(); //@recomp
     s8 FROSTWEED_TWIGS_ACCEPTED = getFrostWeedTwigsConfigs(); //@recomp
     
     self->unk0xaf &= 0xFFF7;
-    switch (state->flags) {
+    switch (objdata->flags) {
         case 0:
             //Calling out to the player periodically
-            state->unk8 += delayByte;
-            if (state->unk8 >= 0x3E9) {
+            objdata->unk8 += delayByte;
+            if (objdata->unk8 >= 0x3E9) {
                 gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_1E2_Garunda_Te_Will_somebody_get_me_out_of_here, MAX_VOLUME, 0, 0, 0, 0);
                 gDLL_22_Subtitles->vtbl->func_368(0xA);
-                state->unk8 = 0;
+                objdata->unk8 = 0;
             }
             if (self->unk0xaf & 4) {
-                state->flags = 1;
+                objdata->flags = 1;
             }
             break;
         case 1:
             if (func_80032538(self)) {
                 gDLL_3_Animation->vtbl->func17(0, self, -1);
-                state->flags = 2;
-                main_set_bits(0x115, state->flags);
+                objdata->flags = 2;
+                main_set_bits(0x115, objdata->flags);
             }
             break;
         case 2:
@@ -178,49 +131,49 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* state, SnowHorn
                 (FROSTWEED_TWIGS_ACCEPTED && frostWeed->id == OBJ_Tumbleweed2twig)) &&  //@recomp: option of accepting FrostWeed twigs as well
                 vec3_distance_xz_squared(&self->positionMirror, &frostWeed->positionMirror) < objsetup->unkRadius * objsetup->unkRadius) {
                 if (!((DLL_227_Tumbleweed*)frostWeed->dll)->vtbl->func4(frostWeed)) {
-                    ((DLL_227_Tumbleweed*)(frostWeed->dll))->vtbl->func3(frostWeed, &state->playerPositionCopy);
-                    state->frostWeed = frostWeed;
+                    ((DLL_227_Tumbleweed*)(frostWeed->dll))->vtbl->func3(frostWeed, &objdata->playerPositionCopy);
+                    objdata->frostWeed = frostWeed;
                     if (0){
-                        state->garundaTe_weedsEaten = FROSTWEED_MAX_OVERRIDE;
+                        objdata->garundaTe_weedsEaten = FROSTWEED_MAX_OVERRIDE;
                     }
-                    state->garundaTe_weedsEaten++;
-                    if (state->garundaTe_weedsEaten > FROSTWEED_MAX_OVERRIDE) {
-                        state->garundaTe_weedsEaten = FROSTWEED_MAX_OVERRIDE;
+                    objdata->garundaTe_weedsEaten++;
+                    if (objdata->garundaTe_weedsEaten > FROSTWEED_MAX_OVERRIDE) {
+                        objdata->garundaTe_weedsEaten = FROSTWEED_MAX_OVERRIDE;
                     }
-                    main_set_bits(0x48B, state->garundaTe_weedsEaten);
-                    state->flags = 3;
+                    main_set_bits(0x48B, objdata->garundaTe_weedsEaten);
+                    objdata->flags = 3;
                 }
             }
             break;
         case 3:
-            if (vec3_distance_xz_squared(&state->playerPositionCopy, &state->frostWeed->positionMirror) < 6.25f) {
-                state->flags = 4;
+            if (vec3_distance_xz_squared(&objdata->playerPositionCopy, &objdata->frostWeed->positionMirror) < 6.25f) {
+                objdata->flags = 4;
             }
             break;
         case 4:
-            if (state->unk424 & 8) {
-                weeds = state->garundaTe_weedsEaten;
+            if (objdata->unk424 & 8) {
+                weeds = objdata->garundaTe_weedsEaten;
                 if (weeds >= FROSTWEED_MAX_OVERRIDE) {
                     main_set_bits(0x102, 1);
-                    state->flags = 5;
-                    main_set_bits(0x115, state->flags);
+                    objdata->flags = 5;
+                    main_set_bits(0x115, objdata->flags);
                     break;
                 }
                 if (weeds % 3 == 0) {
                     gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_74B_Garunda_Te_That_tastes_great_Hurry_up_boy, MAX_VOLUME, 0, 0, 0, 0);
                     gDLL_22_Subtitles->vtbl->func_368(2);
                 }
-                state->flags = 2;
+                objdata->flags = 2;
             }
             break;
         case 5:
             if (func_80032538(self)) {
-                if (state->unk425 % 2) {
+                if (objdata->unk425 % 2) {
                     gDLL_3_Animation->vtbl->func17(3, self, -1);
                 } else {
                     gDLL_3_Animation->vtbl->func17(2, self, -1);
                 }
-                state->unk425 += 1;
+                objdata->unk425 += 1;
             }
             break;
         case 6:
@@ -229,8 +182,8 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* state, SnowHorn
                 gDLL_3_Animation->vtbl->func17(4, self, -1);
             } else if (gDLL_1_UI->vtbl->func7(0x123)) {
                 main_set_bits(0x22B, 1);
-                state->flags = 7;
-                main_set_bits(0x115, state->flags);
+                objdata->flags = 7;
+                main_set_bits(0x115, objdata->flags);
             }
             break;
         case 7:
@@ -238,7 +191,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* state, SnowHorn
             break;
     }
     
-    if (state->flags >= 2 && state->flags < 5) {
-        diPrintf("noweeds=%d/%d\n", state->garundaTe_weedsEaten, FROSTWEED_MAX_OVERRIDE);
+    if (objdata->flags >= 2 && objdata->flags < 5) {
+        diPrintf("noweeds=%d/%d\n", objdata->garundaTe_weedsEaten, FROSTWEED_MAX_OVERRIDE);
     }
 }

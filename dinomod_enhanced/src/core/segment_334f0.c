@@ -4,6 +4,7 @@
 #include "PR/ultratypes.h"
 #include "sys/main.h"
 #include "sys/objects.h"
+#include "sys/rand.h"
 
 #include "segment_334F0.h"
 
@@ -59,7 +60,7 @@ RECOMP_PATCH void func_80033B68(Object* obj, Unk80032CF8* arg1, f32 arg2) {
 }
 
 //Prevent SnowHorn from blinking while asleep
-RECOMP_PATCH void func_80032A08(Object* obj, s8* arg1) {
+RECOMP_PATCH void func_80032A08(Object* obj, Unk80032CF8* arg1) {
     s32* sp1C;
     s32 temp_v1;
     s32* temp_v0;
@@ -79,22 +80,22 @@ RECOMP_PATCH void func_80032A08(Object* obj, s8* arg1) {
     }
 
     temp_v1 = *temp_v0;
-    switch (arg1[0x1E] & 0xF) {
+    switch (arg1->unk1E & 0xF) {
     case 0:
-        if (arg1[0x1F] > 0) {
-            arg1[0x1F] -= delayByte;
+        if (arg1->unk1F > 0) {
+            arg1->unk1F -= delayByte;
         } else if (rand_next(0, 0x3E8) >= 0x3DA) {
-            arg1[0x1E] = 1;
-            arg1[0x1F] = 0;
+            arg1->unk1E = 1;
+            arg1->unk1F = 0;
         }
         break;
     case 1:
-        if (arg1[0x1E] & 0x80) {
+        if (arg1->unk1E & 0x80) {
             temp_v1 -= 0x100;
             if (temp_v1 < 0) {
                 temp_v1 = 0;
-                arg1[0x1E] = 0;
-                arg1[0x1F] = 0;
+                arg1->unk1E = 0;
+                arg1->unk1F = 0;
             }
         } else {
             temp_v1 += 0x100;
@@ -102,11 +103,11 @@ RECOMP_PATCH void func_80032A08(Object* obj, s8* arg1) {
                 temp_v1 -= 0x200;
                 if (temp_v1 < 0) {
                     temp_v1 = 0;
-                    arg1[0x1E] = 0;
+                    arg1->unk1E = 0;
                 } else {
-                    arg1[0x1E] = -0x7F;
+                    arg1->unk1E = -0x7F;
                 }
-                arg1[0x1F] = 0;
+                arg1->unk1F = 0;
             }
         }
         *sp1C = temp_v1;

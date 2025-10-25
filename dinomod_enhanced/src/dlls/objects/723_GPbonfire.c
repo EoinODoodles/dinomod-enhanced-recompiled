@@ -15,7 +15,7 @@ typedef struct {
 /*02*/ u8 previousState;
 /*04*/ s32 sequenceIndexKindling;   //the cutscene for placing the kindling
 /*08*/ s32 sequenceIndexBurning;    //the cutscene for Kyte starting the fire
-/*0C*/ CurvesFunc1BCReturnInner* curves;
+/*0C*/ CurveSetup* curves;
 /*10*/ s16 gameBitKindlingPlaced;   //flag to set when kindling is ready to burn
 /*12*/ s16 gameBitBurning;          //flag to set when the bonfire's burning
 /*14*/ s32 unused14;
