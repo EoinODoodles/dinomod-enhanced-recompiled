@@ -131,6 +131,72 @@ typedef struct {
 /*56*/ u8 chargeChance[4]; // Chance to charge without seeing Sabre.
 } KTrex_ObjSetup;
 
+extern f32 _data_6C[3];
+extern f32 _data_78[3];
+
+extern KTrex_Data *sKTData;
+
+extern s32 dll_702_move_and_check_turn(ObjFSA_Data* fsa, KTrex_Data* ktdata);
+extern void dll_702_push_state(s32 state);
+extern s32 dll_702_is_in_active_laser_wall(Object* self);
+
+RECOMP_HOOK_DLL(dll_702_setup) void dll702_setup_hook(Object* self, KTrex_ObjSetup* setup, s32 arg2) {
+    setup->chargeChance[1] = 50;
+    setup->chargeChance[2] = 50;
+    setup->chargeChance[3] = 50;
+}
+
+RECOMP_PATCH s32 dll_702_move_and_check_turn(ObjFSA_Data* fsa, KTrex_Data* ktdata) {
+    f32 posDelta;
+    s32 reversed;
+    s32 segment;
+    s32 turn;
+
+    turn = FALSE;
+    reversed = ktdata->flags & KTFLAG_REVERSED;
+    segment = KTFLAG_GET_SEGMENT(ktdata->flags);
+    if (reversed) {
+        posDelta = -fsa->speed;
+    } else {
+        posDelta = fsa->speed;
+    }
+
+    ktdata->segmentPos += posDelta * delayFloat;
+
+    // @recomp: Only check one side of the segment, depending on whether Klanadack is moving CW or CCW.
+    //          Checking both (as vanilla does) is problematic if a turn does not move him far enough into the next segment,
+    //          causing him to think he's at the end of the segment after just entering in, leading to and infinite loop of
+    //          turning in place, softlocking the fight.
+    if ((!reversed && _data_78[ktdata->anger] < ktdata->segmentPos) || (reversed && ktdata->segmentPos < _data_6C[ktdata->anger])) {
+        // Reached end of segment, turn
+        turn = TRUE;
+        if (reversed) {
+            segment -= 1;
+            if (segment < 0) {
+                segment = 3;
+            }
+        } else {
+            segment += 1;
+            if (segment > 3) {
+                segment = 0;
+            }
+        }
+        ktdata->flags &= ~KTFLAG_SEGMENT;
+        ktdata->flags |= KTFLAG_SET_SEGMENT(segment);
+        if (ktdata->segmentPos > _data_78[ktdata->anger]) {
+            ktdata->segmentPos = _data_78[ktdata->anger];
+        } else if (ktdata->segmentPos < _data_6C[ktdata->anger]) {
+            ktdata->segmentPos = _data_6C[ktdata->anger];
+        }
+        if ((ktdata && ktdata) && ktdata){} // @fake
+    }
+    
+    ktdata->pos.x = ktdata->segA_X[segment] + ((ktdata->segB_X[segment] - ktdata->segA_X[segment]) * ktdata->segmentPos);
+    ktdata->pos.y = ktdata->segA_Y[segment] + ((ktdata->segB_Y[segment] - ktdata->segA_Y[segment]) * ktdata->segmentPos);
+    ktdata->pos.z = ktdata->segA_Z[segment] + ((ktdata->segB_Z[segment] - ktdata->segA_Z[segment]) * ktdata->segmentPos);
+    return turn;
+}
+
 /** Plays the defeat cutscene, and makes sure the necessary Object Groups are loaded in Walled City for the follow-up cutscene (originally by MusicalProgrammer) */
 RECOMP_PATCH s32 dll_702_logic_state_1(Object* self, ObjFSA_Data* fsa, f32 arg2) {
     if (fsa->enteredLogicState) {
@@ -138,6 +204,43 @@ RECOMP_PATCH s32 dll_702_logic_state_1(Object* self, ObjFSA_Data* fsa, f32 arg2)
         main_set_bits(BIT_564, 1);
         gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, 4, 1);
         gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, 5, 1);
+    }
+    return 0;
+}
+
+RECOMP_PATCH s32 dll_702_logic_state_5(Object* self, ObjFSA_Data* fsa, f32 arg2) {
+    KTrex_ObjSetup* objsetup;
+
+    objsetup = (KTrex_ObjSetup*)self->setup;
+    if (fsa->enteredLogicState) {
+        gDLL_18_objfsa->vtbl->set_anim_state(self, fsa, KT_ASTATE_1_MOVING_STRAIGHT);
+        sKTData->anger = 1;
+        fsa->speed = objsetup->speeds[sKTData->anger] / 1000.0f;
+    }
+    if (dll_702_move_and_check_turn(fsa, sKTData) != 0) {
+        sKTData->chargeCounter -= 1;
+        // @recomp: If we're at a turn and not ready to end the charge, actually enter the turning state
+        //          and return back to this charge state instead of staying in this state. Otherwise, the
+        //          segment Klanadack is in is desync'd with his rotation. Also, due to segmentPos only
+        //          being reset in the turn state, skipping that state means move_and_check_turn will increment
+        //          the segment twice, causing Klanadack to warp around the arena.
+        //
+        //          The (assumed) intent here, is that setting chargeCounter > 1 would cause Klanadack to preserve
+        //          his charge across multiple segments. This is used by the random chance charge that should have 
+        //          him charge to the end of the current segment, turn, then charge down the next segment before 
+        //          ending the charge.
+        if (sKTData->chargeCounter > 0) {
+            dll_702_push_state(KT_LSTATE_5_CHARGE);
+            return KT_LSTATE_3_TURN_CORNER + 1;
+        }
+    }
+    if (sKTData->chargeCounter <= 0) {
+        dll_702_push_state(KT_LSTATE_2_WALK);
+        dll_702_push_state(KT_LSTATE_6_CHARGE_END);
+        return KT_LSTATE_3_TURN_CORNER + 1;
+    }
+    if (dll_702_is_in_active_laser_wall(self) != 0) {
+        return KT_LSTATE_7_ZAPPED + 1;
     }
     return 0;
 }
