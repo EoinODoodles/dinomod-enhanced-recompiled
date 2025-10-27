@@ -85,7 +85,7 @@ RECOMP_PATCH void DRLavaControl_freeze(Object* self) {
         }
         gDLL_17->vtbl->func1(self, 0x5A, NULL, 2, -1, NULL);
         gDLL_17->vtbl->func1(self, 0x5B, NULL, 2, -1, NULL);
-        objData->freezeTimer -= delayByte; //@recomp: framerate independent freezing (Banjeoin)
+        objData->freezeTimer -= gUpdateRate; //@recomp: framerate independent freezing (Banjeoin)
 
         if (objData->freezeTimer <= 0) {
             objData->freezeTimer = 0;
@@ -103,7 +103,7 @@ RECOMP_PATCH void DRLavaControl_freeze(Object* self) {
     DRLavaControl_freeze_update_effects(self, objData, objData->freezeTimer / 5);
 }
 
-/** delayByte tends to be 2 or 3 on N64, so multiplying initial values to keep freeze durations equal across framerates */
+/** gUpdateRate tends to be 2 or 3 on N64, so multiplying initial values to keep freeze durations equal across framerates */
 RECOMP_PATCH void DRLavaControl_setup(Object* self, DRLavaControl_Setup* objSetup, s32 arg2) {
     Extended_DRLavaControl_Data* objData;
     s32 isFrozen;

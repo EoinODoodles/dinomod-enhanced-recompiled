@@ -88,7 +88,7 @@ RECOMP_PATCH void dll_210_func_1CEFC(Object* player, s32 magicDifference) {
 
 RECOMP_HOOK_RETURN_DLL(dll_210_control) void playerSoundDebouncing(Object* self) {
     if (soundCooldown > 0){
-        soundCooldown -= delayByte;
+        soundCooldown -= gUpdateRate;
         if (soundCooldown < 0){
             soundCooldown = 0;
         }

@@ -43,7 +43,7 @@ typedef enum {
 
 #include "recomp/dlls/objects/641_DFPLift_recomp.h"
 
-extern s32 DFPLift_func_91C(Object *, Object *, void *, void *);
+extern int DFPLift_func_91C(Object *a0, Object *a1, AnimObj_Data *a2, s8 a3);
 
 static f32 dinomod_get_lift_down(Object *self) {
     // @recomp: Use different 'down' value for the custom KPLift1 object
@@ -59,7 +59,7 @@ RECOMP_PATCH void DFPLift_setup(Object *self, DFPLift_Setup *setup, s32 a2) {
 
     objdata = (DFPLift_Data*)self->data;
 
-    self->unkBC = DFPLift_func_91C;
+    self->animCallback = DFPLift_func_91C;
     self->srt.yaw = setup->rotation * 256;
 
     objdata->state = LIFT_STATE_INIT;
@@ -96,7 +96,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                     gDLL_6_AMSFX->vtbl->play_sound(self, 0x6EC, 0x75, &objdata->soundHandle, NULL, 0, NULL);
                     objdata->unk11 = 1;
                 }
-                self->srt.transl.y += delayFloat;
+                self->srt.transl.y += gUpdateRateF;
                 if ((setup->base.y + LIFT_UP) <= self->srt.transl.y) {
                     self->srt.transl.y = (setup->base.y + LIFT_UP);
                     objdata->state = LIFT_STATE_INIT_DONE;
@@ -111,7 +111,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
             if (vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_INIT_ACTIVATE_RANGE) {
                 // go up without sound
                 if (self->srt.transl.y < (setup->base.y + LIFT_UP)) {
-                    self->srt.transl.y += delayFloat;
+                    self->srt.transl.y += gUpdateRateF;
                     if ((setup->base.y + LIFT_UP) <= self->srt.transl.y) {
                         self->srt.transl.y = (setup->base.y + LIFT_UP);
                         objdata->state = LIFT_STATE_INIT_DONE;
@@ -127,7 +127,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
     case LIFT_STATE_STOPPED:
         // stopped
         if (objdata->cooldown != 0) {
-            objdata->cooldown -= (s16)delayFloat;
+            objdata->cooldown -= (s16)gUpdateRateF;
             if (objdata->cooldown <= 0) {
                 objdata->cooldown = 0;
             }
@@ -170,7 +170,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
         // going down
         // @recomp: Get LIFT_DOWN depending on object ID
         if ((setup->base.y - dinomod_get_lift_down(self)) < self->srt.transl.y) {
-            self->srt.transl.y -= delayFloat;
+            self->srt.transl.y -= gUpdateRateF;
             if (self->srt.transl.y <= (setup->base.y - dinomod_get_lift_down(self))) {
                 // reached bottom
                 self->srt.transl.y = (setup->base.y - dinomod_get_lift_down(self));
@@ -198,7 +198,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
     case LIFT_STATE_GO_UP:
         // going up
         if (self->srt.transl.y < (setup->base.y + LIFT_UP)) {
-            self->srt.transl.y += delayFloat;
+            self->srt.transl.y += gUpdateRateF;
             if ((setup->base.y + LIFT_UP) <= self->srt.transl.y) {
                 // reached top
                 self->srt.transl.y = (setup->base.y + LIFT_UP);

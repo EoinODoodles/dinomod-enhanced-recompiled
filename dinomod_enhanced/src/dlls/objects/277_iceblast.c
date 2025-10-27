@@ -35,7 +35,7 @@ RECOMP_PATCH void iceblast_control(Object* self) {
     self->srt.roll = weapon->srt.roll;
     self->srt.pitch = weapon->srt.pitch;
     self->srt.yaw = weapon->srt.yaw;
-    objdata->timer -= (s16)delayFloat;
+    objdata->timer -= (s16)gUpdateRateF;
     if (objdata->timer <= 0) {
         objdata->timer = 0x1E;
         self->speed.x = 0.0f; 
@@ -58,18 +58,18 @@ RECOMP_PATCH void iceblast_control(Object* self) {
         self->srt.transl.x = weapon->positionMirror.x;
         self->srt.transl.y = weapon->positionMirror.y;
         self->srt.transl.z = weapon->positionMirror.z;
-        self->srt.transl.x += self->speed.x * delayFloat;
-        self->srt.transl.y += self->speed.y * delayFloat;
-        self->srt.transl.z += self->speed.z * delayFloat;
+        self->srt.transl.x += self->speed.x * gUpdateRateF;
+        self->srt.transl.y += self->speed.y * gUpdateRateF;
+        self->srt.transl.z += self->speed.z * gUpdateRateF;
         ((DLL_210_Player*)player->dll)->vtbl->func14(player, -1);
     }
 
     self->positionMirror2.x = self->srt.transl.x;
     self->positionMirror2.y = self->srt.transl.y;
     self->positionMirror2.z = self->srt.transl.z;
-    self->srt.transl.x += self->speed.x * delayFloatMirror;
-    self->srt.transl.y += self->speed.y * delayFloatMirror;
-    self->srt.transl.z += self->speed.z * delayFloatMirror;
+    self->srt.transl.x += self->speed.x * gUpdateRateF;
+    self->srt.transl.y += self->speed.y * gUpdateRateF;
+    self->srt.transl.z += self->speed.z * gUpdateRateF;
 }
 
 // Hide debug cubes

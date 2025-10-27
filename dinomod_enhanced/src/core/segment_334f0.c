@@ -83,7 +83,7 @@ RECOMP_PATCH void func_80032A08(Object* obj, Unk80032CF8* arg1) {
     switch (arg1->unk1E & 0xF) {
     case 0:
         if (arg1->unk1F > 0) {
-            arg1->unk1F -= delayByte;
+            arg1->unk1F -= gUpdateRate;
         } else if (rand_next(0, 0x3E8) >= 0x3DA) {
             arg1->unk1E = 1;
             arg1->unk1F = 0;

@@ -27,7 +27,7 @@ typedef struct {
     u8 yaw;
 } MoonSeedReceptacle_Setup;
 
-extern s32 moonSeedReceptacle_anim_callback(Object* self, s32 animObj, AnimObj_Data* animObjData, s32 arg3);
+extern int moonSeedReceptacle_anim_callback(Object* self, Object *animObj, AnimObj_Data* animObjData, s8 arg3);
 
 /** 
     Changes the gameBitIDs used to track whether MoonSeeds have been planted, allowing game progress
@@ -37,7 +37,7 @@ RECOMP_PATCH void moonSeedReceptacle_setup(Object* self, MoonSeedReceptacle_Setu
     MoonSeedReceptacle_Data* objData;
 
     objData = self->data;
-    self->unkBC = (void*)&moonSeedReceptacle_anim_callback;
+    self->animCallback = moonSeedReceptacle_anim_callback;
     self->srt.yaw = setup->yaw << 8;
     objData->unk0 = 0;
     

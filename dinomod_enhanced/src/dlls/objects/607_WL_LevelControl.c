@@ -86,7 +86,7 @@ RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
         if (main_get_bits(BIT_2F7) == 0) {
             main_set_bits(BIT_2F7, 1);
         }
-        objdata->unk2 -= (s16)delayByte;
+        objdata->unk2 -= (s16)gUpdateRate;
         if (objdata->unk2 <= 0) {
             objdata->unk2 = 0;
             main_set_bits(BIT_2FA, 0);
@@ -149,9 +149,9 @@ RECOMP_PATCH void WL_LevelControl_setup7_tick(Object* self) {
     }
     if (main_get_bits(BIT_36C) != 0) {
         if (objdata->unk4 > 0) {
-            objdata->unk4 -= (s16)delayByte;
+            objdata->unk4 -= (s16)gUpdateRate;
             if (objdata->unk2 != 0) {
-                objdata->unk2 -= (s16)delayByte;
+                objdata->unk2 -= (s16)gUpdateRate;
                 if (objdata->unk2 <= 0) {
                     main_set_bits(BIT_36D, 1);
                     if (objdata->unk6 >= 0xB) {

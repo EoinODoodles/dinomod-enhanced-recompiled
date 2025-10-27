@@ -102,7 +102,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
     switch (objdata->flags) {
         case 0:
             //Calling out to the player periodically
-            objdata->unk8 += delayByte;
+            objdata->unk8 += gUpdateRate;
             if (objdata->unk8 >= 0x3E9) {
                 gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_1E2_Garunda_Te_Will_somebody_get_me_out_of_here, MAX_VOLUME, 0, 0, 0, 0);
                 gDLL_22_Subtitles->vtbl->func_368(0xA);

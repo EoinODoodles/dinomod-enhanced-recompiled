@@ -89,7 +89,7 @@ RECOMP_PATCH void n_pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
     s32 colour_main = 0xB78B61FF;
     s32 colour_shadow = 0x000000FF;
 
-    screen_dimensions = get_some_resolution_encoded();
+    screen_dimensions = vi_get_current_size();
     screen_width = screen_dimensions & 0xFFFF;
     screen_height = screen_dimensions >> 0x10;
 
@@ -177,7 +177,7 @@ RECOMP_PATCH void draw_pause_screen_freeze_frame(Gfx** gdl) {
     width = 320;
     height = 240;
     
-    fbPtr = get_framebuffer_end();
+    fbPtr = vi_get_framebuffer_end();
     
     //@recomp: changed chunkSize to 1
     chunkSize = 1;
@@ -274,7 +274,7 @@ RECOMP_PATCH s32 n_pausemenu_update(void) {
             gDLL_29_Gplay->vtbl->save_game();
         }
 
-        gameSavedMessageTimer += delayFloat;
+        gameSavedMessageTimer += gUpdateRateF;
         if (gameSavedMessageTimer >= 120.0f) {
             pauseScreenState = 0;
 
@@ -288,7 +288,7 @@ RECOMP_PATCH s32 n_pausemenu_update(void) {
     }
     
     //Gradually fade in BG overlay (and the UI elements, which depend on this value)
-    pauseMenuOpacity += delayByte * 8;
+    pauseMenuOpacity += gUpdateRate * 8;
     if (pauseMenuOpacity > BG_OVERLAY_MAX_OPACITY) {
         pauseMenuOpacity = BG_OVERLAY_MAX_OPACITY;
     }

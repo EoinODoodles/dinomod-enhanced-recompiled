@@ -32,7 +32,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
     if (self->curModAnimId != 1) {
         func_80023D30(self, 1, 0.0f, 0);
     }
-    func_80024108(self, 0.005f, delayByte, 0);
+    func_80024108(self, 0.005f, gUpdateRate, 0);
     switch (objdata->questProgress) {
 
     case 1:

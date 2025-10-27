@@ -74,7 +74,7 @@ RECOMP_PATCH void dll_22_func_578(Gfx **gdl) {
     s32 temp_v1;
     s32 temp_v0;
 
-    temp_ft5 = (delayFloat * 100.0f) / 30.0f;
+    temp_ft5 = (gUpdateRateF * 100.0f) / 30.0f;
     if (_data_38 != 0) {
         _data_40 += temp_ft5;
         if (_data_40 >= 0x65) {
@@ -91,7 +91,7 @@ RECOMP_PATCH void dll_22_func_578(Gfx **gdl) {
         return;
     }
 
-    temp_v0 = get_some_resolution_encoded();
+    temp_v0 = vi_get_current_size();
     _bss_7A0 = temp_v0 & 0xFFFF;
     _bss_79C = _bss_7A0 - (_bss_7A2 * 2);
     _bss_798 = (_bss_7A0 - _bss_79C) / 2;

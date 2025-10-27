@@ -11,7 +11,7 @@
 
 #include "recomp/dlls/objects/638_DFPlevcontrol_recomp.h"
 
-extern s32 dll_638_func_62C(Object* self, s32 arg1, s32 arg2, s32 arg3);
+extern int dll_638_func_62C(Object* self, Object *arg1, AnimObj_Data *arg2, s8 arg3);
 
 extern Texture* _data_0;
 
@@ -21,7 +21,7 @@ RECOMP_PATCH void dll_638_setup(Object* self, ObjSetup *setup, s32 arg2) {
 
     obj_add_object_type(self, 0xA);
     _data_0 = queue_load_texture_proxy(0x46C);
-    self->unkBC = (void*)dll_638_func_62C;
+    self->animCallback = dll_638_func_62C;
     gDLL_29_Gplay->vtbl->set_map_setup(self->mapID, 1);
     mapSetup = gDLL_29_Gplay->vtbl->get_map_setup(self->mapID);
 

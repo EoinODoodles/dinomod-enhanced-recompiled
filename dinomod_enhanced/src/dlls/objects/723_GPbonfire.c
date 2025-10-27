@@ -67,14 +67,14 @@ enum GPBonfireStates{
 #define BONFIRE_DWINDLING_TIMER 2000
 
 extern void GPbonfire_func_A44(Object* self);
-extern s32 GPbonfire_anim_callback(Object* self, s32 arg1, CallbackBCUnkArg2* arg2, s32 arg3);
+extern int GPbonfire_anim_callback(Object* self, Object* animObj, AnimObj_Data* animObjData, s8 arg3);
 
 //Allows GPbonfire to be lit and ChimneySweep immediately lifted (originally by jeebs2kx)
 RECOMP_PATCH void GPbonfire_setup(Object* self, GPBonfire_Setup* setup, s32 arg2) {
     GPBonfire_Data* objdata;
 
     objdata = self->data;
-    self->unkBC = (void*)&GPbonfire_anim_callback;
+    self->animCallback = GPbonfire_anim_callback;
     self->srt.yaw = setup->yaw << 8;
     objdata->stateIndex = STATE_0_INITIALISE;
     objdata->currentState = 0;

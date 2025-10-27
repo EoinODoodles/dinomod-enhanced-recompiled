@@ -48,8 +48,8 @@ RECOMP_PATCH void dll_60_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
     local4 = data_18;
 
     font_window_set_coords(2, 0, 0, 
-        (RESOLUTION_WIDTH(get_some_resolution_encoded())) - 50,
-        (RESOLUTION_HEIGHT(get_some_resolution_encoded())));
+        (GET_VIDEO_WIDTH(vi_get_current_size())) - 50,
+        (GET_VIDEO_HEIGHT(vi_get_current_size())));
     
     font_window_flush_strings(2);
     font_window_use_font(2, FONT_FUN_FONT);
@@ -74,7 +74,7 @@ RECOMP_PATCH void dll_60_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
 
             //@recomp: print mod date
             font_window_use_font(2, FONT_DINO_SUBTITLE_FONT_1);
-            font_window_add_string_xy(2, RESOLUTION_WIDTH(get_some_resolution_encoded())/2, 30,  dinomod_enhanced_message, 1, ALIGN_TOP_CENTER);
+            font_window_add_string_xy(2, GET_VIDEO_WIDTH(vi_get_current_size())/2, 30,  dinomod_enhanced_message, 1, ALIGN_TOP_CENTER);
             font_window_use_font(2, FONT_FUN_FONT);
 
             font_window_add_string_xy(2, 57, 54,  bss_14->strings[0], 1, ALIGN_TOP_LEFT);

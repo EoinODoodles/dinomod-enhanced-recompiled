@@ -60,7 +60,7 @@ RECOMP_PATCH void VFP_LevelControl_control(Object* self) {
     switch (mapSetupID) {
     case 1:
         if (_data_0 != 0) {
-            _data_0 -= (s16)delayFloat;
+            _data_0 -= (s16)gUpdateRateF;
             if (_data_0 <= 0) {
                 _data_0 = 0;
                 func_80000860(self, self, 0x105, 0);
@@ -81,7 +81,7 @@ RECOMP_PATCH void VFP_LevelControl_control(Object* self) {
         return;
     case 2:
         if (_data_0 != 0) {
-            _data_0 -= (s16)delayFloat;
+            _data_0 -= (s16)gUpdateRateF;
             if (_data_0 <= 0) {
                 _data_0 = 0;
                 main_set_bits(BIT_DB_Unlock_Act_Two, 1);
@@ -103,7 +103,7 @@ RECOMP_PATCH void VFP_LevelControl_control(Object* self) {
         break;
     case 3:
         if (_data_0 != 0) {
-            _data_0 -= (s16)delayFloat;
+            _data_0 -= (s16)gUpdateRateF;
             if (_data_0 <= 0) {
                 _data_0 = 0;
                 main_set_bits(BIT_DB_Unlock_Act_Two, 1);

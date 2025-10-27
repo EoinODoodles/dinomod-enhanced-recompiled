@@ -56,7 +56,7 @@ typedef enum {
     SEQOBJ_OPTIONS_A = 16
 } SeqObj_PlaybackOptions; //TO-DO: figure out what these do! Looping and auto-play may be options?
 
-extern s32 SeqObj_anim_callback(Object* self, Object* animObj, AnimObj_Data* animObjData, s32 arg3);
+extern int SeqObj_anim_callback(Object* self, Object* animObj, AnimObj_Data* animObjData, s8 arg3);
 
 //TEMPORARY: plays unused cutscene when Sabre leaves the shop! (found by jeebs2kx)
 //TO-DO: add this via MAPS asset edits instead
@@ -77,7 +77,7 @@ RECOMP_PATCH void SeqObj_setup(Object* self, SeqObj_Setup* objSetup, s32 arg2) {
     }
 
     self->srt.yaw = objSetup->rotate << 8;
-    self->unkBC = (void*)&SeqObj_anim_callback;
+    self->animCallback = SeqObj_anim_callback;
     
     objData = self->data;
     self->modelInstIdx = objSetup->modelInstIdx;

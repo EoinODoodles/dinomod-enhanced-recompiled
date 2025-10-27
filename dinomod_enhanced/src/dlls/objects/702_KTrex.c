@@ -155,7 +155,7 @@ RECOMP_PATCH s32 dll_702_move_and_check_turn(ObjFSA_Data* fsa, KTrex_Data* ktdat
         posDelta = fsa->speed;
     }
 
-    ktdata->segmentPos += posDelta * delayFloat;
+    ktdata->segmentPos += posDelta * gUpdateRateF;
 
     // @recomp: Only check one side of the segment, depending on whether Klanadack is moving CW or CCW.
     //          Checking both (as vanilla does) is problematic if a turn does not move him far enough into the next segment,

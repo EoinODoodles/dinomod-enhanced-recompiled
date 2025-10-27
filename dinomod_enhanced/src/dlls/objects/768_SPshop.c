@@ -83,7 +83,7 @@ RECOMP_PATCH void SPShop_control(Object* self) {
 
     //@recomp: update transition timer
     if (objData->doWarp) {
-        objData->transitionTimer -= delayByte;
+        objData->transitionTimer -= gUpdateRate;
         if (objData->transitionTimer <= 0){
             objData->transitionTimer = 0;
         }
