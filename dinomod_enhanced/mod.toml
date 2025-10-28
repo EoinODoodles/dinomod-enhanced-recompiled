@@ -89,3 +89,19 @@ This config switch gives you the option of directly carrying FrostWeeds over to 
 type = "Enum"
 options = [ "Off", "On" ]
 default = "Off"
+
+[[manifest.config_options]]
+id = "kt_mode"
+name = "Klanadack"
+description = '''
+Options to adjust the behavior of the Klanadack boss fight.
+
+- Vanilla: Only include bug fixes and basic polish.
+- Enhanced: Small adjustments to Klanadack's behavior to improve the boss fight.
+- Enhanced (Hard Mode): Everything from Enhanced but with increased difficulty.
+
+Note: This must be set *before* entering the boss fight!
+'''
+type = "Enum"
+options = [ "Vanilla", "Enhanced", "Enhanced (Hard Mode)" ]
+default = "Enhanced"
