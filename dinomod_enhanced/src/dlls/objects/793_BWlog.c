@@ -230,9 +230,9 @@ RECOMP_PATCH void dll_793_control(Object* self) {
     sp178[1] = objdata->unk260[1].y - objdata->unk260[0].y;
     sp178[2] = objdata->unk260[1].z - objdata->unk260[0].z;
     self->srt.pitch = -arctan2_f(sp178[1], sqrtf(SQ(sp178[2]) + SQ(sp178[0])));
-    // @recomp: Clamp pitch to avoid reaching exactly 90 degrees (clamps to ~88.5 degrees).
+    // @recomp: Clamp pitch to avoid reaching exactly 90 degrees (clamps to ~87 degrees).
     //          This allows the player to move forward slightly even when vertical.
-    CLAMP(self->srt.pitch, -0x3E00, 0x3E00); // TODO:
+    CLAMP(self->srt.pitch, -0x3E00, 0x3E00);
     gDLL_27->vtbl->func_1e8(self, &objdata->unk0, gUpdateRateF);
     gDLL_27->vtbl->func_5a8(self, &objdata->unk0);
     gDLL_27->vtbl->func_624(self, &objdata->unk0, gUpdateRateF);
