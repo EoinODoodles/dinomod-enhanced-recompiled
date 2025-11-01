@@ -105,3 +105,14 @@ Note: This must be set *before* entering the boss fight!
 type = "Enum"
 options = [ "Vanilla", "Enhanced", "Enhanced (Hard Mode)" ]
 default = "Enhanced"
+
+[[manifest.config_options]]
+id = "log_a_button"
+name = "Log - Rowing Controls"
+description = '''
+When riding a log, whether rowing requires the A button to be tapped (vanilla) or allows A to held to continuously row.
+'''
+type = "Enum"
+options = [ "Tap", "Hold" ]
+default = "Tap"
+
