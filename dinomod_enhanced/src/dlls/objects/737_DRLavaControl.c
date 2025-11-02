@@ -83,8 +83,8 @@ RECOMP_PATCH void DRLavaControl_freeze(Object* self) {
         if (!objData->soundHandleHiss){ //@recomp: use soundHandle
             gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_80C_Steam_Hissing, MAX_VOLUME, &objData->soundHandleHiss, NULL, 0, NULL);
         }
-        gDLL_17->vtbl->func1(self, 0x5A, NULL, 2, -1, NULL);
-        gDLL_17->vtbl->func1(self, 0x5B, NULL, 2, -1, NULL);
+        gDLL_17_partfx->vtbl->spawn(self, 0x5A, NULL, 2, -1, NULL);
+        gDLL_17_partfx->vtbl->spawn(self, 0x5B, NULL, 2, -1, NULL);
         objData->freezeTimer -= gUpdateRate; //@recomp: framerate independent freezing (Banjeoin)
 
         if (objData->freezeTimer <= 0) {
@@ -138,7 +138,7 @@ RECOMP_PATCH void DRLavaControl_free(Object* self, s32 arg1) {
     if (objData->lfxEmitter && (arg1 == 0)) {
         obj_destroy_object(objData->lfxEmitter);
     }
-    gDLL_13_Expgfx->vtbl->func4.withOneArg((s32)self);
+    gDLL_13_Expgfx->vtbl->func4(self);
 
     //@recomp: sound handles
     if (objData->soundHandleHiss) {

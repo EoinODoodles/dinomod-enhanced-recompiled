@@ -180,7 +180,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
             //SpellStone activation
             if (func_80032538(self)) {
                 gDLL_3_Animation->vtbl->func17(4, self, -1);
-            } else if (gDLL_1_UI->vtbl->func7(0x123)) {
+            } else if (gDLL_1_UI->vtbl->func_DF4(0x123)) {
                 main_set_bits(0x22B, 1);
                 objdata->flags = 7;
                 main_set_bits(0x115, objdata->flags);

@@ -6,7 +6,7 @@
 #include "dlls/objects/214_animobj.h"
 #include "game/gamebits.h"
 #include "game/objects/object.h"
-#include "sys/controller.h"
+#include "sys/joypad.h"
 #include "sys/gfx/texture.h"
 #include "sys/gfx/model.h"
 #include "sys/gfx/modgfx.h"

@@ -5,7 +5,7 @@
 #include "game/gamebits.h"
 #include "dlls/objects/214_animobj.h"
 #include "game/objects/object.h"
-#include "sys/controller.h"
+#include "sys/joypad.h"
 #include "sys/main.h"
 #include "sys/map.h"
 #include "sys/objanim.h"
@@ -40,7 +40,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
         break;
     case 2:
         if (self->unkAF & 1) {
-            set_button_mask(0, 0x8000);
+            joy_set_button_mask(0, 0x8000);
             gDLL_3_Animation->vtbl->func17(1, self, -1);
             main_set_bits(BIT_SH_Move_Thorntail_Blocking_Hollow_Log, 1);
             objdata->questProgress = 3;
@@ -48,8 +48,8 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
         break;
     case 3:
         if (self->unkAF & 4) {
-            if (gDLL_1_UI->vtbl->func7(BIT_Inventory_White_Mushrooms) != 0) {
-                set_button_mask(0, 0x8000);
+            if (gDLL_1_UI->vtbl->func_DF4(BIT_Inventory_White_Mushrooms) != 0) {
+                joy_set_button_mask(0, 0x8000);
                 objdata->eatenWhiteMushrooms += main_get_bits(BIT_Inventory_White_Mushrooms);
                 // @recomp: Require all ten white mushrooms instead of just one. (originally by MusicalProgrammer)
                 if (objdata->eatenWhiteMushrooms < 10) {
@@ -62,7 +62,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
                 main_set_bits(BIT_Inventory_White_Mushrooms, 0);
                 main_set_bits(BIT_SH_Queen_EW_White_Mushrooms_Eaten, objdata->eatenWhiteMushrooms);
             } else if (self->unkAF & 1) {
-                set_button_mask(0, 0x8000);
+                joy_set_button_mask(0, 0x8000);
                 gDLL_3_Animation->vtbl->func17(4, self, -1);
             }
         }

@@ -7,7 +7,7 @@
 #include "PR/ultratypes.h"
 #include "functions.h"
 #include "dll.h"
-#include "sys/controller.h"
+#include "sys/joypad.h"
 #include "sys/fonts.h"
 #include "sys/gfx/map.h"
 #include "sys/main.h"
@@ -250,7 +250,7 @@ RECOMP_PATCH s32 n_pausemenu_update(void) {
                 gDLL_6_AMSFX->vtbl->play_sound(0, 2931, 0x7F, 0, 0, 0, 0);
                 menu_set(MENU_GAMEPLAY);
                 unpause();
-                set_button_mask(0, A_BUTTON | B_BUTTON);
+                joy_set_button_mask(0, A_BUTTON | B_BUTTON);
             } else {
                 gDLL_6_AMSFX->vtbl->play_sound(0, 2930, 0x7F, 0, 0, 0, 0);
                 gameSavedMessageTimer = 0;
@@ -265,7 +265,7 @@ RECOMP_PATCH s32 n_pausemenu_update(void) {
         } else if (action == PICMENU_ACTION_BACK) {
             menu_set(MENU_GAMEPLAY);
             unpause();
-            set_button_mask(0, A_BUTTON | B_BUTTON);
+            joy_set_button_mask(0, A_BUTTON | B_BUTTON);
         }
 
     } else if (pauseScreenState == PAUSE_MENU_GAME_SAVED) {

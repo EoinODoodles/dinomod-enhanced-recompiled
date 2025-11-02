@@ -5,7 +5,7 @@
 #include "game/objects/object.h"
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/214_animobj.h"
-#include "sys/controller.h"
+#include "sys/joypad.h"
 #include "sys/main.h"
 #include "sys/map.h"
 #include "sys/objects.h"

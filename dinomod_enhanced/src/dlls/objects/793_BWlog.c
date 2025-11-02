@@ -2,7 +2,7 @@
 #include "recompconfig.h"
 
 #include "dlls/objects/210_player.h"
-#include "sys/controller.h"
+#include "sys/joypad.h"
 #include "sys/main.h"
 #include "sys/math.h"
 #include "sys/objects.h"
@@ -20,7 +20,7 @@ static int dinomod_log_can_hold_a(void) {
     return recomp_get_config_u32("log_a_button") == RECOMP_LOG_ROWING_HOLD;
 }
 
-#include "recomp/dlls/_asm/793_recomp.h"
+#include "recomp/dlls/objects/793_BWlog_recomp.h"
 
 typedef struct {
     ObjSetup base;
@@ -233,8 +233,8 @@ RECOMP_PATCH void dll_793_control(Object* self) {
     // @recomp: Clamp pitch to avoid reaching exactly 90 degrees (clamps to ~87 degrees).
     //          This allows the player to move forward slightly even when vertical.
     CLAMP(self->srt.pitch, -0x3E00, 0x3E00);
-    gDLL_27->vtbl->func_1e8(self, &objdata->unk0, gUpdateRateF);
-    gDLL_27->vtbl->func_5a8(self, &objdata->unk0);
+    gDLL_27->vtbl->func_1E8(self, &objdata->unk0, gUpdateRateF);
+    gDLL_27->vtbl->func_5A8(self, &objdata->unk0);
     gDLL_27->vtbl->func_624(self, &objdata->unk0, gUpdateRateF);
     dll_793_func_2020(self, objdata);
     dll_793_func_2444(self, objdata);
@@ -355,9 +355,9 @@ RECOMP_PATCH void dll_793_func_EB0(Object* self, BWlog_Data* objdata, s32 arg2) 
 RECOMP_PATCH void dll_793_func_1600(Object* self, BWlog_Data* objdata) {
     s32 doubleTappedA;
 
-    objdata->unk320 = get_masked_button_presses(0);
-    objdata->unk322 = get_joystick_x(0);
-    objdata->unk324 = get_joystick_y(0);
+    objdata->unk320 = joy_get_pressed(0);
+    objdata->unk322 = joy_get_stick_x(0);
+    objdata->unk324 = joy_get_stick_y(0);
     objdata->unk2F8 -= gUpdateRateF;
     if (objdata->unk2F8 <= 0.0f) {
         objdata->unk32C = 0;
@@ -385,7 +385,7 @@ RECOMP_PATCH void dll_793_func_1600(Object* self, BWlog_Data* objdata) {
             objdata->unk32A = 1;
         }
       // @recomp: If enabled, allow the A button to be held instead of requiring repeated tapping
-    } else if ((objdata->unk320 & A_BUTTON) || (dinomod_log_can_hold_a() && get_masked_buttons(0) & A_BUTTON)) {
+    } else if ((objdata->unk320 & A_BUTTON) || (dinomod_log_can_hold_a() && joy_get_buttons(0) & A_BUTTON)) {
         objdata->unk2B8 = 30.0f;
     }
 }

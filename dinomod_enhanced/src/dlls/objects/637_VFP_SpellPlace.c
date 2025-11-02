@@ -30,7 +30,7 @@ RECOMP_PATCH void VFP_SpellPlace_do_act1(Object* self) {
         self->unkAF &= ~0x8;
         
         // @recomp: Accept DIM's activated SpellStone instead of the unactivated one
-        if ((bits2 != 0) && (gDLL_1_UI->vtbl->func7(0x22B) != 0)) {
+        if ((bits2 != 0) && (gDLL_1_UI->vtbl->func_DF4(0x22B) != 0)) {
             main_set_bits(objdata->unk0, 1);
             objdata->unk4 = 1;
             self->unkAF |= 8;
