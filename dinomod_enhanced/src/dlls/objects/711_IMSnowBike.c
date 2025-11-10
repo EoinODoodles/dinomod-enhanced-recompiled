@@ -485,11 +485,11 @@ RECOMP_PATCH void dll_711_func_1F54(Object *self, IMSnowBike_Data *objdata, IMSn
         vec3_transform(&spC0, sp7C.x, sp7C.y, sp7C.z, &sp7C.x, &sp7C.y, &sp7C.z);
         sp64 = 0x4000 - arctan2_f(sp7C.y, sp7C.z);
         var_v0 = -(0x4000 - arctan2_f(sp7C.y, sp7C.x));
-        sp64 -= (objdata->unk3CE/* & 0xFFFF*/);
+        sp64 -= (objdata->unk3CE & 0xFFFF);
         CIRCLE_WRAP(sp64);
         objdata->unk3CE += (((sp64 >> 2) / 3) * (s32) /*updateRate*/1);
         self->srt.pitch = objdata->unk3CE + objdata->unk3D2;
-        var_v0 -= (objdata->unk3D0/* & 0xFFFF*/);
+        var_v0 -= (objdata->unk3D0 & 0xFFFF);
         CIRCLE_WRAP(var_v0);
         objdata->unk3D0 += (((var_v0 >> 2) / 3) * (s32) /*updateRate*/1);
     //}
@@ -509,7 +509,7 @@ RECOMP_PATCH void dll_711_func_1F54(Object *self, IMSnowBike_Data *objdata, IMSn
             } else {
                 var_v0 = arctan2_f(sp48, -sp4C);
             }
-            var_v0 -= objdata->unk3CC/* & 0xFFFF*/;
+            var_v0 -= objdata->unk3CC & 0xFFFF;
             CIRCLE_WRAP(var_v0);
             objdata->unk3CC += var_v0 >> 3;
         }
@@ -671,11 +671,11 @@ RECOMP_PATCH void dll_711_func_2BA0(Object *self, IMSnowBike_Data *objdata, IMSn
         vec3_transform(&sp9C, sp70.x, sp70.y, sp70.z, &sp70.x, &sp70.y, &sp70.z);
         var_s0 = 0x4000 - arctan2_f(sp70.y, sp70.z);
         temp_a1 = -(0x4000 - arctan2_f(sp70.y, sp70.x));
-        var_s0 -= (objdata->unk3CE/* & 0xFFFF*/);
+        var_s0 -= (objdata->unk3CE & 0xFFFF);
         CIRCLE_WRAP(var_s0);
         objdata->unk3CE += (((var_s0 >> 2) / 3) * (s32) /*updateRate*/1);
         self->srt.pitch = objdata->unk3CE + objdata->unk3D2;
-        temp_a1 -= (objdata->unk3D0/* & 0xFFFF*/);
+        temp_a1 -= (objdata->unk3D0 & 0xFFFF);
         CIRCLE_WRAP(temp_a1);
         objdata->unk3D0 += (((temp_a1 >> 2) / 3) * (s32) /*updateRate*/1);
     //}
