@@ -15,6 +15,7 @@
 #include "sys/menu.h"
 #include "sys/objects.h"
 #include "sys/print.h"
+#include "sys/rcp.h"
 
 #include "player_stats.h"
 
@@ -73,7 +74,7 @@ static void printWithDropshadow(char message[], s16 x, s16 y, s32 colour_main, s
 }
 
 /** Allows the SpellStone/Spirit/Duster counters show your actual counts, and adds missing drop-shadow to completion percentage text */
-RECOMP_PATCH void n_pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
+RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
     s32 ulx;
     s32 uly;
     s32 lrx;
@@ -235,7 +236,7 @@ RECOMP_PATCH void draw_pause_screen_freeze_frame(Gfx** gdl) {
     }
 }
 
-RECOMP_PATCH s32 n_pausemenu_update(void) {
+RECOMP_PATCH s32 pausemenu_update(void) {
     s32 action;
     s32 index;
     s32 selectedItem;

@@ -48,7 +48,7 @@ static void func_1D04C_hijack(Object *self, s32 a1) {
 static u32 soundCooldown;
 
 //@recomp: debounce magic refill sound
-RECOMP_PATCH void dll_210_func_1CEFC(Object* player, s32 magicDifference) {
+RECOMP_PATCH void dll_210_add_magic(Object* player, s32 magicDifference) {
     Player_Data* objdata = player->data;
     PlayerStats* stats;
     s32 magic;

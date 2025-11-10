@@ -22,6 +22,25 @@
 
 #include "recomp/dlls/objects/768_SPShop_recomp.h"
 
+typedef struct {
+/*0*/ u8 min;
+/*1*/ u8 possibilities[3];
+/*4*/ u8 specialOffer;
+/*5*/ u8 initial;
+} Price;
+
+typedef struct {
+/*0*/ s16 show;
+/*2*/ s16 hide;
+} CharacterSpecificGamebits;
+
+typedef struct {
+/*0*/ Price price;
+/*6*/ CharacterSpecificGamebits sabre;
+/*A*/ CharacterSpecificGamebits krystal;
+/*C*/ s16 gametextLine;
+} ShopItem;
+
 extern ShopItem shopItemData[];
 
 typedef struct {

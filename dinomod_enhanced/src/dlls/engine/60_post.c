@@ -11,6 +11,7 @@
 #include "sys/main.h"
 #include "sys/memory.h"
 #include "sys/menu.h"
+#include "sys/rcp.h"
 #include "dll.h"
 #include "functions.h"
 #include "types.h"

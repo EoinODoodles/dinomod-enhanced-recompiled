@@ -362,12 +362,12 @@ RECOMP_PATCH void trigger_control(Object* self) {
 }
 
 static void set_map_layer(s8 layer) {
-    D_80092A8C = layer;
-    if (D_80092A8C >= 3) {
-        D_80092A8C = 2;
+    gMapLayer = layer;
+    if (gMapLayer >= 3) {
+        gMapLayer = 2;
     }
-    if (D_80092A8C < -2) {
-        D_80092A8C = -2;
+    if (gMapLayer < -2) {
+        gMapLayer = -2;
     }
     UINT_80092a98 |= 0x4000;
 }
@@ -679,7 +679,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             main_set_bits(0x4E2, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_SAVE_GAME:
-            gDLL_29_Gplay->vtbl->checkpoint(&self->srt.transl, (s16) ((s16) self->srt.yaw >> 8), (s32) cmd->param2, func_80048498());
+            gDLL_29_Gplay->vtbl->checkpoint(&self->srt.transl, (s16) ((s16) self->srt.yaw >> 8), (s32) cmd->param2, map_get_layer());
             break;
         case TRG_CMD_MAP_LAYER:
             // @recomp: Dino Mod trigger mapLayer command extension (originally by MusicalProgrammer)
@@ -687,9 +687,9 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 set_map_layer(cmd->param1);
             } else {
                 if (cmd->param1 == 0) {
-                    func_80047374();
+                    map_increment_layer();
                 } else {
-                    func_800473BC();
+                    map_decrement_layer();
                 }
             }
             break;
@@ -697,7 +697,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             switch (cmd->param1) {            /* switch 4; irregular */
             case 0:                         /* switch 4 */
                 // "Restart Set [%d]\n"
-                gDLL_29_Gplay->vtbl->restart_set(&self->srt.transl, self->srt.yaw, func_80048498());
+                gDLL_29_Gplay->vtbl->restart_set(&self->srt.transl, self->srt.yaw, map_get_layer());
                 break;
             case 1:                         /* switch 4 */
                 // "Restart Clear [%d]\n"

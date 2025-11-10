@@ -61,7 +61,7 @@ RECOMP_PATCH void iceblast_control(Object* self) {
         self->srt.transl.x += self->speed.x * gUpdateRateF;
         self->srt.transl.y += self->speed.y * gUpdateRateF;
         self->srt.transl.z += self->speed.z * gUpdateRateF;
-        ((DLL_210_Player*)player->dll)->vtbl->func14(player, -1);
+        ((DLL_210_Player*)player->dll)->vtbl->add_magic(player, -1);
     }
 
     self->positionMirror2.x = self->srt.transl.x;

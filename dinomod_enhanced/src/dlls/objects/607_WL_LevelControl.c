@@ -45,7 +45,7 @@ RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
         main_set_bits(BIT_Spell_Forcefield, 1);
         main_set_bits(BIT_Spell_Illusion, 1);
         ((DLL_210_Player*)player->dll)->vtbl->func39(player, 8, 1);
-        ((DLL_210_Player*)player->dll)->vtbl->func14(player, 0x14);
+        ((DLL_210_Player*)player->dll)->vtbl->add_magic(player, 20);
         main_set_bits(BIT_2DD, 0);
         _data_14 = 0;
     }
@@ -103,7 +103,7 @@ RECOMP_PATCH void WL_LevelControl_setup6_tick(Object* self) {
 
     player = get_player();
     if ((_data_18 != 0) && (main_get_bits(BIT_Play_Seq_020D) == 0)) {
-        temp_v0 = ((DLL_210_Player*)player->dll)->vtbl->func66(player, 0xF);
+        temp_v0 = (Object*)((DLL_210_Player*)player->dll)->vtbl->func66(player, 0xF);
         ((DLL_Unknown*)temp_v0->dll)->vtbl->func[10].withOneArg((s32)temp_v0);
         ((DLL_Unknown*)temp_v0->dll)->vtbl->func[11].withTwoArgs((s32)temp_v0, 1);
         ((DLL_Unknown*)temp_v0->dll)->vtbl->func[11].withTwoArgs((s32)temp_v0, 1);
@@ -140,7 +140,7 @@ RECOMP_PATCH void WL_LevelControl_setup7_tick(Object* self) {
         // @recomp: Stop Warlock Mountain from giving you back one of the Spirits.
         //          Possibly unwanted debug code? (originally by MusicalProgrammer)
         //((DLL_210_Player*)player->dll)->vtbl->func39(player, 0x40, 1);
-        ((DLL_210_Player*)player->dll)->vtbl->func14(player, 0x14);
+        ((DLL_210_Player*)player->dll)->vtbl->add_magic(player, 20);
         _data_1C = 0;
         objdata->unk2 = 1;
         func_80000860(self, self, 0x32, 0);

@@ -130,8 +130,8 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
             if (frostWeed && (frostWeed->id == OBJ_Tumbleweed2 || 
                 (FROSTWEED_TWIGS_ACCEPTED && frostWeed->id == OBJ_Tumbleweed2twig)) &&  //@recomp: option of accepting FrostWeed twigs as well
                 vec3_distance_xz_squared(&self->positionMirror, &frostWeed->positionMirror) < objsetup->unkRadius * objsetup->unkRadius) {
-                if (!((DLL_227_Tumbleweed*)frostWeed->dll)->vtbl->func4(frostWeed)) {
-                    ((DLL_227_Tumbleweed*)(frostWeed->dll))->vtbl->func3(frostWeed, &objdata->playerPositionCopy);
+                if (!((DLL_227_Tumbleweed*)frostWeed->dll)->vtbl->func11(frostWeed)) {
+                    ((DLL_227_Tumbleweed*)(frostWeed->dll))->vtbl->func10(frostWeed, &objdata->playerPositionCopy);
                     objdata->frostWeed = frostWeed;
                     if (0){
                         objdata->garundaTe_weedsEaten = FROSTWEED_MAX_OVERRIDE;
