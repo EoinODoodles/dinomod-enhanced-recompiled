@@ -22,39 +22,39 @@ typedef enum {
 extern Object* DRbullet_create_lfxEmitter(Object* self, s32 arg1);
 
 // Stop DRbullet LFXEmitters from being created, as they fill the LFX buffer beyond capacity. Especially when you're flying. (Originally by MusicalProgrammer)
-RECOMP_PATCH void DRbullet_recycle(Object* self, SRT* pFired, SRT* pTarget, f32 arg3) {
+RECOMP_PATCH void DRbullet_recycle(Object* self, SRT* pFired, SRT* pTarget, f32 speed) {
     DRbullet_Data *objData;
     Object *lfxEmitter;
     f32 lateralSpeed;
     f32 pad;
-    Vec3f direction;
+    Vec3f velocity;
     Vec3f displacement;
     Vec3f futurePosition;
     Vec3s16 sCurrentPosition;
     Vec3s16 sFuturePosition;
     Vec3s16 sp44;
-    f32 magnitude;
+    f32 magnitudeOverSpeed;
     
     objData = self->data;
     
-    //Get normalised direction vector between point of origin and target point
-    direction.x = pTarget->transl.x - pFired->transl.x;
-    direction.y = pTarget->transl.y - pFired->transl.y;
-    direction.z = pTarget->transl.z - pFired->transl.z;
-    magnitude = sqrtf(((direction.f[0] * direction.f[0]) + (direction.f[1] * direction.f[1])) + (direction.f[2] * direction.f[2])) / arg3;
-    if (magnitude != 0.0f){
-        direction.f[0] /= magnitude;
-        direction.f[1] /= magnitude;
-        direction.f[2] /= magnitude;
+    //Get unit vector from point of origin to target point (and then multiply it by speed)
+    velocity.x = pTarget->transl.x - pFired->transl.x;
+    velocity.y = pTarget->transl.y - pFired->transl.y;
+    velocity.z = pTarget->transl.z - pFired->transl.z;
+    magnitudeOverSpeed = sqrtf(((velocity.f[0] * velocity.f[0]) + (velocity.f[1] * velocity.f[1])) + (velocity.f[2] * velocity.f[2])) / speed;
+    if (magnitudeOverSpeed != 0.0f){
+        velocity.f[0] /= magnitudeOverSpeed;
+        velocity.f[1] /= magnitudeOverSpeed;
+        velocity.f[2] /= magnitudeOverSpeed;
     }
     
     //Set bullet's transform
     self->srt.transl.x = pFired->transl.x;
     self->srt.transl.y = pFired->transl.y;
     self->srt.transl.z = pFired->transl.z;
-    self->speed.x = direction.f[0];
-    self->speed.y = direction.f[1];
-    self->speed.z = direction.f[2];    
+    self->speed.x = velocity.f[0];
+    self->speed.y = velocity.f[1];
+    self->speed.z = velocity.f[2];    
     lateralSpeed = sqrtf((self->speed.x * self->speed.x) + (self->speed.z * self->speed.z));
     self->srt.yaw = arctan2_f(self->speed.x, self->speed.z);
     self->srt.pitch = -arctan2_f(self->speed.y, lateralSpeed);
@@ -65,7 +65,7 @@ RECOMP_PATCH void DRbullet_recycle(Object* self, SRT* pFired, SRT* pTarget, f32 
     objData->state = BULLET_STATE_FIRED;
     gDLL_6_AMSFX->vtbl->play_sound(self, 0x927, 0x7F, &objData->whooshSoundHandle, NULL, 0, NULL);
 
-    //Set bullet's expiry timer based on its distance 10 seconds after being fired (divided by arg3)
+    //Set bullet's expiry timer based on 10 second trajectory after being fired
     futurePosition.x = self->speed.x * 600.0f;
     futurePosition.y = self->speed.y * 600.0f;
     futurePosition.z = self->speed.z * 600.0f;
@@ -80,7 +80,7 @@ RECOMP_PATCH void DRbullet_recycle(Object* self, SRT* pFired, SRT* pTarget, f32 
         displacement.f[0] = futurePosition.f[0] - self->srt.transl.f[0];
         displacement.f[1] = futurePosition.f[1] - self->srt.transl.f[1];
         displacement.f[2] = futurePosition.f[2] - self->srt.transl.f[2];
-        objData->timer = sqrtf((displacement.f[0] * displacement.f[0]) + (displacement.f[1] * displacement.f[1]) + (displacement.f[2] * displacement.f[2])) / arg3;
+        objData->timer = sqrtf((displacement.f[0] * displacement.f[0]) + (displacement.f[1] * displacement.f[1]) + (displacement.f[2] * displacement.f[2])) / speed;
     } else {
         objData->timer = 600;
     }
