@@ -59,7 +59,7 @@ RECOMP_PATCH void portaltexanimator_animate_vertices(PortalTexAnimator_Data* obj
     //Iterate over shapes, and update all vertices' alpha on shapes with matching animatorID tag
     while (shapeIndex < block->shapeCount){
         
-        if (objdata->animatorID == shapes[shapeIndex].unk14){
+        if (objdata->animatorID == shapes[shapeIndex].animatorID){
             for (vertexIndex = shapes[shapeIndex].vtxBase; vertexIndex < shapes[shapeIndex + 1].vtxBase; vertexIndex++){
                 //@recomp: ignore vertices with 0 base opacity (i.e. preserve vertex alpha based texture blending)
                 if (block->vertices[vertexIndex].cn[3] == 0)

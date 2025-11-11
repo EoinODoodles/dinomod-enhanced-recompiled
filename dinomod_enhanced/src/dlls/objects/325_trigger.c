@@ -203,7 +203,7 @@ RECOMP_PATCH void trigger_control(Object* self) {
    
     player = get_player();
     if (player != NULL) {
-        temp_v0_2 = ((DLL_210_Player*)player->dll)->vtbl->func7(player);
+        temp_v0_2 = ((DLL_210_Player*)player->dll)->vtbl->get_vehicle(player);
         if (temp_v0_2 != NULL) {
             player = temp_v0_2;
         }
