@@ -149,3 +149,88 @@ RECOMP_PATCH s32 dll_210_func_125BC(Object* arg0, Player_Data* arg1, u32 arg2) {
     }
     return 0;
 }
+
+s32 func_80025140(Object*, f32, f32, s32);
+extern void dll_210_func_14B70(Object* arg0, ObjFSA_Data *arg1);
+extern s16 _data_158[];
+
+/** Fix Sabre floating around when he rides SnowHorns, stop projectile spell activating on dismount (originally by MusicalProgrammer) */
+RECOMP_PATCH s32 dll_210_func_142C4(Object* arg0, Player_Data* arg1, f32 arg2) {
+    Player_Data* temp_s0;
+    Object* sp48;
+    f32 sp44;
+    f32 sp40;
+    f32 sp3C;
+    s32 sp38;
+    s32 sp34;
+    s32 sp30;
+
+    sp30 = 0; //@recomp: initialise variable
+
+    gDLL_2_Camera->vtbl->func24.withOneArg(2);
+    temp_s0 = arg0->data;
+    arg1->unk0.unk4.mode = 0;
+    arg1->unk0.animExitAction = dll_210_func_14B70;
+
+    //@recomp: prevent Projectile Spell equip
+    arg1->unk834 = 0;
+    arg1->flags &= 0xFF00;
+
+    func_800267A4(arg0);
+    sp48 = temp_s0->unk858;
+    if (sp48 == NULL) {
+        arg0->curModAnimIdLayered = -1;
+        return 0;
+    }
+    if (arg1->unk0.enteredAnimState != 0) {
+        if (temp_s0->unk76C == NULL) {
+            temp_s0->unk76C = (s16 *)_data_158;
+        }
+        if (temp_s0->unk770 & 2) {
+            sp30 = 8;
+            func_80024E50(arg0, *temp_s0->unk76C, 0.0f, 0);
+            func_80025140(arg0, 0.0f, 0, 0); // arg2 should be 0.0f
+            func_80024E50(arg0, temp_s0->unk76C[1], 0.0f, 0xA);
+            func_80025140(arg0, 0.0f, 0, 0); // arg2 should be 0.0f
+        }
+        func_80023D30(arg0, *temp_s0->unk76C, 0.0f, (u8)sp30);
+        func_80024108(arg0, 0.0f, 0.0f, NULL);
+    }
+    if (temp_s0->unk770 & 4) {
+        func_800240BC(arg0, sp48->animProgress);
+        arg1->unk0.animTickDelta = NULL;
+    } else {
+        sp3C = ((DLL_IVehicle*)sp48->dll)->vtbl->func16(sp48, &sp44);
+        if (sp44 <= 1.0f) {
+            arg1->unk0.animTickDelta = sp44;
+        } else {
+            arg1->unk0.animTickDelta = ((sp3C * 0.05f) + 0.01f);
+        }
+    }
+    if (temp_s0->unk770 & 1) {
+        ((DLL_IVehicle*)sp48->dll)->vtbl->func15(sp48, &sp40, &sp34);
+        sp38 = (sp40 * 1023.0f);
+        if (sp38 < 0) {
+            sp38 = -sp38;
+        }
+        if (sp34 != 0) {
+            func_80025540(arg0, temp_s0->unk76C[3], sp38);
+            func_8002559C(arg0, temp_s0->unk76C[5], sp38);
+        } else {
+            func_80025540(arg0, temp_s0->unk76C[2], sp38);
+            func_8002559C(arg0, temp_s0->unk76C[4], sp38);
+        }
+    }
+    if (temp_s0->unk770 & 1) {
+        func_80024DD0(arg0, 0, 2, 0);
+        func_80024DD0(arg0, 1, 2, 0);
+    }
+    if (temp_s0->unk770 & 2) {
+        func_80024DD0(arg0, 1, 0, sp3C * 1023.0f);
+        func_80025140(arg0, arg1->unk0.animTickDelta, arg2, 0);
+    }
+    if (((DLL_IVehicle*)sp48->dll)->vtbl->func10(sp48, arg0) != 0) {
+        return 0x27;
+    }
+    return 0;
+}
