@@ -274,3 +274,119 @@ RECOMP_PATCH s32 dll_210_func_17C14(Object* arg0, Player_Data* arg1, f32 arg2) {
     gDLL_18_objfsa->vtbl->func7(arg0, &arg1->unk0, arg2, 1);
     return 0;
 }
+
+extern void dll_210_func_A024(Object* player, Player_Data* objdata);
+extern void dll_210_func_18DB0(Object* obj, ObjFSA_Data* fsa);
+extern f32 _bss_1C;
+
+/** Fixed crash if you warp while spamming attack (originally by MusicalProgrammer) */
+RECOMP_PATCH s32 dll_210_func_18630(Object* player, Player_Data* objdata, f32 arg2) {
+    u8 sp47;
+    Object* sp40;
+    Player_Data* sp3C;
+
+    //@recomp: return early
+    if (player->linkedObject == NULL){
+        return 0;
+    }
+
+    sp3C = player->data;
+    sp40 = player->linkedObject;
+    objdata->unk0.unk341 = 1;
+    if (objdata->unk0.enteredAnimState == 0) {
+        sp47 = 0;
+        if (objdata->unk0.animTickDelta > 0.0f) {
+            if (!(objdata->unk0.unk34A & 1)) {
+                if (sp3C->unk3B4[sp3C->unk8A1].unk24 < player->animProgress) {
+                    gDLL_6_AMSFX->vtbl->play_sound(player, sp3C->unk3B4[sp3C->unk8A1].unk2C, 0x7FU, NULL, NULL, 0, NULL);
+                    objdata->unk0.unk34A |= 1;
+                }
+            }
+            if (!(objdata->unk0.unk34A & 2) && ((&sp3C->unk3B4[sp3C->unk8A1])->unk28 < player->animProgress)) {
+                gDLL_6_AMSFX->vtbl->play_sound(player, sp3C->unk3B8[rand_next(0, 2)], 0x7FU, NULL, NULL, 0, NULL);
+                objdata->unk0.unk34A |= 2;
+            }
+        }
+        if (sp3C->unk3B4[sp3C->unk8A1].unk9 >= 0) {
+            if ((sp3C->unk3B4[sp3C->unk8A1].unk18 < player->animProgress) || ((objdata->unk0.animTickDelta < 0.0f) && (player->animProgress < _bss_1C))) {
+                objdata->unk0._unk33E |= 2;
+            }
+            if (sp3C->unk3B4[sp3C->unk8A1].unk10 < player->animProgress) {
+                objdata->unk0._unk33E |= 1;
+            }
+            if (sp3C->unk3B4[sp3C->unk8A1].unk14 < player->animProgress) {
+                objdata->unk0._unk33E &= ~1;
+            }
+            if (objdata->unk0.unk310 & 0x8000) {
+                if (objdata->unk0._unk33E & 1) {
+                    objdata->unk0._unk33E |= 4;
+                }
+            }
+            if ((objdata->unk0._unk33E & 4) && (objdata->unk0._unk33E & 2)) {
+                sp3C->unk8A1 = (u8) (&sp3C->unk3B4[sp3C->unk8A1])->unk9;
+                sp47 = 1;
+            }
+        }
+    } else {
+        if (sp40->group == GROUP_UNK48) {
+            ((DLL_Unknown *)sp40->dll)->vtbl->func[11].withOneArg((s32)sp40);
+        }
+        sp47 = 1;
+        sp3C->flags &= ~0x40;
+        player->objhitInfo->unk61 = 0;
+        dll_210_func_A024(player, objdata);
+        objdata->unk0.animExitAction = dll_210_func_18DB0;
+    }
+    if (sp47 != 0) {
+        player->unk5C = &sp3C->unk3B4[sp3C->unk8A1].unk34;
+        if (sp3C->unk3B4[sp3C->unk8A1].unk0 != player->curModAnimId && sp3C->unk3B4[sp3C->unk8A1].unk2 != player->curModAnimId ) {
+            func_80023D30(player, objdata->unk0.target != NULL ? sp3C->unk3B4[sp3C->unk8A1].unk0 : sp3C->unk3B4[sp3C->unk8A1].unk2, 0.0f, 0U);
+        }
+        objdata->unk0._unk33E &= ~0xEF;
+        objdata->unk0.animTickDelta = (&sp3C->unk3B4[sp3C->unk8A1])->unkC;
+        objdata->unk0.unk34A = 0;
+        objdata->unk0.unk27C = 0.0f;
+        if (objdata->unk0.target == NULL) {
+            if (objdata->unk0.unk290 > 0.3f) {
+                player->srt.yaw += objdata->unk0.unk32A * 0xB6;
+                objdata->unk0.unk328 = 0;
+                objdata->unk0.unk32A = 0;
+            }
+        } else {
+            gDLL_18_objfsa->vtbl->func11(player, &objdata->unk0, arg2, 2);
+        }
+        if (player->objhitInfo != NULL) {
+            player->objhitInfo->unk61 = 0;
+        }
+        if (sp40->group == GROUP_UNK48) {
+            ((DLL_Unknown *)sp40->dll)->vtbl->func[12].withTwoArgs((s32)sp40, 1);
+            ((DLL_Unknown *)sp40->dll)->vtbl->func[13].withTwoArgs((s32)sp40, (&sp3C->unk3B4[sp3C->unk8A1])->unk30);
+            ((DLL_Unknown *)sp40->dll)->vtbl->func[18].withThreeArgsCustom2(sp40, (&sp3C->unk3B4[sp3C->unk8A1])->unk1C, (&sp3C->unk3B4[sp3C->unk8A1])->unk20);
+        }
+    }
+    player->objhitInfo->unk5F = (&sp3C->unk3B4[sp3C->unk8A1])->unk4;
+    player->objhitInfo->unk60 = (&sp3C->unk3B4[sp3C->unk8A1])->unk8;
+    gDLL_18_objfsa->vtbl->func7(player, &objdata->unk0, arg2, 1);
+    if (player->animProgress > 0.99f) {
+        player->objhitInfo->unk61 = 0;
+        if (objdata->unk0.target != NULL) {
+            gDLL_18_objfsa->vtbl->func17(player, &objdata->unk0);
+            return 0x36;
+        }
+        return 2;
+    }
+    if ((player->animProgress > 0.7f) && ((&sp3C->unk3B4[sp3C->unk8A1])->unk9 < 0) && (objdata->unk0.unk310 & 0x8000)) {
+        player->objhitInfo->unk61 = 0;
+        if (objdata->unk0.target != NULL) {
+            gDLL_18_objfsa->vtbl->func11(player, &objdata->unk0, arg2, 2);
+            return 0x3C;
+        }
+        if (objdata->unk0.unk290 > 0.3f) {
+            player->srt.yaw += objdata->unk0.unk32A * 0xB6;
+            objdata->unk0.unk328 = 0;
+            objdata->unk0.unk32A = 0;
+        }
+        return 0x3D;
+    }
+    return 0;
+}
