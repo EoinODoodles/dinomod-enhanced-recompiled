@@ -88,6 +88,130 @@ RECOMP_PATCH void dll_210_add_magic(Object* self, s32 magicDifference) {
     }
 }
 
+s32 func_80025140(Object*, f32, f32, s32);
+extern u8 _data_530;
+
+/** Stop spells from unequipping whenever a cutscene starts (originally by MusicalProgrammer) */
+RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2) {
+    s32 var_s2;
+    s32 var_v0;
+    ModelInstance *modelInstance;
+    AnimState *animState;
+    Object *linkedObject = self->linkedObject;
+    u8 new_var;
+    u8 new_var2;
+    u8 *temp;
+
+    if (linkedObject == NULL) {
+        return;
+    }
+
+    var_v0 = 0;
+    do {
+        temp = &_data_530;
+        new_var = 1;
+        var_s2 = 0;
+        switch (objData->unk878) {
+        case 2:
+            if (var_v0 != 0) {
+                func_80024E50(self, self->curModAnimId, self->animProgress, 0);
+                func_80024E50(self, 0x8A, 0.0f, 0);
+            }
+            if ((self->animProgressLayered > 0.2f) && !*temp) {
+                gDLL_6_AMSFX->vtbl->play_sound(self, objData->unk3B8[4], 0x7FU, NULL, NULL, 0, NULL);
+                _data_530 = new_var;
+            }
+            if (self->animProgressLayered > 0.4f) {
+                objData->unk8A8 = 2;
+            }
+            if (func_80025140(self, 0.015f, arg2, 0) != 0) {
+                objData->unk878 = 3;
+                var_s2 = new_var;
+            }
+            break;
+        case 13:
+            if (!*temp) {
+                gDLL_6_AMSFX->vtbl->play_sound(self, objData->unk3B8[4], 0x7FU, NULL, NULL, 0, NULL);
+                _data_530 = new_var;
+            }
+            objData->unk8A8 = 2;
+            objData->unk878 = 0;
+            break;
+        case 1:
+            if (var_v0 != 0) {
+                func_80024E50(self, self->curModAnimId, self->animProgress, 0);
+                func_80024E50(self, 0x8A, 0.99f, 0);
+            }
+            if ((self->animProgressLayered < 0.8f) && !*temp) {
+                gDLL_6_AMSFX->vtbl->play_sound(self, objData->unk3B8[3], 0x7FU, NULL, NULL, 0, NULL);
+                _data_530 = new_var;
+            }
+            if (self->animProgressLayered < 0.4f) {
+                objData->unk8A8 = 0;
+            }
+            if (func_80025140(self, -0.015f, arg2, 0) != 0) {
+                objData->unk87C = -1;
+                objData->unk878 = 3;
+                var_s2 = new_var;
+            }
+            break;
+        case 14:
+            if (!*temp) {
+                gDLL_6_AMSFX->vtbl->play_sound(self, objData->unk3B8[3], 0x7FU, NULL, NULL, 0, NULL);
+                _data_530 = new_var;
+            }
+            // objData->unk87C = -1; //@recomp: don't set value
+            objData->unk8A8 = 0;
+            objData->unk878 = 0;
+            break;
+        case 3:
+            if (var_v0 != 0) {
+                func_80024E50(self, self->curModAnimId, self->animProgress, 0);
+            } else {
+                func_80025140(self, self->animProgress - self->animProgressLayered, 1.0f, 0);
+            }
+            modelInstance = self->modelInsts[self->modelInstIdx];
+            animState = modelInstance->animState1;
+            if (animState->unk58[0] == 0) {
+                self->curModAnimIdLayered = -1;
+                objData->unk878 = 0;
+            }
+            break;
+        default:
+            if (self->linkedObject != NULL) {
+                new_var2 = 0;
+                if (objData->unk8A8 != 0) {
+                    if (objData->unk8A9 == 0) {
+                        objData->unk878 = new_var;
+                        var_s2 = new_var;
+                        _data_530 = new_var2;
+                        break;
+                    }
+                    if (objData->unk8A9 == 1) {
+                        objData->unk878 = 0xE;
+                        var_s2 = new_var;
+                        _data_530 = new_var2;
+                    }
+                    break;
+                }
+                if (objData->unk8A9 == 2) {
+                    objData->unk878 = 2;
+                    var_s2 = new_var;
+                    _data_530 = new_var2;
+                    break;
+                }
+                if (objData->unk8A9 == 4) {
+                    objData->unk878 = 0xD;
+                    var_s2 = new_var;
+                    _data_530 = new_var2;
+                }
+            }
+            break;
+        }
+        var_v0 = var_s2;
+    } while (var_s2 != 0);
+}
+
 RECOMP_HOOK_RETURN_DLL(dll_210_control) void playerSoundDebouncing(Object* self) {
     if (soundCooldown > 0){
         soundCooldown -= gUpdateRate;
