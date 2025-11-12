@@ -98,40 +98,40 @@ RECOMP_HOOK_RETURN_DLL(dll_210_control) void playerSoundDebouncing(Object* self)
 }
 
 /** Fix swimming softlock (originally by MusicalProgrammer) */
-RECOMP_PATCH s32 dll_210_func_125BC(Object* self, Player_Data* objData, u32 arg2) {
-    f32 temp_fs0;
-    f32 temp_fs1;
+RECOMP_PATCH s32 dll_210_func_125BC(Object *self, ObjFSA_Data *fsa, f32 updateRate) {
+    f32 effectX;
+    f32 effectZ;
     f32 f2;
     f32 f0;
     s32 i;
-    Player_Data* temp_s3;
+    DLL27_Data *temp_s3;
 
-    if (objData->unk0.enteredAnimState != 0) {
-        ((s16*)objData)[0x138] = 0x1F;
+    if (fsa->enteredAnimState != 0) {
+        fsa->unk270 = 0x1F;
     }
-    objData->unk0.flags |= 0x200000;
-    temp_s3 = (Player_Data *) &objData->unk0.unk4;
-    if (objData->unk0.enteredAnimState != 0) {
+    fsa->flags |= 0x200000;
+    temp_s3 = &fsa->unk4;
+    if (fsa->enteredAnimState != 0) {
         gDLL_6_AMSFX->vtbl->play_sound(self, 0x3D8U, 0x7FU, NULL, NULL, 0, NULL);
         for (i = 0; i < 3; i++) {
-            temp_fs0 = ((f32) rand_next(-50, 50) / 10.0f) + self->srt.transl.x;
-            temp_fs1 = ((f32) rand_next(-50, 50) / 10.0f) + self->srt.transl.z;
-            gDLL_24_Waterfx->vtbl->func_174C(temp_fs0, temp_s3->unk0.unk4.floorY, temp_fs1, 4.0f);
-            gDLL_24_Waterfx->vtbl->func_1CC8(temp_fs0, temp_s3->unk0.unk4.floorY, temp_fs1, 0, 0.0f, 3);
+            effectX = ((f32) rand_next(-50, 50) / 10.0f) + self->srt.transl.x;
+            effectZ = ((f32) rand_next(-50, 50) / 10.0f) + self->srt.transl.z;
+            gDLL_24_Waterfx->vtbl->func_174C(effectX, temp_s3->waterY, effectZ, 4.0f);
+            gDLL_24_Waterfx->vtbl->func_1CC8(effectX, temp_s3->waterY, effectZ, 0, 0.0f, 3);
         }
     }
 
     if (
-        temp_s3->unk0.unk4.unk1AC > 25.0f 
-        // && temp_s3->unk0.unk4.floorNormalZ < 100.0f //@recomp: remove check
+        temp_s3->underwaterDist > 25.0f
+        // && temp_s3->floorDist < 100.0f //@recomp: remove check
     ) {
-        return 0x21;
+        return 33 + 1;
     }
 
-    if ((s8)temp_s3->unk0.unk4.numTestPoints & 0x10) {
-        return 2;
+    if (temp_s3->unk25C & 0x10) {
+        return 1 + 1;
     }
-    f0 = temp_s3->unk0.unk4.floorY - 6.0f;
+    f0 = temp_s3->waterY - 6.0f;
     f2 = f0 - self->srt.transl.y;
     if (f2 > 25.0f) {
         f2 = 25.0f;
