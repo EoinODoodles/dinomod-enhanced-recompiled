@@ -234,3 +234,43 @@ RECOMP_PATCH s32 dll_210_func_142C4(Object* arg0, Player_Data* arg1, f32 arg2) {
     }
     return 0;
 }
+
+extern s32 dll_210_func_A018(void);
+
+/** Fix snowball-player collision crash in DarkIce Mines (originally by MusicalProgrammer) */
+RECOMP_PATCH s32 dll_210_func_17C14(Object* arg0, Player_Data* arg1, f32 arg2) {
+    Object* sp34;
+    Player_Data* sp30;
+
+    sp30 = arg0->data;
+    arg1->unk0.unk341 = 3;
+    if (arg1->unk0.enteredAnimState != 0) {
+
+        if (func_80025F40(arg0, &sp34, NULL, NULL)){
+            //@recomp: don't try to calculate angle if func_80025F40 returns 0
+            arg0->srt.yaw = arctan2_f(-sp34->speed.f[0], -sp34->speed.f[2]);
+        }
+
+        func_80023D30(arg0, 0x407, 0.0f, 0U);
+        arg1->unk0.animTickDelta = 0.015f;
+    }
+    switch (arg0->curModAnimId) {
+    case 0x407:
+        if (arg1->unk0.unk33A != 0) {
+            if (sp30->stats->health <= 0) {
+                return 0x35;
+            }
+            func_80023D30(arg0, 0x408, 0.0f, 0U);
+            arg1->unk0.animTickDelta = 0.02f;
+        }
+        break;
+    case 0x408:
+        if (arg1->unk0.unk33A != 0) {
+            return dll_210_func_A018() + 1;
+        }
+        break;
+    }
+
+    gDLL_18_objfsa->vtbl->func7(arg0, &arg1->unk0, arg2, 1);
+    return 0;
+}
