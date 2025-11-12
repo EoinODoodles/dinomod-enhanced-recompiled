@@ -390,3 +390,29 @@ RECOMP_PATCH s32 dll_210_func_18630(Object* player, Player_Data* objdata, f32 ar
     }
     return 0;
 }
+
+/** Fix glitch where player rapidly cycles between different animations (originally by Banjeoin) 
+  *
+  * This is a temporary recomp hook version of the fix, since dll_210_func_AE34 isn't fully decomped yet
+  *
+  * TODO: replace with a more robust direct patch in dll_210_func_AE34
+*/
+RECOMP_HOOK_DLL(dll_210_control) void playerModAnimOffsetUnderflowFix(Object* self) {
+    Player_Data* objData;
+    char message[] = "Oh dear, player modAnimOffset underflowed!\nAttempting to fix...\n";
+
+    if (!self){
+        return;
+    }
+
+    objData = self->data;
+    if (!objData){
+        return;
+    }
+
+    if (objData->unk8C0 < 0){
+        diPrintf(message);
+        recomp_eprintf(message);
+        objData->unk8C0 = 3;
+    }
+}
