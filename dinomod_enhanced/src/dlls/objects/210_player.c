@@ -11,8 +11,10 @@
 #include "sys/dll.h"
 #include "sys/map_enums.h"
 #include "sys/objects.h"
+#include "sys/objanim.h"
 #include "sys/objtype.h"
 #include "dlls/objects/210_player.h"
+#include "dlls/objects/common/vehicle.h"
 
 #include "recomp/dlls/objects/210_player_recomp.h"
 #include "sys/print.h"
@@ -93,4 +95,57 @@ RECOMP_HOOK_RETURN_DLL(dll_210_control) void playerSoundDebouncing(Object* self)
             soundCooldown = 0;
         }
     }
+}
+
+/** Fix swimming softlock (originally by MusicalProgrammer) */
+RECOMP_PATCH s32 dll_210_func_125BC(Object* arg0, Player_Data* arg1, u32 arg2) {
+    f32 temp_fs0;
+    f32 temp_fs1;
+    f32 f2;
+    f32 f0;
+    s32 i;
+    Player_Data* temp_s3;
+
+    if (arg1->unk0.enteredAnimState != 0) {
+        ((s16*)arg1)[0x138] = 0x1F;
+    }
+    arg1->unk0.flags |= 0x200000;
+    temp_s3 = (Player_Data *) &arg1->unk0.unk4;
+    if (arg1->unk0.enteredAnimState != 0) {
+        gDLL_6_AMSFX->vtbl->play_sound(arg0, 0x3D8U, 0x7FU, NULL, NULL, 0, NULL);
+        for (i = 0; i < 3; i++) {
+            temp_fs0 = ((f32) rand_next(-50, 50) / 10.0f) + arg0->srt.transl.x;
+            temp_fs1 = ((f32) rand_next(-50, 50) / 10.0f) + arg0->srt.transl.z;
+            gDLL_24_Waterfx->vtbl->func_174C(temp_fs0, temp_s3->unk0.unk4.floorY, temp_fs1, 4.0f);
+            gDLL_24_Waterfx->vtbl->func_1CC8(temp_fs0, temp_s3->unk0.unk4.floorY, temp_fs1, 0, 0.0f, 3);
+        }
+    }
+
+    if (
+        temp_s3->unk0.unk4.unk1AC > 25.0f 
+        // && temp_s3->unk0.unk4.floorNormalZ < 100.0f //@recomp: remove check
+    ) {
+        return 0x21;
+    }
+
+    if ((s8)temp_s3->unk0.unk4.numTestPoints & 0x10) {
+        return 2;
+    }
+    f0 = temp_s3->unk0.unk4.floorY - 6.0f;
+    f2 = f0 - arg0->srt.transl.y;
+    if (f2 > 25.0f) {
+        f2 = 25.0f;
+    }
+    arg0->speed.y += (f2 / 25.0f) * 0.13f * gUpdateRateF;
+    arg0->speed.y -= 0.1f * gUpdateRateF;
+    arg0->speed.y *= 0.96f;
+    if (arg0->speed.y > 1.4f) {
+        arg0->speed.y = 1.4f;
+    }
+    arg0->speed.x *= 0.98f;
+    arg0->speed.z *= 0.98f;
+    for (i = 0; i < 4; i++) {
+        gDLL_17_partfx->vtbl->spawn(arg0, PARTICLE_202, NULL, PARTFXFLAG_NONE, -1, NULL);
+    }
+    return 0;
 }
