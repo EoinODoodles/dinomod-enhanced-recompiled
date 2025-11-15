@@ -45,6 +45,7 @@ typedef struct {
 /*1A*/ s16 unk1A;
 } Shrine_Setup;
 
+/*0x0*/ extern Texture* _data_0;
 /*0x4*/ extern u8 _data_4;
 
 extern void MMshrine_func_1140(Object *arg0);
@@ -211,4 +212,111 @@ RECOMP_PATCH void MMshrine_control(Object* arg0) {
             break;
         }
     }
+}
+
+RECOMP_PATCH int dll_466_func_C50(Object* self, Object *arg1, AnimObj_Data* arg2, s8 arg3) {
+    MMShrine_Data* objdata;
+    Object* player;
+    s32 i;
+    u8 temp;
+
+    objdata = self->data;
+    player = get_player();
+    
+    arg2->unk7A = -1;
+    arg2->unk62 = 0;
+    
+    if (objdata->unkA) {
+        objdata->unk8 += objdata->unkA;
+        if (objdata->unk8 < 2 && objdata->unkA <= 0) {
+            objdata->unk8 = 1;
+            objdata->unkA = 0;
+        } else if (objdata->unk8 >= 0x46 && objdata->unkA >= 0) {
+            objdata->unk8 = 0x46;
+            objdata->unkA = 0;
+        }
+        gDLL_5_AMSEQ->vtbl->func13(3, objdata->unk8);
+    }
+
+    for (i = 0; i < arg2->unk98; i++){
+        temp = arg2->unk8E[i];
+        if (temp != 0) {
+            switch (temp) {
+                case 1:
+                    func_80000860(self, self, 0xC7, 0);
+                    break;
+                case 2:
+                    if (D_80092A7C == -1) {
+                        func_80000860(self, self, 0x14, 0);
+                    } else {
+                        func_80000860(self, self, D_80092A7C, 0);
+                    }
+                    break;
+                case 3:
+                    objdata->unk10 = 1;
+                    break;
+                case 4:
+                    objdata->unk2 = 0;
+                    break;
+                case 5:
+                    objdata->unkF = 5;
+                    objdata->unk10 = 2;
+                    main_set_bits(BIT_DB_Entered_Shrine_3, 1);
+                    break;
+                case 6:
+                    objdata->unk10 = 3;
+                    main_set_bits(BIT_DB_Entered_Shrine_3, 1);
+                    break;
+                case 7:
+                    main_set_bits(BIT_MMP_GP_Shrine_Spirit_Light_Beams, 1);
+                    break;
+                case 8:
+                    main_set_bits(BIT_MMP_GP_Shrine_Spirit_Light_Beams, 0);
+                    objdata->unkA = -3;
+                    break;
+                case 10:
+                    main_set_bits(BIT_DB_Triggered_In_Shrine_Spirit_Cutscene, 1);
+                    if (_data_0 == NULL)
+                        _data_0 = func_8004A1E8(1);
+                    break;
+                case 9:
+                    // @recomp: Beating ToF will set flag allowing 3rd Spirit be deposited when WM is reached. 
+                    //          (original patch by jeebs2kx)
+                    main_set_bits(BIT_Spirit_Bits, 0x4);
+                    // TODO: is this ok to keep?
+                    main_set_bits(BIT_DB_Entered_Shrine_2, 1);
+                    break;
+                case 11:
+                    objdata->unk8 = 0x64;
+                    gDLL_5_AMSEQ->vtbl->func5(3, 0x2f, 0x50, (u8)objdata->unk8, 0);
+                    break;
+                case 12:
+                    func_80000860(self, self, 0xCE, 0);
+                    main_set_bits(BIT_Test_of_Fear_Particles, 1);
+                    gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_342, MAX_VOLUME, 0, 0, 0, 0);
+                    break;
+                case 13:
+                    if (D_80092A7C == -1) {
+                        func_80000860(self, self, 0x14, 0);
+                    } else {
+                        func_80000860(self, self, D_80092A7C, 0);
+                    }
+                    main_set_bits(BIT_Test_of_Fear_Particles, 0);
+                    break;
+            }
+        }
+        arg2->unk8E[i] = 0;
+    }
+    
+    if (objdata->unkF == 8) {
+        if (vec3_distance(&self->positionMirror, &player->positionMirror) > 10.0f) {
+            gDLL_3_Animation->vtbl->func18(arg2->unk63);
+            objdata->unkF = 7;
+        } else if (joy_get_buttons(0)) {
+            gDLL_3_Animation->vtbl->func18(arg2->unk63);
+            objdata->unkF = 7;
+        }
+    }
+    
+    return 0;
 }
