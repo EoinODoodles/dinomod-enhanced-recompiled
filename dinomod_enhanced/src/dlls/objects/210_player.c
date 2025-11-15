@@ -88,7 +88,7 @@ RECOMP_PATCH void dll_210_add_magic(Object* self, s32 magicDifference) {
     }
 }
 
-s32 func_80025140(Object*, f32, f32, s32);
+extern s32 func_80025140(Object*, f32, f32, s32);
 extern u8 _data_530;
 
 /** Stop spells from unequipping whenever a cutscene starts (originally by MusicalProgrammer) */
@@ -274,7 +274,7 @@ RECOMP_PATCH s32 dll_210_func_125BC(Object *self, ObjFSA_Data *fsa, f32 updateRa
     return 0;
 }
 
-s32 func_80025140(Object*, f32, f32, s32);
+extern s32 func_80025140(Object*, f32, f32, s32);
 extern void dll_210_func_14B70(Object* arg0, ObjFSA_Data *arg1);
 extern s16 _data_158[];
 
