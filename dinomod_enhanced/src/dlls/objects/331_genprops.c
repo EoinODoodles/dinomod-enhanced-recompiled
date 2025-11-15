@@ -1,18 +1,11 @@
-#include "dll.h"
-#include "game/gamebits.h"
-#include "game/objects/object_id.h"
 #include "modding.h"
 #include "recomputils.h"
 
 #include "common.h"
-#include "sys/map_enums.h"
-#include "sys/math.h"
-#include "sys/objects.h"
 #include "sys/objmsg.h"
 #include "dlls/objects/210_player.h"
 
 #include "recomp/dlls/objects/331_genprops_recomp.h"
-#include "sys/print.h"
 
 typedef struct {
     ObjSetup base;
@@ -185,7 +178,8 @@ static void stopSoundHum(Object* self){
 
 static void playSoundClunk(Object* self){
     GenProps_Data_Extended* objData = self->data;
-    gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_B5C_Machinery_Clunk, 0x30, NULL, NULL, 0, NULL);
+    // gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_B5C_Machinery_Clunk, 0x30, NULL, NULL, 0, NULL); //TODO: add to decomp sound enum
+    gDLL_6_AMSFX->vtbl->play_sound(self, 0xB5C, 0x30, NULL, NULL, 0, NULL);
 }
 
 /** Applies a y-axis vibration to the lift (and the player if they're on it) */
