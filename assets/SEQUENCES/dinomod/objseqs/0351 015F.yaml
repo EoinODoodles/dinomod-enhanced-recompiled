@@ -1,0 +1,320 @@
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x8
+  unk5: 0x0
+  objectID: -1
+# Actor 1
+- uid: 0x0
+  settings: 0x90
+  unk5: 0x0
+  objectID: -2
+# Actor 2
+- uid: 0x0
+  settings: 0xD0
+  unk5: 0x0
+  objectID: 0x0
+# Actor 3
+- uid: 0x0
+  settings: 0xD0
+  unk5: 0x0
+  objectID: 0x24
+# Actor 4
+- uid: 0x0
+  settings: 0xD0
+  unk5: 0x0
+  objectID: 0x200
+# Actor 5
+- uid: 0x0
+  settings: 0x90
+  unk5: 0x0
+  objectID: 0x3CE
+
+curves:
+# Curve 0
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0x670 }
+  - { type: 0x3, delay: 0, params: 0x0 }
+  - { type: 0x0, delay: 0, params: 0x670 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+# Curve 1
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0x670 }
+  - { type: 0x3, delay: 0, params: 0x0 }
+  - { type: 0x1, delay: 0, params: 0x0 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 20, params: 0x3C6 }
+  - { type: 0x0, delay: 0, params: 0x622 }
+  - { type: 0xB, delay: 78, params: 0x1 }
+  - { type: 0x0, delay: 76, params: 0x386 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+  - { channel: 0x6, time: 456, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 0x6, time: 755, value: -20.747638702392578, interp: 0, weight: 0 }
+  - { channel: 0x6, time: 918, value: 24.471900939941406, interp: 0, weight: 14 }
+  - { channel: 0x6, time: 1292, value: 39.545074462890625, interp: 2, weight: 0 }
+  - { channel: 0x6, time: 1439, value: -42.478965759277344, interp: 0, weight: 0 }
+  - { channel: 0x7, time: 0, value: 56.83790588378906, interp: 0, weight: 8 }
+  - { channel: 0x7, time: 126, value: 113.46707153320312, interp: 0, weight: 8 }
+  - { channel: 0x7, time: 294, value: 128.86444091796875, interp: 0, weight: 10 }
+  - { channel: 0x7, time: 454, value: 156.91261291503906, interp: 2, weight: 8 }
+  - { channel: 0x7, time: 455, value: 171.3212127685547, interp: 1, weight: 0 }
+  - { channel: 0x7, time: 837, value: -134.70484924316406, interp: 0, weight: 58 }
+  - { channel: 0x7, time: 1042, value: -221.49502563476562, interp: 0, weight: 0 }
+  - { channel: 0x8, time: 0, value: -81.39790344238281, interp: 0, weight: 14 }
+  - { channel: 0x8, time: 64, value: -59.90439987182617, interp: 0, weight: 0 }
+  - { channel: 0x8, time: 251, value: -90.4616470336914, interp: 0, weight: 0 }
+  - { channel: 0x8, time: 298, value: -81.32589721679688, interp: 0, weight: 0 }
+  - { channel: 0x8, time: 454, value: -86.37471771240234, interp: 2, weight: 0 }
+  - { channel: 0x8, time: 455, value: -13.222077369689941, interp: 0, weight: 6 }
+  - { channel: 0x8, time: 535, value: -3.081672430038452, interp: 0, weight: 0 }
+  - { channel: 0x8, time: 646, value: -28.06219482421875, interp: 0, weight: 49 }
+  - { channel: 0x8, time: 837, value: -46.6096076965332, interp: 0, weight: 5 }
+  - { channel: 0x8, time: 994, value: 1.7160086631774902, interp: 0, weight: 4 }
+  - { channel: 0x8, time: 1256, value: -8.282098770141602, interp: 1, weight: 54 }
+  - { channel: 0x8, time: 1648, value: -55.80714416503906, interp: 0, weight: 56 }
+  - { channel: 0xB, time: 0, value: -36.35417175292969, interp: 0, weight: 56 }
+  - { channel: 0xB, time: 126, value: -97.54942321777344, interp: 0, weight: 56 }
+  - { channel: 0xB, time: 248, value: -87.84226989746094, interp: 0, weight: 0 }
+  - { channel: 0xB, time: 454, value: -90.51336669921875, interp: 2, weight: 0 }
+  - { channel: 0xB, time: 455, value: -186.2447052001953, interp: 0, weight: 0 }
+  - { channel: 0xB, time: 535, value: -109.21884155273438, interp: 0, weight: 10 }
+  - { channel: 0xB, time: 645, value: 51.866920471191406, interp: 0, weight: 0 }
+  - { channel: 0xB, time: 837, value: -150.24615478515625, interp: 0, weight: 56 }
+  - { channel: 0xB, time: 1032, value: -255.7669677734375, interp: 0, weight: 56 }
+  - { channel: 0xB, time: 1416, value: -272.0072326660156, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 0, value: 353.0, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 294, value: 403.0, interp: 0, weight: 9 }
+  - { channel: 0xC, time: 454, value: 492.2650146484375, interp: 2, weight: 4 }
+  - { channel: 0xC, time: 455, value: 57.0919189453125, interp: 0, weight: 62 }
+  - { channel: 0xC, time: 535, value: 24.474021911621094, interp: 0, weight: 3 }
+  - { channel: 0xC, time: 622, value: 126.37879180908203, interp: 0, weight: 10 }
+  - { channel: 0xC, time: 721, value: 182.14251708984375, interp: 0, weight: 6 }
+  - { channel: 0xC, time: 976, value: 188.5887451171875, interp: 0, weight: 0 }
+  - { channel: 0xD, time: 0, value: -0.1550140380859375, interp: 0, weight: 58 }
+  - { channel: 0xD, time: 248, value: -85.69324493408203, interp: 0, weight: 56 }
+  - { channel: 0xD, time: 454, value: -168.79173278808594, interp: 2, weight: 60 }
+  - { channel: 0xD, time: 455, value: -0.8530426025390625, interp: 0, weight: 14 }
+  - { channel: 0xD, time: 542, value: 109.36701965332031, interp: 0, weight: 0 }
+  - { channel: 0xD, time: 622, value: 17.61585235595703, interp: 0, weight: 52 }
+  - { channel: 0xD, time: 721, value: -131.48196411132812, interp: 0, weight: 61 }
+  - { channel: 0xD, time: 1032, value: 58.04522705078125, interp: 0, weight: 7 }
+  - { channel: 0xD, time: 1416, value: 102.95596313476562, interp: 0, weight: 0 }
+  - { channel: 0xE, time: 283, value: 50.0, interp: 0, weight: 0 }
+  - { channel: 0xE, time: 454, value: 82.35208129882812, interp: 2, weight: 17 }
+  - { channel: 0xE, time: 737, value: 69.22173309326172, interp: 0, weight: 4 }
+# Curve 2
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0x670 }
+  - { type: 0x3, delay: 0, params: 0x0 }
+  - { type: 0xB, delay: 36, params: 0x1 }
+  - { type: 0x0, delay: 1, params: 0x5C6 }
+  - { type: 0x2, delay: 246, params: 0x224 }
+  - { type: 0x2, delay: 53, params: 0x2224 }
+  - { type: 0x2, delay: 17, params: 0x208 }
+  - { type: 0xD, delay: 0, params: 0xA2C5 }
+  - { type: 0x6, delay: 13, params: 0xE69C }
+  - { type: 0x4, delay: 49, params: 0x1612 }
+  - { type: 0x4, delay: 33, params: 0x161F }
+  - { type: 0x4, delay: 0, params: 0xB19 }
+  - { type: 0x0, delay: 0, params: 0x66F }
+  - { type: 0xD, delay: 1, params: 0x6037 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+  - { channel: 0x0, time: 327, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 0x0, time: 350, value: 24.155960083007812, interp: 0, weight: 0 }
+  - { channel: 0x0, time: 382, value: 20.035629272460938, interp: 0, weight: 56 }
+  - { channel: 0x0, time: 408, value: -15.673904418945312, interp: 0, weight: 0 }
+  - { channel: 0x0, time: 458, value: 4.927750587463379, interp: 0, weight: 0 }
+  - { channel: 0x1, time: 351, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 0x1, time: 432, value: 6.3011932373046875, interp: 0, weight: 0 }
+  - { channel: 0x1, time: 448, value: -18.420791625976562, interp: 0, weight: 0 }
+  - { channel: 0x1, time: 466, value: -7.4332427978515625, interp: 0, weight: 4 }
+  - { channel: 0x2, time: 339, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 0x2, time: 361, value: -6.0597991943359375, interp: 0, weight: 0 }
+  - { channel: 0x2, time: 383, value: 10.36651611328125, interp: 0, weight: 0 }
+  - { channel: 0x2, time: 403, value: -17.212238311767578, interp: 0, weight: 0 }
+  - { channel: 0x2, time: 428, value: 11.739978790283203, interp: 0, weight: 0 }
+  - { channel: 0x2, time: 468, value: -33.74848937988281, interp: 0, weight: 0 }
+  - { channel: 0x3, time: 287, value: 0.0, interp: 2, weight: 0 }
+  - { channel: 0x3, time: 330, value: 255.0, interp: 0, weight: 4 }
+  - { channel: 0x5, time: 287, value: 0.5, interp: 0, weight: 0 }
+  - { channel: 0x5, time: 313, value: 1.0, interp: 0, weight: 0 }
+  - { channel: 0x7, time: 288, value: 68.04400634765625, interp: 1, weight: 8 }
+  - { channel: 0x7, time: 510, value: -51.628395080566406, interp: 0, weight: 4 }
+  - { channel: 0x8, time: 386, value: 160.42715454101562, interp: 0, weight: 0 }
+  - { channel: 0x8, time: 510, value: 90.32025909423828, interp: 0, weight: 55 }
+  - { channel: 0x9, time: 346, value: 12.414779663085938, interp: 0, weight: 0 }
+  - { channel: 0x9, time: 391, value: 24.375633239746094, interp: 0, weight: 0 }
+  - { channel: 0xA, time: 363, value: 64.14151000976562, interp: 0, weight: 0 }
+  - { channel: 0xA, time: 448, value: 144.4098663330078, interp: 0, weight: 0 }
+  - { channel: 0xB, time: 288, value: -84.51593017578125, interp: 1, weight: 8 }
+  - { channel: 0xB, time: 510, value: -115.71881866455078, interp: 0, weight: 4 }
+  - { channel: 0xC, time: 288, value: 263.6972351074219, interp: 1, weight: 8 }
+  - { channel: 0xC, time: 510, value: 552.9683227539062, interp: 0, weight: 3 }
+  - { channel: 0xD, time: 288, value: -149.87109375, interp: 1, weight: 8 }
+  - { channel: 0xD, time: 510, value: -166.42311096191406, interp: 0, weight: 4 }
+  - { channel: 0xF, time: 413, value: -225.81085205078125, interp: 0, weight: 0 }
+  - { channel: 0xF, time: 440, value: 102.71688079833984, interp: 0, weight: 0 }
+  - { channel: 0xF, time: 455, value: 54.701263427734375, interp: 0, weight: 0 }
+  - { channel: 0x10, time: 435, value: 117.87967681884766, interp: 0, weight: 0 }
+  - { channel: 0x10, time: 460, value: -175.26808166503906, interp: 0, weight: 60 }
+  - { channel: 0x11, time: 389, value: -59.01983642578125, interp: 0, weight: 0 }
+  - { channel: 0x11, time: 405, value: -36.275634765625, interp: 0, weight: 0 }
+  - { channel: 0x11, time: 419, value: -66.60124206542969, interp: 0, weight: 0 }
+  - { channel: 0x11, time: 432, value: -36.42481231689453, interp: 0, weight: 0 }
+  - { channel: 0x11, time: 442, value: -45.73982238769531, interp: 0, weight: 0 }
+  - { channel: 0x11, time: 450, value: -21.423999786376953, interp: 0, weight: 0 }
+  - { channel: 0x11, time: 459, value: -37.43006134033203, interp: 0, weight: 4 }
+# Curve 3
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0x670 }
+  - { type: 0x3, delay: 244, params: 0x0 }
+  - { type: 0x2, delay: 82, params: 0x20E }
+  - { type: 0x2, delay: 0, params: 0x7 }
+  - { type: 0x0, delay: 0, params: 0x670 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+  - { channel: 0x3, time: 295, value: 0.0, interp: 2, weight: 16 }
+  - { channel: 0x3, time: 306, value: 255.0, interp: 0, weight: 4 }
+  - { channel: 0x5, time: 295, value: 0.5, interp: 0, weight: 0 }
+  - { channel: 0x5, time: 325, value: 1.0, interp: 0, weight: 0 }
+  - { channel: 0x6, time: 296, value: -0.05078125, interp: 0, weight: 0 }
+  - { channel: 0x6, time: 445, value: -33.83353042602539, interp: 0, weight: 0 }
+  - { channel: 0x7, time: 295, value: -93.72137451171875, interp: 0, weight: 56 }
+  - { channel: 0x7, time: 441, value: -354.9028015136719, interp: 0, weight: 60 }
+  - { channel: 0x8, time: 295, value: -133.8970947265625, interp: 1, weight: 0 }
+  - { channel: 0x8, time: 445, value: -219.9867401123047, interp: 0, weight: 0 }
+  - { channel: 0x9, time: 280, value: 72.662109375, interp: 0, weight: 0 }
+  - { channel: 0xA, time: 321, value: 61.90195083618164, interp: 0, weight: 0 }
+  - { channel: 0xB, time: 295, value: -77.65872192382812, interp: 1, weight: 6 }
+  - { channel: 0xB, time: 481, value: -32.6417236328125, interp: 0, weight: 31 }
+  - { channel: 0xC, time: 295, value: 253.33267211914062, interp: 1, weight: 10 }
+  - { channel: 0xC, time: 474, value: 461.2443542480469, interp: 0, weight: 4 }
+  - { channel: 0xD, time: 295, value: -140.32464599609375, interp: 1, weight: 8 }
+  - { channel: 0xD, time: 475, value: -230.4972686767578, interp: 0, weight: 4 }
+# Curve 4
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0x670 }
+  - { type: 0x3, delay: 0, params: 0x0 }
+  - { type: 0x2, delay: 1, params: 0xE }
+  - { type: 0xB, delay: 6, params: 0x1 }
+  - { type: 0x0, delay: 8, params: 0x2 }
+  - { type: 0x6, delay: 28, params: 0xE382 }
+  - { type: 0xB, delay: 15, params: 0x1 }
+  - { type: 0x0, delay: 9, params: 0x2 }
+  - { type: 0x2, delay: 34, params: 0x20B }
+  - { type: 0xB, delay: 13, params: 0x1 }
+  - { type: 0x0, delay: 6, params: 0x2 }
+  - { type: 0xB, delay: 22, params: 0x1 }
+  - { type: 0x0, delay: 10, params: 0x2 }
+  - { type: 0xB, delay: 6, params: 0x1 }
+  - { type: 0x0, delay: 11, params: 0x2 }
+  - { type: 0x6, delay: 97, params: 0xA37C }
+  - { type: 0x2, delay: 34, params: 0x400F }
+  - { type: 0x6, delay: 15, params: 0xE37D }
+  - { type: 0xB, delay: 12, params: 0x1 }
+  - { type: 0x0, delay: 9, params: 0x2 }
+  - { type: 0xB, delay: 22, params: 0x1 }
+  - { type: 0x0, delay: 6, params: 0x2 }
+  - { type: 0x2, delay: 9, params: 0x15 }
+  - { type: 0xB, delay: 140, params: 0x1 }
+  - { type: 0x0, delay: 12, params: 0x2 }
+  - { type: 0xB, delay: 4, params: 0x1 }
+  - { type: 0x0, delay: 6, params: 0x2 }
+  - { type: 0x6, delay: 12, params: 0xE37C }
+  - { type: 0x2, delay: 107, params: 0x2015 }
+  - { type: 0x6, delay: 4, params: 0x563D }
+  - { type: 0x6, delay: 0, params: 0xE37D }
+  - { type: 0xB, delay: 5, params: 0x1 }
+  - { type: 0x0, delay: 6, params: 0x2 }
+  - { type: 0x2, delay: 69, params: 0x2015 }
+  - { type: 0xB, delay: 26, params: 0x1 }
+  - { type: 0x0, delay: 10, params: 0x2 }
+  - { type: 0x6, delay: 9, params: 0x863D }
+  - { type: 0xB, delay: 5, params: 0x1 }
+  - { type: 0x0, delay: 6, params: 0x2 }
+  - { type: 0x6, delay: 2, params: 0xE70D }
+  - { type: 0x2, delay: 19, params: 0x2015 }
+  - { type: 0xB, delay: 88, params: 0x1 }
+  - { type: 0x0, delay: 9, params: 0x2 }
+  - { type: 0x6, delay: 23, params: 0xE358 }
+  - { type: 0x2, delay: 134, params: 0x100F }
+  - { type: 0x6, delay: 72, params: 0xE70C }
+  - { type: 0x2, delay: 16, params: 0x20B }
+  - { type: 0xB, delay: 10, params: 0x1 }
+  - { type: 0x0, delay: 10, params: 0x2 }
+  - { type: 0x6, delay: 0, params: 0xE63A }
+  - { type: 0x6, delay: 10, params: 0xE37C }
+  - { type: 0xB, delay: 50, params: 0x1 }
+  - { type: 0x0, delay: 6, params: 0x2 }
+  - { type: 0x2, delay: 27, params: 0x20B }
+  - { type: 0x6, delay: 46, params: 0xE37C }
+  - { type: 0x6, delay: 32, params: 0xE37E }
+  - { type: 0x2, delay: 16, params: 0x120C }
+  - { type: 0xB, delay: 31, params: 0x1 }
+  - { type: 0x0, delay: 11, params: 0x2 }
+  - { type: 0xB, delay: 9, params: 0x1 }
+  - { type: 0x0, delay: 6, params: 0x2 }
+  - { type: 0x6, delay: 17, params: 0xE70E }
+  - { type: 0xB, delay: 28, params: 0x1 }
+  - { type: 0x0, delay: 6, params: 0x2 }
+  - { type: 0x6, delay: 255, params: 0x93BE }
+  - { type: 0xB, delay: 64, params: 0x1 }
+  - { type: 0x0, delay: 12, params: 0x2 }
+  - { type: 0xB, delay: 2, params: 0x1 }
+  - { type: 0x0, delay: 17, params: 0x2 }
+  - { type: 0xD, delay: 2, params: 0x4B }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 255, params: 0x6 }
+  keyframes:
+  - { channel: 0x3, time: 1399, value: 255.0, interp: 0, weight: 0 }
+  - { channel: 0x3, time: 1604, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 0x7, time: 30, value: -96.53617095947266, interp: 0, weight: 0 }
+  - { channel: 0x9, time: 312, value: 6.640398025512695, interp: 0, weight: 0 }
+  - { channel: 0x9, time: 530, value: 12.333633422851562, interp: 0, weight: 0 }
+  - { channel: 0x9, time: 972, value: 3.21431827545166, interp: 0, weight: 0 }
+  - { channel: 0x9, time: 1387, value: 31.27035903930664, interp: 0, weight: 22 }
+  - { channel: 0xA, time: 554, value: 32.38847351074219, interp: 0, weight: 0 }
+  - { channel: 0xA, time: 647, value: 51.354522705078125, interp: 0, weight: 0 }
+  - { channel: 0xA, time: 694, value: 15.528668403625488, interp: 0, weight: 0 }
+  - { channel: 0xA, time: 780, value: 15.528671264648438, interp: 0, weight: 0 }
+  - { channel: 0xA, time: 817, value: 156.241943359375, interp: 0, weight: 8 }
+  - { channel: 0xA, time: 849, value: 43.71729278564453, interp: 0, weight: 0 }
+  - { channel: 0xA, time: 893, value: 184.99098205566406, interp: 0, weight: 15 }
+  - { channel: 0xA, time: 950, value: 77.40960693359375, interp: 0, weight: 56 }
+  - { channel: 0xA, time: 1015, value: 34.13762283325195, interp: 0, weight: 0 }
+  - { channel: 0xA, time: 1087, value: 64.79129028320312, interp: 0, weight: 17 }
+  - { channel: 0xB, time: 30, value: -77.96754455566406, interp: 0, weight: 0 }
+  - { channel: 0xD, time: 30, value: -146.33883666992188, interp: 0, weight: 0 }
+# Curve 5
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0x670 }
+  - { type: 0x3, delay: 0, params: 0x0 }
+  - { type: 0x0, delay: 0, params: 0x670 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+  - { channel: 0x3, time: 295, value: 0.0, interp: 2, weight: 8 }
+  - { channel: 0x3, time: 317, value: 255.0, interp: 0, weight: 4 }
+  - { channel: 0x5, time: 287, value: 0.46179261803627014, interp: 0, weight: 0 }
+  - { channel: 0x7, time: 295, value: 66.2485122680664, interp: 1, weight: 8 }
+  - { channel: 0x7, time: 471, value: 1194.082275390625, interp: 0, weight: 4 }
+  - { channel: 0x8, time: 295, value: 0.0, interp: 1, weight: 8 }
+  - { channel: 0xB, time: 295, value: -68.9250717163086, interp: 1, weight: 8 }
+  - { channel: 0xB, time: 472, value: -71.0682601928711, interp: 0, weight: 4 }
+  - { channel: 0xC, time: 295, value: 229.8256072998047, interp: 1, weight: 8 }
+  - { channel: 0xC, time: 473, value: 495.1127014160156, interp: 0, weight: 4 }
+  - { channel: 0xD, time: 295, value: -139.3460693359375, interp: 1, weight: 56 }
+  - { channel: 0xD, time: 467, value: -152.64822387695312, interp: 0, weight: 60 }

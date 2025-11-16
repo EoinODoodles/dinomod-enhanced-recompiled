@@ -10,7 +10,13 @@ class ObjDef:
     
     @property
     def name(self):
-        return self.data[0x5f:0x6f].rstrip(b'\0').decode()
+        # Deal with embedded null bytes in dinomod Sabre/Krystal objdef names
+        name_bytes = self.data[0x5f:0x6f]
+        first_null = name_bytes.find(b'\0')
+        if first_null < 0:
+            return name_bytes.decode()
+        else:
+            return name_bytes[0:first_null].decode()
 
     def clone(self):
         return ObjDef(bytes(self.data))

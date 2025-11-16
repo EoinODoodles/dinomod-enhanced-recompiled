@@ -1,0 +1,71 @@
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x0
+  unk5: 0x0
+  objectID: -1
+# Actor 1
+- uid: 0x0
+  settings: 0x90
+  unk5: 0x0
+  objectID: -2
+# Actor 2
+- uid: 0x0
+  settings: 0xD7
+  unk5: 0x0
+  objectID: 0x0
+
+curves:
+# Curve 0
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0x25B }
+  - { type: 0x3, delay: 20, params: 0x0 }
+  - { type: 0xD, delay: 0, params: 0xC000 }
+  - { type: 0x7F, delay: 0, params: 0x1FE }
+  - { type: 0x0, delay: 0, params: 0x25B }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+# Curve 1
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0x25B }
+  - { type: 0xB, delay: 8, params: 0x1 }
+  - { type: 0x0, delay: 8, params: 0x386 }
+  - { type: 0x3, delay: 0, params: 0x0 }
+  - { type: 0x1, delay: 0, params: 0x0 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 8, params: 0x3C6 }
+  - { type: 0x0, delay: 0, params: 0x22F }
+  - { type: 0xB, delay: 42, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x686 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+  - { channel: 0x7, time: 102, value: 163.3314971923828, interp: 0, weight: 0 }
+  - { channel: 0x7, time: 603, value: 256.0713195800781, interp: 0, weight: 21 }
+  - { channel: 0x8, time: 1, value: -0.19770050048828125, interp: 0, weight: 0 }
+  - { channel: 0x8, time: 549, value: 12.12984561920166, interp: 0, weight: 60 }
+  - { channel: 0x8, time: 602, value: -10.465778350830078, interp: 0, weight: 51 }
+  - { channel: 0xB, time: 0, value: -61.466957092285156, interp: 0, weight: 0 }
+  - { channel: 0xB, time: 99, value: -64.7943115234375, interp: 0, weight: 0 }
+  - { channel: 0xB, time: 594, value: 49.85323715209961, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 3, value: -7.101276397705078, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 549, value: -89.08123779296875, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 603, value: -45.81005859375, interp: 0, weight: 15 }
+  - { channel: 0xD, time: 1, value: 139.82101440429688, interp: 0, weight: 62 }
+  - { channel: 0xD, time: 603, value: -30.338088989257812, interp: 0, weight: 60 }
+# Curve 2
+- events:
+  - { type: 0x0, delay: 0, params: 0x1 }
+  - { type: 0xFF, delay: 0, params: 0x258 }
+  - { type: 0xD, delay: 0, params: 0x2123 }
+  - { type: 0xD, delay: 100, params: 0x212B }
+  - { type: 0x3, delay: 0, params: 0x0 }
+  - { type: 0x0, delay: 0, params: 0x257 }
+  - { type: 0xD, delay: 0, params: 0x212D }
+  - { type: 0xD, delay: 1, params: 0x212C }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:

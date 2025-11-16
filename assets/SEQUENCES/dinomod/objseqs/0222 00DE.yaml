@@ -1,0 +1,54 @@
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x10
+  unk5: 0x0
+  objectID: -1
+
+curves:
+# Curve 0
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0x104 }
+  - { type: 0x3, delay: 5, params: 0x0 }
+  - { type: 0xB, delay: 5, params: 0x1 }
+  - { type: 0x0, delay: 1, params: 0x2 }
+  - { type: 0x6, delay: 0, params: 0x0 }
+  - { type: 0x6, delay: 140, params: 0xF25D }
+  - { type: 0xB, delay: 107, params: 0x1 }
+  - { type: 0x0, delay: 2, params: 0x2 }
+  - { type: 0x6, delay: 3, params: 0xE30A }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x1 }
+  keyframes:
+  - { channel: 0x5, time: 4, value: 1.0080000162124634, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 10, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 150, value: 55.0, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 156, value: 55.0, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 260, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 0x12, time: 0, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 0x12, time: 29, value: 65.0, interp: 0, weight: 0 }
+  - { channel: 0x12, time: 119, value: 65.0, interp: 0, weight: 0 }
+  - { channel: 0x12, time: 145, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 0x12, time: 154, value: 0.04591655731201172, interp: 0, weight: 0 }
+  - { channel: 0x12, time: 174, value: 65.0, interp: 0, weight: 0 }
+  - { channel: 0x12, time: 257, value: 65.0, interp: 2, weight: 0 }
+  - { channel: 0x12, time: 260, value: 0.0, interp: 2, weight: 0 }
+# Curve 1
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0xFA }
+  - { type: 0x3, delay: 6, params: 0x0 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x144 }
+  - { type: 0xB, delay: 234, params: 0x1 }
+  - { type: 0x0, delay: 235, params: 0x181 }
+  - { type: 0xB, delay: 10, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x4 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+  - { channel: 0x5, time: 6, value: 1.0099999904632568, interp: 0, weight: 0 }
+  - { channel: 0x7, time: 6, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 0x7, time: 136, value: -110.0, interp: 0, weight: 0 }
+  - { channel: 0xD, time: 0, value: -97.0, interp: 0, weight: 0 }

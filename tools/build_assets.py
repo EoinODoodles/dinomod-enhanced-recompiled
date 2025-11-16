@@ -10,6 +10,7 @@ import sys
 from assetlib.gametext import GameTextBinParser, GameTextBinWriter, GameTextSpecParser
 from assetlib.mpeg import MPEGList
 from assetlib.objects import ObjectList
+from assetlib.seq import seqs_from_directory, seqs_write_bin, seqs_from_bin, seqs_apply_patch
 from assetlib.warp import WarpTab
 
 SCRIPT_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
@@ -145,6 +146,44 @@ def build_warptab():
     with open(new, "wb") as new_file:
         warptab.write_binary(new_file)
 
+def build_sequences():
+    print("Building OBJSEQS/ANIMCURVES...")
+
+    objseq_tab = BIN_DIR.joinpath("OBJSEQ.tab")
+    objseq_bin = BIN_DIR.joinpath("OBJSEQ.bin")
+    objseq2curve_tab = BIN_DIR.joinpath("OBJSEQ2CURVE.tab")
+    animcurves_tab = BIN_DIR.joinpath("ANIMCURVES.tab")
+    animcurves_bin = BIN_DIR.joinpath("ANIMCURVES.bin")
+
+    with open(objseq_tab, "rb") as objseq_tab_file, \
+         open(objseq_bin, "rb") as objseq_bin_file, \
+         open(objseq2curve_tab, "rb") as objseq2curve_tab_file, \
+         open(animcurves_tab, "rb") as animcurves_tab_file, \
+         open(animcurves_bin, "rb") as animcurves_bin_file:
+        seqs = seqs_from_bin(objseq_tab_file, objseq_bin_file,
+                                  objseq2curve_tab_file,
+                                  animcurves_tab_file, animcurves_bin_file)
+    
+    patch_seqs = seqs_from_directory(ASSETS_DIR.joinpath("SEQUENCES/dinomod"))
+    seqs_apply_patch(seqs, patch_seqs)
+    patch_seqs = seqs_from_directory(ASSETS_DIR.joinpath("SEQUENCES/new"))
+    seqs_apply_patch(seqs, patch_seqs)
+
+    objseq_tab = OUTPUT_DIR.joinpath("OBJSEQ.tab")
+    objseq_bin = OUTPUT_DIR.joinpath("OBJSEQ.bin")
+    objseq2curve_tab = OUTPUT_DIR.joinpath("OBJSEQ2CURVE.tab")
+    animcurves_tab = OUTPUT_DIR.joinpath("ANIMCURVES.tab")
+    animcurves_bin = OUTPUT_DIR.joinpath("ANIMCURVES.bin")
+
+    with open(objseq_tab, "wb") as objseq_tab_file, \
+         open(objseq_bin, "wb") as objseq_bin_file, \
+         open(objseq2curve_tab, "wb") as objseq2curve_tab_file, \
+         open(animcurves_tab, "wb") as animcurves_tab_file, \
+         open(animcurves_bin, "wb") as animcurves_bin_file:
+        seqs_write_bin(seqs, 
+                       objseq_tab_file, objseq_bin_file,
+                       objseq2curve_tab_file,
+                       animcurves_tab_file, animcurves_bin_file)
 def main():
     os.chdir(PROJECT_DIR)
 
@@ -158,8 +197,8 @@ def main():
     build_xdelta_asset("ANIM.bin")
     build_xdelta_asset("ANIM.tab")
 
-    build_xdelta_asset("ANIMCURVES.bin")
-    build_xdelta_asset("ANIMCURVES.tab")
+    # build_xdelta_asset("ANIMCURVES.bin")
+    # build_xdelta_asset("ANIMCURVES.tab")
 
     build_xdelta_asset("AUDIO.bin")
 
@@ -200,9 +239,11 @@ def main():
     build_objects()
     build_xdelta_asset("OBJINDEX.bin")
 
-    build_xdelta_asset("OBJSEQ.bin")
-    build_xdelta_asset("OBJSEQ.tab")
-    build_xdelta_asset("OBJSEQ2CURVE.tab")
+    # build_xdelta_asset("OBJSEQ.bin")
+    # build_xdelta_asset("OBJSEQ.tab")
+    # build_xdelta_asset("OBJSEQ2CURVE.tab")
+
+    build_sequences()
 
     build_xdelta_asset("TABLES.bin")
 

@@ -33,3 +33,15 @@ For more information about Dinomod Enhanced, visit:
 Patched assets [must be built first](#assets)!
 
 See [BUILDING.md](BUILDING.md) for instructions on compiling the recomp mod.
+
+## Extracting Dinomod (WIP)
+The dinomod ROM can be extracted and diff'd by running the following:
+
+```
+mkdir dinomod
+python tools/extract.py --extract dinomod/extract --bin dinomod/bin --rom Dinosaur_Planet_2025-01-01\ Cosmetic\ Text\ \(Nightly\).z64
+python tools/diff.py
+```
+
+The directory `dinomod` will contain the extracted FST binaries as well as the individual extracted files just like the vanilla assets under `extract`.
+After running `diff.py`, the directory `diff` will contain individual asset files that changed from vanilla to dinomod.

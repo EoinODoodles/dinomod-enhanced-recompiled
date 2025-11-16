@@ -1,0 +1,61 @@
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x0
+  unk5: 0x0
+  objectID: -1
+# Actor 1
+- uid: 0x0
+  settings: 0x90
+  unk5: 0x0
+  objectID: -2
+# Actor 2
+- uid: 0x0
+  settings: 0xD0
+  unk5: 0x0
+  objectID: 0x0
+
+curves:
+# Curve 0
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0xFA }
+  - { type: 0x3, delay: 250, params: 0x0 }
+  - { type: 0xD, delay: 0, params: 0xC000 }
+  - { type: 0x7F, delay: 0, params: 0x1DE }
+  - { type: 0xD, delay: 0, params: 0xC000 }
+  - { type: 0x7F, delay: 0, params: 0x2F2 }
+  - { type: 0xD, delay: 0, params: 0x6039 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+  - { channel: 0x3, time: 200, value: 3.725290298461914e-08, interp: 0, weight: 0 }
+  - { channel: 0x3, time: 250, value: 255.0, interp: 0, weight: 0 }
+# Curve 1
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0xFA }
+  - { type: 0x3, delay: 0, params: 0x0 }
+  - { type: 0x1, delay: 250, params: 0x0 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+  - { channel: 0x7, time: 0, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 0x8, time: 0, value: -9.415306091308594, interp: 0, weight: 0 }
+  - { channel: 0xB, time: 0, value: -134.80859375, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 0, value: 45.200096130371094, interp: 0, weight: 0 }
+  - { channel: 0xD, time: 0, value: 2.3880462646484375, interp: 0, weight: 0 }
+# Curve 2
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0xFA }
+  - { type: 0x3, delay: 0, params: 0x0 }
+  - { type: 0x1, delay: 250, params: 0x0 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+  - { channel: 0x7, time: 0, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 0x8, time: 0, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 0xB, time: 0, value: 480.0, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 0, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 0xD, time: 0, value: 0.0, interp: 0, weight: 0 }

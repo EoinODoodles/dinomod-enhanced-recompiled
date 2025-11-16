@@ -1,0 +1,28 @@
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x10
+  unk5: 0x0
+  objectID: -1
+
+curves:
+# Curve 0
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0xD2 }
+  - { type: 0x3, delay: 5, params: 0x0 }
+  - { type: 0xB, delay: 30, params: 0x1 }
+  - { type: 0x0, delay: 1, params: 0x2 }
+  - { type: 0xB, delay: 70, params: 0x0 }
+  - { type: 0xB, delay: 95, params: 0x1 }
+  - { type: 0x0, delay: 2, params: 0x2 }
+  - { type: 0xB, delay: 10, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x1 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x1 }
+  keyframes:
+  - { channel: 0xB, time: 0, value: -5.0, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 10, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 100, value: 90.0, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 110, value: 90.0, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 200, value: 0.0, interp: 0, weight: 0 }

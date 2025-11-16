@@ -1,0 +1,61 @@
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x0
+  unk5: 0x0
+  objectID: -1
+# Actor 1
+- uid: 0x0
+  settings: 0x90
+  unk5: 0x0
+  objectID: -2
+# Actor 2
+- uid: 0x0
+  settings: 0xD7
+  unk5: 0x0
+  objectID: 0x0
+
+curves:
+# Curve 0
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0xF9 }
+  - { type: 0x3, delay: 249, params: 0x0 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+# Curve 1
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0xFA }
+  - { type: 0x3, delay: 0, params: 0x0 }
+  - { type: 0x1, delay: 236, params: 0x0 }
+  - { type: 0xB, delay: 14, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x686 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+  - { channel: 0x7, time: 0, value: 232.00347900390625, interp: 0, weight: 8 }
+  - { channel: 0x7, time: 149, value: 234.89288330078125, interp: 0, weight: 8 }
+  - { channel: 0x7, time: 248, value: 343.7841491699219, interp: 0, weight: 4 }
+  - { channel: 0x8, time: 0, value: 0.0, interp: 0, weight: 56 }
+  - { channel: 0x8, time: 149, value: -8.833028793334961, interp: 0, weight: 0 }
+  - { channel: 0x8, time: 248, value: 4.3286237716674805, interp: 0, weight: 4 }
+  - { channel: 0xB, time: 0, value: 4.2230224609375, interp: 0, weight: 56 }
+  - { channel: 0xB, time: 149, value: -289.23779296875, interp: 0, weight: 56 }
+  - { channel: 0xB, time: 248, value: -319.68524169921875, interp: 0, weight: 60 }
+  - { channel: 0xC, time: 0, value: 6.0, interp: 0, weight: 8 }
+  - { channel: 0xC, time: 149, value: 46.0, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 248, value: 11.0, interp: 0, weight: 60 }
+  - { channel: 0xD, time: 0, value: -45.1120719909668, interp: 0, weight: 56 }
+  - { channel: 0xD, time: 149, value: -95.22940063476562, interp: 0, weight: 0 }
+  - { channel: 0xD, time: 248, value: 82.4957275390625, interp: 0, weight: 4 }
+# Curve 2
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0xFA }
+  - { type: 0x3, delay: 7, params: 0x0 }
+  - { type: 0x6, delay: 243, params: 0xE924 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
