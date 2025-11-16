@@ -36,4 +36,6 @@ mips
 ../lib/extfs/include
 -I
 include
+-I
+src
 -c

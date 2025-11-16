@@ -1,7 +1,14 @@
 #include "recompconfig.h"
+#include "recomputils.h"
 
 #include "PR/ultratypes.h"
+#include "game/objects/object.h"
+#include "game/objects/object_id.h"
+#include "game/gamebits.h"
 #include "sys/fs.h"
+#include "sys/map.h"
+#include "sys/map_enums.h"
+#include "sys/memory.h"
 
 #include "mod_common.h"
 #include "extfs.h"
@@ -84,4 +91,168 @@ EXTFS_ON_LOAD_FST_REPLACEMENTS_CALLBACK void dinomod_extfs_fst_replacements() {
     INCFST(TEX1_TAB, TEX1, tab)
 
     INCFST(WARPTAB_BIN, WARPTAB, bin)
+}
+
+INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
+
+EXTFS_ON_LOAD_REPLACEMENTS_CALLBACK void dinomod_extfs_replacements() {
+    // Fix terrain ID of moon temple viewing tile (to let the aperture work correctly)
+    extfs_blocks_set_replacement(628, block628, block628_end - block628);
+}
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ s16 gamebitPlay;        //The sequence will play when this gamebit is set
+/*1A*/ s16 gamebitFinished;    //This gamebit will be set when the sequence has played
+/*1C*/ u8 rotate;
+/*1D*/ u8 playbackOptions;
+/*1E*/ s8 seqIndex;            //The index of the sequence in the Object.bin entry's sequence list
+/*1F*/ s8 modelInstIdx;        //Choose between 3D models, visible when debugging (usually a clapperboard)
+/*20*/ s16 unk20;
+/*22*/ u16 unk22;
+/*24*/ u8 warpID;              //Optionally warp the player
+} SeqObj_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ s8 unk18;
+/*19*/ s8 unk19;
+/*1A*/ s16 unk1A;
+/*1C*/ u8 _unk1C[0x1E - 0x1C];
+/*1E*/ s16 unk1E;
+/*20*/ s16 unk20;
+} WCApertureSymbol_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ s8 unk18;
+/*19*/ s8 unk19;
+/*1A*/ s16 unk1A;
+/*1C*/ s16 unk1C;
+/*1E*/ s16 toggleGamebit;
+/*20*/ s16 disableGamebit;
+/*22*/ s8 unk22;
+/*23*/ s8 unk23;
+/*24*/ s8 unk24;
+/*25*/ s8 unk25;
+/*26*/ s8 unk26;
+/*27*/ s8 unk27;
+/*28*/ u8 unk28;
+/*29*/ u8 unk29;
+/*2A*/ s16 unk2A;
+} FXEmit_Setup;
+
+EXTFS_ON_LOAD_MODIFICATIONS_CALLBACK void my_extfs_modifications() {
+    // Revert dinomod's removal of the moon temple lift sequences, so it can be used again
+    {
+        ObjDef *moonTempleLiftDef = extfs_objects_get(276, NULL);
+        s16 *seq = (s16*)((u32)moonTempleLiftDef + (u32)moonTempleLiftDef->pSeq);
+        seq[0] = 0x3D4;
+        seq[1] = 0x3D6;
+    }
+
+    // Moon temple fixes
+    {
+        MapHeader *header = extfs_maps_get(MAP_WALLED_CITY, 0, NULL);
+        void *objects = extfs_maps_get(MAP_WALLED_CITY, 4, NULL);
+
+        ObjSetup *setup = (ObjSetup*)objects;
+
+        for (s32 i = 0; i < header->objectInstanceCount; i++) {
+            if (setup->uID == 0x41474) {
+                // Moon door seqobj
+                // Revert dinomod's gamebit change, so the door only opens after the aperture sequence
+                SeqObj_Setup *seqobj = (SeqObj_Setup*)setup;
+                seqobj->gamebitFinished = 0x829;
+            } else if (setup->uID == 0x41463) {
+                // Moon Aperture
+                // Set to always enabled (the sun aperture is always enabled as well)
+                WCApertureSymbol_Setup *moonAperture = (WCApertureSymbol_Setup*)setup;
+                moonAperture->unk20 = BIT_ALWAYS_1;
+            }
+
+            setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
+        }
+
+        // Add two FXEmit objects to enable turning the moon temple aperture cutscene
+        u32 fxEmitSetupSize = mmAlign4(sizeof(FXEmit_Setup));
+        u32 addedSize = fxEmitSetupSize * 2;
+        u32 newSize = header->objectInstancesFileLength + addedSize;
+        objects = extfs_maps_resize(MAP_WALLED_CITY, 4, newSize);
+        setup = (ObjSetup*)objects;
+        ObjSetup *lastGroup7 = NULL;
+
+        for (s32 i = 0; i < header->objectInstanceCount; i++) {
+            if (setup->loadFlags & OBJSETUP_LOAD_IN_MAP_OBJGROUP && setup->mapObjGroup == 7) {
+                lastGroup7 = setup;
+            } else if (lastGroup7 != NULL) {
+                break;
+            }
+
+            setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
+        }
+
+        if (lastGroup7 != NULL) {
+            bcopy((void*)setup, (void*)((u32)setup + addedSize), 
+                header->objectInstancesFileLength - ((u32)setup - (u32)objects));
+        } else {
+            recomp_error_message_box("Failed to find WC object group 7 setups!");
+        }
+
+        for (s32 i = 0; i < 2; i++) {
+            FXEmit_Setup *fxemit = (FXEmit_Setup*)setup;
+            fxemit->base.objId = OBJ_FXEmit;
+            fxemit->base.quarterSize = fxEmitSetupSize >> 2;
+            fxemit->base.setupExclusions1 = 0;
+            fxemit->base.setupExclusions2 = 0;
+            fxemit->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+            fxemit->base.fadeFlags = OBJSETUP_FADE_FLAG4;
+            fxemit->base.mapObjGroup = 7;
+            fxemit->base.fadeDistance = 50;
+
+            // base off of WCApertureSymbol position
+            fxemit->base.x = 3008.52490234375f;
+            fxemit->base.y = -694.7548828125f;
+            fxemit->base.z = -3690.62060546875f;
+            
+            switch (i) {
+                case 0:
+                    fxemit->base.x += 0.0f;
+                    fxemit->base.y += -0.24524f;
+                    fxemit->base.z += 0.846679f;
+                    fxemit->unk1A = 0x741; // Circular blue glow inside of aperture
+                    fxemit->unk1C = -5;
+                    fxemit->unk27 = 0;
+                    fxemit->base.uID = 0x41937;
+                    break;
+                case 1:
+                    fxemit->base.x += -0.266602f;
+                    fxemit->base.y += -1.635926f - 9.0f;
+                    fxemit->base.z += 0.492187f + -70.0f;
+                    fxemit->unk1A = 0x25A; // Blue beams
+                    fxemit->unk1C = -1;
+                    fxemit->unk27 = 0;
+                    fxemit->base.uID = 0x41939;
+                    break;
+            }
+
+            fxemit->unk18 = 0;
+            fxemit->unk19 = 0;
+            fxemit->toggleGamebit = 0x848; // Active during the aperture cutscene
+            fxemit->disableGamebit = -1;
+            fxemit->unk22 = 0;
+            fxemit->unk23 = 0;
+            fxemit->unk24 = 0;
+            fxemit->unk25 = 0;
+            fxemit->unk26 = 0;
+            fxemit->unk28 = 0;
+            fxemit->unk29 = 0;
+            fxemit->unk2A = 0;
+
+            setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
+        }
+
+        header->objectInstancesFileLength = newSize;
+        header->objectInstanceCount += 2;
+    }
 }

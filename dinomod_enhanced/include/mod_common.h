@@ -14,3 +14,9 @@
         "\t.popsection\n");                         \
     extern u8 identifier[];                         \
     extern u8 identifier##_end[];
+
+extern void bcopy_recomp(const void *src, void *dst, int length);
+#define bcopy bcopy_recomp
+
+extern void bzero_recomp(void *, int);
+#define bzero bzero_recomp
