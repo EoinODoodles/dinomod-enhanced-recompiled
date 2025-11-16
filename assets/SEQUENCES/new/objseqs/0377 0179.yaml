@@ -1,0 +1,95 @@
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x0
+  unk5: 0x0
+  objectID: -1
+# Actor 1
+- uid: 0x0
+  settings: 0x90
+  unk5: 0x0
+  objectID: -2
+# Actor 2
+- uid: 0x0
+  settings: 0xD7
+  unk5: 0x0
+  objectID: 0x0
+# Actor 3
+- uid: 0x0
+  settings: 0xD7
+  unk5: 0x0
+  objectID: 0x509
+
+curves:
+# Curve 0
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0x217 }
+  - { type: 0x3, delay: 0, params: 0x0 }
+  - { type: 0x0, delay: 0, params: 0x217 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+# Curve 1
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0x217 }
+  - { type: 0x3, delay: 0, params: 0x0 }
+  - { type: 0x1, delay: 20, params: 0x0 }
+  - { type: 0xD, delay: 0, params: 0xB000 }
+  - { type: 0x7F, delay: 185, params: 0x274 }
+  - { type: 0xD, delay: 0, params: 0xC000 }
+  - { type: 0x7F, delay: 18, params: 0x206 } # Revert dinomod gamebit change to avoid nuking SwapStone Circle's act bit
+  - { type: 0xD, delay: 0, params: 0xC000 }
+  - { type: 0x7F, delay: 96, params: 0x25F }
+  - { type: 0xD, delay: 0, params: 0xC000 }
+  - { type: 0x7F, delay: 34, params: 0x2A6 }
+  - { type: 0xB, delay: 43, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x686 }
+  - { type: 0xD, delay: 0, params: 0xC000 }
+  - { type: 0x7F, delay: 139, params: 0x226 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+  - { channel: 0x7, time: 86, value: 180.50494384765625, interp: 0, weight: 0 }
+  - { channel: 0x7, time: 180, value: 178.03195190429688, interp: 0, weight: 54 }
+  - { channel: 0x7, time: 238, value: 169.5724639892578, interp: 0, weight: 0 }
+  - { channel: 0x7, time: 329, value: 191.283935546875, interp: 0, weight: 0 }
+  - { channel: 0x7, time: 389, value: 182.3849639892578, interp: 0, weight: 56 }
+  - { channel: 0x7, time: 472, value: 180.14239501953125, interp: 0, weight: 0 }
+  - { channel: 0x8, time: 0, value: -18.863571166992188, interp: 0, weight: 0 }
+  - { channel: 0x8, time: 284, value: -24.14331817626953, interp: 0, weight: 0 }
+  - { channel: 0x8, time: 535, value: -19.44100570678711, interp: 0, weight: 1 }
+  - { channel: 0xB, time: 0, value: 541.2928466796875, interp: 0, weight: 0 }
+  - { channel: 0xB, time: 118, value: 503.73553466796875, interp: 0, weight: 60 }
+  - { channel: 0xB, time: 252, value: 188.06103515625, interp: 0, weight: 51 }
+  - { channel: 0xB, time: 388, value: -127.08154296875, interp: 0, weight: 61 }
+  - { channel: 0xB, time: 476, value: -158.47958374023438, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 0, value: 21.0, interp: 0, weight: 0 }
+  - { channel: 0xC, time: 251, value: 55.43328857421875, interp: 0, weight: 8 }
+  - { channel: 0xC, time: 535, value: 38.77956771850586, interp: 0, weight: 51 }
+  - { channel: 0xD, time: 92, value: -191.75990295410156, interp: 0, weight: 0 }
+  - { channel: 0xD, time: 267, value: -236.34768676757812, interp: 0, weight: 0 }
+  - { channel: 0xD, time: 424, value: -177.99142456054688, interp: 0, weight: 0 }
+# Curve 2
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0x217 }
+  - { type: 0x3, delay: 0, params: 0x0 }
+  - { type: 0x2, delay: 0, params: 0x0 }
+  - { type: 0x0, delay: 0, params: 0x217 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
+  - { channel: 0x9, time: 43, value: 19.337203979492188, interp: 0, weight: 0 }
+# Curve 3
+- events:
+  - { type: 0x0, delay: 0, params: 0x0 }
+  - { type: 0xFF, delay: 0, params: 0x217 }
+  - { type: 0x3, delay: 190, params: 0x0 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 1, params: 0x2 }
+  - { type: 0x0, delay: 0, params: 0x217 }
+  - { type: 0xB, delay: 0, params: 0x1 }
+  - { type: 0x0, delay: 0, params: 0x6 }
+  keyframes:
