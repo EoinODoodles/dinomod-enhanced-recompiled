@@ -197,9 +197,6 @@ def main():
     build_xdelta_asset("ANIM.bin")
     build_xdelta_asset("ANIM.tab")
 
-    # build_xdelta_asset("ANIMCURVES.bin")
-    # build_xdelta_asset("ANIMCURVES.tab")
-
     build_xdelta_asset("AUDIO.bin")
 
     build_xdelta_asset("BITTABLE.bin")
@@ -238,10 +235,6 @@ def main():
 
     build_objects()
     build_xdelta_asset("OBJINDEX.bin")
-
-    # build_xdelta_asset("OBJSEQ.bin")
-    # build_xdelta_asset("OBJSEQ.tab")
-    # build_xdelta_asset("OBJSEQ2CURVE.tab")
 
     build_sequences()
 
