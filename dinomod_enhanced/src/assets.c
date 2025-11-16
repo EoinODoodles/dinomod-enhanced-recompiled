@@ -9,6 +9,7 @@
 #include "sys/map.h"
 #include "sys/map_enums.h"
 #include "sys/memory.h"
+#include "macros.h"
 
 #include "mod_common.h"
 #include "extfs.h"
@@ -22,7 +23,7 @@ typedef enum {
     INCBIN(fst_assets_##filename##_##ext, "assets/" #filename "."#ext); \
     extfs_set_fst_file_replacement(fileID, fst_assets_##filename##_##ext, fst_assets_##filename##_##ext##_end - fst_assets_##filename##_##ext);
 
-EXTFS_ON_LOAD_FST_REPLACEMENTS_CALLBACK void dinomod_extfs_fst_replacements() {
+EXTFS_ON_LOAD_FST_REPLACEMENTS_CALLBACK void dinomod_extfs_fst_replacements(void) {
     INCFST(AMAP_BIN, AMAP, bin)
     INCFST(AMAP_TAB, AMAP, tab)
 
@@ -95,7 +96,7 @@ EXTFS_ON_LOAD_FST_REPLACEMENTS_CALLBACK void dinomod_extfs_fst_replacements() {
 
 INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
 
-EXTFS_ON_LOAD_REPLACEMENTS_CALLBACK void dinomod_extfs_replacements() {
+EXTFS_ON_LOAD_REPLACEMENTS_CALLBACK void dinomod_extfs_replacements(void) {
     // Fix terrain ID of moon temple viewing tile (to let the aperture work correctly)
     extfs_blocks_set_replacement(628, block628, block628_end - block628);
 }
@@ -142,7 +143,7 @@ typedef struct {
 /*2A*/ s16 unk2A;
 } FXEmit_Setup;
 
-EXTFS_ON_LOAD_MODIFICATIONS_CALLBACK void my_extfs_modifications() {
+static void walled_city_modifications(void) {
     // Revert dinomod's removal of the moon temple lift sequences, so it can be used again
     {
         ObjDef *moonTempleLiftDef = extfs_objects_get(276, NULL);
@@ -255,4 +256,35 @@ EXTFS_ON_LOAD_MODIFICATIONS_CALLBACK void my_extfs_modifications() {
         header->objectInstancesFileLength = newSize;
         header->objectInstanceCount += 2;
     }
+}
+
+static void shrine_fxemit_modifications(void) {
+    // Remove 'disable' gamebit 0x5 for some shrine FXEmits. Ensures they don't get disabled after picking up a CCgrub.
+    // The other shrines don't have disable gamebits for their emitters.
+    static s32 mapIDs[] = { MAP_SHRINE_DISCOVERY_FALLS, MAP_SHRINE_MOON_MOUNTAIN_PASS, MAP_SHRINE_DIAMOND_BAY };
+
+    for (u32 i = 0; i < ARRAYCOUNT(mapIDs); i++) {
+        s32 mapID = mapIDs[i];
+
+        MapHeader *header = extfs_maps_get(mapID, 0, NULL);
+        void *objects = extfs_maps_get(mapID, 4, NULL);
+
+        ObjSetup *setup = (ObjSetup*)objects;
+
+        for (s32 i = 0; i < header->objectInstanceCount; i++) {
+            if (setup->objId == OBJ_FXEmit) {
+                FXEmit_Setup *fxemit = (FXEmit_Setup*)setup;
+                if (fxemit->disableGamebit == 0x5) {
+                    fxemit->disableGamebit = -1;
+                }
+            }
+
+            setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
+        }
+    }
+}
+
+EXTFS_ON_LOAD_MODIFICATIONS_CALLBACK void my_extfs_modifications(void) {
+    walled_city_modifications();
+    shrine_fxemit_modifications();
 }
