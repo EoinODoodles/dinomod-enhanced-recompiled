@@ -143,6 +143,12 @@ typedef struct {
 /*2A*/ s16 unk2A;
 } FXEmit_Setup;
 
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ s16 enableGamebit;
+/*1A*/ u8 unk1A;
+} sideload_Setup;
+
 static void walled_city_modifications(void) {
     // Revert dinomod's removal of the moon temple lift sequences, so it can be used again
     {
@@ -196,6 +202,7 @@ static void walled_city_modifications(void) {
         if (lastGroup7 != NULL) {
             bcopy((void*)setup, (void*)((u32)setup + addedSize), 
                 header->objectInstancesFileLength - ((u32)setup - (u32)objects));
+            bzero((void*)setup, addedSize);
         } else {
             recomp_error_message_box("Failed to find WC object group 7 setups!");
         }
@@ -258,6 +265,58 @@ static void walled_city_modifications(void) {
     }
 }
 
+static void dim2_modifications(void) {
+    // Add sideload in the cave where you re-unite with Belina so if you save/load at this point,
+    // Tricky will actually spawn in. Otherwise, he doesn't and you get stuck and crash trying to
+    // progress towards Galadon.
+    {
+        MapHeader *header = extfs_maps_get(MAP_DARK_ICE_MINES_2, 0, NULL);
+
+        u32 sideloadSetupSize = mmAlign4(sizeof(sideload_Setup));
+        u32 addedSize = sideloadSetupSize;
+        u32 newSize = header->objectInstancesFileLength + addedSize;
+        void *objects = extfs_maps_resize(MAP_DARK_ICE_MINES_2, 4, newSize);
+        ObjSetup *setup = (ObjSetup*)objects;
+        ObjSetup *lastUngrouped = NULL;
+
+        for (s32 i = 0; i < header->objectInstanceCount; i++) {
+            if (setup->loadFlags & OBJSETUP_LOAD_IN_MAP_OBJGROUP) {
+                break;
+            }
+
+            lastUngrouped = setup;
+            setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
+        }
+
+        if (lastUngrouped != NULL) {
+            bcopy((void*)setup, (void*)((u32)setup + addedSize), 
+                header->objectInstancesFileLength - ((u32)setup - (u32)objects));
+            bzero((void*)setup, addedSize);
+        } else {
+            recomp_error_message_box("Failed to find DIM2 ungrouped object setups!");
+        }
+
+        sideload_Setup *sideload = (sideload_Setup*)setup;
+        sideload->base.objId = OBJ_sideload;
+        sideload->base.quarterSize = sideloadSetupSize >> 2;
+        sideload->base.setupExclusions1 = 0;
+        sideload->base.setupExclusions2 = 0;
+        sideload->base.loadFlags = OBJSETUP_LOAD_FLAG8;
+        sideload->base.fadeFlags = OBJSETUP_FADE_FLAG4;
+        sideload->base.loadDistance = 80;
+        sideload->base.fadeDistance = 50;
+        sideload->base.x = 1556.0f;
+        sideload->base.y = -2630.0f;
+        sideload->base.z = -903.0f;
+        sideload->base.uID = 0x35226;
+        sideload->enableGamebit = BIT_Tricky_Spawns;
+        sideload->unk1A = 0;
+
+        header->objectInstancesFileLength = newSize;
+        header->objectInstanceCount += 1;
+    }
+}
+
 static void shrine_fxemit_modifications(void) {
     // Remove 'disable' gamebit 0x5 for some shrine FXEmits. Ensures they don't get disabled after picking up a CCgrub.
     // The other shrines don't have disable gamebits for their emitters.
@@ -286,5 +345,6 @@ static void shrine_fxemit_modifications(void) {
 
 EXTFS_ON_LOAD_MODIFICATIONS_CALLBACK void my_extfs_modifications(void) {
     walled_city_modifications();
+    dim2_modifications();
     shrine_fxemit_modifications();
 }
