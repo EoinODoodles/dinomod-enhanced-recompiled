@@ -1,17 +1,8 @@
 #include "modding.h"
 
-#include "PR/ultratypes.h"
-#include "game/gamebits.h"
-#include "game/objects/object.h"
-#include "dlls/objects/210_player.h"
-#include "dlls/objects/214_animobj.h"
-#include "sys/joypad.h"
-#include "sys/main.h"
-#include "sys/map.h"
-#include "sys/objects.h"
+#include "common.h"
 #include "sys/menu.h"
-#include "dll.h"
-#include "functions.h"
+#include "dlls/objects/210_player.h"
 
 #include "recomp/dlls/objects/515_SHswapstone_recomp.h"
 
@@ -20,6 +11,12 @@ typedef enum {
     SWAPSTONE_PLAYER_HAS_SPELLSTONE = 0x2,
     SWAPSTONE_IS_RUBBLE = 0x4
 } SwapstoneFlags;
+
+typedef struct {
+    ObjSetup base;
+    u8 _unk18[2];
+    u8 rotation;
+} SHswapstone_Setup;
 
 typedef struct {
     u8 attachIdx;
@@ -32,6 +29,11 @@ typedef struct {
     s16 bitSwappedToSeq; // game bits ID
 } SHswapstone_Data;
 
+typedef enum {
+    Rocky_uID = 0x189e,
+    Rubble_uID = 0x2732
+} SwapStone_uIDs;
+
 extern u16 sWarlockMountainWarps[2];
 extern u16 sSwapStoneWarps[2];
 
@@ -40,6 +42,58 @@ extern s32 SHswapstone_get_held_spirit(void);
 extern s32 SHswapstone_has_spellstone(void);
 extern void SHswapstone_func_A8C(Object* self, s32 arg1, s32 arg2);
 extern s32 SHswapstone_func_AD4(Object* self, s32 arg1, s32 arg2);
+
+/** Make sure Rubble loads in SwapStone Circle (rather than Rocky) */
+RECOMP_PATCH void SHswapstone_setup(Object* self, SHswapstone_Setup* setup, s32 arg2) {
+    SHswapstone_Data* objdata;
+
+    objdata = self->data;
+    self->srt.yaw = setup->rotation << 8;
+    self->animCallback = (void*)SHswapstone_func_448;
+
+    //@recomp: change how we determine if this is Rubble or Rocky, avoiding incorrect outcome if local Block is unloaded
+    if ((map_get_map_id_from_xz_ws(self->srt.transl.x, self->srt.transl.z) == MAP_SWAPSTONE_CIRCLE) 
+        || (setup->base.uID == Rubble_uID) //@recomp: fallback check
+    ) {
+        // We are Rubble
+        objdata->bitSwapStoneSpokenTo = BIT_883;
+        objdata->bitIntroSeq = BIT_Play_Seq_0107_Rocky_Intro_Unused;
+        objdata->bitSwappedToSeq = BIT_Play_Seq_01FB_SwapStone_Back_In_SH;
+        objdata->flags |= SWAPSTONE_IS_RUBBLE;
+        self->modelInstIdx = 1;
+    } else {
+        // We are Rocky
+        objdata->bitSwapStoneSpokenTo = BIT_Talked_to_Rocky;
+        objdata->bitIntroSeq = BIT_Play_Seq_035F_Rocky_Intro;
+        objdata->bitSwappedToSeq = BIT_Play_Seq_00D7_Swapped_to_Krystal;
+        self->modelInstIdx = 0;
+    }
+
+    if ((main_get_bits(BIT_Talking_to_Rocky) != 0) && (main_get_bits(BIT_Talked_to_Rocky) != 0)) {
+        objdata->unk4 = 1;
+    } else {
+        objdata->unk4 = 0;
+    }
+
+    main_set_bits(objdata->bitIntroSeq, 0);
+}
+
+/** Make sure Rubble loads in SwapStone Circle (rather than Rocky) */
+RECOMP_PATCH u32 SHswapstone_get_model_flags(Object* self) {
+    s32 modelno;
+
+    //@recomp: change how we determine if this is Rubble or Rocky, avoiding incorrect outcome if local Block is unloaded
+    if (map_get_map_id_from_xz_ws(self->srt.transl.x, self->srt.transl.z) == MAP_SWAPSTONE_CIRCLE
+        || (self->setup->uID == Rubble_uID) //@recomp: fallback check
+    ) {
+        // We are Rubble
+        modelno = 1;
+    } else {
+        // We are Rocky
+        modelno = 0;
+    }
+    return MODFLAGS_MODEL_INDEX(modelno) | MODFLAGS_LOAD_SINGLE_MODEL;
+}
 
 RECOMP_PATCH s32 SHswapstone_func_448(Object* self, Object* a1, AnimObj_Data* a2, void* a3) {
     SHswapstone_Data* objdata;
