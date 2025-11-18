@@ -279,7 +279,10 @@ curves:
   - { channel: 0xB, time: 673, value: -43.67753982543945, interp: 1, weight: 56 }
   - { channel: 0xB, time: 816, value: -44.01701354980469, interp: 0, weight: 0 }
   - { channel: 0xB, time: 879, value: -40.3948974609375, interp: 0, weight: 0 }
-  - { channel: 0xC, time: 0, value: -222.11328125, interp: 1, weight: 8 }
+  # Start Sabre a little higher to avoid putting him in DIM's nearby EffectBox that will kill
+  # right him after the sequence ends.
+  #- { channel: 0xC, time: 0, value: -222.11328125, interp: 1, weight: 8 }
+  - { channel: 0xC, time: 0, value: -190.11328125, interp: 1, weight: 8 }
   - { channel: 0xC, time: 50, value: 345.4012451171875, interp: 2, weight: 0 }
   - { channel: 0xC, time: 64, value: -130.93246459960938, interp: 0, weight: 14 }
   - { channel: 0xC, time: 122, value: 167.89596557617188, interp: 0, weight: 0 }
