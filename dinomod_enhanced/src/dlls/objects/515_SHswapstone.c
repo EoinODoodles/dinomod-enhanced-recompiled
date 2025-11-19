@@ -104,8 +104,8 @@ RECOMP_PATCH s32 SHswapstone_func_448(Object* self, Object* a1, AnimObj_Data* a2
     if (menu_get_current() != MENU_16) {
         menu_set(MENU_16);
     }
-    a2->unkF8 = SHswapstone_func_AD4;
-    a2->unkF4 = SHswapstone_func_A8C;
+    a2->unkF8 = (AnimObj_DataF8Callback)SHswapstone_func_AD4;
+    a2->unkF4 = (AnimObj_DataF4Callback)SHswapstone_func_A8C;
     if (a2->unk62 != 0) {
         objdata->flags &= ~(SWAPSTONE_PLAYER_HAS_SPIRIT | SWAPSTONE_PLAYER_HAS_SPELLSTONE);
         if (SHswapstone_get_held_spirit() != PLAYER_NO_SPIRIT) {

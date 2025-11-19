@@ -14,8 +14,9 @@
 #include "sys/objtype.h"
 #include "sys/objmsg.h"
 #include "sys/print.h"
-#include "dlls/objects/210_player.h"
 #include "dlls/objects/common/vehicle.h"
+#include "dlls/objects/210_player.h"
+#include "dlls/objects/214_animobj.h"
 #include "dlls/engine/29_gplay.h"
 #include "dlls/engine/6_amsfx.h"
 #include "functions.h"
@@ -583,7 +584,7 @@ extern s8 _data_52C;
 /* Fix mount logic when multiple vehicles are loaded. (Original patch by MusicalProgrammer) */
 // TODO: replace with a cleaner match from the decomp, when we have one
 RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg2, s8 arg3) {
-    AnimObjSetup* animSetup;
+    AnimObj_Setup* animSetup;
     Object* temp_a0_4;
     s32 var_v0;
     s32 spC8;
@@ -615,7 +616,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
     f32 sp60;
 
     objdata = arg0->data;
-    animSetup = (AnimObjSetup*)arg1->setup;
+    animSetup = (AnimObj_Setup*)arg1->setup;
     spC8 = 0;
     arg2->unkF4 = (AnimObj_DataF4Callback)dll_210_func_60A8;
     objdata->unk818 = 0.0f;
@@ -679,7 +680,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
         } else if (arg2->unk62 == 4) {
             arg2->unk7A &= ~0xC;
             arg2->unk7C &= ~0x8;
-            temp_v0_6 = (Object *)gDLL_2_Camera->vtbl->func15.asVoidS32();
+            temp_v0_6 = (Object *)gDLL_2_Camera->vtbl->func15();
             if (temp_v0_6 == NULL || temp_v0_6->unk74 == NULL) {
                 return 0;
             }
@@ -701,10 +702,10 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
             arg2->unk58 = 0.0f;
             arg2->unk24 = 0.083333336f;
             arg2->unk62 = 5;
-            objdata->unk354.unk16 = func_80034804(arg0, 0)[1];
-            objdata->unk354.unk14 = arg2->yawDiff;
-            objdata->unk378.unk16 = 0;
-            objdata->unk378.unk14 = arg2->pitchDiff;
+            objdata->unk354.headStartAngle = func_80034804(arg0, 0)[1];
+            objdata->unk354.headGoalAngle = arg2->yawDiff;
+            objdata->unk378.headStartAngle = 0;
+            objdata->unk378.headGoalAngle = arg2->pitchDiff;
             _bss_0 = 0;
             sp6C[0] = temp_s0->x;
             sp6C[1] = temp_s0->y;

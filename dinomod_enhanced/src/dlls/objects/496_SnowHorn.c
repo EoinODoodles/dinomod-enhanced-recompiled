@@ -64,7 +64,7 @@ typedef struct {
 /*3f4*/ u32 unk3f4;
 /*3f8*/ u32 unk3f8;
 /*3fc*/ u32 unk3fc;
-/*400*/ Unk80032CF8 lookAtUnk;
+/*400*/ HeadAnimation lookAtUnk;
 /*424*/ u8 unk424;
 /*425*/ u8 unk425;
 /*426*/ u8 unk426;

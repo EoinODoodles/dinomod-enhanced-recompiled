@@ -6,7 +6,7 @@
 #include "sys/dll.h"
 #include "sys/objects.h"
 
-#include "recomp/dlls/_asm/211_recomp.h"
+#include "recomp/dlls/objects/211_Tricky_recomp.h"
 
 typedef void (*ObjControlFunc)(Object *obj);
 static ObjControlFunc tricky_control_func; 
