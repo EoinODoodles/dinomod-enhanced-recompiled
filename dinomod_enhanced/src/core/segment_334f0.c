@@ -1,12 +1,6 @@
-#include "PR/os.h"
 #include "modding.h"
 
-#include "PR/ultratypes.h"
-#include "sys/main.h"
-#include "sys/objects.h"
-#include "sys/rand.h"
-
-#include "segment_334F0.h"
+#include "common.h"
 
 typedef enum {
     BLINK_Wait = 0,
@@ -26,6 +20,34 @@ typedef enum {
     HEAD_ANIMATION_TAG_Eyelid_L = 4,
     HEAD_ANIMATION_TAG_Eyelid_R = 5
 } HeadAnimationTags;
+
+typedef struct {
+    /** Head aim */
+    /* 0x00 */ s8 aimIsActive;
+    /* 0x01 */ u8 blinkFrames;      //@recomp: using unused field
+    /* 0x02 */ u8 blinkRollTimer;   //@recomp: using unused field
+    /* 0x03 */ u8 pad3;
+    /* 0x04 */ f32 headAimX;
+    /* 0x08 */ f32 headAimY;
+    /* 0x0C */ f32 headAimZ;
+    /* 0x10 */ f32 headAimUnk;
+    
+    /** Randomised head turn */
+    /* 0x14 */ s16 headGoalAngle;   
+    /* 0x16 */ s16 headStartAngle;
+    /* 0x18 */ s16 unk18;           //unused?
+    /* 0x1A */ s16 headTurnState;
+    /* 0x1C */ s16 headTurnDelay;   //random delay before next head turn
+
+    /** Randomised blinks */
+    /* 0x1E */ s8 blinkState;
+    /* 0x1F */ s8 blinkDelayTimer;
+
+    /** Randomised pupil darts */
+    /* 0x20 */ s8 pupilSpeed;       
+    /* 0x21 */ s8 pupilDelayTimer;  //frames until next eye dart
+    /* 0x22 */ s8 pupilGoal;        //goal position for current eye dart
+} HeadAnimation_Recomp;
 
 enum SnowHornAnims {
     MODANIM_SnowHorn_Idle = 0,
@@ -80,11 +102,14 @@ RECOMP_PATCH void func_80033B68(Object* obj, HeadAnimation* arg1, f32 arg2) {
     arg1->headTurnState = (var_v0 << 8) | (arg1->headTurnState & 0xFF);
 }
 
-//Prevent SnowHorn from blinking while asleep
+// Prevent SnowHorn from blinking while asleep, 
+// and ensure all randomised blink animation is framerate independent
 RECOMP_PATCH void func_80032A08(Object* obj, HeadAnimation* arg1) {
     s32* eyelidR;
     s32* eyelidL;
     s32 eyelidValue;
+    HeadAnimation_Recomp* headAnim = (HeadAnimation_Recomp*)arg1;
+    u8 currentFrame;
 
     //@recomp: checks if the object is a SnowHorn, and returns early if the SnowHorn is asleep
     if (obj->group == 40){
@@ -103,40 +128,51 @@ RECOMP_PATCH void func_80032A08(Object* obj, HeadAnimation* arg1) {
 
     eyelidValue = *eyelidL;
 
-    switch (arg1->blinkState & 0xF) {
+    //@recomp: framerate independent blinking
+    switch (headAnim->blinkState & 0xF) {
     case BLINK_Wait:
-        if (arg1->blinkDelayTimer > 0) {
+        headAnim->blinkFrames = 0;
+        if (headAnim->blinkDelayTimer > 0) {
             //Wait for timer to run out
-            arg1->blinkDelayTimer -= gUpdateRate;
-        } else if (rand_next(0, 1000) > 985) {
-            //1.5% chance of going into a blink
-            arg1->blinkState = BLINK_Animate;
-            arg1->blinkDelayTimer = 0;
+            headAnim->blinkDelayTimer -= gUpdateRate;
+        } else {
+            //@recomp: framerate independent probability
+            headAnim->blinkRollTimer += gUpdateRate;
+            if (headAnim->blinkRollTimer >= 2){
+                headAnim->blinkRollTimer = 0;
+                if (rand_next(0, 1000) > 985) {
+                    //(Every 3 frames) 1.5% chance of going into a blink
+                    headAnim->blinkState = BLINK_Animate;
+                    headAnim->blinkDelayTimer = 0;
+                }
+            }
         }
         break;
     case BLINK_Animate:
-        if (arg1->blinkState & BLINK_Eyelid_Close_Finished) {
-            //Animate eyelid opening
-            eyelidValue -= 0x100;
-            if (eyelidValue < 0) {
-                eyelidValue = 0;
-                arg1->blinkState = BLINK_Wait;
-                arg1->blinkDelayTimer = 0;
-            }
-        } else {
-            //Animate eyelid closing
-            eyelidValue += 0x100;
-            if (eyelidValue > 0x200) {
-                eyelidValue -= 0x200;
-                if (eyelidValue < 0) {
-                    eyelidValue = 0;
-                    arg1->blinkState = BLINK_Wait;
-                } else {
-                    arg1->blinkState = (s8)(BLINK_Eyelid_Close_Finished + BLINK_Animate);
-                }
-                arg1->blinkDelayTimer = 0;
-            }
+        //@recomp: framerate independent texture flipbooking
+        headAnim->blinkFrames += gUpdateRate;
+        
+        currentFrame = headAnim->blinkFrames/3;
+        // diPrintf("blink: %d\n", currentFrame);
+        switch (currentFrame){
+            case 0:
+                eyelidValue = 0x100;
+                break;
+            case 1:
+            case 2:
+                eyelidValue = 0x200;
+                break;
+            case 3:
+                eyelidValue = 0x100;
+                break;
+            default:
+                eyelidValue = 0x000;
+                headAnim->blinkState = BLINK_Wait;
+                headAnim->blinkDelayTimer = 0;
+                headAnim->blinkFrames = 0;
+                break;
         }
+
         *eyelidR = eyelidValue;
         *eyelidL = eyelidValue;
         break;
