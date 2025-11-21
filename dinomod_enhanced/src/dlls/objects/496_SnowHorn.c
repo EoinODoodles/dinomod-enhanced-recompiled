@@ -1,21 +1,11 @@
-#include "dlls/engine/6_amsfx.h"
-#include "game/objects/object_id.h"
 #include "modding.h"
 #include "recomputils.h"
 #include "recompconfig.h"
 
-#include "dll.h"
-#include "sys/main.h"
-#include "sys/dll.h"
-#include "sys/objects.h"
+#include "common.h"
 #include "sys/objtype.h"
-#include "sys/objanim.h"
-#include "sys/print.h"
-#include "game/objects/object.h"
 #include "dlls/objects/214_animobj.h"
 #include "dlls/objects/227_tumbleweed.h"
-#include "functions.h"
-#include "types.h"
 
 #include "recomp/dlls/objects/496_snowhorn_recomp.h"
 
