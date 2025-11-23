@@ -12,7 +12,7 @@
 #include "macros.h"
 
 #include "mod_common.h"
-#include "extfs.h"
+#include "asset_repacker.h"
 
 typedef enum {
     GAMETEXT_VANILLA,
@@ -21,9 +21,9 @@ typedef enum {
 
 #define INCFST(fileID, filename, ext) \
     INCBIN(fst_assets_##filename##_##ext, "assets/" #filename "."#ext); \
-    extfs_set_fst_file_replacement(fileID, fst_assets_##filename##_##ext, fst_assets_##filename##_##ext##_end - fst_assets_##filename##_##ext);
+    repacker_set_fst_file_replacement(fileID, fst_assets_##filename##_##ext, fst_assets_##filename##_##ext##_end - fst_assets_##filename##_##ext);
 
-EXTFS_ON_LOAD_FST_REPLACEMENTS_CALLBACK void dinomod_extfs_fst_replacements(void) {
+REPACKER_ON_LOAD_FST_REPLACEMENTS_CALLBACK void dinomod_repacker_fst_replacements(void) {
     INCFST(AMAP_BIN, AMAP, bin)
     INCFST(AMAP_TAB, AMAP, tab)
 
@@ -96,9 +96,9 @@ EXTFS_ON_LOAD_FST_REPLACEMENTS_CALLBACK void dinomod_extfs_fst_replacements(void
 
 INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
 
-EXTFS_ON_LOAD_REPLACEMENTS_CALLBACK void dinomod_extfs_replacements(void) {
+REPACKER_ON_LOAD_REPLACEMENTS_CALLBACK void dinomod_repacker_replacements(void) {
     // Fix terrain ID of moon temple viewing tile (to let the aperture work correctly)
-    extfs_blocks_set_replacement(628, block628, block628_end - block628);
+    repacker_blocks_set_replacement(628, block628, block628_end - block628);
 }
 
 typedef struct {
@@ -146,7 +146,7 @@ typedef struct {
 static void walled_city_modifications(void) {
     // Revert dinomod's removal of the moon temple lift sequences, so it can be used again
     {
-        ObjDef *moonTempleLiftDef = extfs_objects_get(276, NULL);
+        ObjDef *moonTempleLiftDef = repacker_objects_get(276, NULL);
         s16 *seq = (s16*)((u32)moonTempleLiftDef + (u32)moonTempleLiftDef->pSeq);
         seq[0] = 0x3D4;
         seq[1] = 0x3D6;
@@ -154,8 +154,8 @@ static void walled_city_modifications(void) {
 
     // Moon temple fixes
     {
-        MapHeader *header = extfs_maps_get(MAP_WALLED_CITY, 0, NULL);
-        void *objects = extfs_maps_get(MAP_WALLED_CITY, 4, NULL);
+        MapHeader *header = repacker_maps_get(MAP_WALLED_CITY, 0, NULL);
+        void *objects = repacker_maps_get(MAP_WALLED_CITY, 4, NULL);
 
         ObjSetup *setup = (ObjSetup*)objects;
 
@@ -179,7 +179,7 @@ static void walled_city_modifications(void) {
         u32 fxEmitSetupSize = mmAlign4(sizeof(FXEmit_Setup));
         u32 addedSize = fxEmitSetupSize * 2;
         u32 newSize = header->objectInstancesFileLength + addedSize;
-        objects = extfs_maps_resize(MAP_WALLED_CITY, 4, newSize);
+        objects = repacker_maps_resize(MAP_WALLED_CITY, 4, newSize);
         setup = (ObjSetup*)objects;
         ObjSetup *lastGroup7 = NULL;
 
@@ -266,8 +266,8 @@ static void shrine_fxemit_modifications(void) {
     for (u32 i = 0; i < ARRAYCOUNT(mapIDs); i++) {
         s32 mapID = mapIDs[i];
 
-        MapHeader *header = extfs_maps_get(mapID, 0, NULL);
-        void *objects = extfs_maps_get(mapID, 4, NULL);
+        MapHeader *header = repacker_maps_get(mapID, 0, NULL);
+        void *objects = repacker_maps_get(mapID, 4, NULL);
 
         ObjSetup *setup = (ObjSetup*)objects;
 
@@ -284,7 +284,7 @@ static void shrine_fxemit_modifications(void) {
     }
 }
 
-EXTFS_ON_LOAD_MODIFICATIONS_CALLBACK void my_extfs_modifications(void) {
+REPACKER_ON_LOAD_MODIFICATIONS_CALLBACK void my_repacker_modifications(void) {
     walled_city_modifications();
     shrine_fxemit_modifications();
 }
