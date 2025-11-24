@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "recomp/dlls/objects/612_WL_Crystal_recomp.h"
+#include "segment_334F0.h"
 #include "sys/main.h"
 
 typedef struct {
@@ -190,7 +191,7 @@ RECOMP_PATCH void WL_Crystal_setup(Object* self, WL_Crystal_Setup* objSetup, s32
 /** Adjust timing of sequence where Quan Ata Lachu crystal transforms into a star (originally by MusicalProgrammer) */
 RECOMP_PATCH void WL_Crystal_control(Object* self) {
     WL_Crystal_Data* objData;
-    s16* textureUVs;
+    TextureAnimator* textureUVs;
     s16 pad;
     s16 yawAcceleration;
     s16 goal;
@@ -214,9 +215,9 @@ RECOMP_PATCH void WL_Crystal_control(Object* self) {
         //Scroll texture UVs
         textureUVs = func_800348A0(self, 1, 0);
         if (textureUVs) {
-            textureUVs[5] -= 0x10;
-            if (textureUVs[5] < -0x3E0) {
-                textureUVs[5] = 0;
+            textureUVs->positionV -= 0x10;
+            if (textureUVs->positionV < -0x3E0) {
+                textureUVs->positionV = 0;
             }
         }
 
@@ -289,9 +290,9 @@ RECOMP_PATCH void WL_Crystal_control(Object* self) {
             //Scroll texture UVs
             textureUVs = func_800348A0(self, 0, 0);
             if (textureUVs != NULL) {
-                textureUVs[4] -= gUpdateRate * 8;
-                if (textureUVs[4] < -0x3E0) {
-                    textureUVs[4] = 0;
+                textureUVs->positionU -= gUpdateRate * 8;
+                if (textureUVs->positionU < -0x3E0) {
+                    textureUVs->positionU = 0;
                 }
             }
         }
