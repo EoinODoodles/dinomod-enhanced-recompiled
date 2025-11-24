@@ -110,9 +110,20 @@ default = "Enhanced"
 id = "log_a_button"
 name = "Log - Rowing Controls"
 description = '''
-When riding a log, whether rowing requires the A button to be tapped (vanilla) or allows A to held to continuously row.
+When riding a log: whether rowing requires the A button to be tapped (vanilla), or holding the A button to continuously row.
 '''
 type = "Enum"
 options = [ "Tap", "Hold" ]
 default = "Tap"
 
+[[manifest.config_options]]
+id = "fxemit_hide_default"
+name = "FXEmit - Hide Debug Flashes"
+description = '''
+In the unpatched game, FXEmit objects flash a default fallback particle (a small red glow) for a single frame after they load. Rare's staff may have added this behaviour intentionally to assist in configuring FXEmitters.
+
+This setting prevents those single-frame flashes from appearing, however they can be renabled for debugging purposes.
+'''
+type = "Enum"
+options = [ "Show", "Hide" ]
+default = "Hide"
