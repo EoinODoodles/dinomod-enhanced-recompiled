@@ -33,7 +33,7 @@ mips
 -I
 ../lib/dino-recomp-decomp-bridge/dinosaur-planet/include
 -I
-../lib/extfs/include
+../lib/asset_repacker/include
 -I
 include
 -I
