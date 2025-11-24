@@ -428,6 +428,7 @@ static void WMPlatform_control_custom(Object* self){
             player->srt.transl.y += deltaP.y;
             player->srt.transl.z += deltaP.z;
             player->srt.yaw += deltaYaw;
+            //TO-DO: possibly need -0x8000 to 0x8000 wrap for player yaw update, just to be safe?
         }
 
         //Apply platform's transform deltas
@@ -940,4 +941,16 @@ RECOMP_PATCH void dll_331_control(Object* self) {
 
 RECOMP_PATCH u32 dll_331_get_data_size(Object *self, u32 a1){
     return sizeof(GenProps_Data_Extended);
+}
+
+RECOMP_PATCH void dll_331_free(Object* self, s32 arg1) {
+    GenProps_Data_Extended *objData = self->data;
+
+    gDLL_13_Expgfx->vtbl->func5(self);
+
+    //@recomp: free soundHandle
+    if (objData->soundHandle) {
+        gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandle);
+        objData->soundHandle = 0;
+    }
 }
