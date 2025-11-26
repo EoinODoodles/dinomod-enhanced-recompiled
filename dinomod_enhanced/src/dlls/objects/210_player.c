@@ -469,20 +469,20 @@ RECOMP_PATCH s32 dll_210_func_18630(Object* self, Player_Data* objData, f32 arg2
         }
         if (objData2->unk3B4[objData2->unk8A1].unk9 >= 0) {
             if ((objData2->unk3B4[objData2->unk8A1].unk18 < self->animProgress) || ((objData->unk0.animTickDelta < 0.0f) && (self->animProgress < _bss_1C))) {
-                objData->unk0._unk33E |= 2;
+                objData->unk0.unk33E |= 2;
             }
             if (objData2->unk3B4[objData2->unk8A1].unk10 < self->animProgress) {
-                objData->unk0._unk33E |= 1;
+                objData->unk0.unk33E |= 1;
             }
             if (objData2->unk3B4[objData2->unk8A1].unk14 < self->animProgress) {
-                objData->unk0._unk33E &= ~1;
+                objData->unk0.unk33E &= ~1;
             }
             if (objData->unk0.unk310 & 0x8000) {
-                if (objData->unk0._unk33E & 1) {
-                    objData->unk0._unk33E |= 4;
+                if (objData->unk0.unk33E & 1) {
+                    objData->unk0.unk33E |= 4;
                 }
             }
-            if ((objData->unk0._unk33E & 4) && (objData->unk0._unk33E & 2)) {
+            if ((objData->unk0.unk33E & 4) && (objData->unk0.unk33E & 2)) {
                 objData2->unk8A1 = (u8) (&objData2->unk3B4[objData2->unk8A1])->unk9;
                 sp47 = 1;
             }
@@ -502,7 +502,7 @@ RECOMP_PATCH s32 dll_210_func_18630(Object* self, Player_Data* objData, f32 arg2
         if (objData2->unk3B4[objData2->unk8A1].unk0 != self->curModAnimId && objData2->unk3B4[objData2->unk8A1].unk2 != self->curModAnimId ) {
             func_80023D30(self, objData->unk0.target != NULL ? objData2->unk3B4[objData2->unk8A1].unk0 : objData2->unk3B4[objData2->unk8A1].unk2, 0.0f, 0U);
         }
-        objData->unk0._unk33E &= ~0xEF;
+        objData->unk0.unk33E &= ~0xEF;
         objData->unk0.animTickDelta = (&objData2->unk3B4[objData2->unk8A1])->unkC;
         objData->unk0.unk34A = 0;
         objData->unk0.unk27C = 0.0f;
