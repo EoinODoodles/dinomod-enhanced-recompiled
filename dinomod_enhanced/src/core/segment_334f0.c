@@ -2,25 +2,6 @@
 
 #include "common.h"
 
-typedef enum {
-    BLINK_Wait = 0,
-    BLINK_Animate = 1,
-    BLINK_Eyelid_Close_Finished = 0x80
-} BlinkStates;
-
-typedef enum {
-    HEAD_TURN_Goal_Reached = 0,
-    HEAD_TURN_Wait = 1,
-    HEAD_TURN_Animate = 2
-} HeadTurnStates;
-
-typedef enum {
-    HEAD_ANIMATION_TAG_Pupil_L = 0,
-    HEAD_ANIMATION_TAG_Pupil_R = 1,
-    HEAD_ANIMATION_TAG_Eyelid_L = 4,
-    HEAD_ANIMATION_TAG_Eyelid_R = 5
-} HeadAnimationTags;
-
 typedef struct {
     /** Head aim */
     /* 0x00 */ s8 aimIsActive;
@@ -104,11 +85,11 @@ RECOMP_PATCH void func_80033B68(Object* obj, HeadAnimation* arg1, f32 arg2) {
 
 // Prevent SnowHorn from blinking while asleep, 
 // and ensure all randomised blink animation is framerate independent
-RECOMP_PATCH void func_80032A08(Object* obj, HeadAnimation* arg1) {
-    s32* eyelidR;
-    s32* eyelidL;
+RECOMP_PATCH void func_80032A08(Object* obj, HeadAnimation* headAnimator) {
+    TextureAnimator* eyelidR;
+    TextureAnimator* eyelidL;
     s32 eyelidValue;
-    HeadAnimation_Recomp* headAnim = (HeadAnimation_Recomp*)arg1;
+    HeadAnimation_Recomp* headAnim = (HeadAnimation_Recomp*)headAnimator;
     u8 currentFrame;
 
     //@recomp: checks if the object is a SnowHorn, and returns early if the SnowHorn is asleep
@@ -126,7 +107,7 @@ RECOMP_PATCH void func_80032A08(Object* obj, HeadAnimation* arg1) {
         return;
     }
 
-    eyelidValue = *eyelidL;
+    eyelidValue = eyelidL->frame;
 
     //@recomp: framerate independent blinking
     switch (headAnim->blinkState & 0xF) {
@@ -173,10 +154,10 @@ RECOMP_PATCH void func_80032A08(Object* obj, HeadAnimation* arg1) {
                 break;
         }
 
-        *eyelidR = eyelidValue;
-        *eyelidL = eyelidValue;
+        eyelidR->frame = eyelidValue;
+        eyelidL->frame = eyelidValue;
         break;
     }
 
-    func_80034678(obj, arg1, 0);
+    func_80034678(obj, headAnimator, 0);
 }

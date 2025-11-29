@@ -97,7 +97,7 @@ RECOMP_PATCH void Spirit_print(Object* self, Gfx **gdl, Mtx **mtxs, Vertex **vtx
         objData->frameTimer %= 28 * 2; //28 frames
 
         if (objData->animTexture){
-            objData->animTexture->unk0 = (objData->frameTimer / 2) << 8;
+            objData->animTexture->frame = (objData->frameTimer / 2) << 8;
         }
     }
 
