@@ -30,6 +30,9 @@ data_reference_syms_files = [
     "../lib/dino-recomp-decomp-bridge/dino.datasyms_manual.toml", 
     "../dino.datasyms_extra.toml"
 ]
+additional_files = [
+    "thumb.png"
+]
 
 [[manifest.config_options]]
 id = "lamingaming_extra_description_text"
