@@ -73,7 +73,7 @@ typedef struct {
 // @recomp: Custom setup
 typedef struct {
     ObjSetup setup;
-    u8 startRotation;
+    s8 startRotation;
 } BWlog_Setup;
 
 extern Vec3f _data_0[2];
@@ -90,9 +90,19 @@ extern void dll_793_func_1C18(Object* self, BWlog_Data* objdata);
 extern void dll_793_func_2020(Object* arg0, BWlog_Data* arg1);
 extern void dll_793_func_2444(Object* self, BWlog_Data* objdata);
 
+// @recomp: Copy of DFlog's anim callback
+static int recomp_BWlog_animcallback(Object *self, Object *a1, AnimObj_Data *a2, s8 a3) {
+    func_800267A4(self);
+    return 0;
+}
+
 RECOMP_PATCH void dll_793_setup(Object *self, BWlog_Setup *setup, s32 arg2) {
     BWlog_Data *objdata = (BWlog_Data*)self->data;
     s32 i;
+
+    // @recomp: Register anim callback. DFlog was swapped with BWlog in dinomod but BWlog is missing
+    //          an anim callback, but there's some sequences that assume one is set up to adjust collision.
+    self->animCallback = recomp_BWlog_animcallback;
 
     gDLL_27->vtbl->init(&objdata->unk0, 
         DLL27FLAG_NONE, 
@@ -118,6 +128,16 @@ RECOMP_PATCH void dll_793_setup(Object *self, BWlog_Setup *setup, s32 arg2) {
         objdata->unk260[i].z = self->srt.transl.z;
     }
 
+    // @recomp: Do the same hit info setup as DFlog. Helps with cases where an Override takes control
+    //          over the log instantly after being spawned.
+    self->objhitInfo->unk58 |= 1;
+    self->objhitInfo->unk58 |= 4;
+    // @recomp: Initialize DLL 27 state. In cases where an Override takes control away from the log right
+    //          after the log spawns, sometimes this state won't be initialized with the log's current position.
+    //          This is a problem with the totem puzzle log, where the log will warp away a bit after regaining
+    //          control if this state is not set up right.
+    gDLL_27->vtbl->reset(self, &objdata->unk0);
+
     // @recomp: Support start yaw via setup
     self->srt.yaw = setup->startRotation << 8;
 }
@@ -135,6 +155,9 @@ RECOMP_PATCH void dll_793_control(Object* self) {
     f32 sp98;
     ObjType23Setup* temp_s0;
     s32 i;
+
+    // @recomp: Run objhit func just like DFlog does. Resets the state modified by the anim callback.
+    func_8002674C(self);
 
     objdata = (BWlog_Data*)self->data;
     sp98 = 10000.0f;
@@ -253,16 +276,22 @@ RECOMP_PATCH void dll_793_func_EB0(Object* self, BWlog_Data* objdata, s32 arg2) 
 
     // @recomp: Use floor position when water is not detected
     f32 floor = objdata->unk0.waterYList[arg2];
+    s32 foundWater = TRUE;
     if (floor <= -100000.0f) {
         floor = objdata->unk0.floorYList[arg2];
+        foundWater = FALSE;
     }
 
     temp = objdata->unk2B4 + floor;
     if ((objdata->unk260[arg2].y + 30.0f) < temp) {
         diPrintf("Water too high\n");
     }
-    temp += (fsin16_precise(objdata->unk31C[arg2]) * 1.5f);
-    objdata->unk31C[arg2] += (gUpdateRateF * 512.0f);
+    // @recomp: Don't apply the pitch wiggle if not actually in water. Avoids the log wiggling
+    //          when it's up on the CClogpush cliff.
+    if (foundWater) {
+        temp += (fsin16_precise(objdata->unk31C[arg2]) * 1.5f);
+        objdata->unk31C[arg2] += (gUpdateRateF * 512.0f);
+    }
     sp60 = temp - objdata->unk260[arg2].y;
     if ((sp60 > 0.0f) && (objdata->unk300[arg2] < 0.0f)) {
         var_fv0 = objdata->unk278[arg2].y * 127.0f;
