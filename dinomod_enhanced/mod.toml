@@ -35,14 +35,6 @@ additional_files = [
 ]
 
 [[manifest.config_options]]
-id = "lamingaming_extra_description_text"
-name = "Add Extra Description Text"
-description = "Adds custom description text for inventory items, objects, and characters that had yet to have text created for them. Many of these strings are sourced from DP leftovers in Star Fox Adventures' Kiosk build, or from appropriate counterparts in SFA itself.\n\nA restart is required for this change to take effect.\n\n[Originally created by LaminGaming]"
-type = "Enum"
-options = [ "Off", "On"]
-default = "Off"
-
-[[manifest.config_options]]
 id = "gametext_flavor"
 name = "Text Flavor"
 description = '''
@@ -54,6 +46,18 @@ Which version of Dinomod Enhanced's subtitle/text patches to use.
 type = "Enum"
 options = [ "Vanilla", "Cosmetic" ]
 default = "Vanilla"
+
+[[manifest.config_options]]
+id = "lamingaming_extra_description_text"
+name = "Add Extra Description Text"
+description = '''
+Adds custom description text for inventory items, objects, and characters that had yet to have text created for them. Many of these strings are sourced from DP leftovers in Star Fox Adventures' Kiosk build, or from appropriate counterparts in SFA itself.
+
+[Originally created by LaminGaming]
+'''
+type = "Enum"
+options = [ "Off", "On"]
+default = "On"
 
 [[manifest.config_options]]
 id = "upcoming_subtitle_trans"

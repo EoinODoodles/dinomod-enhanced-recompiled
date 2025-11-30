@@ -6,23 +6,19 @@
 #include "dlls/engine/1_ui.h"
 #include "game/objects/inventory_items.h"
 
-#include "PR/ultratypes.h"
-#include "sys/gfx/texture.h"
-#include "sys/memory.h"
-#include "sys/objects.h"
-#include "dll.h"
-#include "types.h"
-#include "functions.h"
+#include "common.h"
 
 extern s16 _data_20;
-extern InventoryItem _data_128[];
-extern InventoryItem _data_2E4[];
+extern InventoryItem _data_128[37];
+extern InventoryItem _data_2E4[37];
 extern InventoryItem _data_4A0[];
 extern InventoryItem _data_4E8[];
 extern InventoryItem _data_530[];
 extern InventoryItem _data_5E4[];
 extern InventoryItem _data_698[];
 extern EnergyBar* _bss_90;
+
+static u32 useExtraDescriptions;
 
 /** Prevents a crash when trying to leave CloudRunner Fortress' racetrack (originally by MusicalProgrammer, 25th February 2024) */
 RECOMP_PATCH void dll_1_func_7550(void) {
@@ -84,15 +80,11 @@ RECOMP_HOOK_DLL(dll_1_ctor) void dll_1_ctor_hook_item_edits() {
     _data_2E4[INVENTORY_ITEM_SABRE_23_HORN_OF_TRUTH].textID = 26;
 }
 
-/** Adding new text for inventory items that didn't have any Gametext string (originally by LaminGaming)
+/** Adds new text for inventory items that didn't have any Gametext string (originally by LaminGaming)
     Note that this patch depends on the extra lines LaminGaming appended to file Gametext_3
     (This gametext file has 107 lines by default, so any indices beyond that number won't render without the text patch)
 */
-RECOMP_HOOK_DLL(dll_1_ctor) void dll_1_ctor_hook_item_edits_extra_text() {
-    s32 useExtraText = recomp_get_config_u32("lamingaming_extra_description_text");
-    if (!useExtraText)
-        return;
-
+static void add_extra_descriptions() {
     //Krystal's items
     _data_128[INVENTORY_ITEM_KRYSTAL_9_DIM_GEAR_1].textID = 116;
     _data_128[INVENTORY_ITEM_KRYSTAL_10_DIM_GEAR_2].textID = 122;
@@ -115,9 +107,62 @@ RECOMP_HOOK_DLL(dll_1_ctor) void dll_1_ctor_hook_item_edits_extra_text() {
     _data_2E4[INVENTORY_ITEM_SABRE_25_WC_SILVER_TOOTH].textID = 92;
     _data_2E4[INVENTORY_ITEM_SABRE_26_WC_GOLD_TOOTH].textID = 93;
     _data_2E4[INVENTORY_ITEM_SABRE_32_SPELLSTONE_WC_ACTIVATED].textID = 113;
+}
 
-    //Spells
+/** Resets extra description text back to default */
+static void remove_extra_descriptions() {
+    InventoryItem *bank;
+    InventoryItem *item;
+    u32 bankID;
+    u32 index;
+    u32 end;
+
+    for (bankID = 0; bankID < 2; bankID++){
+        bank = bankID == 0 ? _data_128 : _data_2E4;
+        end = bankID == 0 ? ARRAYCOUNT(_data_128) : ARRAYCOUNT(_data_2E4);
+        for (index = 0; index < end; index++){
+            item = &bank[index];
+
+            //Check if description text in bank 0 (gametext3) and beyond original last line
+            if ((item->textID & 0xF00) == 0 && item->textID > 107){
+                item->textID = -1;
+                
+            //Check if description text in bank 1 (gametext568) and beyond original last line
+            } else if ((item->textID & 0xF00) == 0x100 && item->textID > 3){
+                item->textID = -1;
+            }
+        }
+    }
+}
+
+/** Adding new text for inventory items that didn't have any Gametext string (originally by LaminGaming)
+    Note that this patch depends on the extra lines LaminGaming appended to file Gametext_3
+    (This gametext file has 107 lines by default, so any indices beyond that number won't render without the text patch)
+*/
+RECOMP_HOOK_DLL(dll_1_ctor) void dll_1_ctor_hook_item_edits_extra_text() {
     _data_698[INVENTORY_SPELL_2_GRENADE].textID = 21; //Change from "Randorn" to "Fire Spell" (unused text that was overwritten with "Grenade")
+
+    useExtraDescriptions = recomp_get_config_u32("lamingaming_extra_description_text");
+    if (!useExtraDescriptions)
+        return;
+
+    add_extra_descriptions();
+}
+
+/** Check if extra text user config has changed */
+RECOMP_CALLBACK("*", recomp_on_game_tick_start) void updateExtraTextInventory() {
+    u32 setting = recomp_get_config_u32("lamingaming_extra_description_text");
+    if (useExtraDescriptions == setting){
+        return;
+    }
+
+    useExtraDescriptions = setting;
+
+    if (useExtraDescriptions){
+        add_extra_descriptions();
+    } else {
+        remove_extra_descriptions();
+    }
 }
 
 // TODO: replace with full match from the decomp
