@@ -26,15 +26,19 @@ ModLine *obj_load_objdef_modlines(s32 modLineNo, s16 *modLineCount);
 extern void func_800596BC(ObjDef*);
 
 static int useExtraDescriptionsObjects = -1;
+static s16* customObjDefTextIDs = NULL;
 
 /** For toggling LaminGaming's extra object description text */
 static void remove_extra_descriptions_object(ObjDef* def){
+    u16 bankID = (def->unkA2 & 0xF00) >> 8;
+    u16 lineID = def->unkA2 & 0xFF;
+
     //Check if description text in bank 0 (gametext3) and beyond original last line
-    if (((def->unkA2 & 0xF00) == 0) && (def->unkA2 & 0xFF) > 107){
+    if (bankID == 0 && lineID > 107){
         def->unkA2 = -1;
         
     //Check if description text in bank 1 (gametext568) and beyond original last line
-    } else if (((def->unkA2 & 0xF00) == 0x100) && (def->unkA2 & 0xFF) > 3){
+    } else if (bankID == 1 && lineID > 3){
         def->unkA2 = -1;
     }
 }
@@ -64,9 +68,13 @@ static void add_extra_descriptions_objects(){
             continue;
         }
 
-        customIndex = *(s16*)(((s8*)def) + 0xA8);
-        def->unkA2 = customIndex;
+        def->unkA2 = customObjDefTextIDs[index];
     }
+}
+
+/** Allocate memory for custom text values (so they can be toggled easily) */
+RECOMP_HOOK_RETURN("init_objects") void init_custom_text_ids(void) {
+    customObjDefTextIDs = recomp_alloc(gNumObjectsTabEntries*2);
 }
 
 RECOMP_PATCH ObjDef *obj_load_objdef(s32 tabIdx) {
@@ -135,9 +143,8 @@ RECOMP_PATCH ObjDef *obj_load_objdef(s32 tabIdx) {
         gLoadedObjDefs[tabIdx] = def;
         gObjDefRefCount[tabIdx] = 1;
 
-        //@recomp: store copy of gametext index to def->unkA8 (seems to be unused),
-        //         so custom object description strings can be toggled
-        *(s16*)(((s8*)def) + 0xA8) = def->unkA2;
+        //@recomp: store copy of gametext index so custom object description strings can be toggled
+        customObjDefTextIDs[tabIdx] = def->unkA2;
 
         //@recomp: remove extra text if toggled off
         if (!useExtraText){
