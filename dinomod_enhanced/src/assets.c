@@ -13,6 +13,7 @@
 
 #include "mod_common.h"
 #include "asset_repacker.h"
+#include "common_objsetups.h"
 
 typedef enum {
     GAMETEXT_VANILLA,
@@ -103,19 +104,6 @@ REPACKER_ON_LOAD_REPLACEMENTS_CALLBACK void dinomod_repacker_replacements(void) 
 
 typedef struct {
 /*00*/ ObjSetup base;
-/*18*/ s16 gamebitPlay;        //The sequence will play when this gamebit is set
-/*1A*/ s16 gamebitFinished;    //This gamebit will be set when the sequence has played
-/*1C*/ u8 rotate;
-/*1D*/ u8 playbackOptions;
-/*1E*/ s8 seqIndex;            //The index of the sequence in the Object.bin entry's sequence list
-/*1F*/ s8 modelInstIdx;        //Choose between 3D models, visible when debugging (usually a clapperboard)
-/*20*/ s16 unk20;
-/*22*/ u16 unk22;
-/*24*/ u8 warpID;              //Optionally warp the player
-} SeqObj_Setup;
-
-typedef struct {
-/*00*/ ObjSetup base;
 /*18*/ s8 unk18;
 /*19*/ s8 unk19;
 /*1A*/ s16 unk1A;
@@ -123,25 +111,6 @@ typedef struct {
 /*1E*/ s16 unk1E;
 /*20*/ s16 unk20;
 } WCApertureSymbol_Setup;
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s8 unk18;
-/*19*/ s8 unk19;
-/*1A*/ s16 unk1A;
-/*1C*/ s16 unk1C;
-/*1E*/ s16 toggleGamebit;
-/*20*/ s16 disableGamebit;
-/*22*/ s8 unk22;
-/*23*/ s8 unk23;
-/*24*/ s8 unk24;
-/*25*/ s8 unk25;
-/*26*/ s8 unk26;
-/*27*/ s8 unk27;
-/*28*/ u8 unk28;
-/*29*/ u8 unk29;
-/*2A*/ s16 unk2A;
-} FXEmit_Setup;
 
 static void walled_city_modifications(void) {
     // Revert dinomod's removal of the moon temple lift sequences, so it can be used again
@@ -284,7 +253,105 @@ static void shrine_fxemit_modifications(void) {
     }
 }
 
+/** Adding HitAnimators and HITS line tags in WM's main room to toggle the ledge grab lines at WM_Platform's upper destination */
+static void warlock_mountain_platform_modifications(void) {
+    //Repurposing these lift gamebits to keep track of the ledge grab HitAnimators
+    #define LIFT_NEAR_TOP_GAMEBIT_KRYSTAL BIT_322
+    #define LIFT_NEAR_TOP_GAMEBIT_SABRE   BIT_369
+
+    u32 mapID = MAP_WARLOCK_MOUNTAIN;
+
+    // MAPS.bin
+    // Add two HitAnimators to the upper tier of Warlock Mountain's main chamber, 
+    // for toggling the ledge grab lines at the lifts' upper destinations 
+    {
+        MapHeader *header = repacker_maps_get(mapID, 0, NULL);
+        void *objects = repacker_maps_get(mapID, 4, NULL);
+
+        ObjSetup *setup = (ObjSetup*)objects;
+
+        //Get the MAPS file for editing, and HitAnimator struct details
+        u32 hitAnimatorSetupSize = mmAlign4(sizeof(HitAnimator_Setup));
+        u32 addedSize = hitAnimatorSetupSize * 2;
+        u32 newSize = header->objectInstancesFileLength + addedSize;
+        objects = repacker_maps_resize(mapID, 4, newSize);
+        setup = (ObjSetup*)objects;
+        ObjSetup *endOfGenericGroup = NULL;
+
+        // Find the end of the map's generic group
+        for (s32 i = 0; i < header->objectInstanceCount; i++) {
+            setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
+            if (setup->loadFlags & OBJSETUP_LOAD_IN_MAP_OBJGROUP && setup->mapObjGroup != 0) {
+                endOfGenericGroup = setup;
+                break;
+            }
+        }
+
+        //Move subsequent objects to make enough room for the new ones
+        if (endOfGenericGroup != NULL) {
+            bcopy((void*)setup, (void*)((u32)setup + addedSize), 
+                header->objectInstancesFileLength - ((u32)setup - (u32)objects));
+        } else {
+            recomp_error_message_box("WM: Failed to find end of generic group!");
+        }
+
+        //Insert two new HitAnimators
+        for (s32 i = 0; i < 2; i++) {
+            HitAnimator_Setup *hitAnimator = (HitAnimator_Setup*)setup;
+            hitAnimator->base.objId = OBJ_HitAnimator;
+            hitAnimator->base.quarterSize = hitAnimatorSetupSize >> 2;
+            hitAnimator->base.setupExclusions1 = 0;
+            hitAnimator->base.loadFlags = OBJSETUP_LOAD_FLAG4;
+            hitAnimator->base.fadeFlags = OBJSETUP_FADE_FLAG4;
+            hitAnimator->base.loadDistance = 100;
+            hitAnimator->base.fadeDistance = 100;
+
+            switch (i) {
+                case 0:
+                    //Krystal side
+                    hitAnimator->base.x = 1473.8f;
+                    hitAnimator->base.y = 472.0f;
+                    hitAnimator->base.z = 2709.0f;
+                    hitAnimator->base.uID = 0xbe05001;
+                    hitAnimator->gamebitActivate = LIFT_NEAR_TOP_GAMEBIT_KRYSTAL;
+                    break;
+                case 1:
+                    //Sabre side
+                    hitAnimator->base.x = 1086.3f;
+                    hitAnimator->base.y = 472.0f;
+                    hitAnimator->base.z = 1771.3f;
+                    hitAnimator->base.uID = 0xbe05002;
+                    hitAnimator->gamebitActivate = LIFT_NEAR_TOP_GAMEBIT_SABRE;
+                    break;
+            }
+
+            hitAnimator->mode = HitAnimator_Mode_HITS | HitAnimator_Mode_Invert; //HITS line switched off when gamebit set
+            hitAnimator->hitsAnimatorID = 8; //tag for the ledge grab line
+
+            setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
+        }
+
+        header->objectInstancesFileLength = newSize;
+        header->objectInstanceCount += 2;
+    }
+
+    // HITS.bin
+    // Modify the ledge grab HITS lines at the lifts' upper destinations, adding HitAnimator tags
+    {
+        HitsLine *lines;
+
+        //Krystal's side
+        lines = repacker_hits_get(459, NULL);
+        lines[0].animatorID = 8;
+
+        //Sabre's side
+        lines = repacker_hits_get(447, NULL);
+        lines[0].animatorID = 8;
+    }
+}
+
 REPACKER_ON_LOAD_MODIFICATIONS_CALLBACK void my_repacker_modifications(void) {
     walled_city_modifications();
     shrine_fxemit_modifications();
+    warlock_mountain_platform_modifications();
 }
