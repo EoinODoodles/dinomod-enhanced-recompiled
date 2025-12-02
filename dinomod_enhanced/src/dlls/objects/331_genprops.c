@@ -1,5 +1,6 @@
 #include "modding.h"
 #include "recomputils.h"
+#include "object_util.h"
 
 #include "common.h"
 #include "sys/objmsg.h"
@@ -48,6 +49,7 @@ typedef struct {
     /** RECOMP EXTENDED */
     s8 state;
     s8 steppedOffSinceLastMove;         //tracks whether the player has stepped off after lift stops
+    s8 isKrystalsPlatform;              //tracks which side of WM the lift is on (Krystal vs. Sabre's sides)
     s16 pStartYaw;
     f32 pEndX;
     f32 pEndY;
@@ -60,6 +62,7 @@ typedef struct {
     f32 midpointY;         //halfway between top and bottom positions
     u32 soundHandle;       //manages hum sound
     f32 oscillateTimer;    //manages impact vibration effect
+    Object* crystalSwitch; //for toggling player collision on crystal switch just below platform's upper goal
 } GenProps_Data_Extended;
 
 typedef enum {
@@ -122,6 +125,68 @@ static int isPlayerOnPlatform(Vec3f* localCoords){
     return FALSE;
 }
 
+/** Checks if the player is dangling within a cuboid sliver encompassing the ledge at the platform's upper goal */
+static int isPlayerDanglingAtUpperGoal(Object* player, s8 isKrystalsPlatform){
+    s32 targetXmin;
+    s32 targetXmax;
+    s32 targetY;
+    s32 targetZ;
+    Vec3f fCoords;
+    s32 sCoords[3];
+
+    if (isKrystalsPlatform){
+        targetXmin = 1336;
+        targetXmax = 1422;
+        targetY = 457;
+        targetZ = 2696;
+    } else {
+        targetXmin = 1138;
+        targetXmax = 1224;
+        targetY = 457;
+        targetZ = 1783;
+    }
+
+    //Get player's coords in local mapSpace
+    fCoords = player->srt.transl;
+    fCoords.x -= gMapActiveStreamMap->originWorldX;
+    fCoords.z -= gMapActiveStreamMap->originWorldZ;
+    sCoords[0] = fCoords.x;
+    sCoords[1] = fCoords.y;
+    sCoords[2] = fCoords.z;
+
+    //Check if at dangling position
+    if (
+        (targetXmin <= sCoords[0] && sCoords[0] <= targetXmax) &&
+        (sCoords[1] == targetY) &&
+        (sCoords[2] == targetZ)
+    ){
+        //Check if dangling
+        if ((((Player_Data*)player->data)->unk0.flags & 0xA00000)){
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+//Repurposing these lift gamebits to keep track of the ledge grab HitAnimators 
+#define LIFT_NEAR_TOP_GAMEBIT_KRYSTAL BIT_322
+#define LIFT_NEAR_TOP_GAMEBIT_SABRE   BIT_369
+
+/** Repurposing one of Rare's lift gamebits so it tracks whether the lift is near/at its upper destination
+  * (Gamebit now used to toggle the ledge grab HITS line in the upper tier) 
+  */
+static void setHitAnimatorGamebitTop(GenProps_Data_Extended* objData){
+    u16 gamebit = objData->isKrystalsPlatform ? LIFT_NEAR_TOP_GAMEBIT_KRYSTAL : LIFT_NEAR_TOP_GAMEBIT_SABRE;
+
+    if (objData->tValue > 0.97f){ //small activation margin in case player runs off just before lift arrives
+        if (!main_get_bits(gamebit)){
+            main_set_bits(gamebit, TRUE);
+        }
+    } else if (main_get_bits(gamebit)){
+        main_set_bits(gamebit, FALSE);
+    }
+}
+
 /** Calculate linear interpolation between platform's start/end points (and yaw) */
 static void calculateLerp(Object* self, f32 t_value, Vec3f* pLerp, s16* yawLerp){
     GenProps_Data_Extended* objData = self->data;
@@ -159,6 +224,8 @@ static void applyLerp(Object* self, f32 t_value){
     self->srt.transl.y = pLerp.y;
     self->srt.transl.z = pLerp.z;
     self->srt.yaw = yawLerp;
+
+    setHitAnimatorGamebitTop(objData);
 }
 
 static void playSoundHum(Object* self){
@@ -178,8 +245,7 @@ static void stopSoundHum(Object* self){
 
 static void playSoundClunk(Object* self){
     GenProps_Data_Extended* objData = self->data;
-    // gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_B5C_Machinery_Clunk, 0x30, NULL, NULL, 0, NULL); //TODO: add to decomp sound enum
-    gDLL_6_AMSFX->vtbl->play_sound(self, 0xB5C, 0x30, NULL, NULL, 0, NULL);
+    gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_B5C_Machinery_Clunk, 0x30, NULL, NULL, 0, NULL);
 }
 
 /** Applies a y-axis vibration to the lift (and the player if they're on it) */
@@ -209,7 +275,6 @@ static void WMPlatform_setup_custom(Object* self, GenProps_Setup* objSetup, s32 
     GenProps_Data_Extended* objData = self->data;
     Object* player = get_player();
     s8 wmAct;
-    int isKrystalsPlatform;
 
     //Edit object's load distances
     //TODO: edit this via the MAPS file asset instead
@@ -243,13 +308,15 @@ static void WMPlatform_setup_custom(Object* self, GenProps_Setup* objSetup, s32 
             objData->pEndX = platformKrystalEndX;
             objData->pEndY = platformKrystalEndY;
             objData->pEndZ = platformKrystalEndZ;
-            isKrystalsPlatform = TRUE;
+            objData->isKrystalsPlatform = TRUE;
+            objData->crystalSwitch = find_object_by_uID(0x2abb);
             break;
         case BIT_363: //Sabre's platform
             objData->pEndX = platformSabreEndX;
             objData->pEndY = platformSabreEndY;
             objData->pEndZ = platformSabreEndZ;
-            isKrystalsPlatform = FALSE;
+            objData->isKrystalsPlatform = FALSE;
+            objData->crystalSwitch = find_object_by_uID(0x37);
             break;
     }
     objData->pEndYaw = 0;
@@ -265,7 +332,7 @@ static void WMPlatform_setup_custom(Object* self, GenProps_Setup* objSetup, s32 
 
     //Lock the platform if Randorn has yet to activate it later in the game (unused MPEG dialogue hints at this)
     wmAct = gDLL_29_Gplay->vtbl->get_map_setup(MAP_WARLOCK_MOUNTAIN);
-    if ((isKrystalsPlatform && wmAct < 6) || (!isKrystalsPlatform && wmAct < 7)){
+    if ((objData->isKrystalsPlatform && wmAct < 6) || (!objData->isKrystalsPlatform && wmAct < 7)){
         objData->state = Platform_State_Locked_Top;
         applyLerp(self, 1);
         return;
@@ -275,12 +342,12 @@ static void WMPlatform_setup_custom(Object* self, GenProps_Setup* objSetup, s32 
     //(Prevents player from getting to other character's side of Warlock Mountain by crossing summit and using other lift)
     if (player){
         //Krystal (Sabre's platform unlocks on act 7, so keep his one locked to top until then)
-        if (player->id == OBJ_Krystal && !isKrystalsPlatform){
+        if (player->id == OBJ_Krystal && !objData->isKrystalsPlatform){
             objData->state = (wmAct <= 6) ? Platform_State_Locked_Top : Platform_State_Locked_Bottom;
             applyLerp(self, (objData->state == Platform_State_Locked_Bottom) ? 0 : 1);
             return;
         //Sabre (Krystal's platform unlocks on act 6, so keep her one locked to top until then)
-        } else if (player->id == OBJ_Sabre && isKrystalsPlatform){
+        } else if (player->id == OBJ_Sabre && objData->isKrystalsPlatform){
             objData->state = (wmAct <= 5) ? Platform_State_Locked_Top : Platform_State_Locked_Bottom;
             applyLerp(self, (objData->state == Platform_State_Locked_Bottom) ? 0 : 1);
             return;
@@ -327,6 +394,23 @@ static void WMPlatform_control_custom(Object* self){
     //If the player is dangling from a drop point, consider them not to be on the platform
     if ((((Player_Data*)player->data)->unk0.flags & 0xA00000)){
         playerOnPlatform = FALSE;
+    }
+
+    //TODO: check if an important sequence like the crystal transformation is playing!
+    //If seq is playing: don't play lift sounds (important), jump to goal position, and wait until sequence over.
+    //Unsure how to check... maybe player Object tracks sequence participation somehow? Need to investigate!
+    //Also to figure out: should this consider any active sequence, or just ones that seize player control?
+    // if (playerInImportantSequence){
+    //     return;
+    // }
+
+    //Switch off crystal switch's player collision while player on platform
+    if (objData->crystalSwitch){
+        if (playerOnPlatform && (objData->crystalSwitch->objhitInfo->unk58 & 1)){
+            objData->crystalSwitch->objhitInfo->unk58 &= ~1;
+        } else if ((objData->crystalSwitch->objhitInfo->unk58 & 1) == 0){
+            objData->crystalSwitch->objhitInfo->unk58 |= 1;
+        }
     }
 
     //Debug print player's coords in objectSpace, and other details
@@ -392,6 +476,17 @@ static void WMPlatform_control_custom(Object* self){
 
         objData->steppedOffSinceLastMove = FALSE;
 
+        //If lift's moving up and nearly at upper destination, check if player's dangling from the destination: 
+        //If so, reverse direction to prevent player/platform clipping
+        if (state == Platform_State_Moving_Up && 
+            objData->tValue > 0.93f && 
+            isPlayerDanglingAtUpperGoal(player, objData->isKrystalsPlatform)
+        ){
+            playSoundClunk(self);
+            objData->state = Platform_State_Moving_Down;
+            return;
+        }
+
         //Linearly interpolate to calculate the platform's updated position
         objData->tValue += 0.001f * objData->speed * gUpdateRateF;
         tValue_clamped = (objData->tValue < 0.0f) ? 0.0f : ((objData->tValue > 1.0f) ? 1.0f : objData->tValue);
@@ -436,25 +531,24 @@ static void WMPlatform_control_custom(Object* self){
         self->srt.transl.y = lerpP.y;
         self->srt.transl.z = lerpP.z;
         self->srt.yaw = lerpYaw;
+        setHitAnimatorGamebitTop(objData);
 
         //Handle end condition
         if (objData->tValue > 1.0f) {
             objData->tValue = 1.0f;
+            objData->state = Platform_State_Stopped_Top;
             objData->timer = platformCooldown;
             objData->oscillateTimer = oscillateDuration;
-            main_set_bits(BIT_322, 1);
             stopSoundHum(self);
             playSoundClunk(self);
-            objData->state = Platform_State_Stopped_Top;
             return;
         } else if (objData->tValue < 0.0f) {
             objData->tValue = 0.0f;
+            objData->state = Platform_State_Stopped_Bottom;
             objData->timer = objData->timer = platformCooldown;
-            main_set_bits(BIT_322, 0);
+            objData->oscillateTimer = oscillateDuration;
             stopSoundHum(self);
             playSoundClunk(self);
-            objData->oscillateTimer = oscillateDuration;
-            objData->state = Platform_State_Stopped_Bottom;
             return;
         }
         return;
