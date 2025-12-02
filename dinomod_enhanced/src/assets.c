@@ -303,23 +303,23 @@ static void warlock_mountain_platform_modifications(void) {
             hitAnimator->base.setupExclusions1 = 0;
             hitAnimator->base.loadFlags = OBJSETUP_LOAD_FLAG4;
             hitAnimator->base.fadeFlags = OBJSETUP_FADE_FLAG4;
-            hitAnimator->base.loadDistance = 100;
-            hitAnimator->base.fadeDistance = 100;
+            hitAnimator->base.loadDistance = 10;
+            hitAnimator->base.fadeDistance = 10;
 
             switch (i) {
                 case 0:
                     //Krystal side
-                    hitAnimator->base.x = 1473.8f;
+                    hitAnimator->base.x = 1369.1f;
                     hitAnimator->base.y = 472.0f;
-                    hitAnimator->base.z = 2709.0f;
+                    hitAnimator->base.z = 2692.4f;
                     hitAnimator->base.uID = 0xbe05001;
                     hitAnimator->gamebitActivate = LIFT_NEAR_TOP_GAMEBIT_KRYSTAL;
                     break;
                 case 1:
                     //Sabre side
-                    hitAnimator->base.x = 1086.3f;
+                    hitAnimator->base.x = 1186.8f;
                     hitAnimator->base.y = 472.0f;
-                    hitAnimator->base.z = 1771.3f;
+                    hitAnimator->base.z = 1793.0f;
                     hitAnimator->base.uID = 0xbe05002;
                     hitAnimator->gamebitActivate = LIFT_NEAR_TOP_GAMEBIT_SABRE;
                     break;

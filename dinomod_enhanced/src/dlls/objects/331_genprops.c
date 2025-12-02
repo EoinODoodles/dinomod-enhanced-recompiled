@@ -49,6 +49,7 @@ typedef struct {
     /** RECOMP EXTENDED */
     s8 state;
     s8 steppedOffSinceLastMove;         //tracks whether the player has stepped off after lift stops
+    s8 muteSounds;                      //shooshes the platform (while player sequence is playing, e.g. crystal transformation)
     s8 isKrystalsPlatform;              //tracks which side of WM the lift is on (Krystal vs. Sabre's sides)
     s16 pStartYaw;
     f32 pEndX;
@@ -60,7 +61,7 @@ typedef struct {
     f32 dZ;
     s16 dYaw;
     f32 midpointY;         //halfway between top and bottom positions
-    u32 soundHandle;       //manages hum sound
+    u32 soundHandleHum;    //manages hum sound
     f32 oscillateTimer;    //manages impact vibration effect
     Object* crystalSwitch; //for toggling player collision on crystal switch just below platform's upper goal
 } GenProps_Data_Extended;
@@ -230,21 +231,27 @@ static void applyLerp(Object* self, f32 t_value){
 
 static void playSoundHum(Object* self){
     GenProps_Data_Extended* objData = self->data;
-    if (objData->soundHandle == 0) {
-        gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_6EC_Mechanical_Hum_Loop, 0x50, &objData->soundHandle, NULL, 0, NULL);
+    if (objData->muteSounds){
+        return;
+    }
+    if (objData->soundHandleHum == 0) {
+        gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_6EC_Mechanical_Hum_Loop, 0x50, &objData->soundHandleHum, NULL, 0, NULL);
     }
 }
 
 static void stopSoundHum(Object* self){
     GenProps_Data_Extended* objData = self->data;
-    if (objData->soundHandle != 0) {
-        gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandle);
-        objData->soundHandle = 0;
+    if (objData->soundHandleHum != 0) {
+        gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandleHum);
+        objData->soundHandleHum = 0;
     }
 }
 
 static void playSoundClunk(Object* self){
     GenProps_Data_Extended* objData = self->data;
+    if (objData->muteSounds){
+        return;
+    }
     gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_B5C_Machinery_Clunk, 0x30, NULL, NULL, 0, NULL);
 }
 
@@ -296,7 +303,7 @@ static void WMPlatform_setup_custom(Object* self, GenProps_Setup* objSetup, s32 
     objData->oscillateTimer = 0;
     objData->speed = 2;
     objData->steppedOffSinceLastMove = TRUE;
-    objData->soundHandle = 0;
+    objData->soundHandleHum = 0;
     self->animCallback = (void*)&dll_331_func_1D34;
 
     //Store end position
@@ -396,13 +403,17 @@ static void WMPlatform_control_custom(Object* self){
         playerOnPlatform = FALSE;
     }
 
-    //TODO: check if an important sequence like the crystal transformation is playing!
-    //If seq is playing: don't play lift sounds (important), jump to goal position, and wait until sequence over.
-    //Unsure how to check... maybe player Object tracks sequence participation somehow? Need to investigate!
-    //Also to figure out: should this consider any active sequence, or just ones that seize player control?
-    // if (playerInImportantSequence){
-    //     return;
-    // }
+    //Mute platform sounds if the player is in a sequence
+    //(Makes sure it shooshes during important sequences like the crystal transformation)
+    //TODO: make this check more specific, ignoring minor sequences like using the lantern
+    if (player && (player->unkB0 & 0x1000)){
+        objData->muteSounds = TRUE;
+    } else {
+        objData->muteSounds = FALSE;
+    }
+    if (objData->muteSounds && objData->soundHandleHum){
+        stopSoundHum(self);
+    }
 
     //Switch off crystal switch's player collision while player on platform
     if (objData->crystalSwitch){
@@ -418,7 +429,7 @@ static void WMPlatform_control_custom(Object* self){
     diPrintf("playerOnPlatform: %d\n", playerOnPlatform);
     diPrintf("timer: %d\n", (s32)objData->timer);
     diPrintf("state: %d\n", state);
-    diPrintf("soundHandleHum: %d\n", objData->soundHandle);
+    diPrintf("soundHandleHum: %d\n", objData->soundHandleHum);
     diPrintf("t_value: %3d%s\n", (s32)(objData->tValue*100.0f), "%");
     diPrintf("speed: %d\n", (s32)objData->speed);
 
@@ -1043,8 +1054,8 @@ RECOMP_PATCH void dll_331_free(Object* self, s32 arg1) {
     gDLL_13_Expgfx->vtbl->func5(self);
 
     //@recomp: free soundHandle
-    if (objData->soundHandle) {
-        gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandle);
-        objData->soundHandle = 0;
+    if (objData->soundHandleHum) {
+        gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandleHum);
+        objData->soundHandleHum = 0;
     }
 }
