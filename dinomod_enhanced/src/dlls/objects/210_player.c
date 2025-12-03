@@ -20,16 +20,21 @@
 extern s32 func_80025140(Object*, f32, f32, s32);
 extern void func_8005B5B8(Object*, Object*, s32);
 
+extern f32 _data_C[];
 extern u8 _data_14[4];
 extern s16 _data_18[2];
 extern f32 _bss_1C;
 extern s16 _data_24[2];
+extern s16 _data_98[];
+extern s16 _data_C8[];
+extern s16 _data_F8[];
 extern s16 _data_158[];
 extern s16 _data_170[12];
 extern s16 _data_188[4];
 extern f32 _data_528;
 extern s8 _data_52C;
 extern u8 _data_530;
+extern f32 _data_6F8;
 extern s16 _data_7C4[2];
 
 extern void dll_210_func_1BC0(Object* arg0, Player_Data* arg1);
@@ -40,6 +45,9 @@ extern void dll_210_func_6DD8(Object* player, Player_Data* data, s32 arg2);
 extern void dll_210_func_9F1C(Object* arg0, s32 arg1);
 extern s32 dll_210_func_A018(void);
 extern void dll_210_func_A024(Object* player, ObjFSA_Data* objdata);
+extern void dll_210_func_B4C8(Object* player, ObjFSA_Data *fsa);
+extern s32 dll_210_func_BA38(Object* player, ObjFSA_Data* fsa, f32 arg2);
+extern s32 dll_210_func_C1F4(Object* player, ObjFSA_Data* fsa, f32 arg2);
 extern void dll_210_func_14B70(Object* arg0, ObjFSA_Data *arg1);
 extern void dll_210_func_18DB0(Object* obj, ObjFSA_Data* fsa);
 extern s32 dll_210_func_1A9D4(Object* player, s32* arg1, s32* arg2, s32* arg3, f32 arg4, f32 arg5);
@@ -51,7 +59,6 @@ extern void dll_210_func_1D8B8(Object* player);
 extern void dll_210_func_1DB6C(Object* arg0, f32 arg1);
 extern void dll_210_func_1DC48(Object* player);
 extern Object *dll_210_func_1DD94(Object* player, s32 arg1);
-
 
 extern s8 _bss_0;
 extern s16 _bss_2;
@@ -532,6 +539,193 @@ RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2
     } while (var_s2 != 0);
 }
 
+/** Fix modanim offset underflow,
+  * a glitch where player rapidly cycles between different animations (originally by Banjeoin) */
+RECOMP_PATCH s32 dll_210_func_AE34(Object* player, ObjFSA_Data* fsa, f32 arg2) {
+    f32 temp_fv0;
+    f32 temp_fv1;
+    f32 var_fv0;
+    f32 animProgress;
+    f32 var_fa0;
+    s32 temp_t1;
+    s32 temp_v0;
+    s16 *modAnimIds;
+    Player_Data *objdata;
+    s32 var_a1;
+    s32 temp_t3;
+    
+    objdata = player->data;
+    if (fsa->enteredAnimState != 0){
+        objdata->unk8C0 = 0;
+        objdata->unk3C8 = 1.65f;
+        objdata->unk888 = 0;
+        fsa->animExitAction = dll_210_func_B4C8;
+    }
+    
+    if (objdata->unk868 != 0){
+        objdata->unk3C4 = &_data_6F8;
+        objdata->modAnims = _data_F8;
+        if (objdata->unk870 == 0){
+            return 8;
+        }
+    } else if (objdata->unk8A8 != 0){
+        objdata->unk3C4 = &_data_6F8;
+        objdata->modAnims = _data_C8;
+    } else {
+        objdata->unk3C4 = &_data_6F8;
+        objdata->modAnims = _data_98;
+    }
+    
+    objdata->unk8BD &= ~1;
+    fsa->flags |= 0x800000;
+    if (!objdata->unk868){
+        temp_v0 = dll_210_func_BA38(player, fsa, arg2);
+        if (temp_v0){
+            return temp_v0;
+        }
+        temp_v0 = dll_210_func_C1F4(player, fsa, arg2);
+        if (temp_v0){
+            return temp_v0;
+        }
+        if ((fsa->unk4.underwaterDist > 25.0f) && (fsa->unk4.floorDist < 100.0f)){
+            return 0x21;
+        }
+        if (fsa->target){
+            if (fsa->unk33D == 1){
+                return -0x35;
+            }
+            return -0x43;
+        }
+    }
+    
+    if (fsa->enteredAnimState){
+        if ((fsa->prevAnimState != 0xB) && (fsa->prevAnimState != 0xD)){
+            player->srt.yaw += fsa->unk32A * 0xB6;
+            fsa->unk328 = 0;
+            fsa->unk32A = 0;
+        }
+    }
+    if (fsa->unk290 < 0.05f){
+        fsa->unk328 = 0;
+        fsa->unk32A = 0;
+        fsa->unk290 = 0.0f;
+    }
+    var_fv0 = (fsa->unk290 - 0.4f) / 0.6f;
+    if (var_fv0 < 0.0f){
+        var_fv0 = 0.0f;
+    }
+    if (var_fv0 > 1.0f){
+        var_fv0 = 1.0f;
+    }
+    var_fa0 = (objdata->unk3C8 - 0.05f) * var_fv0;
+    if (fsa->unk328 < 0x5A){
+        player->srt.yaw = (s16) (player->srt.yaw + (((fsa->unk32A * arg2) / 9.0f) * 182.0f));
+    } else {
+        var_fa0 = -var_fa0;
+    }
+    
+    fsa->speed += ((var_fa0 - fsa->speed) / fsa->unk2B0) * arg2;
+    if (fsa->unk4.relativeFloorPitchSmooth > 0){
+        var_fa0 -= fsin16_precise(fsa->unk4.relativeFloorPitchSmooth) * 0.65f;
+    }
+    else {
+        var_fa0 -= fsin16_precise(fsa->unk4.relativeFloorPitchSmooth) * 0.35f;
+    }
+    if (objdata->unk3C8 < fsa->speed){
+        fsa->speed = objdata->unk3C8;
+    }
+    if (fsa->speed > 1.32f){
+        objdata->unk888 = (s16) (objdata->unk888 + 1);
+    } else {
+        objdata->unk888 = 0;
+        objdata->unk3C8 = 1.65f;
+    }
+    if (objdata->unk888 >= 0xB4){
+        objdata->unk888 = 0xB4;
+        objdata->unk3C8 = 1.9f;
+    }
+    if (var_fa0 < objdata->unk3C4[2]){
+        var_fa0 = objdata->unk3C4[2];
+    }
+    fsa->unk278 += (var_fa0 - fsa->unk278) /fsa->unk2B0 * arg2;
+    if (objdata->unk3C8 < fsa->unk278){
+        fsa->unk278 = objdata->unk3C8;
+    }
+    var_a1 = 0;
+    fsa->unk278 += _data_C[0];
+    fsa->unk27C += _data_C[1];
+    _data_C[0] = 0.0f;
+    _data_C[1] = 0.0f;
+    animProgress = player->animProgress;
+    
+    temp_t1 = (objdata->unk8C0 / 3) * 2;    
+    objdata->unk8A5 = (temp_t1 >> 1) + 1;
+    if (objdata->unk8A5 >= 4) {
+        objdata->unk89C = objdata->unk894;
+    }
+    else {
+        objdata->unk89C = objdata->unk890;
+    }
+    
+    if (fsa->speed < objdata->unk3C4[temp_t1]){
+        var_a1 = 1;
+        //@recomp: prevent underflow
+        if (objdata->unk8C0 <= 3){
+            return 2;
+        }
+        objdata->unk8C0 -= 3;
+    } else if (objdata->unk3C4[temp_t1 + 1] <= fsa->speed){
+        if (objdata->unk8C0 < 0xC){
+            var_a1 = 1;
+            if (objdata->unk8C0 == 0){
+                animProgress = 0.0f;
+            }
+            objdata->unk8C0 += 3;
+        }
+    }
+    
+    modAnimIds = objdata->modAnims;
+    if (var_a1 || objdata->modAnims != modAnimIds){
+        func_80023D30(player, objdata->modAnims[objdata->unk8C0], animProgress, 0);
+    }
+
+    // calculations here are absolutely useless but requires to match
+    temp_fv0 = (f32)fsa->unk4.relativeFloorPitchSmooth / 0x2000;
+    if (1.0f < temp_fv0) { temp_fv0 = 1.0f; }
+    else if (temp_fv0 < -1.0f) { temp_fv0 = -1.0f; }
+
+    if (0.0f > temp_fv0) {
+        // @fake
+        if (fsa->unk278 && fsa->unk278) {}
+    }
+
+    if (!func_8002493C(player, fsa->unk278, &fsa->animTickDelta)){
+        diPrintf("krystal.c: objGetAnimChange Error\n");
+    }
+    return 0;
+}
+
+/** Secondary modanim offset underflow fixer (just in case dll_210_func_AE34 isn't the only place it can happen) */
+RECOMP_HOOK_DLL(dll_210_control) void playerModAnimOffsetUnderflowFix(Object* self) {
+    Player_Data* objData;
+    char message[] = "Oh dear, player modAnimOffset underflowed!\nAttempting to fix...\n";
+
+    if (!self){
+        return;
+    }
+
+    objData = self->data;
+    if (!objData){
+        return;
+    }
+
+    if (objData->unk8C0 < 0){
+        diPrintf(message);
+        recomp_eprintf(message);
+        objData->unk8C0 = 3;
+    }
+}
+
 /** Fix swimming softlock (originally by MusicalProgrammer) */
 RECOMP_PATCH s32 dll_210_func_125BC(Object *self, ObjFSA_Data *fsa, f32 updateRate) {
     f32 effectX;
@@ -814,32 +1008,6 @@ RECOMP_PATCH s32 dll_210_func_18630(Object* self, ObjFSA_Data* fsa, f32 arg2) {
         return 0x3D;
     }
     return 0;
-}
-
-/** Fix glitch where player rapidly cycles between different animations (originally by Banjeoin) 
-  *
-  * This is a temporary recomp hook version of the fix, since dll_210_func_AE34 isn't fully decomped yet
-  *
-  * TODO: replace with a more robust direct patch in dll_210_func_AE34
-*/
-RECOMP_HOOK_DLL(dll_210_control) void playerModAnimOffsetUnderflowFix(Object* self) {
-    Player_Data* objData;
-    char message[] = "Oh dear, player modAnimOffset underflowed!\nAttempting to fix...\n";
-
-    if (!self){
-        return;
-    }
-
-    objData = self->data;
-    if (!objData){
-        return;
-    }
-
-    if (objData->unk8C0 < 0){
-        diPrintf(message);
-        recomp_eprintf(message);
-        objData->unk8C0 = 3;
-    }
 }
 
 /* Fix mount logic when multiple vehicles are loaded. (Original patch by MusicalProgrammer) */
