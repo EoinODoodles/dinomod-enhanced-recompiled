@@ -294,6 +294,123 @@ RECOMP_HOOK_RETURN_DLL(dll_210_control) void playerSoundDebouncing(Object* self)
     }
 }
 
+/** Stop spells from unequipping themselves whenever you do an action (originally by MusicalProgrammer) */
+void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
+    Object* temp_s2;
+    s32 temp_s3;
+    s32 var_s4;
+    s32 var_v0;
+    f32 f20;
+    ModelInstance *modelInstance;
+    AnimState *animState;
+
+    temp_s2 = player->linkedObject;
+    var_v0 = 0;
+    f20 = 0.01f;
+    do {
+        var_s4 = 0;
+        switch (arg1->unk878) {
+        case 2:
+            if (var_v0 != 0) {
+                func_80024E50(player, player->curModAnimId, player->animProgress, 0);
+                func_80024E50(player, 0x8A, 0.0f, 0);
+            }
+            temp_s3 = func_80025140(player, f20, arg2, 0);
+            if (player->animProgressLayered > 0.24f) {
+                arg1->unk8A8 = 1;
+            }
+            if (player->animProgressLayered > 0.59f) {
+                arg1->unk8A8 = 2;
+            }
+            if ((temp_s2 != NULL) && (player->animProgressLayered > 0.7f) && (temp_s2->group == GROUP_UNK48)) {
+                ((DLL_Unknown*)temp_s2->dll)->vtbl->func[7].withOneS32OneF32((s32)temp_s2, 0.15f);
+            }
+            if (temp_s3 != 0) {
+                arg1->unk878 = 3;
+                var_s4 = 1;
+            }
+            break;
+        case 13:
+            if ((temp_s2 != NULL) && (temp_s2->group == GROUP_UNK48)) {
+                ((DLL_Unknown*)temp_s2->dll)->vtbl->func[7].withOneS32OneF32((s32)temp_s2, 1.0f);
+            }
+            arg1->unk8A8 = 2;
+            arg1->unk878 = 0;
+            break;
+        case 1:
+            if (var_v0 != 0) {
+                func_80024E50(player, player->curModAnimId, player->animProgress, 0);
+                func_80024E50(player, 0x8A, 0.99f, 0);
+            }
+            temp_s3 = func_80025140(player, -f20, arg2, 0);
+            if (player->animProgressLayered < 0.59f) {
+                arg1->unk8A8 = 1;
+            }
+            if (player->animProgressLayered < 0.24f) {
+                arg1->unk8A8 = 0;
+            }
+            if ((temp_s2 != NULL) && (player->animProgressLayered < 0.7f) && (temp_s2->group == GROUP_UNK48)) {
+                ((DLL_Unknown*)temp_s2->dll)->vtbl->func[8].withOneArg((s32)temp_s2);
+            }
+            if (temp_s3 != 0) {
+                arg1->unk87C = -1;
+                arg1->unk878 = 3;
+                var_s4 = 1;
+            }
+            break;
+        case 14:
+            if (temp_s2->group == GROUP_UNK48) {
+                ((DLL_Unknown*)temp_s2->dll)->vtbl->func[8].withOneArg((s32)temp_s2);
+            }
+            // arg1->unk87C = -1; //@recomp: don't unequip spells
+            arg1->unk8A8 = 0;
+            arg1->unk878 = 0;
+            break;
+        case 3:
+            if (var_v0 != 0) {
+                func_80024E50(player, player->curModAnimId, player->animProgress, 0);
+            } else {
+                func_80025140(player, player->animProgress - player->animProgressLayered, 1.0f, 0);
+            }
+            modelInstance = player->modelInsts[player->modelInstIdx];
+            animState = modelInstance->animState1;
+            if (animState->unk58[0] == 0) {
+                player->curModAnimIdLayered = -1;
+                arg1->unk878 = 0;
+            }
+            break;
+        default:
+            if (player->linkedObject != NULL) {
+                var_v0 = arg1->unk8A9;
+                if (arg1->unk8A8 != 0) {
+                    if (var_v0 == 0) {
+                        arg1->unk878 = 1;
+                        var_s4 = 1;
+                        break;
+                    }
+                    if (var_v0 == 1) {
+                        arg1->unk878 = 0xE;
+                        var_s4 = 1;
+                    }
+                    break;
+                }
+
+                if (var_v0 == 2) {
+                    arg1->unk878 = 2;
+                    var_s4 = 1;
+                    break;
+                }
+                if (var_v0 == 4) {
+                    arg1->unk878 = 0xD;
+                    var_s4 = 1;
+                }
+            }
+            break;
+        }
+        var_v0 = var_s4;
+    } while (var_s4 != 0);
+}
+
 /** Stop spells from unequipping whenever a cutscene starts (originally by MusicalProgrammer) */
 RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2) {
     s32 var_s2;
