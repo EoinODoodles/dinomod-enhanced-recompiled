@@ -17,6 +17,7 @@
 
 #include "recomp/dlls/objects/210_player_recomp.h"
 
+void func_8001A3FC(ModelInstance *modelInst, u32 selector, s32 idx, f32 param_4, f32 scale, Vec3f *param_6, s16 *param_7);
 extern s32 func_80025140(Object*, f32, f32, s32);
 extern void func_8005B5B8(Object*, Object*, s32);
 
@@ -42,12 +43,14 @@ extern int dll_210_func_24FC(Object *player, ObjFSA_Data *fsa);
 extern void dll_210_func_60A8(Object* arg0, s32 arg1, s32 arg2);
 extern f32 dll_210_func_63F0(Player_Data* arg0, f32 updateRate);
 extern void dll_210_func_6DD8(Object* player, Player_Data* data, s32 arg2);
+extern void dll_210_func_7260(Object* player, Player_Data* arg1);
 extern void dll_210_func_9F1C(Object* arg0, s32 arg1);
 extern s32 dll_210_func_A018(void);
 extern void dll_210_func_A024(Object* player, ObjFSA_Data* objdata);
 extern void dll_210_func_B4C8(Object* player, ObjFSA_Data *fsa);
 extern s32 dll_210_func_BA38(Object* player, ObjFSA_Data* fsa, f32 arg2);
 extern s32 dll_210_func_C1F4(Object* player, ObjFSA_Data* fsa, f32 arg2);
+extern s32 dll_210_func_EFB4(Object* player, ObjFSA_Data* fsa, f32 arg2);
 extern void dll_210_func_14B70(Object* arg0, ObjFSA_Data *arg1);
 extern void dll_210_func_18DB0(Object* obj, ObjFSA_Data* fsa);
 extern s32 dll_210_func_1A9D4(Object* player, s32* arg1, s32* arg2, s32* arg3, f32 arg4, f32 arg5);
@@ -539,8 +542,8 @@ RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2
     } while (var_s2 != 0);
 }
 
-/** Fix modanim offset underflow,
-  * a glitch where player rapidly cycles between different animations (originally by Banjeoin) */
+/** Fix modanim offset underflow, a glitch where the player rapidly cycles 
+  * between different animations (originally by Banjeoin) */
 RECOMP_PATCH s32 dll_210_func_AE34(Object* player, ObjFSA_Data* fsa, f32 arg2) {
     f32 temp_fv0;
     f32 temp_fv1;
@@ -856,6 +859,118 @@ RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2
     }
     if (((DLL_IVehicle*)steed->dll)->vtbl->func10(steed, self) != 0) {
         return 0x27;
+    }
+    return 0;
+}
+
+/** Prevent Projectile Spell from triggering after dismounting log (originally by MusicalProgrammer) */
+RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) {
+    Object* temp_s2;
+    s32 spA0;
+    f32 temp;
+    s32 var_v0_2;
+    Vec3f sp8C;
+    Vec3f sp80;
+    Player_Data* temp_s1;
+    f32 sp78;
+    f32 sp74;
+    f32 sp70;
+    f32 temp_fv0;
+    SRT sp54;
+    ModelInstance* sp50;
+    s16* sp4C;
+
+    if (fsa->enteredAnimState != 0) {
+        fsa->unk270 = 0x26;
+    }
+    temp_s1 = player->data;
+    temp_s2 = temp_s1->unk858;
+    {
+        s32 temp_v0 = dll_210_func_EFB4(player, fsa, arg2);
+        if (temp_v0 != 0) { return temp_v0; }
+    }
+
+    temp_s1->unk834 = 0; //@recomp
+    func_800267A4(player);
+
+    player->speed.f[1] = 0.0f;
+    if (fsa->enteredAnimState != 0) {
+        ((DLL_IVehicle*)temp_s2->dll)->vtbl->func9(temp_s2, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z);
+        if ((temp_s2->id == 0x72) || (temp_s2->id == 0x38C)) {
+            gDLL_2_Camera->vtbl->func6(0x54, 0, 1, 0, NULL, 0x64, 0xFF);
+        } else {
+            gDLL_2_Camera->vtbl->func8(0, 1);
+        }
+        spA0 = ((DLL_IVehicle*)temp_s2->dll)->vtbl->func11(temp_s2);
+        ((DLL_IVehicle*)temp_s2->dll)->vtbl->func14(temp_s2, 3);
+        switch (spA0) {
+            case 1:
+            var_v0_2 = 8;
+            break;
+            case 2:
+            default:
+            var_v0_2 = 9;
+            break;
+        }
+        player->srt.yaw = temp_s2->srt.yaw;
+        player->srt.pitch = 0;
+        player->srt.roll = 0;
+        func_80023D30(player, temp_s1->unk76C[var_v0_2], 0.0f, 1U);
+        sp50 = player->modelInsts[player->modelInstIdx];
+        func_8001A3FC(sp50, 0U, 0, 0.0f, player->srt.scale, &sp8C, &sp54.yaw);
+        func_8001A3FC(sp50, 0U, 0, 1.0f, player->srt.scale, &sp80, &sp54.yaw);
+        sp54.yaw = player->srt.yaw;
+        sp54.pitch = 0;
+        sp54.roll = 0;
+        rotate_vec3(&sp54, sp80.f);
+        sp80.f[0] += player->srt.transl.f[0];
+        sp80.f[2] += player->srt.transl.f[2];
+        player->srt.transl.f[1] -= sp8C.f[1];
+        temp_fv0 = gDLL_27->vtbl->func_DF4(player, sp80.f[0], player->srt.transl.f[1], sp80.f[2], 20.0f);
+        temp_s1->unk738.x = sp80.f[0];
+        temp_s1->unk738.y = temp_fv0;
+        temp_s1->unk738.z = sp80.f[2];
+        temp_s1->unk744.y = player->srt.transl.f[1] - temp_s1->unk738.y;
+        temp_s1->unk750 = spA0;
+        player->srt.flags &= ~8;
+        player->curModAnimIdLayered = -1;
+        fsa->animTickDelta = 0.016f;
+    }
+    temp_fv0 = (1.0f - player->animProgress);
+    player->srt.transl.y = temp_s1->unk738.y + (temp_s1->unk744.y * temp_fv0);
+    sp54.transl.x = temp_fv0;
+    sp4C = func_80034804(player, 5);
+    temp_fv0 = sp54.transl.x;
+    // @fake
+    sp4C++;
+    sp4C--;
+    if (sp4C != NULL) {
+        sp4C[0] = temp_s2->srt.pitch * temp_fv0;
+        sp4C[2] = temp_s2->srt.roll * temp_fv0;
+    }
+    ((DLL_IVehicle*)temp_s2->dll)->vtbl->func12(temp_s2, &sp70, &sp74, &sp78);
+    gDLL_2_Camera->vtbl->func10(((temp_s1->unk738.x - sp70) * player->animProgress) + sp70, ((temp_s1->unk738.y - sp74) * player->animProgress) + sp74, temp= ((temp_s1->unk738.z - sp78) * player->animProgress) + sp78);
+    if ((fsa->enteredAnimState == 0) && (fsa->unk33A != 0)) {
+        if (sp4C != NULL) {
+            sp4C[0] = 0;
+            sp4C[2] = 0;
+        }
+        player->unk64->flags &= ~0x1000;
+        player->positionMirror.x = temp_s1->unk7EC.x;
+        player->positionMirror.z = temp_s1->unk7EC.z;
+        inverse_transform_point_by_object(player->positionMirror.x, 0.0f, player->positionMirror.z, player->srt.transl.f, &sp54.scale, &player->srt.transl.z, player->parent);
+        if (temp_s1->unk750 == 1) {
+            player->srt.yaw += 0x4000;
+        } else {
+            player->srt.yaw -= 0x4000;
+        }
+        func_80023D30(player, 0, 0.0f, 1U);
+        func_80024DD0(player, 0, 0, 0);
+        ((DLL_IVehicle*)temp_s2->dll)->vtbl->func14(temp_s2, 0);
+        dll_210_func_7260(player, (Player_Data* ) temp_s1);
+        func_8002674C(player);
+        temp_s1->unk858 = 0;
+        return -1;
     }
     return 0;
 }
