@@ -131,10 +131,10 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                     gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
                     break; //@recomp;
                 }
-
-                //@recomp: change conditions for reaching here
-                dll_210_func_6DD8(player, arg1, messageArgument);
             }
+
+            //@recomp: change conditions for reaching here
+            dll_210_func_6DD8(player, arg1, messageArgument);
             break;
         case 0xE0000:
             if (sp8C == fsa->target) {
