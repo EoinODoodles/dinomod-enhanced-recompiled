@@ -256,7 +256,9 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
 
 static u32 soundCooldown;
 
-//@recomp: debounce magic refill sound
+/** - Fix magic sound spamming issue, especially in Kamerian Heart room (originally by MusicalProgrammer)
+  * - Also apply debounce cooldown to magic refill sound
+ */
 RECOMP_PATCH void dll_210_add_magic(Object* self, s32 magicDifference) {
     Player_Data* objdata = self->data;
     PlayerStats* stats;
@@ -279,7 +281,8 @@ RECOMP_PATCH void dll_210_add_magic(Object* self, s32 magicDifference) {
 
         //@recomp: debounce sound
         if (magicDifference > 0 
-            && !soundCooldown
+            && magic < stats->magicMax //@recomp (MusicalProgrammer's patch)
+            && !soundCooldown //@recomp (cooldown as well)
         ) {
             mapID = map_get_map_id_from_xz_ws(self->srt.transl.x, self->srt.transl.z);
             if (mapID == MAP_BOSS_KAMERIAN_DRAGON){
