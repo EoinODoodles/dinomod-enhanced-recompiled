@@ -1,4 +1,3 @@
-#include "game/gamebits.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
@@ -17,7 +16,6 @@
 #include "dlls/objects/277_iceblast.h"
 
 #include "recomp/dlls/objects/210_player_recomp.h"
-#include "sys/print.h"
 
 extern s32 func_80025140(Object*, f32, f32, s32);
 extern void func_8005B5B8(Object*, Object*, s32);
@@ -102,6 +100,148 @@ static void func_1D04C_hijack(Object *self, s32 a1) {
     }
 
     player_func_1D04C(self, a1);
+}
+
+/** Fix Ice Blast / Grenade Spell selection (originally by MusicalProgrammer) */
+RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Data* fsa) {
+    Object* sp8C;
+    s32 messageArgument;
+    f32 temp_fv0;
+    u32 message;
+    f32 var_fs0;
+    f32 var_fs1;
+    s32 temp_v0;
+
+    messageArgument = NULL;
+    while (obj_recv_mesg(player, &message, &sp8C, (void **)&messageArgument)) {
+        switch (message) {
+        case 0x80002:
+            if (messageArgument == BIT_Spell_Projectile || 
+                messageArgument == BIT_Spell_Ice_Blast ||   //@recomp: allow Ice Blast to be picked
+                messageArgument == BIT_Spell_Grenade        //@recomp: allow Grenade to be picked
+            ) {
+                if (dll_210_func_24FC(player, fsa) != 0) {
+                    temp_v0 = gDLL_2_Camera->vtbl->func3();
+                    if ((temp_v0 != 0x64) && (temp_v0 != 0x5E)) {
+                        gDLL_2_Camera->vtbl->func6(0x64, 1, 0, 0, NULL, 0x3C, 0xFF);
+                        gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 0x3A);
+                        arg1->flags |= 0x400000;
+                    }
+                } else {
+                    gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    break; //@recomp;
+                }
+
+                //@recomp: change conditions for reaching here
+                dll_210_func_6DD8(player, arg1, messageArgument);
+            }
+            break;
+        case 0xE0000:
+            if (sp8C == fsa->target) {
+                fsa->target = 0;
+                fsa->unk33D = 0;
+                gDLL_2_Camera->vtbl->func17.withOneArg(0);
+            }
+            break;
+        case 0x60003:
+            var_fs0 = sp8C->srt.transl.x - player->srt.transl.x;
+            var_fs1 = sp8C->srt.transl.z - player->srt.transl.z;
+            temp_fv0 = sqrtf(SQ(var_fs0) + SQ(var_fs1));
+            if (temp_fv0 > 1.0f) {
+                var_fs0 /= temp_fv0;
+                var_fs1 /= temp_fv0;
+            }
+            player->speed.y = 2.5f;
+            player->speed.x = var_fs0 * 2.5f;
+            player->speed.z = var_fs1 * 2.5f;
+            gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 0x4D);
+            dll_210_add_health(player, -messageArgument);
+            if (arg1->unk868 != NULL) {
+                arg1->unk868->unkE0 = 0;
+                arg1->unk868 = NULL;
+            }
+            break;
+        case 0x60004:
+            var_fs0 = sp8C->srt.transl.x - player->srt.transl.x;
+            var_fs1 = sp8C->srt.transl.z - player->srt.transl.z;
+            temp_fv0 = sqrtf((var_fs0 * var_fs0) + (var_fs1 * var_fs1));
+            if (temp_fv0 > 1.0f) {
+                var_fs0 /= temp_fv0;
+                var_fs1 /= temp_fv0;
+            }
+            player->speed.y = 2.5f;
+            player->speed.x = -var_fs0 * 2.5f;
+            player->speed.z = -var_fs1 * 2.5f;
+            gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 0x4D);
+            dll_210_add_health(player, -messageArgument);
+            if (arg1->unk868 != NULL) {
+                arg1->unk868->unkE0 = 0;
+                arg1->unk868 = NULL;
+            }
+            break;
+        case 0x60005:
+            var_fs0 = sp8C->srt.transl.x - player->srt.transl.x;
+            var_fs1 = sp8C->srt.transl.z - player->srt.transl.z;
+            temp_fv0 = sqrtf((var_fs0 * var_fs0) + (var_fs1 * var_fs1));
+            if (temp_fv0 > 1.0f) {
+                var_fs0 /= temp_fv0;
+                var_fs1 /= temp_fv0;
+            }
+            player->speed.y = 2.5f;
+            player->speed.x = -var_fs0 * 2.5f;
+            player->speed.z = -var_fs1 * 2.5f;
+            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_Krystal_Hurt_Ough, MAX_VOLUME, NULL, NULL, 0, NULL);
+            gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 0x4D);
+            func_80023D30(player, 0x450, 0.0f, 0);
+            dll_210_add_health(player, -messageArgument);
+            if (arg1->unk868 != NULL) {
+                arg1->unk868->unkE0 = 0;
+                arg1->unk868 = NULL;
+            }
+            break;
+        case 0x7000A:
+            if (messageArgument > 0) {
+                if (main_get_bits(messageArgument) != 0) {
+                    obj_send_mesg(sp8C, 0x7000BU, player, NULL);
+                    if (fsa->animState != 0x2B) {
+                        gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 0x2B);
+                    }
+                } else {
+                    main_set_bits(messageArgument, 1U);
+                    if (fsa->animState != 0x2A) {
+                        gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 0x2A);
+                    }
+                }
+            } else if (fsa->animState != 0x2A) {
+                gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 0x2A);
+            }
+            arg1->unk708 = sp8C;
+            arg1->unk70C = messageArgument & 0xFFFF;
+            if (arg1->unk708->unk64 != NULL) {
+                arg1->unk708->unk64->flags = 0x20000;
+            }
+            arg1->unk8A9 = 1;
+            break;
+        case 0x100008:
+            arg1->unk870 = 1;
+            if (arg1->unk868 == NULL) {
+                arg1->unk868 = sp8C;
+                arg1->unk86C = (messageArgument >> 0x10) / 10.0f;
+                gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 5);
+                arg1->unk8A9 = 1;
+            }
+            break;
+        case 0x100010:
+            arg1->unk870 = 1;
+            if (arg1->unk868 == NULL) {
+                arg1->unk868 = sp8C;
+                arg1->unk86C = messageArgument >> 0x10;
+                gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 5);
+                arg1->unk8A9 = 1;
+            }
+            break;
+        }
+    }
 }
 
 static u32 soundCooldown;
@@ -1039,7 +1179,9 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
 
 static s16 iceblast_timer = 0;
 
-/** Optionally reduce the magic depletion rate of the Ice Blast Spell */
+/** - Don't default to Projectile Spell (originally by MusicalProgrammer) 
+  * - Optionally reduce the magic depletion rate of the Ice Blast Spell 
+  */
 RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 arg2) {
     static f32 _bss_20;
     static f32 _bss_24;
@@ -1098,7 +1240,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     case 0x43D:
         if (fsa->unk33A != 0) {
             func_80023D30(player, 0x43E, 0.0f, 0);
-            dll_210_func_6DD8(player, temp_s1, 0x2D);
+            // dll_210_func_6DD8(player, temp_s1, 0x2D); //@recomp: don't default to Projectile Spell
             gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_BA4_Spell_Aim_Hum_Loop, MAX_VOLUME, &temp_s1->unk848, NULL, 0, NULL);
             fsa->animTickDelta = 0.015f;
         }
@@ -1121,7 +1263,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 arg2) 
         }
         if (fsa->unk33A != 0) {
             func_80023D30(player, 0x43E, 0.0f, 0);
-            dll_210_func_6DD8(player, temp_s1, 0x2D);
+            // dll_210_func_6DD8(player, temp_s1, 0x2D); //@recomp: don't default to Projectile Spell
             gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_BA4_Spell_Aim_Hum_Loop, MAX_VOLUME, &temp_s1->unk848, NULL, 0, NULL);
             fsa->animTickDelta = 0.015f;
         }
