@@ -124,6 +124,20 @@ options = [ "Tap", "Hold" ]
 default = "Tap"
 
 [[manifest.config_options]]
+id = "iceblast_cost"
+name = "Ice Blast Spell - Reduced Magic Cost"
+description = '''
+When this is enabled, using the Ice Blast Spell will drain 1 unit of magic every half-second.
+
+In the unpatched game the Ice Blast Spell's collision detectors also drain 1 magic per half-second. However: 3 of these detector objects exist while the spell is being fired, so the depletion rate ends up tripled (possibly by mistake)!
+
+Switching this toggle off will use the original more rapid drain.
+'''
+type = "Enum"
+options = [ "Off", "On"]
+default = "On"
+
+[[manifest.config_options]]
 id = "fxemit_hide_default"
 name = "FXEmit - Hide Debug Flashes"
 description = '''

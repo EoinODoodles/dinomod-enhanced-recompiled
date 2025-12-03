@@ -1,48 +1,69 @@
-
+#include "game/gamebits.h"
 #include "modding.h"
+#include "recompconfig.h"
 #include "recomputils.h"
 #include "dll_util.h"
 #include "sidekick_util.h"
 
-#include "game/objects/object_id.h"
-#include "sys/dll.h"
-#include "sys/map_enums.h"
-#include "sys/math.h"
+#include "common.h"
 #include "sys/menu.h"
-#include "sys/objects.h"
 #include "sys/objanim.h"
 #include "sys/objtype.h"
 #include "sys/objmsg.h"
-#include "sys/print.h"
+
 #include "dlls/objects/common/vehicle.h"
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/214_animobj.h"
-#include "dlls/engine/29_gplay.h"
-#include "dlls/engine/6_amsfx.h"
-#include "functions.h"
-#include "dll.h"
+#include "dlls/objects/277_iceblast.h"
 
 #include "recomp/dlls/objects/210_player_recomp.h"
+#include "sys/print.h"
 
+extern s32 func_80025140(Object*, f32, f32, s32);
 extern void func_8005B5B8(Object*, Object*, s32);
 
-extern ObjFSA_StateCallback _bss_58[81];
-extern ObjFSA_StateCallback _bss_19C[1];
 extern u8 _data_14[4];
 extern s16 _data_18[2];
+extern f32 _bss_1C;
 extern s16 _data_24[2];
-extern s16 _data_188[4];
+extern s16 _data_158[];
 extern s16 _data_170[12];
-extern f32 _bss_1AC;
+extern s16 _data_188[4];
+extern f32 _data_528;
+extern s8 _data_52C;
+extern u8 _data_530;
+extern s16 _data_7C4[2];
 
+extern void dll_210_func_1BC0(Object* arg0, Player_Data* arg1);
+extern int dll_210_func_24FC(Object *player, ObjFSA_Data *fsa);
 extern void dll_210_func_60A8(Object* arg0, s32 arg1, s32 arg2);
 extern f32 dll_210_func_63F0(Player_Data* arg0, f32 updateRate);
-extern void dll_210_func_1D4E0(Object* arg0, s32 arg1);
-extern void dll_210_func_1DB6C(Object* arg0, f32 arg1);
-extern void dll_210_func_1D8B8(Object* player);
-extern s32 dll_210_func_1D2A8(Object* arg0, Object* arg1);
+extern void dll_210_func_6DD8(Object* player, Player_Data* data, s32 arg2);
 extern void dll_210_func_9F1C(Object* arg0, s32 arg1);
-extern void dll_210_func_1BC0(Object* arg0, Player_Data* arg1);
+extern s32 dll_210_func_A018(void);
+extern void dll_210_func_A024(Object* player, ObjFSA_Data* objdata);
+extern void dll_210_func_14B70(Object* arg0, ObjFSA_Data *arg1);
+extern void dll_210_func_18DB0(Object* obj, ObjFSA_Data* fsa);
+extern s32 dll_210_func_1A9D4(Object* player, s32* arg1, s32* arg2, s32* arg3, f32 arg4, f32 arg5);
+extern void dll_210_func_1AAD8(Object* player, ObjFSA_Data *fsa);
+void dll_210_add_health(Object* player, s32 amount);
+extern s32 dll_210_func_1D2A8(Object* arg0, Object* arg1);
+extern void dll_210_func_1D4E0(Object* arg0, s32 arg1);
+extern void dll_210_func_1D8B8(Object* player);
+extern void dll_210_func_1DB6C(Object* arg0, f32 arg1);
+extern void dll_210_func_1DC48(Object* player);
+extern Object *dll_210_func_1DD94(Object* player, s32 arg1);
+
+
+extern s8 _bss_0;
+extern s16 _bss_2;
+extern ObjFSA_StateCallback _bss_58[81];
+extern ObjFSA_StateCallback _bss_19C[1];
+extern u8 _bss_1AA[0x2];
+extern f32 _bss_1AC;
+extern Object *_bss_210[4];
+extern s16 _bss_220[2];
+extern ObjFSA_StateCallback _bss_224[1];
 
 // TODO: take from decomp headers
 DLL_INTERFACE(DLL_IFoodbag) {
@@ -124,8 +145,14 @@ RECOMP_PATCH void dll_210_add_magic(Object* self, s32 magicDifference) {
     }
 }
 
-extern s32 func_80025140(Object*, f32, f32, s32);
-extern u8 _data_530;
+RECOMP_HOOK_RETURN_DLL(dll_210_control) void playerSoundDebouncing(Object* self) {
+    if (soundCooldown > 0){
+        soundCooldown -= gUpdateRate;
+        if (soundCooldown < 0){
+            soundCooldown = 0;
+        }
+    }
+}
 
 /** Stop spells from unequipping whenever a cutscene starts (originally by MusicalProgrammer) */
 RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2) {
@@ -248,15 +275,6 @@ RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2
     } while (var_s2 != 0);
 }
 
-RECOMP_HOOK_RETURN_DLL(dll_210_control) void playerSoundDebouncing(Object* self) {
-    if (soundCooldown > 0){
-        soundCooldown -= gUpdateRate;
-        if (soundCooldown < 0){
-            soundCooldown = 0;
-        }
-    }
-}
-
 /** Fix swimming softlock (originally by MusicalProgrammer) */
 RECOMP_PATCH s32 dll_210_func_125BC(Object *self, ObjFSA_Data *fsa, f32 updateRate) {
     f32 effectX;
@@ -309,10 +327,6 @@ RECOMP_PATCH s32 dll_210_func_125BC(Object *self, ObjFSA_Data *fsa, f32 updateRa
     }
     return 0;
 }
-
-extern s32 func_80025140(Object*, f32, f32, s32);
-extern void dll_210_func_14B70(Object* arg0, ObjFSA_Data *arg1);
-extern s16 _data_158[];
 
 /** Fix Sabre floating around when he rides SnowHorns, stop projectile spell activating on dismount (originally by MusicalProgrammer) */
 RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2) {
@@ -395,8 +409,6 @@ RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2
     return 0;
 }
 
-extern s32 dll_210_func_A018(void);
-
 /** Fix snowball-player collision crash in DarkIce Mines (originally by MusicalProgrammer) */
 RECOMP_PATCH s32 dll_210_func_17C14(Object* self, Player_Data* objData, f32 arg2) {
     Object* sp34;
@@ -435,55 +447,51 @@ RECOMP_PATCH s32 dll_210_func_17C14(Object* self, Player_Data* objData, f32 arg2
     return 0;
 }
 
-extern void dll_210_func_A024(Object* player, Player_Data* objdata);
-extern void dll_210_func_18DB0(Object* obj, ObjFSA_Data* fsa);
-extern f32 _bss_1C;
-
 /** Fixed crash if you warp while spamming attack (originally by MusicalProgrammer) */
-RECOMP_PATCH s32 dll_210_func_18630(Object* self, Player_Data* objData, f32 arg2) {
+RECOMP_PATCH s32 dll_210_func_18630(Object* self, ObjFSA_Data* fsa, f32 arg2) {
     u8 sp47;
     Object* weapon;
-    Player_Data* objData2;
+    Player_Data* objData;
 
     //@recomp: return early
     if (self->linkedObject == NULL){
         return 0;
     }
 
-    objData2 = self->data;
+    objData = self->data;
     weapon = self->linkedObject;
-    objData->unk0.unk341 = 1;
-    if (objData->unk0.enteredAnimState == 0) {
+    fsa->unk341 = 1;
+    if (fsa->enteredAnimState == 0) {
         sp47 = 0;
-        if (objData->unk0.animTickDelta > 0.0f) {
-            if (!(objData->unk0.unk34A & 1)) {
-                if (objData2->unk3B4[objData2->unk8A1].unk24 < self->animProgress) {
-                    gDLL_6_AMSFX->vtbl->play_sound(self, objData2->unk3B4[objData2->unk8A1].unk2C, 0x7FU, NULL, NULL, 0, NULL);
-                    objData->unk0.unk34A |= 1;
+        if (fsa->animTickDelta > 0.0f) {
+            if (!(fsa->unk34A & 1)) {
+                if (objData->unk3B4[objData->unk8A1].unk24 < self->animProgress) {
+                    gDLL_6_AMSFX->vtbl->play_sound(self, objData->unk3B4[objData->unk8A1].unk2C, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    fsa->unk34A |= 1;
                 }
             }
-            if (!(objData->unk0.unk34A & 2) && ((&objData2->unk3B4[objData2->unk8A1])->unk28 < self->animProgress)) {
-                gDLL_6_AMSFX->vtbl->play_sound(self, objData2->unk3B8[rand_next(0, 2)], 0x7FU, NULL, NULL, 0, NULL);
-                objData->unk0.unk34A |= 2;
+            if (!(fsa->unk34A & 2) && ((&objData->unk3B4[objData->unk8A1])->unk28 < self->animProgress)) {
+                gDLL_6_AMSFX->vtbl->play_sound(self, objData->unk3B8[rand_next(0, 2)], MAX_VOLUME, NULL, NULL, 0, NULL);
+                fsa->unk34A |= 2;
             }
         }
-        if (objData2->unk3B4[objData2->unk8A1].unk9 >= 0) {
-            if ((objData2->unk3B4[objData2->unk8A1].unk18 < self->animProgress) || ((objData->unk0.animTickDelta < 0.0f) && (self->animProgress < _bss_1C))) {
-                objData->unk0.unk33E |= 2;
+        if (objData->unk3B4[objData->unk8A1].unk9 >= 0) {
+            if ((objData->unk3B4[objData->unk8A1].unk18 < self->animProgress) || ((fsa->animTickDelta < 0.0f) && (self->animProgress < _bss_1C))) {
+                fsa->unk33E |= 2;
             }
-            if (objData2->unk3B4[objData2->unk8A1].unk10 < self->animProgress) {
-                objData->unk0.unk33E |= 1;
+            if (objData->unk3B4[objData->unk8A1].unk10 < self->animProgress) {
+                fsa->unk33E |= 1;
             }
-            if (objData2->unk3B4[objData2->unk8A1].unk14 < self->animProgress) {
-                objData->unk0.unk33E &= ~1;
+            if (objData->unk3B4[objData->unk8A1].unk14 < self->animProgress) {
+                fsa->unk33E &= ~1;
             }
-            if (objData->unk0.unk310 & 0x8000) {
-                if (objData->unk0.unk33E & 1) {
-                    objData->unk0.unk33E |= 4;
+            if (fsa->unk310 & 0x8000) {
+                if (fsa->unk33E & 1) {
+                    fsa->unk33E |= 4;
                 }
             }
-            if ((objData->unk0.unk33E & 4) && (objData->unk0.unk33E & 2)) {
-                objData2->unk8A1 = (u8) (&objData2->unk3B4[objData2->unk8A1])->unk9;
+            if ((fsa->unk33E & 4) && (fsa->unk33E & 2)) {
+                objData->unk8A1 = (u8) (&objData->unk3B4[objData->unk8A1])->unk9;
                 sp47 = 1;
             }
         }
@@ -492,59 +500,59 @@ RECOMP_PATCH s32 dll_210_func_18630(Object* self, Player_Data* objData, f32 arg2
             ((DLL_Unknown *)weapon->dll)->vtbl->func[11].withOneArg((s32)weapon);
         }
         sp47 = 1;
-        objData2->flags &= ~0x40;
+        objData->flags &= ~0x40;
         self->objhitInfo->unk61 = 0;
-        dll_210_func_A024(self, objData);
-        objData->unk0.animExitAction = dll_210_func_18DB0;
+        dll_210_func_A024(self, fsa);
+        fsa->animExitAction = dll_210_func_18DB0;
     }
     if (sp47 != 0) {
-        self->unk5C = &objData2->unk3B4[objData2->unk8A1].unk34;
-        if (objData2->unk3B4[objData2->unk8A1].unk0 != self->curModAnimId && objData2->unk3B4[objData2->unk8A1].unk2 != self->curModAnimId ) {
-            func_80023D30(self, objData->unk0.target != NULL ? objData2->unk3B4[objData2->unk8A1].unk0 : objData2->unk3B4[objData2->unk8A1].unk2, 0.0f, 0U);
+        self->unk5C = &objData->unk3B4[objData->unk8A1].unk34;
+        if (objData->unk3B4[objData->unk8A1].unk0 != self->curModAnimId && objData->unk3B4[objData->unk8A1].unk2 != self->curModAnimId ) {
+            func_80023D30(self, fsa->target != NULL ? objData->unk3B4[objData->unk8A1].unk0 : objData->unk3B4[objData->unk8A1].unk2, 0.0f, 0U);
         }
-        objData->unk0.unk33E &= ~0xEF;
-        objData->unk0.animTickDelta = (&objData2->unk3B4[objData2->unk8A1])->unkC;
-        objData->unk0.unk34A = 0;
-        objData->unk0.unk27C = 0.0f;
-        if (objData->unk0.target == NULL) {
-            if (objData->unk0.unk290 > 0.3f) {
-                self->srt.yaw += objData->unk0.unk32A * 0xB6;
-                objData->unk0.unk328 = 0;
-                objData->unk0.unk32A = 0;
+        fsa->unk33E &= ~0xEF;
+        fsa->animTickDelta = (&objData->unk3B4[objData->unk8A1])->unkC;
+        fsa->unk34A = 0;
+        fsa->unk27C = 0.0f;
+        if (fsa->target == NULL) {
+            if (fsa->unk290 > 0.3f) {
+                self->srt.yaw += fsa->unk32A * 0xB6;
+                fsa->unk328 = 0;
+                fsa->unk32A = 0;
             }
         } else {
-            gDLL_18_objfsa->vtbl->func11(self, &objData->unk0, arg2, 2);
+            gDLL_18_objfsa->vtbl->func11(self, fsa, arg2, 2);
         }
         if (self->objhitInfo != NULL) {
             self->objhitInfo->unk61 = 0;
         }
         if (weapon->group == GROUP_UNK48) {
             ((DLL_Unknown *)weapon->dll)->vtbl->func[12].withTwoArgs((s32)weapon, 1);
-            ((DLL_Unknown *)weapon->dll)->vtbl->func[13].withTwoArgs((s32)weapon, (&objData2->unk3B4[objData2->unk8A1])->unk30);
-            ((DLL_Unknown *)weapon->dll)->vtbl->func[18].withThreeArgsCustom2(weapon, (&objData2->unk3B4[objData2->unk8A1])->unk1C, (&objData2->unk3B4[objData2->unk8A1])->unk20);
+            ((DLL_Unknown *)weapon->dll)->vtbl->func[13].withTwoArgs((s32)weapon, (&objData->unk3B4[objData->unk8A1])->unk30);
+            ((DLL_Unknown *)weapon->dll)->vtbl->func[18].withThreeArgsCustom2(weapon, (&objData->unk3B4[objData->unk8A1])->unk1C, (&objData->unk3B4[objData->unk8A1])->unk20);
         }
     }
-    self->objhitInfo->unk5F = (&objData2->unk3B4[objData2->unk8A1])->unk4;
-    self->objhitInfo->unk60 = (&objData2->unk3B4[objData2->unk8A1])->unk8;
-    gDLL_18_objfsa->vtbl->func7(self, &objData->unk0, arg2, 1);
+    self->objhitInfo->unk5F = (&objData->unk3B4[objData->unk8A1])->unk4;
+    self->objhitInfo->unk60 = (&objData->unk3B4[objData->unk8A1])->unk8;
+    gDLL_18_objfsa->vtbl->func7(self, fsa, arg2, 1);
     if (self->animProgress > 0.99f) {
         self->objhitInfo->unk61 = 0;
-        if (objData->unk0.target != NULL) {
-            gDLL_18_objfsa->vtbl->func17(self, &objData->unk0);
+        if (fsa->target != NULL) {
+            gDLL_18_objfsa->vtbl->func17(self, fsa);
             return 0x36;
         }
         return 2;
     }
-    if ((self->animProgress > 0.7f) && ((&objData2->unk3B4[objData2->unk8A1])->unk9 < 0) && (objData->unk0.unk310 & 0x8000)) {
+    if ((self->animProgress > 0.7f) && ((&objData->unk3B4[objData->unk8A1])->unk9 < 0) && (fsa->unk310 & 0x8000)) {
         self->objhitInfo->unk61 = 0;
-        if (objData->unk0.target != NULL) {
-            gDLL_18_objfsa->vtbl->func11(self, &objData->unk0, arg2, 2);
+        if (fsa->target != NULL) {
+            gDLL_18_objfsa->vtbl->func11(self, fsa, arg2, 2);
             return 0x3C;
         }
-        if (objData->unk0.unk290 > 0.3f) {
-            self->srt.yaw += objData->unk0.unk32A * 0xB6;
-            objData->unk0.unk328 = 0;
-            objData->unk0.unk32A = 0;
+        if (fsa->unk290 > 0.3f) {
+            self->srt.yaw += fsa->unk32A * 0xB6;
+            fsa->unk328 = 0;
+            fsa->unk32A = 0;
         }
         return 0x3D;
     }
@@ -577,10 +585,6 @@ RECOMP_HOOK_DLL(dll_210_control) void playerModAnimOffsetUnderflowFix(Object* se
     }
 }
 
-extern s8 _bss_0;
-extern s16 _bss_2;
-extern f32 _data_528;
-extern s8 _data_52C;
 /* Fix mount logic when multiple vehicles are loaded. (Original patch by MusicalProgrammer) */
 // TODO: replace with a cleaner match from the decomp, when we have one
 RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg2, s8 arg3) {
@@ -1031,4 +1035,431 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
     ((void (*)(Object*, Player_Data*, f32)) objdata->unk3BC)(arg0, objdata, gUpdateRateF);
     dll_210_func_1BC0(arg0, objdata);
     return spC8;
+}
+
+static s16 iceblast_timer = 0;
+
+/** Optionally reduce the magic depletion rate of the Ice Blast Spell */
+RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 arg2) {
+    static f32 _bss_20;
+    static f32 _bss_24;
+    static f32 _bss_28;
+    static f32 _bss_2C;
+    static f32 _bss_30;
+    static s8 _bss_34;
+    static DLL_Unknown *_data_7C0 = 0;
+    s32 sp9C;
+    s32 magic;
+    Object* weapon;
+    f32 temp_fa1;
+    f32 sp8C;
+    f32 var_fa0;
+    f32 var_ft4;
+    f32 sp80;
+    SRT fxTransform;
+    f32 var_fv0;
+    f32 var_fv1;
+    s32 temp_v0;
+    s8 temp_v0_4;
+    s16 temp_ft5;
+    u32 temp_a0_4;
+    s32 i;
+    Player_Data* temp_s1;
+    //@recomp: Ice Blast config
+    int reduceIceBlastCost = recomp_get_config_u32("iceblast_cost");
+
+    temp_s1 = player->data;
+    if (fsa->enteredAnimState != 0) {
+        if (fsa->target != NULL) {
+            func_80023D30(player, 0x43E, 0.0f, 0);
+            dll_210_func_6DD8(player, temp_s1, *_bss_220);
+            fsa->animTickDelta = 0.015f;
+        } else if (temp_s1->unk8A8 != 0) {
+            func_80023D30(player, 0x43D, 0.0f, 0);
+            fsa->animTickDelta = 0.04f;
+        } else {
+            func_80023D30(player, 0x448, 0.0f, 0);
+            if (player->id == 0x1F) {
+                fsa->animTickDelta = 0.035f;
+            } else {
+                fsa->animTickDelta = 0.024f;
+            }
+        }
+        fsa->animExitAction = dll_210_func_1AAD8;
+        dll_210_func_A024(player, fsa);
+        temp_s1->unk830 = 0.0f;
+        temp_s1->unk82C = 0.0f;
+        weapon = player->linkedObject;
+        _bss_34 = 0;
+        _bss_28 = _bss_30 = _bss_20 = _bss_2C = 0.0f;
+        ((DLL_Unknown*)weapon->dll)->vtbl->func[14].withTwoArgs((s32)weapon, 0);
+    }
+    switch (player->curModAnimId) {
+    case 0x43D:
+        if (fsa->unk33A != 0) {
+            func_80023D30(player, 0x43E, 0.0f, 0);
+            dll_210_func_6DD8(player, temp_s1, 0x2D);
+            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_BA4_Spell_Aim_Hum_Loop, MAX_VOLUME, &temp_s1->unk848, NULL, 0, NULL);
+            fsa->animTickDelta = 0.015f;
+        }
+        break;
+    case 0x449:
+        if (fsa->unk33A != 0) {
+            if (fsa->target != NULL) {
+                return 0x36;
+            }
+            return -1;
+        }
+        break;
+    case 0x448:
+        if ((player->animProgress > 0.4f) && (temp_s1->unk8A8 == 0)) {
+            gDLL_6_AMSFX->vtbl->play_sound(player, temp_s1->unk3B8[4], MAX_VOLUME, NULL, NULL, 0, NULL);
+            temp_s1->unk8A8 = 2U;
+            temp_s1->unk8A9 = 2;
+            weapon = player->linkedObject;
+            ((DLL_Unknown*)weapon->dll)->vtbl->func[7].withOneS32OneF32((s32)weapon, 0.15f);
+        }
+        if (fsa->unk33A != 0) {
+            func_80023D30(player, 0x43E, 0.0f, 0);
+            dll_210_func_6DD8(player, temp_s1, 0x2D);
+            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_BA4_Spell_Aim_Hum_Loop, MAX_VOLUME, &temp_s1->unk848, NULL, 0, NULL);
+            fsa->animTickDelta = 0.015f;
+        }
+        break;
+    case 0x43E:
+        if (fsa->target != NULL) {
+            if (fsa->target->unk74 != NULL) {
+                var_fv0 = ((f32 *)fsa->target->unk74)[3] - player->srt.transl.x;
+                sp8C = ((f32 *)fsa->target->unk74)[4] - player->srt.transl.y;
+                var_fv1 = ((f32 *)fsa->target->unk74)[5] - player->srt.transl.z;
+            } else {
+                var_fv0 = fsa->target->srt.transl.x - player->srt.transl.x;
+                sp8C = fsa->target->srt.transl.y - player->srt.transl.y;
+                var_fv1 = fsa->target->srt.transl.z - player->srt.transl.z;
+            }
+            var_fv0 = (s16) (arctan2_f(sp8C, sqrtf(SQ(var_fv0) + SQ(var_fv1))) - 0x800) / 5461.0f;
+            // var_fv0 = var_fv0; // required to match?
+            if (var_fv0 < -1.0f) {
+                var_fv0 = -1.0f;
+            } else if (var_fv0 > 1.0f) {
+                var_fv0 = 1.0f;
+            }
+            var_fv1 = _bss_28;
+            var_fv0 -= var_fv1;
+
+            var_fv1 += (var_fv0) * 0.01f * arg2;
+            _bss_28 = var_fv1;
+        } else {
+            if (*_bss_220 == 0x777) {
+                var_fa0 = fsa->unk284 / 50.0f;
+                if (var_fa0 < -1.45f) {
+                    var_fa0 = -1.45f;
+                } else if (var_fa0 > 1.45f) {
+                    var_fa0 = 1.45f;
+                }
+            } else {
+                var_fa0 = fsa->unk284 / 60.0f;
+                if (var_fa0 < -1.0f) {
+                    var_fa0 = -1.0f;
+                } else if (var_fa0 > 1.0f) {
+                    var_fa0 = 1.0f;
+                }
+            }
+            var_fa0 -= temp_s1->unk830;
+            temp_s1->unk830 += var_fa0 * 0.1f * arg2;
+            var_fv1 = fsa->unk288 / 60.0f;
+            if (var_fv1 < -1.0f) {
+                var_fv1 = -1.0f;
+            } else if (var_fv1 > 1.0f) {
+                var_fv1 = 1.0f;
+            }
+            var_fv1 -= temp_s1->unk82C;
+            temp_s1->unk82C += var_fv1 * 0.1f * arg2;
+            if (temp_s1->unk82C > 0.0f) {
+                var_fv1 = temp_s1->unk82C - 0.75f;
+                if (var_fv1 < 0.0f) {
+                    var_fv1 = 0.0f;
+                }
+            } else {
+                var_fv1 = temp_s1->unk82C + 0.75f;
+                if (var_fv1 > 0.0f) {
+                    var_fv1 = 0.0f;
+                }
+            }
+            player->srt.yaw = (player->srt.yaw + (var_fv1 * -1000.0f));
+        }
+        magic = (s32) temp_s1->stats->magic;
+        weapon = player->linkedObject;
+        fxTransform.scale = ((DLL_Unknown*)weapon->dll)->vtbl->func[16].withOneArgS32((s32)weapon);
+        if ((temp_s1->unk766 & 0x8000) && (magic == 0)) {
+            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+        }
+        if ((temp_s1->unk764 & 0x8000) && (magic != 0)) {
+            // @fake
+            if (_bss_34) {}
+            if (_bss_34 != 0) {
+                _bss_2C -= arg2;
+                if (_bss_2C < 400.0f) {
+                    _bss_2C = 400.0f;
+                    _bss_34 ^= 1;
+                }
+            } else {
+                _bss_2C += arg2;
+                if (_bss_2C > 420.0f) {
+                    _bss_2C = 420.0f;
+                    _bss_34 ^= 1;
+                }
+            }
+            if (*_bss_220 != 0x5CE) {
+                if ((_bss_2C >= 10.0f) && (temp_s1->unk848 == 0)) {
+                    gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_6AB_Electric_Arcing_Loop, 1U, &temp_s1->unk848, NULL, 0, NULL);
+                    gDLL_6_AMSFX->vtbl->func_954(temp_s1->unk848, 0.5f);
+                } else if (_bss_2C < 10.0f) {
+                    if (temp_s1->unk848 != 0) {
+                        gDLL_6_AMSFX->vtbl->func_A1C(temp_s1->unk848);
+                        temp_s1->unk848 = 0U;
+                    }
+                }
+                if (_bss_2C >= 420.0f) {
+                    _bss_30 -= arg2;
+                    if (_bss_30 <= 0.0f) {
+                        gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_6AD_Electric_Crackle, rand_next(0x20, 0x60), NULL, NULL, 0, NULL);
+                        _bss_30 = rand_next(0x4B0, 0x708);
+                    }
+                } else if (_bss_2C < 0.0f) {
+                    _bss_2C = 0.0f;
+                }
+                if (fxTransform.scale == 0.0f) {
+                    if (_bss_2C > 120.0f) {
+                        if (magic >= 3) {
+                            weapon = player->linkedObject;
+                            ((DLL_Unknown*)weapon->dll)->vtbl->func[14].withTwoArgs((s32)weapon, 1);
+                            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_6AC_Electric_Zap, 0x60U, NULL, NULL, 0, NULL);
+                        } else {
+                            _bss_2C = 120.0f;
+                        }
+                    }
+                } else if (fxTransform.scale == 1.0f) {
+                    fsa->animTickDelta = 0.02f;
+                    if (_bss_2C > 300.0f) {
+                        if (magic >= 9) {
+                            weapon = player->linkedObject;
+                            ((DLL_Unknown*)weapon->dll)->vtbl->func[14].withTwoArgs((s32)weapon, 2);
+                            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_6AC_Electric_Zap, MAX_VOLUME, NULL, NULL, 0, NULL);
+                        } else {
+                            _bss_2C = 300.0f;
+                        }
+                    }
+                } else {
+                    fsa->animTickDelta = 0.027f;
+                }
+                if (temp_s1->unk848 != 0) {
+                    sp80 = ((_bss_2C / 420.0f) * 0.5f) + 0.5f;
+                    if (sp80 > 1.0f) {
+                        sp80 = 1.0f;
+                    }
+                    if (*_bss_220 == 0x777) {
+                        temp_ft5 = ((sp80 - 0.5f) * 127.0f);
+                        diPrintf("throwdist %d\n\0error\n\0 Light Created \0 WARNING: Screen Overlay already used \n\0 WARNING: Screen Overlay already Killed \n", temp_ft5);
+                        weapon = player->linkedObject;
+                        ((DLL_Unknown*)weapon->dll)->vtbl->func[14].withTwoArgs((s32)weapon, temp_ft5);
+                    }
+                    gDLL_6_AMSFX->vtbl->func_954(temp_s1->unk848, sp80);
+                    gDLL_6_AMSFX->vtbl->func_860(temp_s1->unk848, 127.0f * sp80);
+                }
+                _bss_20 -= arg2;
+                if (_bss_20 <= 0.0f) {
+                    gDLL_17_partfx->vtbl->spawn(player->linkedObject, PARTICLE_3EC, &fxTransform, PARTFXFLAG_2, -1, NULL);
+                    if (fxTransform.scale == 0.0f) {
+                        _bss_20 = 8.0f;
+                    } else if (fxTransform.scale == 1.0f) {
+                        _bss_20 = 5.0f;
+                    } else {
+                        _bss_20 = 3.0f;
+                    }
+                }
+            } else {
+                if (*_bss_220 == 0x5CE) {
+                    //Using Ice Blast Spell
+                    if (temp_s1->unk848 == 0) {
+                        gDLL_6_AMSFX->vtbl->play_sound(player->linkedObject, SOUND_95A_Frigid_Air_Loop, 1, &temp_s1->unk848, NULL, 0, NULL);
+                    }
+                    if (*_bss_210 == 0) {
+                        dll_210_func_1DC48(player);
+                    }
+                    if (_bss_210[3] == 0) {
+                        _bss_210[3] = dll_210_func_1DD94(player, 0x249);
+                    }
+
+                    //@recomp: handle magic drain here instead of in the Iceblast control function
+                    if (reduceIceBlastCost){
+                        //Check if any Ice Blast Objects exist
+                        if (_bss_210[0] || _bss_210[1] || _bss_210[2]){
+                            iceblast_timer -= gUpdateRate;
+                            if (iceblast_timer < 0){
+                                iceblast_timer = 60; //this seems to run twice per tick, so doubled (for -1 per half-second drain)
+                                ((DLL_210_Player*)player->dll)->vtbl->add_magic(player, -1);
+                            }
+                        }
+                    }
+
+                    _bss_24 -= arg2;
+                    if (_bss_24 <= 0.0f) {
+                        if (_data_7C0 == 0) {
+                            _data_7C0 = dll_load_deferred(0x1048U, 1U);
+                        }
+                        if (_data_7C0 != 0) {
+                            _data_7C0->vtbl->func[0].withSixArgs((s32)player->linkedObject, player->id == 0, 0, 0x10404, -1, 0);
+                        }
+                        _bss_24 = 35.0f;
+                    }
+                    if (*_bss_1AA == 0) {
+                        var_fv0 = (*_data_7C4 - player->linkedObject->srt.pitch);
+                        var_fv0 /= 3000.0f;
+                        sp80 = 0.7f + var_fv0;
+                        gDLL_6_AMSFX->vtbl->func_860(temp_s1->unk848, (127.0f * sp80));
+                        if (sp80 > 0.775f) {
+                            sp80 = 0.775f;
+                        } else if (sp80 < 0.625f) {
+                            sp80 = 0.625f;
+                        }
+                        gDLL_6_AMSFX->vtbl->func_954(temp_s1->unk848, sp80);
+                        *_data_7C4 = player->linkedObject->srt.pitch;
+                    }
+                    if (player->id == 0) {
+                        fxTransform.pitch = -0x8000;
+                    }
+                    if (rand_next(0, 2) == 0) {
+                        gDLL_17_partfx->vtbl->spawn(player->linkedObject, PARTICLE_525, &fxTransform, PARTFXFLAG_1, -1, NULL);
+                    }
+                    if (rand_next(0, 2) == 0) {
+                        gDLL_17_partfx->vtbl->spawn(player->linkedObject, PARTICLE_526, &fxTransform, PARTFXFLAG_1, -1, NULL);
+                    }
+                    if (rand_next(0, 2) == 0) {
+                        gDLL_17_partfx->vtbl->spawn(player->linkedObject, PARTICLE_529, &fxTransform, PARTFXFLAG_1, -1, NULL);
+                    }
+                }
+            }
+        }
+        if (temp_s1->unk830 > 0.0f) {
+            func_80025540(player, 0x441, temp_s1->unk830 * 1023.0f);
+        } else {
+            func_80025540(player, 0x440, -temp_s1->unk830 * 1023.0f);
+        }
+        func_80034804(player, 9)[1] = temp_s1->unk82C * -10240.0f;
+        temp_s1->flags &= ~0x400;
+        if ((fsa->target == NULL) && (dll_210_func_1A9D4(player, &temp_s1->aimX, &temp_s1->aimY, &temp_s1->aimZ, temp_s1->unk82C, temp_s1->unk830) != 0)) {
+            temp_s1->flags |= 0x400;
+        }
+        if ((((fsa->target != NULL) && !(temp_s1->unk764 & 0x8000)) || ((fsa->target == NULL) && (temp_s1->unk768 & 0x8000))) && (magic != 0) && (*_bss_220 != 0x5CE)) {
+            gDLL_13_Expgfx->vtbl->func4(player->linkedObject);
+            fxTransform.transl.x = player->linkedObject->srt.transl.x;
+            fxTransform.transl.y = player->linkedObject->srt.transl.y;
+            fxTransform.transl.z = player->linkedObject->srt.transl.z;
+            for (sp9C = 0; sp9C < 0x14; sp9C++) {
+                gDLL_17_partfx->vtbl->spawn(player->linkedObject, PARTICLE_3ED, &fxTransform, PARTFXFLAG_200000 | PARTFXFLAG_1, -1, NULL);
+            }
+            if (fxTransform.scale == 0.0f) {
+                magic = 1;
+            } else if (fxTransform.scale == 1.0f) {
+                magic = 3;
+            } else {
+                magic = 9;
+            }
+            dll_210_add_magic(player, -magic);
+            _bss_224[0](player, fsa, temp_s1->unk830);
+            fsa->animTickDelta = 0.02f;
+            func_80023D30(player, 0x43F, 0.0f, 0);
+            if (temp_s1->unk830 > 0.0f) {
+                func_80025540(player, 0x44B, temp_s1->unk830 * 1023.0f);
+            } else {
+                func_80025540(player, 0x44A, -temp_s1->unk830 * 1023.0f);
+            }
+            if (fxTransform.scale < 2.0f) {
+                _bss_34 = 0;
+            } else {
+                _bss_34 = 2;
+            }
+            if (temp_s1->unk848 != 0) {
+                gDLL_6_AMSFX->vtbl->func_A1C(temp_s1->unk848);
+                temp_s1->unk848 = 0U;
+            }
+            weapon = player->linkedObject;
+            _bss_30 = 0.0f;
+            _bss_20 = 0.0f;
+            _bss_2C = 0.0f;
+            ((DLL_Unknown*)weapon->dll)->vtbl->func[14].withTwoArgs((s32)weapon, 0);
+            temp_s1->flags &= ~0x400;
+        } else if ((temp_s1->unk768 & 0x8000) && (magic != 0) && (*_bss_220 == 0x5CE)) {
+            if (_data_7C0 != 0) {
+                dll_unload(_data_7C0);
+            }
+            _data_7C0 = 0;
+            if (temp_s1->unk848 != 0) {
+                gDLL_6_AMSFX->vtbl->func_A1C(temp_s1->unk848);
+                temp_s1->unk848 = 0U;
+            }
+            for (i = 0; i < 4; i++) {
+                weapon = _bss_210[i];
+                if (weapon != NULL) {
+                    obj_destroy_object(weapon);
+                    _bss_210[i] = 0;
+                }
+            }
+        }
+        break;
+    case 0x43F:
+        if (temp_s1->unk830 > 0.0f) {
+            func_80025540(player, 0x44B, temp_s1->unk830 * 1023.0f);
+        } else {
+            func_80025540(player, 0x44A, -temp_s1->unk830 * 1023.0f);
+        }
+        temp_s1->flags &= ~0x400;
+        if ((fsa->target == NULL) && (dll_210_func_1A9D4(player, &temp_s1->aimX, &temp_s1->aimY, &temp_s1->aimZ, temp_s1->unk82C, temp_s1->unk830) != 0)) {
+            temp_s1->flags |= 0x400;
+        }
+        if (fsa->unk33A != 0) {
+            _bss_34--;
+            if (_bss_34 < 0 || *_bss_220 == 0x777) {
+                _bss_34 = 0;
+                if (fsa->target != NULL) {
+                    return 0x36;
+                }
+                func_80023D30(player, 0x43E, 0.0f, 0);
+                if (temp_s1->unk830 > 0.0f) {
+                    func_80025540(player, 0x441, temp_s1->unk830 * 1023.0f);
+                } else {
+                    func_80025540(player, 0x440, -temp_s1->unk830 * 1023.0f);
+                }
+                fsa->animTickDelta = 0.015f;
+                gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_BA4_Spell_Aim_Hum_Loop, MAX_VOLUME, &temp_s1->unk848, NULL, 0, NULL);
+            } else {
+                fxTransform.transl.x = player->linkedObject->srt.transl.x;
+                fxTransform.transl.y = player->linkedObject->srt.transl.y;
+                fxTransform.transl.z = player->linkedObject->srt.transl.z;
+                for (sp9C = 0; sp9C < 0x14; sp9C++) {
+                    gDLL_17_partfx->vtbl->spawn(player->linkedObject, PARTICLE_3ED, &fxTransform, PARTFXFLAG_200000 | PARTFXFLAG_1, -1, NULL);
+                }
+                _bss_224[0](player, fsa, temp_s1->unk830);
+                fsa->animTickDelta = 0.02f;
+                func_80023D30(player, 0x43F, 0.0f, 0);
+            }
+        }
+        break;
+    default:
+        break;
+    }
+
+    if (fsa->target == NULL && ((temp_s1->flags & 0x400000 && temp_s1->unk766 & 0x4000) || !(temp_s1->flags & 0x401000)) && player->curModAnimId != 0x449) {
+        func_80023D30(player, 0x449, 0.0f, 0);
+        fsa->animTickDelta = 0.04f;
+        temp_v0 = gDLL_2_Camera->vtbl->func3();
+        if ((temp_v0 != 0x54) && (temp_v0 != 0x5E)) {
+            gDLL_2_Camera->vtbl->func6(0x54, 0, 1, 0, NULL, 0x3C, 0xFE);
+        }
+    }
+    if (fsa->target != NULL) {
+        gDLL_18_objfsa->vtbl->func11(player, fsa, arg2, 4);
+    }
+    return 0;
 }

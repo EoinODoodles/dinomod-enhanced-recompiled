@@ -1,4 +1,5 @@
 #include "modding.h"
+#include "recompconfig.h"
 #include "recomputils.h"
 
 #include "game/objects/object.h"
@@ -11,15 +12,18 @@
 
 typedef struct {
     s16 timer;
-    u8 _unk2[2];
-} IceBlast_Data;
+    s16 unused2;
+} Iceblast_Data;
 
 // Fixes the direction of the Ice Blast when used by Sabre (originally by MusicalProgrammer)
+// Also allows the cost of the Ice Blast spell to optionally be lowered, by handling it in the player DLL instead
 RECOMP_PATCH void iceblast_control(Object* self) {
     Object* player;
     Object* weapon;
-    IceBlast_Data* objdata;
+    Iceblast_Data* objdata;
     SRT transform;
+    //@recomp: Ice Blast config
+    int reduceIceBlastCost = recomp_get_config_u32("iceblast_cost");
 
     player = get_player();
     objdata = self->data;
@@ -35,9 +39,9 @@ RECOMP_PATCH void iceblast_control(Object* self) {
     self->srt.roll = weapon->srt.roll;
     self->srt.pitch = weapon->srt.pitch;
     self->srt.yaw = weapon->srt.yaw;
-    objdata->timer -= (s16)gUpdateRateF;
+    objdata->timer -= gUpdateRate;
     if (objdata->timer <= 0) {
-        objdata->timer = 0x1E;
+        objdata->timer = 30;
         self->speed.x = 0.0f; 
         self->speed.y = -5.0f;
         self->speed.z = 0.0f; 
@@ -61,7 +65,11 @@ RECOMP_PATCH void iceblast_control(Object* self) {
         self->srt.transl.x += self->speed.x * gUpdateRateF;
         self->srt.transl.y += self->speed.y * gUpdateRateF;
         self->srt.transl.z += self->speed.z * gUpdateRateF;
-        ((DLL_210_Player*)player->dll)->vtbl->add_magic(player, -1);
+
+        //@recomp: switch for magic cost handling
+        if (!reduceIceBlastCost){
+            ((DLL_210_Player*)player->dll)->vtbl->add_magic(player, -1);
+        }
     }
 
     self->positionMirror2.x = self->srt.transl.x;
