@@ -263,3 +263,40 @@ RECOMP_PATCH GameTextChunk *gametext_get_chunk(u16 chunk) {
 
     return chunkPtr;
 }
+
+/** Fix for English text appearing in non-English languages (originally by MusicalProgrammer) */
+RECOMP_PATCH char *gametext_get_text(u16 chunk, u16 strIndex) {
+    u8 *text;
+    char *str;
+    char *copy;
+    s32 len;
+    s32 i;     
+    s32 k;
+
+    text = mmAlloc(sCurrentBank_Sizes[chunk], ALLOC_TAG_GAME_COL, NULL);
+
+    queue_load_file_region_to_ptr(
+        (void**)text, 
+        GAMETEXT_BIN, 
+        sCurrentBank_Offsets[chunk] * 2 + sCurrentBank_GlobalOffset, //@recomp: calculate offset in same way as "gametext_get_chunk"
+        sCurrentBank_Sizes[chunk]);
+
+    str = (char*)(text + sCurrentBank_StrCounts[chunk] * 2);
+
+    for (i = 0; i != strIndex; i++) {
+        k = 0;
+
+        while (str[k++] != '\0') {}
+
+        str += k;
+    }
+
+    len = strlen(str) + 1;
+
+    copy = mmAlloc(len, ALLOC_TAG_GAME_COL, NULL);
+    bcopy(str, copy, len);
+
+    mmFree(text);
+
+    return copy;
+}
