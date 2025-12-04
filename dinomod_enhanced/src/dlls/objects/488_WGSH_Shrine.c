@@ -12,7 +12,7 @@
 #include "functions.h"
 #include "dll.h"
 
-#include "recomp/dlls/_asm/488_recomp.h"
+#include "recomp/dlls/objects/488_WGSH_Shrine_recomp.h"
 
 typedef struct {
     s16 unk0;

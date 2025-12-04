@@ -8,7 +8,7 @@
 #include "sys/objects.h"
 #include "sys/objtype.h"
 
-#include "recomp/dlls/_asm/2_recomp.h"
+#include "recomp/dlls/engine/2_camera_recomp.h"
 
 typedef void (*func_1548)(s32);
 static func_1548 camcontrol_func_1548; 

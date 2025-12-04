@@ -144,7 +144,7 @@ static void walled_city_modifications(void) {
             setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
         }
 
-        // Add two FXEmit objects to enable turning the moon temple aperture cutscene
+        // Add two FXEmit objects to enable in the moon temple aperture cutscene
         u32 fxEmitSetupSize = mmAlign4(sizeof(FXEmit_Setup));
         u32 addedSize = fxEmitSetupSize * 2;
         u32 newSize = header->objectInstancesFileLength + addedSize;
@@ -350,8 +350,25 @@ static void warlock_mountain_platform_modifications(void) {
     }
 }
 
-REPACKER_ON_LOAD_MODIFICATIONS_CALLBACK void my_repacker_modifications(void) {
+static void dragon_rock_upper_modifications(void) {
+    MapHeader *header = repacker_maps_get(MAP_DRAGON_ROCK_TOP, 0, NULL);
+    void *objects = repacker_maps_get(MAP_DRAGON_ROCK_TOP, 4, NULL);
+
+    ObjSetup *setup = (ObjSetup*)objects;
+
+    for (s32 i = 0; i < header->objectInstanceCount; i++) {
+        // Remove static spawns of DR_EarthWarrior (they were leftover from testing, the one you save in DR lower remains)
+        if (setup->uID == 0x338CB || setup->uID == 0x33984 || setup->uID == 0x406A1) {
+            setup->objId = OBJ_animator;
+        }
+
+        setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
+    }
+}
+
+REPACKER_ON_LOAD_MODIFICATIONS_CALLBACK void dinomod_repacker_modifications(void) {
     walled_city_modifications();
     shrine_fxemit_modifications();
     warlock_mountain_platform_modifications();
+    dragon_rock_upper_modifications();
 }
