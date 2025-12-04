@@ -120,7 +120,7 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
     u32 message;
     f32 var_fs0;
     f32 var_fs1;
-    s32 temp_v0;
+    s32 cameraValue;
 
     messageArgument = NULL;
     while (obj_recv_mesg(player, &message, &sp8C, (void **)&messageArgument)) {
@@ -130,14 +130,16 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                 messageArgument == BIT_Spell_Ice_Blast ||   //@recomp: allow Ice Blast to be picked
                 messageArgument == BIT_Spell_Grenade        //@recomp: allow Grenade to be picked
             ) {
-                if (dll_210_func_24FC(player, fsa) != 0) {
-                    temp_v0 = gDLL_2_Camera->vtbl->func3();
-                    if ((temp_v0 != 0x64) && (temp_v0 != 0x5E)) {
+                //If player is standing/turning/walking, enter aiming state
+                if (dll_210_func_24FC(player, fsa)) {
+                    cameraValue = gDLL_2_Camera->vtbl->func3();
+                    if ((cameraValue != 100) && (cameraValue != 94)) {
                         gDLL_2_Camera->vtbl->func6(0x64, 1, 0, 0, NULL, 0x3C, 0xFF);
-                        gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 0x3A);
+                        gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 58);
                         arg1->flags |= 0x400000;
                     }
-                } else {
+                //If not in aiming state, and not in a state that's allowed to lead into the aiming state, reject spell selection
+                } else if (fsa->animState != 58){
                     gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
                     break; //@recomp;
                 }
