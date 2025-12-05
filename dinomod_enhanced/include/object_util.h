@@ -4,4 +4,4 @@
 
 #include "common.h"
 
-Object* find_object_by_uID(s32 uID);
+static f32 dp_angle_to_degrees(s16 dpAngle);

@@ -2,21 +2,7 @@
 
 #include "object_util.h"
 
-Object* find_object_by_uID(s32 uID){
-    Object** objects;
-    s32 numObjects;
-    s32 i;
-
-    objects = get_world_objects(&i, &numObjects);
-    for (i = 0; i < numObjects; i++){
-        if (!objects[i] || !objects[i]->setup){
-            continue;
-        }
-
-        if (objects[i]->setup->uID == uID){
-            return objects[i];
-        }
-    }
-
-    return NULL;
+/** Convert from Dinosaur Planet's -0x8000 to 0x8000 angle system to degrees (-180 to 180) */
+static f32 dp_angle_to_degrees(s16 dpAngle){
+    return ((f32)dpAngle / 0x8000)*180;
 }

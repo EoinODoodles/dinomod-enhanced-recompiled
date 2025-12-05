@@ -309,14 +309,14 @@ static void WMPlatform_setup_custom(Object* self, GenProps_Setup* objSetup, s32 
             objData->pEndY = platformKrystalEndY;
             objData->pEndZ = platformKrystalEndZ;
             objData->isKrystalsPlatform = TRUE;
-            objData->crystalSwitch = find_object_by_uID(0x2abb);
+            objData->crystalSwitch = func_800211B4(0x2abb);
             break;
         case BIT_363: //Sabre's platform
             objData->pEndX = platformSabreEndX;
             objData->pEndY = platformSabreEndY;
             objData->pEndZ = platformSabreEndZ;
             objData->isKrystalsPlatform = FALSE;
-            objData->crystalSwitch = find_object_by_uID(0x37);
+            objData->crystalSwitch = func_800211B4(0x37);
             break;
     }
     objData->pEndYaw = 0;
