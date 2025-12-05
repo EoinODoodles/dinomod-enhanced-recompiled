@@ -9,6 +9,10 @@ Object* find_object_by_uID(s32 uID){
 
     objects = get_world_objects(&i, &numObjects);
     for (i = 0; i < numObjects; i++){
+        if (!objects[i] || !objects[i]->setup){
+            continue;
+        }
+
         if (objects[i]->setup->uID == uID){
             return objects[i];
         }
