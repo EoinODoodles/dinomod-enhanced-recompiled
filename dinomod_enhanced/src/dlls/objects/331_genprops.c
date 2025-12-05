@@ -283,13 +283,6 @@ static void WMPlatform_setup_custom(Object* self, GenProps_Setup* objSetup, s32 
     Object* player = get_player();
     s8 wmAct;
 
-    //Edit object's load distances
-    //TODO: edit this via the MAPS file asset instead
-    objSetup->base.setupExclusions1 = 0;
-    objSetup->base.setupExclusions2 = 0;
-    objSetup->base.loadDistance = 0x90;
-    objSetup->base.fadeDistance = 0x90;
-
     self->srt.yaw = platformStartYaw;
     self->srt.pitch = objSetup->pitch;
     objData->gamebitA = objSetup->gamebitA;
