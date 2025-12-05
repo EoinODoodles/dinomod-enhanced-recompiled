@@ -9,6 +9,7 @@
 #include "sys/objanim.h"
 #include "sys/objtype.h"
 #include "sys/objmsg.h"
+#include "dll.h"
 
 #include "dlls/objects/common/vehicle.h"
 #include "dlls/objects/210_player.h"
@@ -1554,6 +1555,10 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                 break;
             case 25:
                 dll_210_func_9F1C(arg0, 1);
+                break;
+            // @recomp: New SwapCharacter command (original patch by MusicalProgrammer)
+            case 5:
+                gDLL_29_Gplay->vtbl->set_playerno(gDLL_29_Gplay->vtbl->get_playerno() ^ 1);
                 break;
             }
         }
