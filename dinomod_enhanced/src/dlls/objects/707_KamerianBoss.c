@@ -174,7 +174,10 @@ RECOMP_PATCH void KamerianBoss_control(Object *self) {
     objdata = self->data;
     if (objdata->player == NULL) {
         objdata->player = get_player();
-        objdata->playerStartY = objdata->player->srt.transl.y;
+        // @recomp: The player's initial y coord is not reliable if they noclip into the room or somehow load
+        //          the area without being on the floor. Use our position instead for a reference point of the floor. 
+        //objdata->playerStartY = objdata->player->srt.transl.y;
+        objdata->playerStartY = self->srt.transl.y + 52;
     }
     // @recomp: Disable when dead
     if (objdata->hatchOpened != 0 && objdata->health <= 0) {
@@ -459,37 +462,36 @@ RECOMP_PATCH void KamerianBoss_print(Object *self, Gfx **gdl, Mtx **mtxs, Vertex
     objdata = self->data;
     // @recomp: Change to floating point division to prevent any damage rounding immedately to zero.
     // @recomp: Scale to the actual texture width.
-    hpBarWidth = ((f32)objdata->health / 10.0f) * sHealthBarTextures[0]->width;
+    hpBarWidth = ((f32)objdata->health / 10.0f) * (sHealthBarTextures[0]->width - 18);
     if ((visibility != 0) && (self->unkDC == 0)) {
         // Draw self
         draw_object(self, gdl, mtxs, vtxs, pols, 1.0f);
         // Draw health bar
-        if (sHealthBarAlpha != 0) {
-            // @recomp: Adjust size, scale, and change color to red.
+        if (sHealthBarAlpha != 0 && objdata->health > 0) {
+            // @recomp: New, but still kinda jank, health bar
             func_800390A4(gdl, &_bss_8[0], 
                 /*x*/96.0f, 
                 /*y*/24.0f, 
-                /*width*/(f32) hpBarWidth - 2, 
-                /*height*/sHealthBarTextures[0]->height, 
-                /*s*/0, 
-                /*t*/0, 
-                /*xScale*/(128.0f / sHealthBarTextures[0]->width), 
+                /*width*/(f32) hpBarWidth, 
+                /*height*/sHealthBarTextures[0]->height - 8, 
+                /*s*/24 << 4, 
+                /*t*/8 << 4, 
+                /*xScale*/(128.0f / (sHealthBarTextures[0]->width - 18)), 
                 /*yScale*/1.0f, 
                 /*color*/0xFF000000 | (sHealthBarAlpha & 0xFF), 
                 /*flags*/0x4002);
-            
-            // @recomp: Remove "background"
-            // func_800390A4(gdl, &_bss_8[1], 
-            //     /*x*/(f32) ((hpBarWidth * 4) + 96), 
-            //     /*y*/24.0f, 
-            //     /*width*/(f32) (32 - hpBarWidth), 
-            //     /*height*/10.0f, 
-            //     /*s*/hpBarWidth * 32, 
-            //     /*t*/0, 
-            //     /*xScale*/4.0f, 
-            //     /*yScale*/1.0f, 
-            //     /*color*/sHealthBarAlpha - 256, 
-            //     /*flags*/0x4002);
+
+            func_800390A4(gdl, &_bss_8[0], 
+                /*x*/96.0f + ((hpBarWidth) * (128.0f / (sHealthBarTextures[0]->width - 18))), 
+                /*y*/24.0f, 
+                /*width*/(f32) ((sHealthBarTextures[0]->width - 18) - hpBarWidth), 
+                /*height*/sHealthBarTextures[0]->height - 8, 
+                /*s*/24 << 4, 
+                /*t*/8 << 4, 
+                /*xScale*/(128.0f / (sHealthBarTextures[0]->width - 18)), 
+                /*yScale*/1.0f, 
+                /*color*/0x330000FF, 
+                /*flags*/0x4002);
         }
         // Get attachment positions
         i = 15;
