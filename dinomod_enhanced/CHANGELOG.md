@@ -2,6 +2,7 @@
 - Ported most patches from the January 26th, 2025 build of Dinomod Enhanced, including *all* progression-related patches.
 - In addition, adds the following new patches:
     - Added a fade-to-black when leaving the shop.
+    - Added an unused cutscene when Sabre leaves the shop (found by jeebs2kx).
     - Several `KT_Rex` improvements (including new optional Enhanced mode that adds dynamic music and slightly new behavior).
     - Several `BWlog` improvements (restored pitch tilt, should no longer crash in any scenario).
     - The speed of moving between menu options when holding down a direction input is now independent of framerate.
@@ -16,6 +17,10 @@
     - `GPSH_flybaddie` now fires its intended projectile.
     - Fixed issue where anim object seq slots would not be freed if an object tried to run a sequence that didn't exist, eventually preventing any sequence from playing.
     - Several `WM_Platform` improvements.
-    - Ice Blast Spell now costs less magic.
+    - Ice Blast Spell's debug cubes are hidden, it optionally costs less magic, and fixed an issue where it continued firing invisibly after running out of magic.
+    - Optional quality-of-life patches for Garunda Te's FrostWeeds gameplay.
+    - The UI's Scarab counter now only appears after Scarabs have first been collected.
+    - Prevent a crash when small baskets unload while carried by the player.
+    - Krazoa Spirits' unused trail texture animation is now applied.
     - Static `DR_EarthWarrior` spawns in Dragon Rock Top are removed (these were leftover for testing).
     - `KamerianBoss` has a slightly new health bar.
