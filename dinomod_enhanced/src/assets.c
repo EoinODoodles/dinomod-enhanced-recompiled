@@ -352,9 +352,34 @@ static void dragon_rock_upper_modifications(void) {
     }
 }
 
+/** Change the fade settings of the GP_ShrinePillar so they're visible across Golden Plains 
+  * (they're fairly low-poly, should be grand even on N64!) */
+static void golden_plains_modifications(void) {
+    u32 mapID = MAP_GOLDEN_PLAINS;
+
+    // MAPS.bin
+    {
+        MapHeader *header = repacker_maps_get(mapID, 0, NULL);
+        void *objects = repacker_maps_get(mapID, 4, NULL);
+
+        ObjSetup *setup = (ObjSetup*)objects;
+
+        for (s32 i = 0; i < header->objectInstanceCount; i++) {
+            if (setup->objId == OBJ_GP_PillarDoor){
+                setup->fadeFlags = OBJSETUP_FADE_DISABLE;
+            } else if (setup->objId == OBJ_GP_ShrinePillar) {
+                setup->fadeFlags = OBJSETUP_FADE_DISABLE;
+            }            
+
+            setup = objsetup_next(setup);
+        }
+    }
+}
+
 REPACKER_ON_LOAD_MODIFICATIONS_CALLBACK void dinomod_repacker_modifications(void) {
     walled_city_modifications();
     shrine_fxemit_modifications();
     warlock_mountain_platform_modifications();
     dragon_rock_upper_modifications();
+    golden_plains_modifications();
 }
