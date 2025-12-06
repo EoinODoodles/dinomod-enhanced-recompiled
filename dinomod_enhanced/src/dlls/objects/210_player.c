@@ -2015,3 +2015,30 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     }
     return 0;
 }
+
+typedef struct {
+    s16 timer;
+} Iceblast_Data;
+
+/** Delete Ice Blast Spell objects when magic runs out while still holding down the spell firing button 
+  * (there was a bug where the Ice Blast objects persist invisibly, still activating collision detection) */
+RECOMP_HOOK_DLL(dll_210_control) void stopIceBlastOnDeplete(Object* self) {
+    Player_Data *objData;
+    Iceblast_Data *iceblastData;
+
+    //Check if out of magic
+    if (((DLL_210_Player*)self->dll)->vtbl->get_magic(self) > 0){
+        return;
+    }
+
+    //Check if any Ice Blast objects exist, and destroy them when they try to recycle themselves
+    for (u8 i = 0; i < 3; i++) {
+        if (_bss_210[i] && _bss_210[i]->id == OBJ_iceblast) {
+            iceblastData = _bss_210[i]->data;
+            if (iceblastData->timer == 0){
+                obj_destroy_object(_bss_210[i]);
+                _bss_210[i] = NULL;
+            }
+        }
+    }
+}

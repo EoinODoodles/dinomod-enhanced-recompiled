@@ -2,10 +2,7 @@
 #include "recompconfig.h"
 #include "recomputils.h"
 
-#include "game/objects/object.h"
-#include "game/objects/object_id.h"
-#include "sys/main.h"
-#include "sys/objects.h"
+#include "common.h"
 #include "dlls/objects/210_player.h"
 
 #include "recomp/dlls/objects/277_iceblast_recomp.h"
@@ -22,7 +19,8 @@ RECOMP_PATCH void iceblast_control(Object* self) {
     Object* weapon;
     Iceblast_Data* objdata;
     SRT transform;
-    //@recomp: Ice Blast config
+    //@recomp
+    Player_Data* playerData;
     int reduceIceBlastCost = recomp_get_config_u32("iceblast_cost");
 
     player = get_player();
@@ -41,6 +39,15 @@ RECOMP_PATCH void iceblast_control(Object* self) {
     self->srt.yaw = weapon->srt.yaw;
     objdata->timer -= gUpdateRate;
     if (objdata->timer <= 0) {
+        //Don't recycle self when player's magic runs out
+        if (player){
+            playerData = player->data;
+            if (playerData && playerData->stats && playerData->stats->magic == 0){
+                objdata->timer = 0;
+                return;
+            }
+        }
+
         objdata->timer = 30;
         self->speed.x = 0.0f; 
         self->speed.y = -5.0f;
