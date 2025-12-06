@@ -1,0 +1,9 @@
+{
+  "name": "DinomodEnhanced",
+  "description": "A work-in-progress mod porting over Dinomod Enhanced's ROM fixes to recomp.",
+  "version_number": "0.8.0",
+  "website_url": "https://github.com/EoinODoodles/dinomod-enhanced-recompiled",
+  "dependencies": [
+    "Shinx121-AssetRepacker-0.1.0"
+  ]
+}

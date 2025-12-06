@@ -1,0 +1,21 @@
+## v0.8.0
+- Ported most patches from the January 26th, 2025 build of Dinomod Enhanced, including *all* progression-related patches.
+- In addition, adds the following new patches:
+    - Added a fade-to-black when leaving the shop.
+    - Several `KT_Rex` improvements (including new optional Enhanced mode that adds dynamic music and slightly new behavior).
+    - Several `BWlog` improvements (restored pitch tilt, should no longer crash in any scenario).
+    - The speed of moving between menu options when holding down a direction input is now independent of framerate.
+    - `IMSnowBike` now behaves accurately at 30 Hz and 60 Hz.
+    - Fix `Lunaimar` crash when Kyte is unloaded.
+    - Restored Walled City's moon temple aperture gameplay.
+    - Fixed spirit particle effect for Sabre's pendant.
+    - Sabre no longer voids out sometimes at the end of the Galadon defeat/DIM exit cutscene.
+    - Character blinking is now framerate independent.
+    - `FXEmit` no longer flashes the default particle on the first frame after loading.
+    - The `BWlog` given by the LightFoot village totem puzzle should now work reliably.
+    - `GPSH_flybaddie` now fires its intended projectile.
+    - Fixed issue where anim object seq slots would not be freed if an object tried to run a sequence that didn't exist, eventually preventing any sequence from playing.
+    - Several `WM_Platform` improvements.
+    - Ice Blast Spell now costs less magic.
+    - Static `DR_EarthWarrior` spawns in Dragon Rock Top are removed (these were leftover for testing).
+    - `KamerianBoss` has a slightly new health bar.
