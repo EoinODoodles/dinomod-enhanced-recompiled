@@ -37,7 +37,7 @@ extern GameTextChunk *bss_14;
 extern Texture *bss_18;
 extern Texture *bss_1C;
 
-static char dinomod_enhanced_message[] = "(Dinomod Enhanced - 26th January 2025)";
+static char dinomod_enhanced_message[] = "(Dinomod Enhanced: Recompiled - v0.8.0)";
 
 // Repositions the N64 and text (originally by MusicalProgrammer)
 RECOMP_PATCH void dll_60_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
