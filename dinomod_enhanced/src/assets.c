@@ -1,5 +1,6 @@
 #include "recompconfig.h"
 #include "recomputils.h"
+#include "object_util.h"
 
 #include "PR/ultratypes.h"
 #include "game/objects/object.h"
@@ -141,7 +142,7 @@ static void walled_city_modifications(void) {
                 moonAperture->unk20 = BIT_ALWAYS_1;
             }
 
-            setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
+            setup = objsetup_next(setup);
         }
 
         // Add two FXEmit objects to enable in the moon temple aperture cutscene
@@ -150,19 +151,10 @@ static void walled_city_modifications(void) {
         u32 newSize = header->objectInstancesFileLength + addedSize;
         objects = repacker_maps_resize(MAP_WALLED_CITY, 4, newSize);
         setup = (ObjSetup*)objects;
-        ObjSetup *lastGroup7 = NULL;
-
-        for (s32 i = 0; i < header->objectInstanceCount; i++) {
-            if (setup->loadFlags & OBJSETUP_LOAD_IN_MAP_OBJGROUP && setup->mapObjGroup == 7) {
-                lastGroup7 = setup;
-            } else if (lastGroup7 != NULL) {
-                break;
-            }
-
-            setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
-        }
+        ObjSetup *lastGroup7 = maps_find_object_group_endpoint(header, setup, 7);
 
         if (lastGroup7 != NULL) {
+            setup = lastGroup7;
             bcopy((void*)setup, (void*)((u32)setup + addedSize), 
                 header->objectInstancesFileLength - ((u32)setup - (u32)objects));
         } else {
@@ -219,7 +211,7 @@ static void walled_city_modifications(void) {
             fxemit->unk29 = 0;
             fxemit->unk2A = 0;
 
-            setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
+            setup = objsetup_next(setup);
         }
 
         header->objectInstancesFileLength = newSize;
@@ -248,7 +240,7 @@ static void shrine_fxemit_modifications(void) {
                 }
             }
 
-            setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
+            setup = objsetup_next(setup);
         }
     }
 }
@@ -270,22 +262,16 @@ static void warlock_mountain_platform_modifications(void) {
 
         ObjSetup *setup = (ObjSetup*)objects;
 
-        //Get the MAPS file for editing, and HitAnimator struct details
+        //Resize the MAPS file, adding space for two HitAnimators
         u32 hitAnimatorSetupSize = mmAlign4(sizeof(HitAnimator_Setup));
         u32 addedSize = hitAnimatorSetupSize * 2;
         u32 newSize = header->objectInstancesFileLength + addedSize;
         objects = repacker_maps_resize(mapID, 4, newSize);
         setup = (ObjSetup*)objects;
-        ObjSetup *endOfGenericGroup = NULL;
 
+        
         // Find the end of the map's generic group
-        for (s32 i = 0; i < header->objectInstanceCount; i++) {
-            setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
-            if (setup->loadFlags & OBJSETUP_LOAD_IN_MAP_OBJGROUP && setup->mapObjGroup != 0) {
-                endOfGenericGroup = setup;
-                break;
-            }
-        }
+        ObjSetup *endOfGenericGroup = maps_find_generic_group_endpoint(header, setup);
 
         //Move subsequent objects to make enough room for the new ones
         if (endOfGenericGroup != NULL) {
@@ -328,7 +314,7 @@ static void warlock_mountain_platform_modifications(void) {
             hitAnimator->mode = HitAnimator_Mode_HITS | HitAnimator_Mode_Invert; //HITS line switched off when gamebit set
             hitAnimator->hitsAnimatorID = 8; //tag for the ledge grab line
 
-            setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
+            setup = objsetup_next(setup);
         }
 
         header->objectInstancesFileLength = newSize;
@@ -362,7 +348,7 @@ static void dragon_rock_upper_modifications(void) {
             setup->objId = OBJ_animator;
         }
 
-        setup = (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
+        setup = objsetup_next(setup);
     }
 }
 
