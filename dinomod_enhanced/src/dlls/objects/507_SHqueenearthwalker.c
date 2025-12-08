@@ -1,26 +1,89 @@
 #include "modding.h"
+#include "recomputils.h"
 
-#include "PR/ultratypes.h"
-#include "PR/gbi.h"
-#include "game/gamebits.h"
-#include "dlls/objects/214_animobj.h"
-#include "game/objects/object.h"
-#include "sys/joypad.h"
-#include "sys/main.h"
-#include "sys/map.h"
+#include "common.h"
 #include "sys/objanim.h"
-#include "functions.h"
-#include "types.h"
-#include "dll.h"
 
 #include "recomp/dlls/objects/507_SHqueenearthwalker_recomp.h"
+
+/** For use with dll_1_func_F24 */
+typedef enum {
+    PAGE_1 = 1,
+    PAGE_Sidekick = 2,
+    PAGE_Inventory = 3,
+    PAGE_Spells = 4,
+    PAGE_5 = 5,
+    PAGE_Foodbag = 6,
+} Cmdmenu_Pages;
 
 typedef struct {
     u8 questProgress;
     u8 eatenWhiteMushrooms;
     u8 unk2;
     u8 unk3;
+    /** RECOMP */
+    u8 wasMenuOpen;
 } SHqueenearthwalker_Data;
+
+/** @recomp: for checking which White Mushrooms are collected */
+static s16 mushroomCollectionGamebits[10] = {
+    BIT_13,
+    BIT_F4,
+    BIT_F5,
+    BIT_15C,
+    BIT_177,
+    BIT_460,
+    BIT_461,
+    BIT_462,
+    BIT_463,
+    BIT_464
+};
+
+/** Allows game progress to continue if there's a desync between the White Mushroom collection gamebits
+  * and the White Mushroom inventory gamebit (a commonly-reported bug) */
+static void handle_mushroom_gamebit_contradictions(){
+    u8 mushroomsCollected = 0;
+    u8 mushroomsGiven;
+    u8 mushroomsHeld;
+    u8 i;
+
+    //Check how many White Mushrooms have been collected (and no longer appear in the world)
+    for (i = 0; i < ARRAYCOUNT(mushroomCollectionGamebits); i++){
+        if (main_get_bits(mushroomCollectionGamebits[i])){
+            mushroomsCollected++;
+        }
+    }
+
+    //Get inventory mushrooms count and Queen's received mushroom count
+    mushroomsHeld = main_get_bits(BIT_Inventory_White_Mushrooms);
+    mushroomsGiven = main_get_bits(BIT_SH_Queen_EW_White_Mushrooms_Eaten);
+
+    if (mushroomsHeld > ARRAYCOUNT(mushroomCollectionGamebits)){
+        mushroomsHeld = ARRAYCOUNT(mushroomCollectionGamebits);
+    }
+    if (mushroomsGiven > ARRAYCOUNT(mushroomCollectionGamebits)){
+        mushroomsGiven = ARRAYCOUNT(mushroomCollectionGamebits);
+    }
+
+    //Handle contradictions
+    if (mushroomsCollected != (mushroomsHeld + mushroomsGiven)){
+        recomp_eprintf("Contradiction found (White Mushrooms)!\n");
+        recomp_eprintf("Total collected: %d\n", mushroomsCollected);
+        recomp_eprintf("Total held: %d\n", mushroomsHeld);
+        recomp_eprintf("Total given: %d\n", mushroomsGiven);
+        recomp_eprintf("...fixing:\n");
+
+        main_set_bits(BIT_Inventory_White_Mushrooms, mushroomsCollected - mushroomsGiven);
+        main_set_bits(BIT_SH_Queen_EW_White_Mushrooms_Eaten, mushroomsGiven);
+
+        recomp_eprintf("Total collected: %d\n", mushroomsCollected);
+        recomp_eprintf("Total held: %d\n", mushroomsCollected - mushroomsGiven);
+        recomp_eprintf("Total given: %d\n", mushroomsGiven);
+        return;
+    }
+
+    recomp_eprintf("No contradictions found for White Mushrooms!\n");
+}
 
 RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
     SHqueenearthwalker_Data* objdata;
@@ -47,7 +110,19 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
         }
         break;
     case 3:
+        //If arrow visible above Queen
         if (self->unkAF & 4) {
+            //@recomp: when inventory opened, handle White Mushroom contradictions
+            if (gDLL_1_UI->vtbl->func_F24() == PAGE_Inventory){
+                if (!objdata->wasMenuOpen){
+                    recomp_eprintf("CHECKING MUSHROOMS!\n");
+                    handle_mushroom_gamebit_contradictions();
+                }
+                objdata->wasMenuOpen = TRUE;
+            } else {
+                objdata->wasMenuOpen = FALSE;
+            }
+
             if (gDLL_1_UI->vtbl->func_DF4(BIT_Inventory_White_Mushrooms) != 0) {
                 joy_set_button_mask(0, 0x8000);
                 objdata->eatenWhiteMushrooms += main_get_bits(BIT_Inventory_White_Mushrooms);
@@ -86,4 +161,8 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
     if (prevQuestProgress != objdata->questProgress) {
         main_set_bits(BIT_SH_Queen_EW_Quest_Progress, objdata->questProgress);
     }
+}
+
+RECOMP_PATCH u32 SHqueenearthwalker_get_data_size(Object *self, u32 a1) {
+    return sizeof(SHqueenearthwalker_Data);
 }
