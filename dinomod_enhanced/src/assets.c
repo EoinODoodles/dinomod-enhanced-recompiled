@@ -1,6 +1,5 @@
 #include "recompconfig.h"
 #include "recomputils.h"
-#include "object_util.h"
 
 #include "PR/ultratypes.h"
 #include "game/objects/object.h"
@@ -15,6 +14,8 @@
 #include "mod_common.h"
 #include "asset_repacker.h"
 #include "common_objsetups.h"
+#include "object_util.h"
+#include "custom_uids.h"
 
 typedef enum {
     GAMETEXT_VANILLA,
@@ -185,7 +186,7 @@ static void walled_city_modifications(void) {
                     fxemit->unk1A = 0x741; // Circular blue glow inside of aperture
                     fxemit->unk1C = -5;
                     fxemit->unk27 = 0;
-                    fxemit->base.uID = 0x41937;
+                    fxemit->base.uID = UID_WC_Moon_Temple_Aperture_FXEmit_Glow;
                     break;
                 case 1:
                     fxemit->base.x += -0.266602f;
@@ -194,7 +195,7 @@ static void walled_city_modifications(void) {
                     fxemit->unk1A = 0x25A; // Blue beams
                     fxemit->unk1C = -1;
                     fxemit->unk27 = 0;
-                    fxemit->base.uID = 0x41939;
+                    fxemit->base.uID = UID_WC_Moon_Temple_Aperture_FXEmit_Beam;
                     break;
             }
 
@@ -298,7 +299,7 @@ static void warlock_mountain_platform_modifications(void) {
                     hitAnimator->base.x = 1369.1f;
                     hitAnimator->base.y = 472.0f;
                     hitAnimator->base.z = 2692.4f;
-                    hitAnimator->base.uID = 0xbe05001;
+                    hitAnimator->base.uID = UID_WM_Lift_HitAnimator_Krystal;
                     hitAnimator->gamebitActivate = LIFT_NEAR_TOP_GAMEBIT_KRYSTAL;
                     break;
                 case 1:
@@ -306,7 +307,7 @@ static void warlock_mountain_platform_modifications(void) {
                     hitAnimator->base.x = 1186.8f;
                     hitAnimator->base.y = 472.0f;
                     hitAnimator->base.z = 1793.0f;
-                    hitAnimator->base.uID = 0xbe05002;
+                    hitAnimator->base.uID = UID_WM_Lift_HitAnimator_Sabre;
                     hitAnimator->gamebitActivate = LIFT_NEAR_TOP_GAMEBIT_SABRE;
                     break;
             }
@@ -376,10 +377,104 @@ static void golden_plains_modifications(void) {
     }
 }
 
+/** Adds jetbike fuel refills around Golden Plains, only showing up in Act 3 */
+static void golden_plains_fuel_modifications(void) {
+    u32 mapID = MAP_GOLDEN_PLAINS;
+
+    typedef struct {
+    /*00*/ ObjSetup base;
+    /*18*/ u8 _unk18;
+    /*19*/ u8 _unk19;
+    /*1A*/ s16 unk1A;
+    /*1C*/ u8 _unk1C;
+    /*1D*/ u8 _unk1D;
+    /*1E*/ s16 gamebit;
+    } CRFuelTank_Setup;
+
+    typedef struct {
+        u32 uID;
+        Vec3f coords;
+    } CustomFuel;
+
+    CustomFuel fuelData[20] = {
+        {UID_GP_FuelTank_00, 3638.878, 278.484, 2340.379},
+        {UID_GP_FuelTank_01, 4026.011, 427.872, 1896.975},
+        {UID_GP_FuelTank_02, 4305.506, 450.573, 1843.973},
+        {UID_GP_FuelTank_03, 4555.718, 442.071, 1663.649},
+        {UID_GP_FuelTank_04, 4683.737, 335.360, 2100.510},
+        {UID_GP_FuelTank_05, 4756.052, 316.182, 766.135},
+        {UID_GP_FuelTank_06, 4507.222, 295.304, 598.087},
+        {UID_GP_FuelTank_07, 3078.822, 304.259, 357.186},
+        {UID_GP_FuelTank_08, 2208.539, 310.000, 588.102},
+        {UID_GP_FuelTank_09, 2275.768, 257.000, 1167.243},
+        {UID_GP_FuelTank_10, 2678.663, 246.000, 1656.635},
+        {UID_GP_FuelTank_11, 2935.286, 190.358, 2138.605},
+        {UID_GP_FuelTank_12, 3249.799, 321.815, 2329.280},
+        {UID_GP_FuelTank_13, 2738.000, 362.000, 1538.000},
+        {UID_GP_FuelTank_14, 2586.000, 388.000, 1065.000},
+        {UID_GP_FuelTank_15, 2604.000, 365.000, 640.000},
+        {UID_GP_FuelTank_16, 2391.022, 310.655, 2007.850},
+        {UID_GP_FuelTank_17, 2391.022, 310.655, 2007.850},
+        {UID_GP_FuelTank_18, 2086.857, 120.619, 2888.839},
+        {UID_GP_FuelTank_19, 2681.164, 212.499, 2171.146},
+    };
+    u8 count = ARRAYCOUNT(fuelData);
+
+    {
+        MapHeader *header = repacker_maps_get(mapID, 0, NULL);
+        void *objects = repacker_maps_get(mapID, 4, NULL);
+
+        ObjSetup *setup = (ObjSetup*)objects;
+
+        //Resize the MAPS file, adding space for the fuel objects
+        u32 fuelSetupSize = mmAlign4(sizeof(CRFuelTank_Setup));
+        u32 addedSize = fuelSetupSize * count;
+        u32 newSize = header->objectInstancesFileLength + addedSize;
+        objects = repacker_maps_resize(mapID, 4, newSize);
+        setup = (ObjSetup*)objects;
+        
+        // Find the end of the map's generic group
+        ObjSetup *endOfGenericGroup = maps_find_generic_group_endpoint(header, setup);
+
+        //Move subsequent objects to make enough room for the new ones
+        if (endOfGenericGroup != NULL) {
+            bcopy((void*)setup, (void*)((u32)setup + addedSize), 
+                header->objectInstancesFileLength - ((u32)setup - (u32)objects));
+        } else {
+            recomp_error_message_box("GP: Failed to find end of generic group!");
+        }
+
+        //Insert the new objects
+        for (s32 i = 0; i < count; i++) {
+            CRFuelTank_Setup *fuel = (CRFuelTank_Setup*)setup;
+
+            fuel->base.objId = OBJ_CRFuelTank;
+            fuel->base.quarterSize = fuelSetupSize >> 2;
+            fuel->base.setupExclusions1 = ~MAP_ACT(3);
+            fuel->base.loadFlags = OBJSETUP_LOAD_FLAG4;
+            fuel->base.fadeFlags = OBJSETUP_FADE_FLAG4;
+            fuel->base.loadDistance = 140;
+            fuel->base.fadeDistance = 140;
+            fuel->base.x = fuelData[i].coords.x;
+            fuel->base.y = fuelData[i].coords.y;
+            fuel->base.z = fuelData[i].coords.z;
+            fuel->base.uID = fuelData[i].uID;
+            fuel->unk1A = 0x12C;
+            fuel->gamebit = NO_GAMEBIT;
+
+            setup = objsetup_next(setup);
+        }
+
+        header->objectInstancesFileLength = newSize;
+        header->objectInstanceCount += count;
+    }
+}
+
 REPACKER_ON_LOAD_MODIFICATIONS_CALLBACK void dinomod_repacker_modifications(void) {
     walled_city_modifications();
     shrine_fxemit_modifications();
     warlock_mountain_platform_modifications();
     dragon_rock_upper_modifications();
     golden_plains_modifications();
+    // golden_plains_fuel_modifications();
 }
