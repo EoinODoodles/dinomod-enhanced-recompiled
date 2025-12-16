@@ -548,8 +548,10 @@ RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2
     } while (var_s2 != 0);
 }
 
-/** Fix modanim offset underflow, a glitch where the player rapidly cycles 
-  * between different animations (originally by Banjeoin) */
+/** 
+ - Fix modanim offset underflow bug, where player rapidly switched animations (originally by Banjeoin)
+ - Fix bug where player continued walking with their weapon arm raised after stowing weapon
+ */
 RECOMP_PATCH s32 dll_210_func_AE34(Object* player, ObjFSA_Data* fsa, f32 arg2) {
     f32 temp_fv0;
     f32 temp_fv1;
@@ -557,7 +559,7 @@ RECOMP_PATCH s32 dll_210_func_AE34(Object* player, ObjFSA_Data* fsa, f32 arg2) {
     f32 animProgress;
     f32 var_fa0;
     s32 temp_t1;
-    s32 temp_v0;
+    s32 nextAState;
     s16 *modAnimIds;
     Player_Data *objdata;
     s32 var_a1;
@@ -577,24 +579,30 @@ RECOMP_PATCH s32 dll_210_func_AE34(Object* player, ObjFSA_Data* fsa, f32 arg2) {
         if (objdata->unk870 == 0){
             return 8;
         }
-    } else if (objdata->unk8A8 != 0){
+    } else if (objdata->unk8A8){
+        //Change walk modanim list to walking with weapon drawn
         objdata->unk3C4 = &_data_6F8;
         objdata->modAnims = _data_C8;
+        //@recomp: apply the animation immediately (instead of next time the walk state is entered)
+        func_80023D30(player, objdata->modAnims[objdata->unk8C0], player->animProgress, 0);
     } else {
+        //Change walk modanim list to walking without weapon drawn
         objdata->unk3C4 = &_data_6F8;
         objdata->modAnims = _data_98;
+        //@recomp: apply the animation immediately (instead of next time the walk state is entered)
+        func_80023D30(player, objdata->modAnims[objdata->unk8C0], player->animProgress, 0);
     }
     
     objdata->unk8BD &= ~1;
     fsa->flags |= 0x800000;
     if (!objdata->unk868){
-        temp_v0 = dll_210_func_BA38(player, fsa, arg2);
-        if (temp_v0){
-            return temp_v0;
+        nextAState = dll_210_func_BA38(player, fsa, arg2);
+        if (nextAState){
+            return nextAState;
         }
-        temp_v0 = dll_210_func_C1F4(player, fsa, arg2);
-        if (temp_v0){
-            return temp_v0;
+        nextAState = dll_210_func_C1F4(player, fsa, arg2);
+        if (nextAState){
+            return nextAState;
         }
         if ((fsa->unk4.underwaterDist > 25.0f) && (fsa->unk4.floorDist < 100.0f)){
             return 0x21;
