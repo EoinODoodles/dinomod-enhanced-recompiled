@@ -744,6 +744,57 @@ RECOMP_HOOK_DLL(dll_210_control) void playerModAnimOffsetUnderflowFix(Object* se
     }
 }
 
+/** Fix bug where holdable objects would vanish when picked up off mobile maps, e.g. barrels from minecarts
+  * (originally by MusicalProgrammer, but relocated to this function)
+*/
+RECOMP_PATCH s32 dll_210_func_B4E0(Object* player, ObjFSA_Data* fsa, f32 deltaTime) {
+    Player_Data* objdata;
+    Object* heldObject;
+
+    objdata = player->data;
+    fsa->unk27C = 0.0f;
+    objdata->unk8BD |= 2;
+    objdata->unk8A9 = 1;
+
+    //Check if carry anim has started
+    if (player->curModAnimId == 5) {
+        fsa->animTickDelta = 0.02f;
+        fsa->unk278 = 0.0f;
+        heldObject = objdata->unk868;
+        if (heldObject) {
+            if (player->animProgress > 0.5f) {
+                //@recomp: unparent holdable object if it's attached to a mobile map
+                if (heldObject->parent){
+                    heldObject->parent = NULL;
+                    heldObject->srt.transl = player->positionMirror;
+                }
+                heldObject->unkE0 = 1;
+            } else {
+                //Gradually turn towards lifted object in first half of carry start anim
+                player->srt.yaw += (func_80031DD8(player, heldObject, 0) * (s32) deltaTime) >> 4;
+            }
+        }
+        //Switch to the "carrying" walk anim array
+        if (player->animProgress > 0.8f) {
+            objdata->modAnims = _data_F8;
+            func_80023D30(player, *_data_F8, 0.0f, 0U);
+            return 2;
+        }
+    } else {
+        //Carry start anim not yet playing
+        func_80023D30(player, 5, 0.0f, 0U);
+        if (player->id == PLAYER_SABRE) {
+            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_701_Sabre_Ugh_EMPTY, 0x25, NULL, NULL, 0, NULL);
+        } else {
+            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_700_Krystal_Ugh, 0x25, NULL, NULL, 0, NULL);
+        }
+        gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_633, 0x61, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play_sound(player, 0x6B4, 0x61, NULL, NULL, 0, NULL);
+    }
+    
+    return 0;
+}
+
 /** Fix swimming softlock (originally by MusicalProgrammer) */
 RECOMP_PATCH s32 dll_210_func_125BC(Object *self, ObjFSA_Data *fsa, f32 updateRate) {
     f32 effectX;
