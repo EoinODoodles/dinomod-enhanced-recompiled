@@ -574,6 +574,7 @@ RECOMP_PATCH s32 dll_210_func_AE34(Object* player, ObjFSA_Data* fsa, f32 arg2) {
     }
     
     if (objdata->unk868 != 0){
+        //Change walk modanim list to walking while carrying
         objdata->unk3C4 = &_data_6F8;
         objdata->modAnims = _data_F8;
         if (objdata->unk870 == 0){
@@ -583,13 +584,13 @@ RECOMP_PATCH s32 dll_210_func_AE34(Object* player, ObjFSA_Data* fsa, f32 arg2) {
         //Change walk modanim list to walking with weapon drawn
         objdata->unk3C4 = &_data_6F8;
         objdata->modAnims = _data_C8;
-        //@recomp: apply the animation immediately (instead of next time the walk state is entered)
-        func_80023D30(player, objdata->modAnims[objdata->unk8C0], player->animProgress, 0);
     } else {
         //Change walk modanim list to walking without weapon drawn
         objdata->unk3C4 = &_data_6F8;
         objdata->modAnims = _data_98;
-        //@recomp: apply the animation immediately (instead of next time the walk state is entered)
+    }
+    //@recomp: apply the animation immediately (instead of next time the walk state is entered)
+    if (player->curModAnimId != objdata->modAnims[objdata->unk8C0]) {
         func_80023D30(player, objdata->modAnims[objdata->unk8C0], player->animProgress, 0);
     }
     
