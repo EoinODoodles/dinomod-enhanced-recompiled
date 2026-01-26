@@ -4,6 +4,8 @@
 #include "game/objects/object_id.h"
 #include "sys/map.h"
 
+extern s32 D_800B4A50;
+
 RECOMP_HOOK("func_80027934") void galleon_staff_collision_hack(Object* obj, Object* otherObj) {
     // @recomp: Turn off collision between Krystal's staff and the Galleon (original patch by MusicalProgrammer)
     if (otherObj->id == OBJ_staff && D_800B4A50 == MAP_FRONT_END) {

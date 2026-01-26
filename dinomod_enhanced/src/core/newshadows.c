@@ -2,34 +2,47 @@
 
 #include "sys/memory.h"
 #include "sys/newshadows.h"
+#include "sys/shadowtex.h"
 
-RECOMP_PATCH void func_8004D470(void) {
+extern f32 D_800B97E0[24];
+extern f32 D_800B9840[24];
+
+extern Gfx *D_800B98A0[2];
+extern Vec3f *D_800B98A8[2];
+extern Vtx *D_800B98B0[2];
+
+extern Gfx *D_800BB158[2];
+extern Vtx *D_800BB160[2];
+extern Vec3f *D_800BB168[2];
+
+extern Texture* D_800BB190;
+
+RECOMP_PATCH void shadows_init(void) {
     void *temp_v0;
 
-    D_80092BE8 = 0xA;
-    // @recomp: Fix allocation size
+    D_80092BE8 = 10;
+    // @recomp: Fix allocation size. In the vanilla build, space for the second Gfx buffer was not included in the alloc size.
     temp_v0 = (void *) mmAlloc(
-        sizeof(Unk800B98A0) * 2 + sizeof(Unk800B98A8) * 2 + sizeof(Unk800B98B0) * 2, 
+        ((sizeof(Gfx) * 500) * 2) + ((sizeof(Vec3f) * 500) * 2) + ((sizeof(Vtx) * 400) * 2), 
         ALLOC_TAG_SHAD_COL, 
         NULL);
-    D_800B98A0[0] = (Gfx *)                    temp_v0;
-    D_800B98A0[1] = (Gfx *)              ((u32)temp_v0 + sizeof(Unk800B98A0));
-    D_800B98A8[0] = (Unk800B98A8 *)      ((u32)temp_v0 + sizeof(Unk800B98A0) * 2);
-    D_800B98A8[1] = (Unk800B98A8 *)      ((u32)temp_v0 + sizeof(Unk800B98A0) * 2 + sizeof(Unk800B98A8));
-    D_800B98B0[0] = (Unk8004FA58_Arg5 *) ((u32)temp_v0 + sizeof(Unk800B98A0) * 2 + sizeof(Unk800B98A8) * 2);
-    D_800B98B0[1] = (Unk8004FA58_Arg5 *) ((u32)temp_v0 + sizeof(Unk800B98A0) * 2 + sizeof(Unk800B98A8) * 2 + sizeof(Unk800B98B0));
+    D_800B98A0[0] = (Gfx*)        temp_v0;
+    D_800B98A0[1] = (Gfx*)  ((u32)temp_v0 +  (sizeof(Gfx) * 500));
+    D_800B98A8[0] = (Vec3f*)((u32)temp_v0 +  (sizeof(Gfx) * 500) * 2);
+    D_800B98A8[1] = (Vec3f*)((u32)temp_v0 + ((sizeof(Gfx) * 500) * 2) +  (sizeof(Vec4f) * 500));
+    D_800B98B0[0] = (Vtx*)  ((u32)temp_v0 + ((sizeof(Gfx) * 500) * 2) +  (sizeof(Vec4f) * 500) * 2);
+    D_800B98B0[1] = (Vtx*)  ((u32)temp_v0 + ((sizeof(Gfx) * 500) * 2) + ((sizeof(Vec4f) * 500) * 2) + (sizeof(Vtx) * 400));
 
-    // @recomp: Fix allocation size
     temp_v0 = (void *) mmAlloc(
-        sizeof(Unk800BB158) * 2 + sizeof(Unk800BB168) * 2 + sizeof(Unk800BB160) * 2, 
+        ((sizeof(Gfx) * 600) * 2) + ((sizeof(Vec4f) * 700) * 2) + ((sizeof(Vtx) * 600) * 2), 
         ALLOC_TAG_SHAD_COL, 
         NULL);
-    D_800BB158[0] = (Gfx *)                    temp_v0;
-    D_800BB158[1] = (Gfx *)              ((u32)temp_v0 + sizeof(Unk800BB158));
-    D_800BB168[0] = (Unk800BB168 *)      ((u32)temp_v0 + sizeof(Unk800BB158) * 2);
-    D_800BB168[1] = (Unk800BB168 *)      ((u32)temp_v0 + sizeof(Unk800BB158) * 2 + sizeof(Unk800BB168));
-    D_800BB160[0] = (Unk8004FA58_Arg5 *) ((u32)temp_v0 + sizeof(Unk800BB158) * 2 + sizeof(Unk800BB168) * 2);
-    D_800BB160[1] = (Unk8004FA58_Arg5 *) ((u32)temp_v0 + sizeof(Unk800BB158) * 2 + sizeof(Unk800BB168) * 2 + sizeof(Unk800BB160));
+    D_800BB158[0] = (Gfx*)        temp_v0;
+    D_800BB158[1] = (Gfx*)  ((u32)temp_v0 +  (sizeof(Gfx) * 600));
+    D_800BB168[0] = (Vec3f*)((u32)temp_v0 +  (sizeof(Gfx) * 600) * 2);
+    D_800BB168[1] = (Vec3f*)((u32)temp_v0 + ((sizeof(Gfx) * 600) * 2) +  (sizeof(Vec4f) * 700));
+    D_800BB160[0] = (Vtx*)  ((u32)temp_v0 + ((sizeof(Gfx) * 600) * 2) +  (sizeof(Vec4f) * 700) * 2);
+    D_800BB160[1] = (Vtx*)  ((u32)temp_v0 + ((sizeof(Gfx) * 600) * 2) + ((sizeof(Vec4f) * 700) * 2) + (sizeof(Vtx) * 600));
 
     D_800B9840[0] = -8.0f;
     D_800B9840[1] = 0.0f;
@@ -82,6 +95,6 @@ RECOMP_PATCH void func_8004D470(void) {
     D_800B9840[21] = 6.0f;
     D_800B9840[22] = 0.0f;
     D_800B9840[23] = 55.0f;
-    func_8005B870();
+    shadowtex_init();
     D_800BB190 = queue_load_texture_proxy(0xD8);
 }

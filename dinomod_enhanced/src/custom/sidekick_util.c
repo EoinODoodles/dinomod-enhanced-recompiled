@@ -5,6 +5,8 @@
 #include "sys/objects.h"
 #include "sys/map.h"
 
+extern MapHeader* gLoadedMapsDataTable[120];
+
 // C port of MusicalProgrammer's function to unload sidekicks when the map they are on(?) unloads.
 s32 dinomod_unload_sidekick_if_map_unloaded(Object *obj) {
     MapHeader *mapHeader;

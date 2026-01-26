@@ -6,6 +6,8 @@
 #include "sys/objmsg.h"
 #include "dlls/objects/210_player.h"
 
+extern MapHeader* gMapActiveStreamMap;
+
 #include "recomp/dlls/objects/331_genprops_recomp.h"
 
 typedef struct {

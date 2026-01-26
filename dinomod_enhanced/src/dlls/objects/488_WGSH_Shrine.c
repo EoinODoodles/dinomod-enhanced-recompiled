@@ -56,7 +56,7 @@ RECOMP_PATCH void dll_488_control(Object *self) {
             objdata->unk4 = 0x46;
             objdata->unk6 = 0;
         }
-        gDLL_5_AMSEQ->vtbl->func13(2, objdata->unk4);
+        gDLL_5_AMSEQ->vtbl->set_volume(2, objdata->unk4);
     }
     if (objdata->unkA != 0) {
         objdata->unk8 += objdata->unkA;
@@ -67,14 +67,14 @@ RECOMP_PATCH void dll_488_control(Object *self) {
             objdata->unk8 = 0x46;
             objdata->unkA = 0;
         }
-        gDLL_5_AMSEQ->vtbl->func13(3, objdata->unk8);
+        gDLL_5_AMSEQ->vtbl->set_volume(3, objdata->unk8);
     }
     if (objdata->unk2 > 0) {
         objdata->unk2 -= gUpdateRate;
         if (objdata->unk2 <= 0) {
             objdata->unk2 = 0;
             if (objdata->unk16 == 0) {
-                gDLL_5_AMSEQ->vtbl->func5(3, 0x2C, 0x50, objdata->unk8, 0);
+                gDLL_5_AMSEQ->vtbl->play_ex(3, 0x2C, 0x50, objdata->unk8, 0);
                 objdata->unk16 = 1;
             }
         }
@@ -93,12 +93,12 @@ RECOMP_PATCH void dll_488_control(Object *self) {
                 if (var_v0 <= 0) {
                     var_v0 = 1;
                 }
-                gDLL_5_AMSEQ->vtbl->func13(3, var_v0);
+                gDLL_5_AMSEQ->vtbl->set_volume(3, var_v0);
                 var_v0 = (s16) (s32) ((f32) objdata->unk4 * ((200.0f - (temp_fv1 - 100.0f)) / 200.0f));
                 if (var_v0 <= 0) {
                     var_v0 = 1;
                 }
-                gDLL_5_AMSEQ->vtbl->func13(2, var_v0);
+                gDLL_5_AMSEQ->vtbl->set_volume(2, var_v0);
             }
         }
         switch (objdata->unk13) {
@@ -140,7 +140,7 @@ RECOMP_PATCH void dll_488_control(Object *self) {
                 gDLL_3_Animation->vtbl->func17(2, self, -1);
                 objdata->unk2 = 0xA;
                 objdata->unk13 = 6;
-                gDLL_5_AMSEQ->vtbl->func5(3, 0x35, 0x50, (s16) (u8) objdata->unk8, 0);
+                gDLL_5_AMSEQ->vtbl->play_ex(3, 0x35, 0x50, (s16) (u8) objdata->unk8, 0);
                 objdata->unkA = 1;
                 main_set_bits(BIT_1D3, 0);
             } else if (objdata->unk12 == 1) {
@@ -153,7 +153,7 @@ RECOMP_PATCH void dll_488_control(Object *self) {
         case 3:
             if (main_get_bits(BIT_1D1) != 0) {
                 objdata->unk8 = 1;
-                gDLL_5_AMSEQ->vtbl->func5(3, 0x2C, 0x50, (s16) (u8) objdata->unk8, 0);
+                gDLL_5_AMSEQ->vtbl->play_ex(3, 0x2C, 0x50, (s16) (u8) objdata->unk8, 0);
                 objdata->unkA = 1;
                 main_set_bits(BIT_DB_Entered_Shrine_3, 1);
                 objdata->unk13 = 5;
@@ -161,7 +161,7 @@ RECOMP_PATCH void dll_488_control(Object *self) {
             }
             ((DLL_210_Player*)sp48->dll)->vtbl->func51(sp48, -1);
             main_set_bits(BIT_DB_Entered_Shrine_1, 0);
-            gDLL_5_AMSEQ->vtbl->func5(3, 0x2A, 0x50, (s16) (u8) objdata->unk8, 0);
+            gDLL_5_AMSEQ->vtbl->play_ex(3, 0x2A, 0x50, (s16) (u8) objdata->unk8, 0);
             objdata->unkA = 1;
             gDLL_3_Animation->vtbl->func17(1, self, -1);
             objdata->unk13 = 4;
@@ -176,7 +176,7 @@ RECOMP_PATCH void dll_488_control(Object *self) {
             main_set_bits(BIT_1D2, 0);
             main_set_bits(BIT_DB_Entered_Shrine_2, 0);
             objdata->unk13 = 5;
-            gDLL_5_AMSEQ->vtbl->func5(3, 0x2C, 0x50, (s16) (u8) objdata->unk8, 0);
+            gDLL_5_AMSEQ->vtbl->play_ex(3, 0x2C, 0x50, (s16) (u8) objdata->unk8, 0);
             break;
         case 6:
             objdata->unk13 = 0;

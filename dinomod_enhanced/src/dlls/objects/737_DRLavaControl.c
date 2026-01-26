@@ -96,7 +96,7 @@ RECOMP_PATCH void DRLavaControl_freeze(Object* self) {
             main_set_bits(objSetup->gameBitFrozen, TRUE);
             // diPrintf(" bit set %i ", objSetup->gameBitFrozen);
             main_increment_bits(BIT_DR_Lava_Pools_Cooled_Count);
-            gDLL_5_AMSEQ2->vtbl->func0(self, 0x102, 0, 0, 0);
+            gDLL_5_AMSEQ2->vtbl->set(self, 0x102, 0, 0, 0);
         }
     }
 
@@ -125,7 +125,7 @@ RECOMP_PATCH void DRLavaControl_setup(Object* self, DRLavaControl_Setup* objSetu
         return;
     }
     DRLavaControl_freeze_update_effects(self, objData, 3);
-    gDLL_5_AMSEQ2->vtbl->func0(self, 0x102, 0, 0, 0);
+    gDLL_5_AMSEQ2->vtbl->set(self, 0x102, 0, 0, 0);
 }
 
 RECOMP_PATCH u32 DRLavaControl_get_data_size(Object *self, u32 a1) {

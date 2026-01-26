@@ -86,7 +86,7 @@ static s16 WL_crystal_get_angular_velocity_goal(){
 RECOMP_PATCH void WL_Crystal_setup(Object* self, WL_Crystal_Setup* objSetup, s32 arg2) {
     WL_Crystal_Data* objData;
     ModelInstance* modelInstance;
-    Vtx_t *vertices;
+    Vtx *vertices;
     s16 i;
 
     objData = self->data;
@@ -165,19 +165,19 @@ RECOMP_PATCH void WL_Crystal_setup(Object* self, WL_Crystal_Setup* objSetup, s32
         
         //Set vertex alpha (animated vertex buffer 0)
         modelInstance = self->modelInsts[self->modelInstIdx];
-        vertices = (Vtx_t *)modelInstance->unk4[0];
+        vertices = modelInstance->vertices[0];
         i = modelInstance->model->vertexCount;
         while (i != 0) {
             i--;
-            vertices[i].cn[3] = 85;
+            vertices[i].n.a = 85;
         }        
         
         //Set vertex alpha (animated vertex buffer 1)
-        vertices = (Vtx_t *)modelInstance->unk4[1];
+        vertices = modelInstance->vertices[1];
         i = modelInstance->model->vertexCount;
         while (i != 0) {
             i--;
-            vertices[i].cn[3] = 85;
+            vertices[i].n.a = 85;
         }
         
         //Start at 0 opacity, and set overall scale

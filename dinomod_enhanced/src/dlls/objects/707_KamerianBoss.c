@@ -1,4 +1,3 @@
-#include "dll.h"
 #include "modding.h"
 
 #include "PR/ultratypes.h"
@@ -12,6 +11,8 @@
 #include "sys/objects.h"
 #include "sys/objanim.h"
 #include "sys/objtype.h"
+#include "dll.h"
+#include "functions.h"
 
 #include "recomp/dlls/objects/707_KamerianBoss_recomp.h"
 
@@ -308,7 +309,7 @@ RECOMP_PATCH void KamerianBoss_control(Object *self) {
             func_80023D30(self, KD_MODANIM_OPEN_HATCH, 0.0f, 0);
             // @recomp: Start boss music
             //          (original patch by MusicalProgrammer)
-            gDLL_5_AMSEQ->vtbl->func0(NULL, 0xFE, 0, 0, 0);
+            gDLL_5_AMSEQ->vtbl->set(NULL, 0xFE, 0, 0, 0);
             objdata->animTickDelta = 0.01f;
             sHealthBarAlpha = gUpdateRate;
             gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_9AD, MAX_VOLUME, &objdata->soundHandle3, NULL, 0, NULL);

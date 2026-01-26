@@ -16,7 +16,7 @@ typedef struct {
 typedef struct {
     u8 state;
     Object* flameObjects[4];        //"CCfirecrystalin" objects (for a flame effect) 
-    NewLfxStruct* lfxEmitterSetup;
+    LightAction* lfxEmitterSetup;
 } CCfirecrystal_Data;
 
 typedef enum {

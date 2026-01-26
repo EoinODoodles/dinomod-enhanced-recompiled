@@ -23,7 +23,7 @@ typedef enum {
 } CCkrazoabright_States;
 
 /** Change completed Cape Claw Puzzle #2 sequence to 04 (originally by MusicalProgrammer) */
-RECOMP_PATCH void dll_457_func_AAC(Object* self, CCkrazoabright_Data* objData) {
+RECOMP_PATCH void CCkrazoabright_handle_lever_puzzle_2(Object* self, CCkrazoabright_Data* objData) {
     s32 index;
 
     if (objData->updateNeeded) {

@@ -6,16 +6,6 @@
 
 #include "recomp/dlls/objects/507_SHqueenearthwalker_recomp.h"
 
-/** For use with dll_1_func_F24 */
-typedef enum {
-    PAGE_1 = 1,
-    PAGE_Sidekick = 2,
-    PAGE_Inventory = 3,
-    PAGE_Spells = 4,
-    PAGE_5 = 5,
-    PAGE_Foodbag = 6,
-} Cmdmenu_Pages;
-
 typedef struct {
     u8 questProgress;
     u8 eatenWhiteMushrooms;

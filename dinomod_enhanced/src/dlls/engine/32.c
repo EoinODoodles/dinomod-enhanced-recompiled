@@ -28,7 +28,7 @@ RECOMP_PATCH void dll_32_func_1314(Gfx** gdl, Mtx** mtxs, Object* a2) {
     Vec3f spA8 = { -1.0f, 0.0f, 0.0f }; // _data_184C
     Vec3f sp9C = { 0.0f, 0.0f, 1.0f }; // _data_1858
     Camera* camera;
-    ModelInstance_0x4* temp_a3;
+    Vtx* temp_a3;
     s32 sp90;
     s32 sp8C;
     Object* player;
@@ -82,16 +82,16 @@ RECOMP_PATCH void dll_32_func_1314(Gfx** gdl, Mtx** mtxs, Object* a2) {
                 if ((a2->id != 0) || (var_s2 != 0x2A)) {
                     temp_s0 = &temp_s3->model->faces[var_s2];
                     temp_a2 = temp_s0->baseVertexID;
-                    temp_a3 = &temp_s3->unk4[0][temp_a2];
+                    temp_a3 = &temp_s3->vertices[0][temp_a2];
                     temp_t0 = temp_s3->model->faces[var_s2 + 1].baseVertexID - temp_a2;
                     spD8.transl.x = 0.0f;
                     spD8.transl.y = -26.0f;
                     spD8.transl.z = 0.0f;
 
                     for (var_v1 = 0; var_v1 < temp_t0; var_v1++) {
-                        spD8.transl.x += temp_a3[var_v1].unk0[0];
-                        spD8.transl.y += temp_a3[var_v1].unk0[1];
-                        spD8.transl.z += temp_a3[var_v1].unk0[2];
+                        spD8.transl.x += temp_a3[var_v1].n.ob[0];
+                        spD8.transl.y += temp_a3[var_v1].n.ob[1];
+                        spD8.transl.z += temp_a3[var_v1].n.ob[2];
                     }
 
                     spD8.scale = 1.0f;
@@ -119,20 +119,20 @@ RECOMP_PATCH void dll_32_func_1314(Gfx** gdl, Mtx** mtxs, Object* a2) {
     for (var_s2 = sp8C; var_s2 < (sp8C + 1); var_s2++) {
         temp_s0 = &temp_s3->model->faces[var_s2];
         temp_a2 = temp_s0->baseVertexID;
-        temp_a3 = &temp_s3->unk4[0][temp_a2];
+        temp_a3 = &temp_s3->vertices[0][temp_a2];
         _data_1864 = 4;
         spD8.transl.x = 0.0f;
         spD8.transl.y = 10.0f;
         spD8.transl.z = -40.0f;
         // @recomp: Adjust pendant fx position for Sabre
         if (a2->id == OBJ_Sabre) {
-            spD8.transl.x = temp_a3[4].unk0[0] + 25.0f;
-            spD8.transl.y = temp_a3[4].unk0[1] + 0.0f;
-            spD8.transl.z = temp_a3[4].unk0[2] + 0.0f;
+            spD8.transl.x = temp_a3[4].n.ob[0] + 25.0f;
+            spD8.transl.y = temp_a3[4].n.ob[1] + 0.0f;
+            spD8.transl.z = temp_a3[4].n.ob[2] + 0.0f;
         } else {
-            spD8.transl.x = temp_a3[4].unk0[0];
-            spD8.transl.y = temp_a3[4].unk0[1] + 2.0f;
-            spD8.transl.z = temp_a3[4].unk0[2] + 10.0f;
+            spD8.transl.x = temp_a3[4].n.ob[0];
+            spD8.transl.y = temp_a3[4].n.ob[1] + 2.0f;
+            spD8.transl.z = temp_a3[4].n.ob[2] + 10.0f;
         }
         spD8.transl.x += rand_next(-5, 5);
         spD8.transl.y += rand_next(-5, 5);

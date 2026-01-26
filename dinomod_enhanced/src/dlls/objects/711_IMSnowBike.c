@@ -1,11 +1,17 @@
+
 #include "modding.h"
 
 #include "dlls/objects/214_animobj.h"
 #include "recomputils.h"
 #include "sys/gfx/modgfx.h"
+#include "sys/main.h"
 #include "sys/objtype.h"
 #include "sys/objanim.h"
-#include "prevent_bss_reordering.h"
+#include "sys/rand.h"
+#include "dll.h"
+#include "dlls/engine/27.h"
+#include "dlls/engine/4_race.h"
+#include "functions.h"
 
 #include "recomp/dlls/objects/711_IMSnowBike_recomp.h"
 

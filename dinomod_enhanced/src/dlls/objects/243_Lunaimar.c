@@ -4,8 +4,11 @@
 #include "dlls/engine/33.h"
 #include "dlls/objects/common/sidekick.h"
 #include "game/objects/object.h"
+#include "sys/main.h"
 #include "sys/objanim.h"
+#include "sys/objects.h"
 #include "sys/objtype.h"
+#include "dll.h"
 #include "unktypes.h"
 
 #include "recomp/dlls/objects/243_Lunaimar_recomp.h"

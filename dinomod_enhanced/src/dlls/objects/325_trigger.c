@@ -19,6 +19,7 @@
 #include "sys/objmsg.h"
 #include "sys/gfx/gx.h"
 #include "sys/map.h"
+#include "sys/oldshadows.h"
 #include "dll.h"
 #include "types.h"
 #include "functions.h"
@@ -478,12 +479,12 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             }
             break;
         case TRG_CMD_MUSIC_ACTION: 
-            if ((dir < 0) && (gDLL_5_AMSEQ->vtbl->func2(self, (cmd->param2 | (cmd->param1 << 8))) != 0)) {
+            if ((dir < 0) && (gDLL_5_AMSEQ->vtbl->is_set(self, (cmd->param2 | (cmd->param1 << 8))) != 0)) {
                 // "Trigger [%d], Music Action,       Action Num [%d] Free"
-                gDLL_5_AMSEQ2->vtbl->func1(self, (cmd->param2 | (cmd->param1 << 8)), 0, 0, 0);
+                gDLL_5_AMSEQ2->vtbl->free(self, (cmd->param2 | (cmd->param1 << 8)), 0, 0, 0);
             } else {
                 // "Trigger [%d], Music Action,       Action Num [%d] Set"
-                gDLL_5_AMSEQ2->vtbl->func0(self, (cmd->param2 | (cmd->param1 << 8)), 0, 0, 0);
+                gDLL_5_AMSEQ2->vtbl->set(self, (cmd->param2 | (cmd->param1 << 8)), 0, 0, 0);
             }
             break;
         case TRG_CMD_SOUND: 
@@ -556,7 +557,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 }
                 break;
             case 5:                         /* switch 3 */
-                func_8005CA5C((u32) cmd->param2);
+                oldshadow_toggle((u32) cmd->param2);
                 break;
             case 6:                         /* switch 3 */
                 if ((s32) cmd->param2 > 0) {

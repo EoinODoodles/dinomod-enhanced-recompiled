@@ -30,16 +30,16 @@ static s16* customObjDefTextIDs = NULL;
 
 /** For toggling LaminGaming's extra object description text */
 static void remove_extra_descriptions_object(ObjDef* def){
-    u16 bankID = (def->unkA2 & 0xF00) >> 8;
-    u16 lineID = def->unkA2 & 0xFF;
+    u16 bankID = (def->gametextIndex & 0xF00) >> 8;
+    u16 lineID = def->gametextIndex & 0xFF;
 
     //Check if description text in bank 0 (gametext3) and beyond original last line
     if (bankID == 0 && lineID > 107){
-        def->unkA2 = -1;
+        def->gametextIndex = -1;
         
     //Check if description text in bank 1 (gametext568) and beyond original last line
     } else if (bankID == 1 && lineID > 3){
-        def->unkA2 = -1;
+        def->gametextIndex = -1;
     }
 }
 
@@ -68,7 +68,7 @@ static void add_extra_descriptions_objects(){
             continue;
         }
 
-        def->unkA2 = customObjDefTextIDs[index];
+        def->gametextIndex = customObjDefTextIDs[index];
     }
 }
 
@@ -144,7 +144,7 @@ RECOMP_PATCH ObjDef *obj_load_objdef(s32 tabIdx) {
         gObjDefRefCount[tabIdx] = 1;
 
         //@recomp: store copy of gametext index so custom object description strings can be toggled
-        customObjDefTextIDs[tabIdx] = def->unkA2;
+        customObjDefTextIDs[tabIdx] = def->gametextIndex;
 
         //@recomp: remove extra text if toggled off
         if (!useExtraText){

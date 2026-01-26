@@ -4,6 +4,8 @@
 #include "dlls/engine/18_objfsa.h"
 #include "dlls/engine/33.h"
 #include "dlls/objects/214_animobj.h"
+#include "game/gamebits.h"
+#include "sys/generic_stack.h"
 #include "sys/gfx/model.h"
 #include "sys/gfx/modgfx.h"
 #include "sys/main.h"
@@ -11,6 +13,7 @@
 #include "sys/objhits.h"
 #include "sys/objmsg.h"
 #include "sys/objtype.h"
+#include "sys/rand.h"
 #include "segment_334F0.h"
 #include "dll.h"
 
@@ -310,9 +313,9 @@ RECOMP_HOOK_DLL(dll_702_setup) void dll_702_setup_hook(Object* self, KTrex_ObjSe
 
 RECOMP_HOOK_DLL(dll_702_free) void dll_702_free_hook(Object *self) {
     // @recomp: Free handles to music we used
-    gDLL_5_AMSEQ2->vtbl->func1(self, 0xD8, 0, 0, 0);
-    gDLL_5_AMSEQ2->vtbl->func1(self, 0xD9, 0, 0, 0);
-    gDLL_5_AMSEQ2->vtbl->func1(self, 0xD5, 0, 0, 0);
+    gDLL_5_AMSEQ2->vtbl->free(self, 0xD8, 0, 0, 0);
+    gDLL_5_AMSEQ2->vtbl->free(self, 0xD9, 0, 0, 0);
+    gDLL_5_AMSEQ2->vtbl->free(self, 0xD5, 0, 0, 0);
 }
 
 RECOMP_PATCH s32 dll_702_move_and_check_turn(ObjFSA_Data* fsa, KTrex_Data* ktdata) {
@@ -486,14 +489,14 @@ RECOMP_PATCH s32 dll_702_logic_state_2(Object* self, ObjFSA_Data* fsa, f32 updat
         fsa->speed = objsetup->speeds[sKTData->anger] / 1000.0f;
         // @recomp: (enhanced) Reset music when returning to normal walk
         if (dinomod_kt_enhanced() && dinomodInitHack) {
-            gDLL_5_AMSEQ2->vtbl->func0(self, 0xD8, 0, 0, 0);
+            gDLL_5_AMSEQ2->vtbl->set(self, 0xD8, 0, 0, 0);
         }
     }
 
     // @recomp: Set fight music and close doors even if intro cutscene is skipped (this is a little hacky)
     if (!dinomodInitHack && sKTData->segmentPos >= 0.5f) {
         dinomodInitHack = TRUE;
-        gDLL_5_AMSEQ2->vtbl->func0(self, 0xD8, 0, 0, 0);
+        gDLL_5_AMSEQ2->vtbl->set(self, 0xD8, 0, 0, 0);
         main_set_bits(BIT_570, 0); // close KT_RexDoorTrex (not perfect but it works)
     }
 
@@ -515,7 +518,7 @@ RECOMP_PATCH s32 dll_702_logic_state_2(Object* self, ObjFSA_Data* fsa, f32 updat
                 sKTData->roarType = 1;
                 if (dinomod_kt_enhanced()) {
                     // @recomp: (enhanced) Kick in more intense version of music for charge
-                    gDLL_5_AMSEQ2->vtbl->func0(self, 0xD9, 0, 0, 0);
+                    gDLL_5_AMSEQ2->vtbl->set(self, 0xD9, 0, 0, 0);
                 }
                 if (dinomod_kt_enhanced() && rand_next(0, 100) <= 50) {
                     // @recomp: (hard) Charge an extra segment randomly on hard mode
@@ -546,7 +549,7 @@ RECOMP_PATCH s32 dll_702_logic_state_2(Object* self, ObjFSA_Data* fsa, f32 updat
         sKTData->roarType = 1;
         if (dinomod_kt_enhanced()) {
             // @recomp: (enhanced) Kick in more intense version of music for charge
-            gDLL_5_AMSEQ2->vtbl->func0(self, 0xD9, 0, 0, 0);
+            gDLL_5_AMSEQ2->vtbl->set(self, 0xD9, 0, 0, 0);
         }
         if (dinomod_kt_hard() && ((!reversed && sKTData->segmentPos >= 0.5f) || (reversed && sKTData->segmentPos <= 0.5f))) {
             sKTData->chargeCounter += 1;
@@ -599,7 +602,7 @@ RECOMP_PATCH s32 dll_702_logic_state_6(Object* self, ObjFSA_Data* fsa, f32 updat
         gDLL_18_objfsa->vtbl->set_anim_state(self, fsa, KT_ASTATE_5_CHARGE_END);
         if (dinomod_kt_enhanced()) {
             // @recomp: (enhanced) Reset music after charge
-            gDLL_5_AMSEQ2->vtbl->func0(self, 0xD8, 0, 0, 0);
+            gDLL_5_AMSEQ2->vtbl->set(self, 0xD8, 0, 0, 0);
         }
     } else if (fsa->unk33A != 0) {
         return dll_702_pop_state() + 1;
@@ -648,13 +651,13 @@ RECOMP_PATCH s32 dll_702_logic_state_8(Object* self, ObjFSA_Data* fsa, f32 updat
             if (sKTData->health <= 0) {
                 if (dinomod_kt_enhanced()) {
                     // @recomp: (enhanced) Reset music to start music for defeat cutscene
-                    gDLL_5_AMSEQ2->vtbl->func0(self, 0xD5, 0, 0, 0);
+                    gDLL_5_AMSEQ2->vtbl->set(self, 0xD5, 0, 0, 0);
                 }
                 return KT_LSTATE_1_DEFEATED + 1;
             }
             if (dinomod_kt_enhanced()) {
                 // @recomp: (enhanced) Reset music after taking damage (as he calmly stands up)
-                gDLL_5_AMSEQ2->vtbl->func0(self, 0xD8, 0, 0, 0);
+                gDLL_5_AMSEQ2->vtbl->set(self, 0xD8, 0, 0, 0);
             }
             self->unkAF |= 8;
             return KT_LSTATE_9_STAND_UP + 1;
@@ -681,7 +684,7 @@ RECOMP_PATCH s32 dll_702_logic_state_9(Object* self, ObjFSA_Data* fsa, f32 updat
         gDLL_2_Camera->vtbl->func8(2, 0);
         if (dinomod_kt_enhanced()) {
             // @recomp: (enhanced) Kick in more intense version of music for charge
-            gDLL_5_AMSEQ2->vtbl->func0(self, 0xD9, 0, 0, 0);
+            gDLL_5_AMSEQ2->vtbl->set(self, 0xD9, 0, 0, 0);
         }
         // @recomp: (hard) Compensate for increased move speed
         if (dinomod_kt_hard()) {

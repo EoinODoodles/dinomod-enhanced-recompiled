@@ -95,7 +95,7 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
             objdata->unk4 = 0x46;
             objdata->unk6 = 0;
         }
-        gDLL_5_AMSEQ->vtbl->func13(2, objdata->unk4);
+        gDLL_5_AMSEQ->vtbl->set_volume(2, objdata->unk4);
     }
     if (objdata->unkA != 0) {
         objdata->unk8 += objdata->unkA;
@@ -106,14 +106,14 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
             objdata->unk8 = 0x46;
             objdata->unkA = 0;
         }
-        gDLL_5_AMSEQ->vtbl->func13(3, objdata->unk8);
+        gDLL_5_AMSEQ->vtbl->set_volume(3, objdata->unk8);
     }
     if (objdata->unk2 > 0) {
         objdata->unk2 -= gUpdateRate;
         if (objdata->unk2 <= 0) {
             objdata->unk2 = 0;
             if (objdata->unk18 == 0) {
-                gDLL_5_AMSEQ->vtbl->func5(3, 0x2C, 0x50, objdata->unk8, 0);
+                gDLL_5_AMSEQ->vtbl->play_ex(3, 0x2C, 0x50, objdata->unk8, 0);
                 objdata->unk18 = 1;
             }
         }
@@ -135,12 +135,12 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
                 if (var_v0 <= 0) {
                     var_v0 = 1;
                 }
-                gDLL_5_AMSEQ->vtbl->func13(3, var_v0);
+                gDLL_5_AMSEQ->vtbl->set_volume(3, var_v0);
                 var_v0 = ((f32) objdata->unk4 * ((200.0f - (sp3C - 100.0f)) / 200.0f));
                 if (var_v0 <= 0) {
                     var_v0 = 1;
                 }
-                gDLL_5_AMSEQ->vtbl->func13(2, var_v0);
+                gDLL_5_AMSEQ->vtbl->set_volume(2, var_v0);
             }
         }
         switch (objdata->unk15) {
@@ -215,14 +215,14 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
             // @recomp: Change test completion flag
             if (main_get_bits(0x266) != 0) {
                 objdata->unk8 = 1;
-                gDLL_5_AMSEQ->vtbl->func5(3, 0x2C, 0x50, (u8) objdata->unk8, 0);
+                gDLL_5_AMSEQ->vtbl->play_ex(3, 0x2C, 0x50, (u8) objdata->unk8, 0);
                 objdata->unkA = 1;
                 main_set_bits(BIT_DB_Entered_Shrine_3, 1);
                 objdata->unk15 = 6;
                 return;
             }
             main_set_bits(BIT_DB_Entered_Shrine_1, 0);
-            gDLL_5_AMSEQ->vtbl->func5(3, 0x2C, 0x50, (u8) objdata->unk8, 0);
+            gDLL_5_AMSEQ->vtbl->play_ex(3, 0x2C, 0x50, (u8) objdata->unk8, 0);
             objdata->unkA = 1;
             gDLL_3_Animation->vtbl->func17(1, self, -1);
             objdata->unk15 = 5;
@@ -271,7 +271,7 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
 }
 
 RECOMP_PATCH int GPSH_Shrine_func_1024(Object* a0, Object* a1, AnimObj_Data* a2, s8 a3) {
-    GPSH_Shrine_Data* objdata;
+     GPSH_Shrine_Data* objdata;
     Object* player;
     s32 i;
     u8 temp_v0_2;
@@ -289,7 +289,7 @@ RECOMP_PATCH int GPSH_Shrine_func_1024(Object* a0, Object* a1, AnimObj_Data* a2,
             objdata->unk8 = 0x46;
             objdata->unkA = 0;
         }
-        gDLL_5_AMSEQ->vtbl->func13(3, objdata->unk8);
+        gDLL_5_AMSEQ->vtbl->set_volume(3, objdata->unk8);
     }
     for (i = 0; i < a2->unk98; i++) {
         temp_v0_2 = a2->unk8E[i];
@@ -299,10 +299,10 @@ RECOMP_PATCH int GPSH_Shrine_func_1024(Object* a0, Object* a1, AnimObj_Data* a2,
                 func_80000860(a0, a0, 0xCD, 0);
                 break;
             case 2:
-                if (D_80092A7C == -1) {
+                if (D_80092A7C[0] == -1) {
                     func_80000860(a0, a0, 0x14, 0);
                 } else {
-                    func_80000860(a0, a0, D_80092A7C, 0);
+                    func_80000860(a0, a0, D_80092A7C[0], 0);
                 }
                 break;
             case 3:
@@ -340,7 +340,7 @@ RECOMP_PATCH int GPSH_Shrine_func_1024(Object* a0, Object* a1, AnimObj_Data* a2,
             case 11:
                 objdata->unk8 = 0x64;
                 // @recomp: Correct music track (original patch by jeebs2kx)
-                gDLL_5_AMSEQ->vtbl->func5(3, 0x31, 0x50, (u8)objdata->unk8, 0);
+                gDLL_5_AMSEQ->vtbl->play_ex(3, 0x31, 0x50, (u8)objdata->unk8, 0);
                 break;
             case 12:
                 main_set_bits(BIT_Test_of_Fear_Particles, 0);
