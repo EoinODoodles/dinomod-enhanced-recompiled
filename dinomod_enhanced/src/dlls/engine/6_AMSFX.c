@@ -4,6 +4,8 @@
 #include "recomputils.h"
 #include "recompconfig.h"
 
+#include "old_pickup_sfx_bank.h"
+
 #include "libnaudio/n_libaudio.h"
 #include "libnaudio/n_sndplayer.h"
 #include "mp3/mp3.h"
@@ -18,6 +20,16 @@
 #include "dll.h"
 #include "functions.h"
 #include "types.h"
+
+enum RecompPickupJingle {
+    RECOMP_PICKUP_JINGLE_OLD_A,
+    RECOMP_PICKUP_JINGLE_OLD_B,
+    RECOMP_PICKUP_JINGLE_NEW
+};
+
+static u32 dinomod_pickup_jingle(void) {
+    return recomp_get_config_u32("pickup_jingle");
+}
 
 #include "recomp/dlls/engine/6_AMSFX_recomp.h"
 
@@ -71,7 +83,8 @@ extern void dll_6_func_22FC(f32, f32, f32, SoundDef*, s8*);
 extern void dll_6_func_2438(f32 arg0, f32 arg1, s32 arg2, u8* arg3, u8* arg4);
 
 enum RecompSoundIDs {
-    SOUND_1865_Garunda_Te_If_you_bring_me_12_FrostWeeds = 1865
+    SOUND_B8A_FirstTimeItemPickup = 0xB8A,
+    SOUND_749_Garunda_Te_If_you_bring_me_12_FrostWeeds = 0x749
 };
 
 enum SoundTypes {
@@ -96,9 +109,21 @@ static void recomp_sound_remap_garunda_te_frostweeds(u16 soundID, SoundDef* soun
     soundEntry->bankAndClipID = SOUND(1033, MP3);
 }
 
-static void recomp_intercept_soundIDs(u16 soundID, SoundDef* soundEntry) {
+static void recomp_intercept_soundIDs(u16 soundID, SoundDef* soundEntry, ALBank **bank) {
+    u32 pickupJingleConfig;
     switch (soundID){
-        case SOUND_1865_Garunda_Te_If_you_bring_me_12_FrostWeeds:
+        case SOUND_B8A_FirstTimeItemPickup:
+            // @recomp: Replace item pickup jingle with the old version (original patch by nuggs)
+            pickupJingleConfig = dinomod_pickup_jingle();
+            if (pickupJingleConfig != RECOMP_PICKUP_JINGLE_NEW) {
+                *bank = recomp_oldPickupSfxBank;
+                soundEntry->bankAndClipID = pickupJingleConfig == RECOMP_PICKUP_JINGLE_OLD_A ? 1 : 2;
+                soundEntry->volume = MAX_VOLUME;
+                soundEntry->pitch = PITCH_DEFAULT;
+                soundEntry->pan = PAN_CENTRE;
+            }
+            break;
+        case SOUND_749_Garunda_Te_If_you_bring_me_12_FrostWeeds:
             recomp_sound_remap_garunda_te_frostweeds(soundID, soundEntry);
             break;
     }
@@ -124,9 +149,12 @@ RECOMP_PATCH u32 dll_6_play_sound(Object* obj, u16 soundID, u8 volume, u32* soun
     //Get sound definition from AUDIO.bin subfile 0
     dll_6_func_DE8(soundID, &soundDef);
 
+    // @recomp: Support multiple banks
+    ALBank *bank = _bss_0->bankArray[0];
+
     //@recomp: intercept sound calls and edit as needed
     //recomp_eprintf("AMSFX: play sound #%d (%s)\n", soundID, soundEntry.unk0 & 0x8000 ? "MP3" : "WAV");
-    recomp_intercept_soundIDs(soundID, &soundDef);
+    recomp_intercept_soundIDs(soundID, &soundDef, &bank);
 
     //Bail if sound's clipID is 0
     if (!(soundDef.bankAndClipID & 0x7FFF)) {
@@ -163,7 +191,8 @@ RECOMP_PATCH u32 dll_6_play_sound(Object* obj, u16 soundID, u8 volume, u32* soun
         // @fake
         if (_bss_4) {}
     } else {
-        some_sound_func(_bss_0->bankArray[0], soundDef.bankAndClipID, (volumeCalc << 8), PAN_CENTRE, soundDef.pitch / 100.0f, (s32)(f32)soundDef.unk6, 1U, &_bss_4[activeSoundIndex].unk1C);
+        // @recomp: Support multiple banks
+        some_sound_func(bank, soundDef.bankAndClipID, (volumeCalc << 8), PAN_CENTRE, soundDef.pitch / 100.0f, (s32)(f32)soundDef.unk6, 1U, &_bss_4[activeSoundIndex].unk1C);
     }
 
     bcopy(&soundDef, &_bss_4[activeSoundIndex], sizeof(SoundDef));

@@ -148,3 +148,16 @@ This setting prevents those single-frame flashes from appearing, however they ca
 type = "Enum"
 options = [ "Show", "Hide" ]
 default = "Hide"
+
+[[manifest.config_options]]
+id = "pickup_jingle"
+name = "Item Pickup Jingle"
+description = '''
+Which version of the item pickup jingle to play.
+
+- Old: The original pickup jingle as heard in the One Hour Footage.
+- New: The new Star Fox themed jingle played by default in the December 2000 Prototype.
+'''
+type = "Enum"
+options = [ "Old (variant A)", "Old (variant B)", "New" ]
+default = "Old (variant B)"
