@@ -23,7 +23,7 @@ RECOMP_PATCH void shadows_init(void) {
     D_80092BE8 = 10;
     // @recomp: Fix allocation size. In the vanilla build, space for the second Gfx buffer was not included in the alloc size.
     temp_v0 = (void *) mmAlloc(
-        ((sizeof(Gfx) * 500) * 2) + ((sizeof(Vec3f) * 500) * 2) + ((sizeof(Vtx) * 400) * 2), 
+        ((sizeof(Gfx) * 500) * 2) + ((sizeof(Vec4f) * 500) * 2) + ((sizeof(Vtx) * 400) * 2), 
         ALLOC_TAG_SHAD_COL, 
         NULL);
     D_800B98A0[0] = (Gfx*)        temp_v0;
