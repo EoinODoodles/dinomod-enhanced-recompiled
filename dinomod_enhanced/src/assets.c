@@ -470,6 +470,13 @@ static void golden_plains_fuel_modifications(void) {
     }
 }
 
+static void cc_lightfoot_patch(void) {
+    // Change CClightfoot model from chief to normal red-colored LightFoot
+    ObjDef *ccLightfootObjDef = repacker_objects_get(430, NULL);
+    u32 *ccLightfootModelList = (u32*)((u32)ccLightfootObjDef + (u32)ccLightfootObjDef->pModelList);
+    ccLightfootModelList[0] = 0x00CB;
+}
+
 REPACKER_ON_LOAD_MODIFICATIONS_CALLBACK void dinomod_repacker_modifications(void) {
     walled_city_modifications();
     shrine_fxemit_modifications();
@@ -477,4 +484,5 @@ REPACKER_ON_LOAD_MODIFICATIONS_CALLBACK void dinomod_repacker_modifications(void
     dragon_rock_upper_modifications();
     golden_plains_modifications();
     // golden_plains_fuel_modifications();
+    cc_lightfoot_patch();
 }
