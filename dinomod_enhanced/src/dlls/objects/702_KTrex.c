@@ -2,6 +2,7 @@
 #include "recompconfig.h"
 
 #include "dlls/engine/18_objfsa.h"
+#include "dlls/engine/28_screen_fade.h"
 #include "dlls/engine/33.h"
 #include "dlls/objects/214_animobj.h"
 #include "game/gamebits.h"
@@ -465,14 +466,29 @@ RECOMP_PATCH s32 dll_702_anim_state_5(Object* self, ObjFSA_Data* fsa, f32 update
     return 0;
 }
 
-/** Plays the defeat cutscene, and makes sure the necessary Object Groups are loaded in Walled City for the follow-up cutscene (originally by MusicalProgrammer) */
+/** Plays the defeat cutscene, and makes sure the necessary Object Groups are loaded in Walled City for the follow-up cutscene (originally by MusicalProgrammer & nuggs) */
 RECOMP_PATCH s32 dll_702_logic_state_1(Object* self, ObjFSA_Data* fsa, f32 updateRate) {
+    // @recomp: Replace existing logic
     if (fsa->enteredLogicState) {
-        // @recomp: Replace existing logic
-        main_set_bits(BIT_564, 1);
-        gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, 4, 1);
-        gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, 5, 1);
+        self->unkAF |= 8;
+        fsa->unk33D = 0;
+        fsa->unk4.mode = 0;
+        sKTData->timer = -1.0f;
+    } else {
+        sKTData->timer -= gUpdateRateF;
+
+        if (sKTData->timer <= -1.0f && self->unkE0 != 3) {
+            gDLL_28_ScreenFade->vtbl->fade_reversed(30, SCREEN_FADE_BLACK);
+            self->unkE0 = 3;
+        }
+
+        if (sKTData->timer <= 0.0f) {
+            main_set_bits(BIT_564, 1);
+            gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, 4, 1);
+            gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, 5, 1);
+        }
     }
+    
     return 0;
 }
 
