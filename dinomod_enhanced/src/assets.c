@@ -477,6 +477,35 @@ static void cc_lightfoot_patch(void) {
     ccLightfootModelList[0] = 0x00CB;
 }
 
+/** Fix DIM and Galadon related music actions. Original patch by nuggs. */
+static void music_actions_patch(void) {
+    // Galadon
+    MusicAction *action103 = repacker_music_actions_get(103 - 1);
+    action103->seqID = 60;
+    MusicAction *action104 = repacker_music_actions_get(104 - 1);
+    action104->seqID = 60;
+    MusicAction *action106 = repacker_music_actions_get(106 - 1);
+    action106->seqID = 60;
+    MusicAction *action108 = repacker_music_actions_get(108 - 1);
+    action108->seqID = 60;
+    
+    // DIM
+    MusicAction *action109 = repacker_music_actions_get(109 - 1);
+    action109->seqID = 66;
+    MusicAction *action110 = repacker_music_actions_get(110 - 1);
+    action110->seqID = 66;
+    MusicAction *action111 = repacker_music_actions_get(111 - 1);
+    action111->seqID = 66;
+    MusicAction *action135 = repacker_music_actions_get(135 - 1);
+    action135->seqID = 66;
+    MusicAction *action136 = repacker_music_actions_get(136 - 1);
+    action136->seqID = 66;
+    MusicAction *action138 = repacker_music_actions_get(138 - 1);
+    action138->seqID = 66;
+    MusicAction *action140 = repacker_music_actions_get(140 - 1);
+    action140->seqID = 66;
+}
+
 REPACKER_ON_LOAD_MODIFICATIONS_CALLBACK void dinomod_repacker_modifications(void) {
     walled_city_modifications();
     shrine_fxemit_modifications();
@@ -485,4 +514,5 @@ REPACKER_ON_LOAD_MODIFICATIONS_CALLBACK void dinomod_repacker_modifications(void
     golden_plains_modifications();
     // golden_plains_fuel_modifications();
     cc_lightfoot_patch();
+    music_actions_patch();
 }

@@ -40,3 +40,7 @@ RECOMP_IMPORT("asset_repacker", void *repacker_objects_resize(s32 objectTabIdx, 
 RECOMP_IMPORT("asset_repacker", void repacker_screens_set_replacement(s32 screenTabIdx, const void *data, u32 sizeBytes))
 RECOMP_IMPORT("asset_repacker", void *repacker_screens_get(s32 screenTabIdx, u32 *outSize))
 RECOMP_IMPORT("asset_repacker", void *repacker_screens_resize(s32 screenTabIdx, u32 newSize))
+
+/* ----- MUSIC ACTIONS ---------------------*/
+RECOMP_IMPORT("asset_repacker", void repacker_music_actions_set_replacement(s32 actionIdx, const void *data))
+RECOMP_IMPORT("asset_repacker", void* repacker_music_actions_get(s32 actionIdx))
