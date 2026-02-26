@@ -60,6 +60,9 @@ extern void dll_63_goto_game_select(s32 param1);
 extern void dll_63_load_save_game_info();
 extern void dll_63_goto_game_confirm();
 extern void dll_63_init_submenu(GameSelectSubmenu *submenu);
+extern void dll_63_goto_game_select(s32 param1);
+extern void dll_63_goto_erase_select();
+extern void dll_63_goto_copy_src_select();
 
 /** If no name is entered when starting a save, display "Krystal"/"Sabre" instead of nothing */
 static const char *dinomod_get_save_filename(const GameSelectSaveInfo *saveInfo) {
@@ -100,6 +103,48 @@ RECOMP_PATCH void dll_63_goto_game_select(s32 param1) {
         /*textHighlight*/ 0, 0, 0);
     
     sRedrawFrames = 2;
+}
+
+RECOMP_PATCH void dll_63_act_game_select(PicMenuAction action, s32 selected) {
+    //@recomp: enable back navigation from game select to title screen
+    if (action == PICMENU_ACTION_BACK) {
+        sExitToMainMenu = TRUE;
+        gDLL_28_ScreenFade->vtbl->fade(20, SCREEN_FADE_BLACK);
+        gDLL_5_AMSEQ->vtbl->stop(0);
+        gDLL_5_AMSEQ->vtbl->stop(1);
+        gDLL_5_AMSEQ->vtbl->stop(2);
+        gDLL_5_AMSEQ->vtbl->stop(3);
+        sExitTransitionTimer = 35;
+        return;
+    }
+    switch (selected) {
+        case 4:
+            if (action == PICMENU_ACTION_SELECT) {
+                dll_63_goto_erase_select();
+            }
+            break;
+        case 3:
+            if (action == PICMENU_ACTION_SELECT) {
+                dll_63_goto_copy_src_select();
+            }
+            break;
+        default:
+            // Selected a save file button
+            if (action == PICMENU_ACTION_SELECT) {
+                if (sSaveGameInfo[selected].isEmpty) {
+                    // Go to name entry menu
+                    dll_63_clean_up(0);
+                    set_save_game_idx(selected);
+                    menu_set(MENU_ENTER_NAME);
+                } else {
+                    sSelectedSaveIdx = selected;
+                    sSaveGameBoxX = 56;
+                    sSaveGameBoxY = 179;
+                    dll_63_goto_game_confirm();
+                }
+            }
+            break;
+    }
 }
 
 /** Retains your save slot selection when backing out from the "Previously On" menu page to the save slot info page */
