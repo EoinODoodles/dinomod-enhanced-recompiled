@@ -157,7 +157,7 @@ RECOMP_PATCH void dll_481_control(Object *self) {
         case 0:
             if (objdata->unkE <= 0) {
                 main_set_bits(BIT_176, 1);
-                func_80003B70(1.0f);
+                camera_set_shake_offset(1.0f);
                 objdata->unkE = rand_next(0x64, 0x96);
                 objdata->unk10 = 0x91;
             } else {
@@ -221,8 +221,8 @@ RECOMP_PATCH void dll_481_control(Object *self) {
             objdata->unk12 = 5;
             return;
         case 5:
-            if (main_get_bits(BIT_FD) == 0) {
-                main_set_bits(BIT_FD, 1);
+            if (main_get_bits(BIT_Shrine_Do_Exit_Warp) == 0) {
+                main_set_bits(BIT_Shrine_Do_Exit_Warp, 1);
             }
             main_set_bits(BIT_15F, 0);
             main_set_bits(BIT_DB_Entered_Shrine_2, 0);

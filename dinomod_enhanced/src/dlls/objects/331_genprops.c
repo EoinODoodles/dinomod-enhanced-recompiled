@@ -751,7 +751,7 @@ RECOMP_PATCH void dll_331_setup(Object* self, GenProps_Setup* objSetup, s32 arg2
 RECOMP_PATCH void dll_331_control(Object* self) {
     s32 index;
     Object* player;
-    ObjectStruct58* temp_v0;
+    ObjectPolyhits* temp_v0;
     s16 id;
     Object** new_var;
     GenProps_Setup *objSetup;
@@ -818,8 +818,8 @@ RECOMP_PATCH void dll_331_control(Object* self) {
         break;
     case OBJ_DFturbinelever: //0xae
         
-        new_var = &self->unk58->unk100[0];
-        if ((self->unkDC == 0) && (new_var != NULL) && (*(s16*)(((s32)self->unk58) + 0x146) == 0x2B)) {
+        new_var = &self->polyhits->unk100[0];
+        if ((self->unkDC == 0) && (new_var != NULL) && (*(s16*)(((s32)self->polyhits) + 0x146) == 0x2B)) {
             gDLL_3_Animation->vtbl->func17(0, self, -1);
             self->unkDC = 1;
         }
@@ -896,7 +896,7 @@ RECOMP_PATCH void dll_331_control(Object* self) {
         self->objhitInfo->unkC = 10.0f;
         self->objhitInfo->unk50 = 30;
         self->objhitInfo->unk58 |= 1;
-        if (main_get_bits(BIT_1D9) != 0) {
+        if (main_get_bits(BIT_Player_Immune_to_Rainbow_Scarabs) != 0) {
             self->objhitInfo->unk58 &= 0xFFFE;
         }
         if (objData->unk3E == 2) {
@@ -912,7 +912,7 @@ RECOMP_PATCH void dll_331_control(Object* self) {
             objData->roll *= 2;
             objData->pitch *= 2;
             gDLL_6_AMSFX->vtbl->play_sound(NULL, 0x35B, 0x43, NULL, NULL, 0, NULL);
-            func_80003B70(0.5f);
+            camera_set_shake_offset(0.5f);
         }
         if (objData->unk3E == 0) {
             if (objData->debugPrintDistance <= 40000.0f) {

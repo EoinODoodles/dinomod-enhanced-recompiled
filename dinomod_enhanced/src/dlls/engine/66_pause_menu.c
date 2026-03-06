@@ -95,7 +95,7 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
     screen_height = screen_dimensions >> 0x10;
 
     //Draw background and dimming overlay
-    func_80002130(&ulx, &uly, &lrx, &lry);
+    viewport_get_full_rect(&ulx, &uly, &lrx, &lry);
     gDPSetCombineMode(*gfx, G_CC_PRIMITIVE, G_CC_PRIMITIVE);    
     dl_apply_combine(gfx);
     gDPSetOtherMode(*gfx, 

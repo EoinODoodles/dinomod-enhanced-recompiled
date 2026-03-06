@@ -9,7 +9,7 @@
 
 extern void func_80026160(Object* obj);
 
-#include "recomp/dlls/_asm/461_recomp.h"
+#include "recomp/dlls/objects/461_CCsandwormBoss_recomp.h"
 
 typedef struct {
     u8 unk0;

@@ -241,7 +241,7 @@ RECOMP_PATCH void trigger_control(Object* self) {
                 }
                 break;
             case 2:
-                activatorObj = gDLL_2_Camera->vtbl->func2();
+                activatorObj = (Object*)gDLL_2_Camera->vtbl->get_data();
                 break;
             }
         }
@@ -500,7 +500,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             break;
         case TRG_CMD_CAMERA_ACTION: 
             // "Trigger [%d], Camera,             Action [%d], Camera Num [%d], PassDir [%d]"
-            gDLL_2_Camera->vtbl->func8(cmd->param1, cmd->param2);
+            gDLL_2_Camera->vtbl->change_mode(cmd->param1, cmd->param2);
             break;
         case TRG_CMD_TRACK: 
             // "Trigger [%d], Track Sky On"
