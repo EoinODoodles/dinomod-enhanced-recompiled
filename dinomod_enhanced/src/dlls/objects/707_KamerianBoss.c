@@ -137,7 +137,7 @@ RECOMP_PATCH void KamerianBoss_setup(Object *self, KamerianBoss_Setup *setup, s3
     KamerianBoss_disable_hit_sphere(1);
 
     for (i = 0; i < 2; i++) {
-        texture = queue_load_texture_proxy(sHealthBarTextureIDs[i]);
+        texture = tex_load_deferred(sHealthBarTextureIDs[i]);
         sHealthBarTextures[i] = texture;
         _bss_8[i].texture = texture;
         _bss_8[i].unk4 = 0;
@@ -318,7 +318,7 @@ RECOMP_PATCH void KamerianBoss_control(Object *self) {
         i = self->objhitInfo->unk62;
         while (i--) {
             hitSphereIdx = self->objhitInfo->unk63[i];
-            collisionType = self->objhitInfo->unk66[i];
+            collisionType = self->objhitInfo->hitTypeList[i];
             if (objdata->animTickDelta == 0.0f) {
                 // @recomp: Fix hit sphere indices
                 switch (hitSphereIdx) {

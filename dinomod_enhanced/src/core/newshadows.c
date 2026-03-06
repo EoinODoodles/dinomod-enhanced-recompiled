@@ -96,5 +96,5 @@ RECOMP_PATCH void shadows_init(void) {
     D_800B9840[22] = 0.0f;
     D_800B9840[23] = 55.0f;
     shadowtex_init();
-    D_800BB190 = queue_load_texture_proxy(0xD8);
+    D_800BB190 = tex_load_deferred(0xD8);
 }

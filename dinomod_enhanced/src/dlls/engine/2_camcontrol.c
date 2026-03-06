@@ -8,32 +8,30 @@
 #include "sys/objects.h"
 #include "sys/objtype.h"
 
-#include "recomp/dlls/engine/2_camera_recomp.h"
+#include "dlls/engine/2_camcontrol.h"
 
-typedef void (*func_1548)(s32);
-static func_1548 camcontrol_func_1548; 
-static void func_1548_hijack(s32);
+#include "recomp/dlls/engine/2_camcontrol_recomp.h"
 
-RECOMP_HOOK_DLL(dll_2_ctor) void camcontrol_ctor_hook(DLLFile *dll) {
-    camcontrol_func_1548 = dinomod_hijack_dll_export(dll, 16, func_1548_hijack);
-}
+static CamControl_Data* sCamData;
 
-RECOMP_HOOK_RETURN_DLL(dll_2_dtor) void camcontrol_dtor_hook() {
-    camcontrol_func_1548 = NULL;
-}
+RECOMP_PATCH void CamControl_set_target_flag_2(s32 enable) {
+    // @recomp: Return early if in Galadon fight (removes forced z-targeting)
+    {
+        Object **objectList;
+        s32 count;
 
-static void func_1548_hijack(s32 a0) {
-    // @recomp: Ignore func_1548 calls if in Galadon fight (removes forced z-targeting)
-    Object **objectList;
-    s32 count;
+        objectList = obj_get_all_of_type(OBJTYPE_4, &count);
 
-    objectList = obj_get_all_of_type(4, &count);
-
-    for (s32 i = 0; i < count; i++) {
-        if (objectList[i]->id == OBJ_DIM_Boss) {
-            return;
+        for (s32 i = 0; i < count; i++) {
+            if (objectList[i]->id == OBJ_DIM_Boss) {
+                return;
+            }
         }
     }
 
-    camcontrol_func_1548(a0);
+    if (enable) {
+        sCamData->targetFlags |= 2;
+    } else {
+        sCamData->targetFlags &= ~2;
+    }
 }

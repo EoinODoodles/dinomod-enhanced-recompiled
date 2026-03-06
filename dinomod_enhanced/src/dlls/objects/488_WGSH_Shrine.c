@@ -167,8 +167,8 @@ RECOMP_PATCH void dll_488_control(Object *self) {
             objdata->unk13 = 4;
             return;
         case 4:
-            if (main_get_bits(BIT_FD) == 0) {
-                main_set_bits(BIT_FD, 1);
+            if (main_get_bits(BIT_Shrine_Do_Exit_Warp) == 0) {
+                main_set_bits(BIT_Shrine_Do_Exit_Warp, 1);
             }
             // @recomp: Set spirit bits and WM act (original patch by MusicalProgrammer)
             main_set_bits(BIT_Spirit_Bits, 6);

@@ -43,7 +43,7 @@ RECOMP_PATCH void CFMagicWall_control(Object* self) {
         var_fv0 = sidekickDist;
     }
     
-    f32 camDist = func_80001884(self->srt.transl.x, self->srt.transl.y, self->srt.transl.z);
+    f32 camDist = camera_get_distance_to_point(self->srt.transl.x, self->srt.transl.y, self->srt.transl.z);
 
     if (camDist < var_fv0) {
         var_fv0 = camDist;
