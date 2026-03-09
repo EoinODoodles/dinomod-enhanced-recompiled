@@ -117,7 +117,6 @@ RECOMP_PATCH void func_8002F498(Vec3f* arg0, ModelInstance_0x14* arg1, Model* mo
                 arg3++;
                 // @recomp
                 // if (var_a2 == 0) {
-                //     //recomp_printf("SET rootIdx = 0\n", var_a2);
                 //     rootIdx = 0;
                 // }
             }
