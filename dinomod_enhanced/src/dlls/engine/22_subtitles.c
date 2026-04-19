@@ -3,8 +3,9 @@
 
 #include "PR/ultratypes.h"
 #include "PR/gbi.h"
+#include "sys/gfx/texture.h"
 #include "sys/main.h"
-#include "sys/gfx/gx.h"
+#include "sys/vi.h"
 
 typedef enum {
     UPCOMING_SUBTITLE_TRANS_VANILLA,

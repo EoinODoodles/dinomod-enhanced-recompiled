@@ -4,6 +4,7 @@
 #include "dlls/objects/338_LFXEmitter.h"
 #include "dlls/objects/453_CCfirecrystalin.h"
 #include "game/objects/object.h"
+#include "sys/objlib.h"
 #include "sys/objmsg.h"
 
 #include "recomp/dlls/objects/452_CCfirecrystal_recomp.h"

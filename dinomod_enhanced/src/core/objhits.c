@@ -3,6 +3,7 @@
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
 #include "sys/map.h"
+#include "sys/map_enums.h"
 
 extern s32 D_800B4A50;
 

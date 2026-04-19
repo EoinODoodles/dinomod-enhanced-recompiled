@@ -89,7 +89,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
     switch (objdata->state) {
     case LIFT_STATE_INIT:
         if ((main_get_bits(objdata->unkA) != 0) && (objdata->unk10 != 1) && 
-                (vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_INIT_ACTIVATE_RANGE)) {
+                (vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_INIT_ACTIVATE_RANGE)) {
             // go up with sound
             if (self->srt.transl.y < (setup->base.y + LIFT_UP)) {
                 if (objdata->soundHandle == 0) {
@@ -108,7 +108,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                 return;
             }
         } else if (objdata->unk10 == 1) {
-            if (vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_INIT_ACTIVATE_RANGE) {
+            if (vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_INIT_ACTIVATE_RANGE) {
                 // go up without sound
                 if (self->srt.transl.y < (setup->base.y + LIFT_UP)) {
                     self->srt.transl.y += gUpdateRateF;
@@ -132,7 +132,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                 objdata->cooldown = 0;
             }
         } else {
-            if (vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_ACTIVATE_RANGE) {
+            if (vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_ACTIVATE_RANGE) {
                 // player is on lift, start moving
                 if (self->srt.transl.y == (setup->base.y + LIFT_UP)) {
                     // at top, start going down
@@ -181,7 +181,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                 }
                 objdata->cooldown = LIFT_COOLDOWN;
             }
-            if ((vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_ACTIVATE_RANGE) && (objdata->unk11 == 1)) {
+            if ((vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_ACTIVATE_RANGE) && (objdata->unk11 == 1)) {
                 
             }
         } else {
@@ -190,7 +190,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                 gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandle);
                 objdata->soundHandle = 0;
             }
-            vec3_distance_xz(&self->positionMirror, &player->positionMirror);
+            vec3_distance_xz(&self->globalPosition, &player->globalPosition);
             objdata->state = LIFT_STATE_STOPPED;
             objdata->cooldown = LIFT_COOLDOWN;
         }
@@ -209,7 +209,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                     objdata->soundHandle = 0;
                 }
             }
-            if ((vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_ACTIVATE_RANGE) && (objdata->unk11 == 1)) {
+            if ((vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_ACTIVATE_RANGE) && (objdata->unk11 == 1)) {
                 
             }
         } else {
@@ -220,7 +220,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                 gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandle);
                 objdata->soundHandle = 0;
             }
-            if ((vec3_distance_xz(&self->positionMirror, &player->positionMirror) < PLAYER_ACTIVATE_RANGE) && (objdata->unk11 == 1)) {
+            if ((vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_ACTIVATE_RANGE) && (objdata->unk11 == 1)) {
 
             }
         }

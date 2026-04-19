@@ -1,8 +1,8 @@
-#include "PR/ultratypes.h"
-#include "functions.h"
 #include "modding.h"
 
 #include "common.h"
+#include "PR/ultratypes.h"
+#include "dlls/objects/common/sidekick.h"
 #include "dlls/objects/210_player.h"
 
 #include "recomp/dlls/objects/718_PerchObject_recomp.h"
@@ -48,9 +48,9 @@ RECOMP_PATCH int perchObject_anim_callback(Object* self, Object* animObj, AnimOb
         return 0;
     }
 
-    if (vec3_distance_squared(&get_player()->positionMirror, (Vec3f*)&(objData->curveSetup)->pos.x) <= (objSetup->interactionDistance * objSetup->interactionDistance)) {
+    if (vec3_distance_squared(&get_player()->globalPosition, (Vec3f*)&(objData->curveSetup)->pos.x) <= (objSetup->interactionDistance * objSetup->interactionDistance)) {
         ((DLL_Unknown*)kyte->dll)->vtbl->func[14].withTwoArgs((s32)kyte, 1);
-        if (gDLL_1_UI->vtbl->func_DF4(1)) {
+        if (gDLL_1_cmdmenu->vtbl->was_this_item_used(Sidekick_Command_INDEX_1_Find)) {
             main_set_bits(BIT_Kyte_Flight_Curve, objSetup->kyteFlightGroup);
         }
     }

@@ -50,16 +50,16 @@ RECOMP_PATCH void dll_461_func_5E0(Object* arg0, DLL461_Data* arg1) {
         return;
     }
 
-    diPrintf("worm %d, barrel %d\n", (s32) vec3_distance_xz(&arg0->positionMirror, &arg1->unk4->positionMirror), (s32) sp48);
+    diPrintf("worm %d, barrel %d\n", (s32) vec3_distance_xz(&arg0->globalPosition, &arg1->unk4->globalPosition), (s32) sp48);
     switch (arg1->unk0) {
     case 4:
         dll_461_func_12B0(arg0, arg1->unk4);
-        if (vec3_distance_xz_squared(&arg0->positionMirror, &arg1->unk4->positionMirror) < 32400.0f) {
+        if (vec3_distance_xz_squared(&arg0->globalPosition, &arg1->unk4->globalPosition) < 32400.0f) {
             dll_461_func_1090(arg0, arg1->unk4, arg1, 5);
         } else {
             if (((DLL_ISidekick*)arg1->unk8->dll)->vtbl->func24(arg1->unk8) != 0) {
-                diPrintf("kyte dist %d interest range 50.0F\n", (s32) vec3_distance_xz(&arg0->positionMirror, &arg1->unk8->positionMirror));
-                if (vec3_distance_xz_squared(&arg0->positionMirror, &arg1->unk8->positionMirror) < 3600.0f) {
+                diPrintf("kyte dist %d interest range 50.0F\n", (s32) vec3_distance_xz(&arg0->globalPosition, &arg1->unk8->globalPosition));
+                if (vec3_distance_xz_squared(&arg0->globalPosition, &arg1->unk8->globalPosition) < 3600.0f) {
                     dll_461_func_1250(arg0, arg1);
                     arg1->unk18 = 0.0f;
                 }
@@ -100,15 +100,15 @@ RECOMP_PATCH void dll_461_func_5E0(Object* arg0, DLL461_Data* arg1) {
         } else {
             main_set_bits(0x46E, 0xC3U);
         }
-        if (vec3_distance_xz_squared(&arg0->positionMirror, &arg1->unk4->positionMirror) < 32400.0f) {
+        if (vec3_distance_xz_squared(&arg0->globalPosition, &arg1->unk4->globalPosition) < 32400.0f) {
             dll_461_func_1090(arg0, arg1->unk4, arg1, 6);
-        } else if (vec3_distance_xz_squared(&arg0->positionMirror, &arg1->unk8->positionMirror) < 32400.0f) {
+        } else if (vec3_distance_xz_squared(&arg0->globalPosition, &arg1->unk8->globalPosition) < 32400.0f) {
             dll_461_func_1090(arg0, arg1->unk8, arg1, 7);
         } else {
-            if ((((DLL_ISidekick*)arg1->unk8->dll)->vtbl->func24(arg1->unk8) != 0) || (vec3_distance_xz_squared(&arg0->positionMirror, &arg1->unk8->positionMirror) < 90000.0f)) {
+            if ((((DLL_ISidekick*)arg1->unk8->dll)->vtbl->func24(arg1->unk8) != 0) || (vec3_distance_xz_squared(&arg0->globalPosition, &arg1->unk8->globalPosition) < 90000.0f)) {
                 func_8002493C(arg0, 1.5f, &arg1->unk14);
                 dll_461_func_1384(arg0, &arg1->unk8->srt.transl, 1.5f);
-            } else if (vec3_distance_xz_squared(&arg0->positionMirror, (Vec3f* ) &sp4C->x) < 10000.0f) {
+            } else if (vec3_distance_xz_squared(&arg0->globalPosition, (Vec3f* ) &sp4C->x) < 10000.0f) {
                 dll_461_func_1030(arg0, arg1);
             } else {
                 arg1->unk0 = 0xA;
@@ -124,7 +124,7 @@ RECOMP_PATCH void dll_461_func_5E0(Object* arg0, DLL461_Data* arg1) {
         break;
     case 11:
         if (((s32) sp4C->x == (s32) arg0->srt.transl.f[0]) && ((s32) sp4C->z == (s32) arg0->srt.transl.f[2])) {
-            sp48 = vec3_distance_xz_squared(&arg0->positionMirror, &arg1->unk4->positionMirror);
+            sp48 = vec3_distance_xz_squared(&arg0->globalPosition, &arg1->unk4->globalPosition);
             if (sp48 < 2500.0f) {
                 arg1->unk3 = 0;
                 gDLL_3_Animation->vtbl->func17(8, arg1->unkC, -1);
@@ -153,7 +153,7 @@ RECOMP_PATCH void dll_461_func_5E0(Object* arg0, DLL461_Data* arg1) {
             }
         } else {
             dll_461_func_1384(arg0, (Vec3f* ) &sp4C->x, 3.0f);
-            if (vec3_distance_xz_squared(&arg0->positionMirror, (Vec3f* ) &sp4C->x) < 10000.0f) {
+            if (vec3_distance_xz_squared(&arg0->globalPosition, (Vec3f* ) &sp4C->x) < 10000.0f) {
                 arg1->unk2 = 1;
             }
         }
@@ -174,7 +174,7 @@ RECOMP_PATCH void dll_461_func_5E0(Object* arg0, DLL461_Data* arg1) {
         }
         if (arg1->unk18 > 3000.0f) {
             arg1->unk0 = 4;
-        } else if (vec3_distance_xz_squared(&arg0->positionMirror, &arg1->unk4->positionMirror) < 32400.0f) {
+        } else if (vec3_distance_xz_squared(&arg0->globalPosition, &arg1->unk4->globalPosition) < 32400.0f) {
             dll_461_func_1090(arg0, arg1->unk4, arg1, 8);
         }
         dll_461_func_14B0(arg0, arg1);

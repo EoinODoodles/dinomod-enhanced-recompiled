@@ -5,13 +5,11 @@
 #include "PR/gbi.h"
 #include "PR/ultratypes.h"
 #include "PR/os.h"
-#include "functions.h"
 #include "types.h"
 #include "game/objects/object.h"
 #include "game/gamebits.h"
 #include "game/gametexts.h"
 #include "recomputils.h"
-#include "sys/gfx/gx.h"
 #include "sys/gfx/texture.h"
 #include "sys/dll.h"
 #include "sys/fonts.h"
@@ -222,7 +220,7 @@ RECOMP_PATCH void mainmenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
         gDLL_74_Picmenu->vtbl->draw(gfx);
         //@recomp: use the showDPLogo flag to actually show the DP logo
         if (main_demo_finished() || showDPLogo) {
-            func_8003825C(gfx, logoDinosaurPlanet, 50, 50, 0, 0, 0xFF, 0);
+            rcp_screen_full_write(gfx, logoDinosaurPlanet, 50, 50, 0, 0, 0xFF, 0);
         }
         font_window_draw(gfx, NULL, NULL, 1);
     }

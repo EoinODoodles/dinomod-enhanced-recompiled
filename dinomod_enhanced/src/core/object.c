@@ -122,8 +122,8 @@ RECOMP_PATCH ObjDef *obj_load_objdef(s32 tabIdx) {
             def->collectableDef = (CollectableDef*)((u32)def + (u32)def->collectableDef);
         }
 
-        if (def->unk40 != 0) {
-            def->unk40 = (ObjDefStruct40*)((u32)def + (u32)def->unk40);
+        if (def->lockdata != 0) {
+            def->lockdata = (ObjDefLockData*)((u32)def + (u32)def->lockdata);
         }
 
         if (def->pSeq != 0) {

@@ -9,7 +9,6 @@
 #include "sys/menu.h"
 #include "sys/objects.h"
 #include "dll.h"
-#include "functions.h"
 
 #include "recomp/dlls/engine/3_ANIM_recomp.h"
 
@@ -179,7 +178,7 @@ RECOMP_PATCH s32 dll_3_func_6620(Object *arg0, Object *arg1, AnimObj_Data *arg2,
             camera_enable_y_offset();
             temp_v0_3 = get_player();
             if (temp_v0_3 != NULL) {
-                temp_fv0 = vec3_distance_xz(&temp_v0_3->positionMirror, &arg0->positionMirror);
+                temp_fv0 = vec3_distance_xz(&temp_v0_3->globalPosition, &arg0->globalPosition);
                 var_fa0 = (2.0f * (sp54 - 7)) + 1.0f;
                 if (temp_fv0 < 200.0f) {
                     if (temp_fv0 > 50.0f) {

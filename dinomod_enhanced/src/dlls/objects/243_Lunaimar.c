@@ -43,9 +43,9 @@ RECOMP_PATCH void dll_243_func_C44(Object *self, Baddie *arg1, ObjFSA_Data *fsa)
     *sp3C = (s32) ((fsin16_precise(objdata->unk12) + 1.0f) * 127.0f);
     // @recomp: Sidekick null check
     if (sidekick != NULL) {
-        sp44.f[0] = sidekick->positionMirror.x - self->positionMirror.x;
-        sp44.f[1] = sidekick->positionMirror.y - self->positionMirror.y;
-        sp44.f[2] = sidekick->positionMirror.z - self->positionMirror.z;
+        sp44.f[0] = sidekick->globalPosition.x - self->globalPosition.x;
+        sp44.f[1] = sidekick->globalPosition.y - self->globalPosition.y;
+        sp44.f[2] = sidekick->globalPosition.z - self->globalPosition.z;
         sp40 = sqrtf(SQ(sp44.f[0]) + SQ(sp44.f[1]) + SQ(sp44.f[2]));
     }
     if (sidekick != NULL && ((DLL_ISidekick*)sidekick->dll)->vtbl->func24(sidekick) != 0 && (sp40 < (f32) arg1->unk3E2)) {

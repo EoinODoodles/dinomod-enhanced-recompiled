@@ -7,7 +7,6 @@
 #include "sys/memory.h"
 #include "sys/objects.h"
 #include "sys/rand.h"
-#include "functions.h"
 #include "dll.h"
 
 #include "recomp/dlls/objects/475_GPSH_flybaddie_recomp.h"
@@ -25,16 +24,16 @@ RECOMP_PATCH void GPSH_flybaddie_func_7F8(Object* self) {
     f32 magnitude;
 
     player = get_player();
-    self->positionMirror.x = self->srt.transl.x;
-    self->positionMirror.y = self->srt.transl.y;
-    self->positionMirror.z = self->srt.transl.z;
+    self->globalPosition.x = self->srt.transl.x;
+    self->globalPosition.y = self->srt.transl.y;
+    self->globalPosition.z = self->srt.transl.z;
     objsetup = mmAlloc(sizeof(UnkObjSetup), ALLOC_TAG_OBJECTS_COL, NULL);
     bzero(objsetup, sizeof(UnkObjSetup));
     // @recomp: Set obj ID to the (hopefully) intended object. In the vanilla code, the objId field
     //          is not set and happens to end up spawning OBJ_Sabre objects.
     objsetup->objId = OBJ_WGSH_projball;
-    objsetup->loadFlags = OBJSETUP_LOAD_FLAG2;
-    objsetup->fadeFlags = OBJSETUP_FADE_DISABLE;
+    objsetup->loadFlags = OBJSETUP_LOAD_MANUAL;
+    objsetup->fadeFlags = OBJSETUP_FADE_MANUAL;
     objsetup->loadDistance = 0xFF;
     objsetup->fadeDistance = 0xFF;
     objsetup->x = self->srt.transl.x;
@@ -59,14 +58,14 @@ RECOMP_PATCH void GPSH_flybaddie_func_7F8(Object* self) {
         obj->srt.transl.x += dirVec[0] * 20.0f;
         obj->srt.transl.y += dirVec[1] * 20.0f;
         obj->srt.transl.z += dirVec[2] * 20.0f;
-        obj->speed.x = 2.0f * dirVec[0];
-        obj->speed.y = 2.0f * dirVec[1];
-        obj->speed.z = 2.0f * dirVec[2];
+        obj->velocity.x = 2.0f * dirVec[0];
+        obj->velocity.y = 2.0f * dirVec[1];
+        obj->velocity.z = 2.0f * dirVec[2];
         obj->unkDC = 0xBE;
         obj->unkE0 = 0;
-        obj->positionMirror.x = obj->srt.transl.x;
-        obj->positionMirror.y = obj->srt.transl.y;
-        obj->positionMirror.z = obj->srt.transl.z;
+        obj->globalPosition.x = obj->srt.transl.x;
+        obj->globalPosition.y = obj->srt.transl.y;
+        obj->globalPosition.z = obj->srt.transl.z;
         gDLL_6_AMSFX->vtbl->play_sound(obj, SOUND_730_Electrified_Blast, 0x50, NULL, NULL, 0, NULL);
     }
 }

@@ -7,6 +7,7 @@
 #include "sidekick_util.h"
 
 #include "common.h"
+#include "sys/map_enums.h"
 #include "sys/menu.h"
 #include "sys/objanim.h"
 #include "sys/objtype.h"
@@ -168,9 +169,9 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                 var_fs0 /= temp_fv0;
                 var_fs1 /= temp_fv0;
             }
-            player->speed.y = 2.5f;
-            player->speed.x = var_fs0 * 2.5f;
-            player->speed.z = var_fs1 * 2.5f;
+            player->velocity.y = 2.5f;
+            player->velocity.x = var_fs0 * 2.5f;
+            player->velocity.z = var_fs1 * 2.5f;
             gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, PLAYER_ASTATE_Hurt_Knocked_Down);
             dll_210_add_health(player, -messageArgument);
             if (arg1->unk868 != NULL) {
@@ -186,9 +187,9 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                 var_fs0 /= temp_fv0;
                 var_fs1 /= temp_fv0;
             }
-            player->speed.y = 2.5f;
-            player->speed.x = -var_fs0 * 2.5f;
-            player->speed.z = -var_fs1 * 2.5f;
+            player->velocity.y = 2.5f;
+            player->velocity.x = -var_fs0 * 2.5f;
+            player->velocity.z = -var_fs1 * 2.5f;
             gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, PLAYER_ASTATE_Hurt_Knocked_Down);
             dll_210_add_health(player, -messageArgument);
             if (arg1->unk868 != NULL) {
@@ -204,9 +205,9 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                 var_fs0 /= temp_fv0;
                 var_fs1 /= temp_fv0;
             }
-            player->speed.y = 2.5f;
-            player->speed.x = -var_fs0 * 2.5f;
-            player->speed.z = -var_fs1 * 2.5f;
+            player->velocity.y = 2.5f;
+            player->velocity.x = -var_fs0 * 2.5f;
+            player->velocity.z = -var_fs1 * 2.5f;
             gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_DA_Krystal_Hurt_Ough, MAX_VOLUME, NULL, NULL, 0, NULL);
             gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, PLAYER_ASTATE_Hurt_Knocked_Down);
             func_80023D30(player, 0x450, 0.0f, 0);
@@ -778,7 +779,7 @@ RECOMP_PATCH s32 dll_210_func_B4E0(Object* player, ObjFSA_Data* fsa, f32 deltaTi
                 //@recomp: unparent holdable object if it's attached to a mobile map
                 if (heldObject->parent){
                     heldObject->parent = NULL;
-                    heldObject->srt.transl = player->positionMirror;
+                    heldObject->srt.transl = player->globalPosition;
                 }
                 heldObject->unkE0 = 1;
             } else {
@@ -909,14 +910,14 @@ RECOMP_PATCH s32 dll_210_func_125BC(Object *self, ObjFSA_Data *fsa, f32 updateRa
     if (f2 > 25.0f) {
         f2 = 25.0f;
     }
-    self->speed.y += (f2 / 25.0f) * 0.13f * gUpdateRateF;
-    self->speed.y -= 0.1f * gUpdateRateF;
-    self->speed.y *= 0.96f;
-    if (self->speed.y > 1.4f) {
-        self->speed.y = 1.4f;
+    self->velocity.y += (f2 / 25.0f) * 0.13f * gUpdateRateF;
+    self->velocity.y -= 0.1f * gUpdateRateF;
+    self->velocity.y *= 0.96f;
+    if (self->velocity.y > 1.4f) {
+        self->velocity.y = 1.4f;
     }
-    self->speed.x *= 0.98f;
-    self->speed.z *= 0.98f;
+    self->velocity.x *= 0.98f;
+    self->velocity.z *= 0.98f;
     for (i = 0; i < 4; i++) {
         gDLL_17_partfx->vtbl->spawn(self, PARTICLE_202, NULL, PARTFXFLAG_NONE, -1, NULL);
     }
@@ -1034,7 +1035,7 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     temp_s1->unk834 = 0; //@recomp
     func_800267A4(player);
 
-    player->speed.f[1] = 0.0f;
+    player->velocity.f[1] = 0.0f;
     if (fsa->enteredAnimState != 0) {
         ((DLL_IVehicle*)temp_s2->dll)->vtbl->func9(temp_s2, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z);
         if ((temp_s2->id == 0x72) || (temp_s2->id == 0x38C)) {
@@ -1097,9 +1098,9 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
             sp4C[2] = 0;
         }
         player->shadow->flags &= ~OBJ_SHADOW_FLAG_FADE_OUT;
-        player->positionMirror.x = temp_s1->unk7EC.x;
-        player->positionMirror.z = temp_s1->unk7EC.z;
-        inverse_transform_point_by_object(player->positionMirror.x, 0.0f, player->positionMirror.z, player->srt.transl.f, &sp54.scale, &player->srt.transl.z, player->parent);
+        player->globalPosition.x = temp_s1->unk7EC.x;
+        player->globalPosition.z = temp_s1->unk7EC.z;
+        inverse_transform_point_by_object(player->globalPosition.x, 0.0f, player->globalPosition.z, player->srt.transl.f, &sp54.scale, &player->srt.transl.z, player->parent);
         if (temp_s1->unk750 == 1) {
             player->srt.yaw += 0x4000;
         } else {
@@ -1127,7 +1128,7 @@ RECOMP_PATCH s32 dll_210_func_17C14(Object* self, Player_Data* objData, f32 arg2
 
         if (func_80025F40(self, &sp34, NULL, NULL)){
             //@recomp: don't try to calculate angle if func_80025F40 returns 0
-            self->srt.yaw = arctan2_f(-sp34->speed.f[0], -sp34->speed.f[2]);
+            self->srt.yaw = arctan2_f(-sp34->velocity.f[0], -sp34->velocity.f[2]);
         }
 
         func_80023D30(self, 0x407, 0.0f, 0U);
@@ -1318,7 +1319,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
         return 1;
     }
     if (arg0->linkedObject == NULL) {
-        arg0->linkedObject = obj_create(obj_alloc_create_info(0x18, _data_24[objdata->unk8B4]), OBJ_INIT_FLAG4, -1, -1, arg0->parent);
+        arg0->linkedObject = obj_create(obj_alloc_setup(0x18, _data_24[objdata->unk8B4]), OBJ_INIT_FLAG4, -1, -1, arg0->parent);
     } else {
         arg0->linkedObject->parent = arg0->parent;
     }
@@ -1536,7 +1537,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                         || var_s0->id == OBJ_DR_EarthWarrior
                         || var_s0->id == OBJ_DR_CloudRunner
                     ) {
-                        f32 dist = vec3_distance_squared(&arg0->positionMirror, &var_s0->positionMirror);
+                        f32 dist = vec3_distance_squared(&arg0->globalPosition, &var_s0->globalPosition);
                         if (dist < closestDist) {
                             closestDist = dist;
                             objdata->vehicle = var_s0;
@@ -1701,10 +1702,10 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
         if (objdata->unk708 != NULL) {
             if (objdata->unk708->def->unkAA >= 0) {
                 if (arg2->unk8D == 0x1A) {
-                    gDLL_1_UI->vtbl->func_1338(objdata->unk708->def->unkAA, 0xA0, 0x8C);
+                    gDLL_1_cmdmenu->vtbl->open_tutorial_textbox(objdata->unk708->def->unkAA, 160, 140);
                 }
             } else {
-                gDLL_1_UI->vtbl->func_130C(objdata->unk708->def->gametextIndex[0], 0xA0, 0x8C);
+                gDLL_1_cmdmenu->vtbl->auto_show_info_scroll(objdata->unk708->def->gametextIndex[0], 160, 140);
             }
             if (arg2->unk8D == 1) {
                 gDLL_3_Animation->vtbl->func19(0x54, 3, 0, 0);

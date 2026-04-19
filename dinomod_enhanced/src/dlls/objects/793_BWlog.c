@@ -9,7 +9,6 @@
 #include "sys/objtype.h"
 #include "sys/print.h"
 #include "dll.h"
-#include "functions.h"
 
 enum RecompLogAButtonMode {
     RECOMP_LOG_ROWING_TAP,
@@ -164,7 +163,7 @@ RECOMP_PATCH void dll_793_control(Object* self) {
     objdata->unk338 = obj_get_nearest_type_to(OBJTYPE_23, self, &sp98);
     if (objdata->unk338 != NULL) {
         temp_s0 = (ObjType23Setup*)objdata->unk338->setup;
-        sp98 = vec3_distance(&self->positionMirror, &objdata->unk338->positionMirror);
+        sp98 = vec3_distance(&self->globalPosition, &objdata->unk338->globalPosition);
         if (objdata->unk32E == 2) {
             var_fv1 = 0.95f;
         } else {

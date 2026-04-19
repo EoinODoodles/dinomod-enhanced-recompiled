@@ -5,7 +5,6 @@
 #include "dll.h"
 #include "dlls/engine/29_gplay.h"
 #include "dlls/engine/6_amsfx.h"
-#include "functions.h"
 #include "game/gamebits.h"
 #include "dll_util.h"
 

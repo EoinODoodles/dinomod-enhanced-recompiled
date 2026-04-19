@@ -2,18 +2,19 @@
 #include "recomputils.h"
 
 #include "dll.h"
-#include "sys/dll.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
+#include "sys/gfx/modgfx.h"
 #include "sys/main.h"
 #include "sys/objects.h"
 #include "sys/objtype.h"
+#include "sys/dll.h"
 
 #include "dlls/engine/6_amsfx.h"
 #include "dlls/objects/210_player.h"
 #include "recomp/dlls/objects/295_smallbasket_recomp.h"
 
-extern s32 _data_0[];
+extern DLL_IModgfx* dModGfxDLL[];
 
 typedef struct{
 /*00*/ s32 unk0;
@@ -27,7 +28,7 @@ typedef struct{
 
 // Frees the Small Basket objects' memory properly (originally by MusicalProgrammer)
 // Prevent crash if the player's holding the basket when it unloads
-RECOMP_PATCH void dll_295_free(Object* self, s32 arg1) {
+RECOMP_PATCH void smallbasket_free(Object* self, s32 arg1) {
     SmallBasket_Data* objdata = self->data;
     Object* player; //@recomp
     Player_Data* playerObjdata; //@recomp
@@ -44,7 +45,7 @@ RECOMP_PATCH void dll_295_free(Object* self, s32 arg1) {
 
     gDLL_14_Modgfx->vtbl->func5(self);
     obj_free_object_type(self, 0x12); //@recomp: remove self from type category 0x12
-    dll_unload((void*)_data_0[0]);
+    dll_unload((void*)dModGfxDLL[0]);
     if (objdata->soundHandle) {
         gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandle);
         objdata->soundHandle = 0;

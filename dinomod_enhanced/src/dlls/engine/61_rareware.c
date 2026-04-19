@@ -8,7 +8,6 @@
 #include "game/gamebits.h"
 #include "sys/joypad.h"
 #include "sys/fonts.h"
-#include "sys/gfx/gx.h"
 #include "sys/gfx/texture.h"
 #include "sys/main.h"
 #include "sys/dll.h"
@@ -17,7 +16,6 @@
 #include "sys/rcp.h"
 #include "dll.h"
 #include "dll_util.h"
-#include "functions.h"
 #include "types.h"
 
 #include "recomp/dlls/engine/61_rareware_recomp.h"
@@ -150,7 +148,7 @@ RECOMP_PATCH void dll_61_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
         return;
     }
 
-    func_80037A14(gdl, mtxs, 1);
+    rcp_clear_screen(gdl, mtxs, 1);
     gDLL_76->vtbl->func2(gdl, mtxs);
 
     if (data_0 > 40 && data_4 == 0) {
@@ -181,8 +179,8 @@ RECOMP_PATCH void dll_61_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
         }
 
         //@recomp: reposition logo
-        func_8003825C(gdl, bss_10, 42, 175, 0, 0, (s16)(255.0f * var1), 0);
-        func_8003825C(gdl, bss_18, 130, 208, 0, 0, (s16)(255.0f * var1), 0);
+        rcp_screen_full_write(gdl, bss_10, 42, 175, 0, 0, (s16)(255.0f * var1), 0);
+        rcp_screen_full_write(gdl, bss_18, 130, 208, 0, 0, (s16)(255.0f * var1), 0);
     }
 
     if (data_4 >= 1) {
@@ -199,7 +197,7 @@ RECOMP_PATCH void dll_61_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
         }
 
         //@recomp: reposition logo
-        func_8003825C(gdl, bss_C, 42, 175, 0, 0, (u8)(255.0f * var1), 0);
-        func_8003825C(gdl, bss_14, 130, 208, 0, 0, (u8)(255.0f * var1), 0);
+        rcp_screen_full_write(gdl, bss_C, 42, 175, 0, 0, (u8)(255.0f * var1), 0);
+        rcp_screen_full_write(gdl, bss_14, 130, 208, 0, 0, (u8)(255.0f * var1), 0);
     }
 }

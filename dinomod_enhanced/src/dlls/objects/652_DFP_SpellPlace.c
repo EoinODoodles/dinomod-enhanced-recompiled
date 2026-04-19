@@ -23,7 +23,7 @@ RECOMP_PATCH void dll_652_func_364(Object* self) {
     if ((bit1Val == 0) && (bit2Val != 0) && (objdata->unk4 == 0)) {
         self->unkAF &= ~8;
         // @recomp: Accept the correct spellstone (original patch by jeebs2kx)
-        if ((bit2Val != 0) && (gDLL_1_UI->vtbl->func_DF4(0x83A) != 0)) {
+        if ((bit2Val != 0) && (gDLL_1_cmdmenu->vtbl->was_this_item_used(BIT_SpellStone_BWC) != 0)) {
             gDLL_3_Animation->vtbl->func17(1, self, -1);
             objdata->unk4 = 1;
             self->unkAF |= 8;

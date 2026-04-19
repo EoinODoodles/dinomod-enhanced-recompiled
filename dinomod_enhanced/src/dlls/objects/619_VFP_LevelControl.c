@@ -8,8 +8,9 @@
 #include "sys/objects.h"
 #include "sys/objtype.h"
 #include "sys/print.h"
+#include "sys/segment_1050.h"
+#include "sys/segment_1460.h"
 #include "dll.h"
-#include "functions.h"
 
 #include "recomp/dlls/objects/619_VFP_LevelControl_recomp.h"
 

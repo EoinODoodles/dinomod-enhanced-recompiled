@@ -2,10 +2,10 @@
 #include "recomputils.h"
 
 #include "common.h"
+#include "sys/main.h"
+#include "sys/segment_1460.h"
 
 #include "recomp/dlls/objects/612_WL_Crystal_recomp.h"
-#include "segment_334F0.h"
-#include "sys/main.h"
 
 typedef struct {
 /*00*/    ObjSetup base;

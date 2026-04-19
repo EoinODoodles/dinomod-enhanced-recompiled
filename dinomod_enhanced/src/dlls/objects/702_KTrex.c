@@ -10,12 +10,12 @@
 #include "sys/gfx/model.h"
 #include "sys/gfx/modgfx.h"
 #include "sys/main.h"
+#include "sys/map_enums.h"
 #include "sys/objanim.h"
 #include "sys/objhits.h"
 #include "sys/objmsg.h"
 #include "sys/objtype.h"
 #include "sys/rand.h"
-#include "segment_334F0.h"
 #include "dll.h"
 
 /**
@@ -415,7 +415,7 @@ RECOMP_PATCH s32 dll_702_anim_state_2(Object* self, ObjFSA_Data* fsa, f32 update
     tempSRT.transl.z = 0.0f;
     tempSRT.scale = 1.0f;
     matrix_from_srt(&tempMtx, &tempSRT);
-    vec3_transform(&tempMtx, fsa->unk27C, 0.0f, -fsa->unk278, &self->speed.x, &tempY, &self->speed.z);
+    vec3_transform(&tempMtx, fsa->unk27C, 0.0f, -fsa->unk278, &self->velocity.x, &tempY, &self->velocity.z);
     if (reversed) {
         self->srt.yaw = (f32) sKTData->turnStartYaw + (16384.0f * self->animProgress);
     } else {

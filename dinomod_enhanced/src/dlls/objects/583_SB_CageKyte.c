@@ -1,5 +1,4 @@
 #include "PR/ultratypes.h"
-#include "functions.h"
 #include "modding.h"
 
 #include "game/objects/object.h"
@@ -7,8 +6,8 @@
 #include "recomputils.h"
 #include "sys/main.h"
 #include "sys/objects.h"
+#include "sys/objprint.h"
 #include "sys/objtype.h"
-#include "game/gamebits.h"
 #include "dll.h"
 
 #include "recomp/dlls/objects/583_SB_CageKyte_recomp.h"

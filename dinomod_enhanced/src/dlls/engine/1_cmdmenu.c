@@ -1,39 +1,411 @@
+#include "game/objects/interaction_arrow.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
 
-#include "recomp/dlls/engine/1_cmdmenu_recomp.h"
-#include "dlls/engine/1_ui.h"
-#include "game/objects/inventory_items.h"
-
 #include "common.h"
+#include "game/objects/inventory_items.h"
+#include "game/gametexts_ui.h"
+#include "dlls/engine/1_cmdmenu.h"
 
-extern s16 _data_20;
-extern InventoryItem _data_128[37];
-extern InventoryItem _data_2E4[37];
-extern InventoryItem _data_4A0[];
-extern InventoryItem _data_4E8[];
-extern InventoryItem _data_530[];
-extern InventoryItem _data_5E4[];
-extern InventoryItem _data_698[];
-extern EnergyBar* _bss_90;
+#include "recomp/dlls/engine/1_cmdmenu_recomp.h"
+
+#define MAX_LOADED_ITEMS 64
+#define MAX_OPACITY 0xFF
+#define MAX_OPACITY_F 255.0f
+
+#define NO_GAMETEXT -1
+#define NO_TEXTURE -1
+#define NO_PAGE -1
+#define NO_ITEM -1
+
+#define SLOT_OCCUPIED 0
+#define SLOT_PADDED 1
+
+#define NONE 0xFFFF
+#define EXIT -1
+
+/* UI COORD MACROS (TO-DO: move to separate header?) */
+
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 240
+
+//Change these to move the UI elements in the top-left of screen (character icon, health, magic)
+#define UI_TOP_LEFT_X 0
+#define UI_TOP_LEFT_Y 0
+
+//Change these to move the UI elements in the top-right of screen (C-buttons, inventory scroll)
+#define UI_TOP_RIGHT_X 0
+#define UI_TOP_RIGHT_Y 0
+
+//Change these to move the UI elements in the bottom-left of screen (item info pop-up, minimap)
+#define UI_BOTTOM_LEFT_X 0
+#define UI_BOTTOM_LEFT_Y 0
+
+//Change these to move the UI elements in the bottom-right of screen (Scarab counter, active Spell/Command)
+#define UI_BOTTOM_RIGHT_X 0
+#define UI_BOTTOM_RIGHT_Y 0
+
+/* UI TOP-LEFT */
+
+//Character icon
+#define CHARACTER_ICON_X 20
+#define CHARACTER_ICON_Y 10
+
+//Health
+#define HEALTH_ICONS_X 60
+#define HEALTH_ICONS_Y 20
+#define APPLES_SPACING_X 10
+#define APPLES_SPACING_Y 10
+#define APPLES_ROW_1 7
+#define APPLES_ROW_2 6
+#define APPLES_ROW_1_OFFSET_X 0
+#define APPLES_ROW_2_OFFSET_X 5
+#define APPLES_ROW_3_OFFSET_X 0
+
+#define APPLES_ROW_2_IDX (APPLES_ROW_1)
+#define APPLES_ROW_3_IDX (APPLES_ROW_1 + APPLES_ROW_2)
+
+//Magic
+#define MAGIC_UNITS_PER_BAR 25
+#define MAGIC_BARS_WIDTH 66
+#define MAGIC_BARS_HEIGHT 14
+#define MAGIC_BARS_X 23
+#define MAGIC_BARS_Y 60
+#define MAGIC_BARS_SPACING_Y 12
+#define MAGIC_BARS_ZERO_POINT_X 13
+
+/* UI TOP-RIGHT */
+
+//Inventory page icon
+#define PAGE_ICON_X 261
+#define PAGE_ICON_Y 10
+
+//Inventory item icons
+#define MENU_ITEM_X 262
+#define MENU_ITEM_Y 59
+#define MENU_ITEM_WIDTH 32
+#define MENU_ITEM_HEIGHT 24
+#define MENU_ITEM_QUANTITY_OFFSET_X 14
+#define MENU_ITEM_QUANTITY_OFFSET_Y 9
+
+#define MENU_ITEM_QUANTITY_X (MENU_ITEM_X + MENU_ITEM_QUANTITY_OFFSET_X)
+
+//Inventory scroll
+#define MENU_HEIGHT_OPEN 72
+
+#define MENU_SCROLL_WIDTH 40
+#define MENU_SCROLL_HEIGHT 8
+
+#define MENU_SCROLL_X (MENU_ITEM_X - (MENU_SCROLL_WIDTH - MENU_ITEM_WIDTH)/2)
+#define MENU_SCROLL_TOP_Y (MENU_ITEM_Y - MENU_SCROLL_HEIGHT)
+#define MENU_SCROLL_BOTTOM_Y (MENU_ITEM_Y)
+
+#define MENU_SCROLL_CENTRE_Y (MENU_ITEM_Y + (MENU_ITEM_HEIGHT + MENU_ITEM_HEIGHT/2)) //Screen Y-coord in the middle of the inventory's 3 tiles
+
+//Inventory item selection highlight
+#define ITEM_HL_WIDTH 8
+#define ITEM_HL_HEIGHT 6
+#define ITEM_HL_MARGIN 4
+
+#define ITEM_HL_X1 (MENU_ITEM_X + ITEM_HL_MARGIN)
+#define ITEM_HL_Y1 (MENU_ITEM_Y + (MENU_HEIGHT_OPEN - MENU_ITEM_HEIGHT)/2 - 1)
+#define ITEM_HL_X2 (MENU_ITEM_X + MENU_ITEM_WIDTH - ITEM_HL_WIDTH - ITEM_HL_MARGIN)
+#define ITEM_HL_Y2 (ITEM_HL_Y1 + MENU_ITEM_HEIGHT - ITEM_HL_MARGIN)
+
+//Sidekick meter
+#define SIDEKICK_METER_X 250
+#define SIDEKICK_METER_Y 21
+#define SIDEKICK_METER_SPACING_X 9
+#define SIDEKICK_METER_SPACING_Y 8
+#define SIDEKICK_METER_ICONS_PER_COLUMN 4
+
+//C buttons
+#define C_BUTTONS_X 245
+#define C_BUTTONS_Y 17
+
+#define C_BUTTONS_LEFT_EMPTY_X (C_BUTTONS_X + 1)
+#define C_BUTTONS_LEFT_EMPTY_Y (C_BUTTONS_Y + 9)
+
+#define C_BUTTONS_DOWN_EMPTY_X (C_BUTTONS_X + 7)
+#define C_BUTTONS_DOWN_EMPTY_Y (C_BUTTONS_Y + 26)
+
+#define C_BUTTONS_RIGHT_EMPTY_X (C_BUTTONS_X + 29)
+#define C_BUTTONS_RIGHT_EMPTY_Y (C_BUTTONS_Y + 17)
+
+#define C_BUTTONS_LEFT_DOWN_BOOK_SIDEKICK_X (C_BUTTONS_X + 0)
+#define C_BUTTONS_LEFT_DOWN_BOOK_SIDEKICK_Y (C_BUTTONS_Y + 0)
+
+#define C_BUTTONS_RIGHT_BAG_X (C_BUTTONS_X + 30)
+#define C_BUTTONS_RIGHT_BAG_Y (C_BUTTONS_Y + 8)
+
+/* UI BOTTOM-LEFT */
+
+//Item info pop-up
+#define INFO_POPUP_X 20
+#define INFO_POPUP_Y 175
+#define INFO_POPUP_EDGE_WIDTH 16
+
+#define INFO_POPUP_L_X (INFO_POPUP_X + 0)
+#define INFO_POPUP_M_X (INFO_POPUP_L_X + INFO_POPUP_EDGE_WIDTH)
+#define INFO_POPUP_R_X (INFO_POPUP_M_X + MENU_ITEM_WIDTH)
+#define INFO_POPUP_SHADOW_X (INFO_POPUP_X + 2)
+#define INFO_POPUP_SHADOW_Y (INFO_POPUP_Y + 1)
+#define INFO_POPUP_QUANTITY_X (INFO_POPUP_M_X + 16)
+#define INFO_POPUP_QUANTITY_Y (INFO_POPUP_Y + 16)
+
+/* UI BOTTOM-RIGHT */
+
+//Scarabs counter
+#define SCARABS_ICON_X 252
+#define SCARABS_ICON_Y 198
+#define SCARABS_ICON_WIDTH 16
+#define SCARABS_ICON_HEIGTH 16
+#define SCARABS_NUMBER_X (SCARABS_ICON_X + 18)
+#define SCARABS_NUMBER_Y (SCARABS_ICON_Y + 4)
+
+//Active Spell
+#define ACTIVE_SPELL_X 253
+#define ACTIVE_SPELL_Y 169
+#define ACTIVE_SPELL_ICON_OFFSET_X 9
+#define ACTIVE_SPELL_ICON_OFFSET_Y 11
+
+#define ACTIVE_SPELL_ICON_X (ACTIVE_SPELL_X + ACTIVE_SPELL_ICON_OFFSET_X)
+#define ACTIVE_SPELL_ICON_Y (ACTIVE_SPELL_Y + ACTIVE_SPELL_ICON_OFFSET_Y)
+
+//Active Sidekick Command
+#define ACTIVE_SIDECOMMAND_X 253
+#define ACTIVE_SIDECOMMAND_Y 121
+#define ACTIVE_SIDECOMMAND_ICON_OFFSET_X 9
+#define ACTIVE_SIDECOMMAND_ICON_OFFSET_Y 11
+
+#define ACTIVE_SIDECOMMAND_ICON_X (ACTIVE_SIDECOMMAND_X + ACTIVE_SIDECOMMAND_ICON_OFFSET_X)
+#define ACTIVE_SIDECOMMAND_ICON_Y (ACTIVE_SIDECOMMAND_Y + ACTIVE_SIDECOMMAND_ICON_OFFSET_Y)
+
+/* CENTRED UI */
+
+//Info scroll
+#define INFO_SCROLL_WIDTH 120
+#define INFO_SCROLL_HEIGHT 50 //When open
+#define INFO_SCROLL_TEXT_Y 3 //Top margin for text printed inside the tutorial box
+#define INFO_SCROLL_LINE_HEIGHT 16 //Text lines' vertical spacing
+#define INFO_SCROLL_X (SCREEN_WIDTH/2)
+#define INFO_SCROLL_Y 30
+#define INFO_SCROLL_Y_INITIAL (INFO_SCROLL_Y - 10)
+#define INFO_SCROLL_OPACITY_MAX 160
+#define INFO_SCROLL_OPACITY_SPEED 32
+
+//Info scroll texture dimensions
+#define INFO_SCROLL_PAGE_EDGE_WIDTH 16
+#define INFO_SCROLL_PAGE_SHADOW_HEIGHT 8
+#define INFO_SCROLL_ROLL_HEIGHT 16
+#define INFO_SCROLL_ROLL_TOP_Y_OFFSET 11
+#define INFO_SCROLL_ROLL_BOTTOM_Y_OFFSET 4 //NOTE: causes 1px gap, may be intentional as dark shadow
+#define INFO_SCROLL_HANDLE_WIDTH 16
+#define INFO_SCROLL_HANDLE_HEIGHT 16
+
+//Tutorial textbox
+#define TUTORIAL_BOX_WIDTH 240
+#define TUTORIAL_BOX_HEIGHT 80
+#define TUTORIAL_BOX_TEXT_Y 3 //Top margin for text printed inside the tutorial box
+#define TUTORIAL_BOX_LINE_HEIGHT 16 //Text lines' vertical spacing
+#define TUTORIAL_BOX_X (SCREEN_WIDTH/2)
+#define TUTORIAL_BOX_Y 20
+#define TUTORIAL_BOX_OPACITY_MAX 160
+#define TUTORIAL_BOX_OPACITY_SPEED 8
+
+//Tutorial textbox texture dimensions
+#define TUTORIAL_BOX_PAGE_EDGE_WIDTH 16
+#define TUTORIAL_BOX_PAGE_SHADOW_HEIGHT 8
+#define TUTORIAL_BOX_ROLL_HEIGHT 16
+#define TUTORIAL_BOX_ROLL_TOP_Y_OFFSET 11
+#define TUTORIAL_BOX_ROLL_BOTTOM_Y_OFFSET 4 //NOTE: causes 1px gap, may be intentional as dark shadow
+#define TUTORIAL_BOX_HANDLE_WIDTH 16
+#define TUTORIAL_BOX_HANDLE_HEIGHT 16
+
+#define TUTORIAL_BOX_A_BUTTON_WIDTH 24
+#define TUTORIAL_BOX_A_BUTTON_HEIGHT 24
+#define TUTORIAL_BOX_A_BUTTON_OFFSET_X 8
+#define TUTORIAL_BOX_A_BUTTON_OFFSET_Y 0
+
+//Energy bar
+#define ENERGY_BAR_X (SCREEN_WIDTH / 2)
+#define ENERGY_BAR_Y (SCREEN_HEIGHT - 10)
+
+//Aiming reticle
+#define AIMING_RETICLE_WIDTH 32
+#define AIMING_RETICLE_HEIGHT 32
+#define AIMING_RETICLE_OPACITY 150
+
+extern s8 dInventoryShow;
+extern s8 sInventoryScrollOffset;
+extern s8 dInventoryMoveSpeed;
+extern s16 dInventoryUnrollMax;
+extern s16 dInventoryOpacity;
+extern s16 dOpacitySidekickMeter;
+extern s16 dSelectedItemTextID;
+extern s8 dInfoScrollShow;
+extern s16 dInfoScrollWidthHalf;
+extern s16 dInfoScrollUnrollMax;
+extern s16 dInfoScrollY;
+extern s16 dInfoScrollX;
+extern s16 dInfoScrollOpacity;
+extern char* dInfoScrollStrings[];
+extern s16 dInfoScrollTextID;
+extern s8 dTutorialBoxShow;
+extern s16 dTutorialBoxHalfWidth;
+extern s16 dTutorialBoxHeight;
+extern s16 dTutorialBoxY;
+extern s16 dTutorialBoxX;
+extern s16 dTutorialBoxOpacity;
+extern s16 dTutorialBoxTextOpacity;
+extern Texture* dInventoryPageIcon;
+extern s8 sJoyButtonMask;
+extern s16 dInventoryMovesQueued;
+extern u8 dInventoryIsScrolling;
+extern u8 sForceStatsDisplay;
+extern s16 dInfoScrollDisabled;
+extern s16 dSpellGamebits[];
+extern s16 dSpellTextableIDs[];
+extern s16 dCommandTextableIDs[];
+extern CmdmenuPlayerStatsChangeSounds dStatChangeSounds;
+extern s8 dInventoryFrameTop;
+extern s8 dInventoryFrameBottom;
+extern s8 dInfoScrollFrameTop;
+extern s8 dInfoScrollFrameBottom;
+
+extern InventoryItem dPage0ItemsKrystal[37];
+extern InventoryItem dPage1ItemsSabre[37];
+extern InventoryItem dPage2FoodActionsKrystal[];
+extern InventoryItem dPage3FoodActionsSabre[];
+extern InventoryItem dPage4FoodItemsKrystal[];
+extern InventoryItem dPage5FoodItemsSabre[];
+extern InventoryItem dPage6MagicSpells[];
+extern InventoryCommand dPage7CommandsKyte[];
+extern InventoryCommand sPage8CommandsTricky[];
+extern InventoryItem dPage9FoodActionsKyte[];
+extern InventoryItem dPage10FoodActionsTricky[];
+extern InventoryItem dPage11FoodItemsKyte[];
+extern InventoryItem dPage12FoodItemsTricky[];
+extern CmdmenuPage dCmdmenuPages[];
+extern s8 dPageCategory;
+extern s8 dNextPageCategory;
+extern s16 dTextableIDs[];
+
+extern f32 sOpacityHealth;  //Opacity of player health UI
+extern f32 sOpacityScarabs; //Opacity of Scarab counter UI
+extern f32 sOpacityMagic;   //Opacity of player magic bar UI
+extern CmdmenuPlayerSidekickData sStats;
+extern CmdmenuPlayerSidekickData sPrevStats;
+extern CmdmenuPlayerSidekickDataChangeTimers sStatsChangeTimers;
+extern u8 sPlayerStatsFlags;
+extern u8 sAnimFrameScarab;        //Frame offset for the Scarab (an ID offset in practice, since Scarab's animation frames are stored as separate textures)
+extern u8 sAnimScarabFlutterTimer; //Plays Scarab flutter animation during last ticks of countdown
+extern u8 sAnimScarabSpin;         //Plays Scarab spin animation when nonzero (used as frame offset)
+extern f32 sOpacityR;              //Opacity of icons on right side of screen (C-buttons, menu page image, etc.)
+extern EnergyBar* sEnergyBar; 
+extern Texture* sMenuItemTextures[MAX_LOADED_ITEMS];          //Inventory icon texture pointers for the current menu page's loaded items
+extern Texture* sMenuItemTexturesSidekick[MAX_LOADED_ITEMS];  //Sidekick command inventory icon textures for the current menu page's loaded items (unused aside from loading the textures)
+extern s16 sMenuItemTextureIDs[MAX_LOADED_ITEMS];             //TextableIDs for the current menu page's loaded items
+extern s32 sMenuItemGamebits[MAX_LOADED_ITEMS];               //GamebitIDs for the current menu page's loaded items (or for sidekick commands: the command's index)
+extern s16 sMenuItemTextIDs[MAX_LOADED_ITEMS];                //Gametext lineIDs for the current menu page's loaded items
+extern s8 sMenuItemOpenPageIDs[MAX_LOADED_ITEMS];             //The menu page ID opened by each of the current menu page's loaded items (or -1 if it closes the inventory on use)
+extern u8 sMenuItemUseSounds[MAX_LOADED_ITEMS];               //The sound types (see `CmdMenuItemSounds`) used by each of the current menu page's loaded items
+extern u8 sMenuItemVisibilities[MAX_LOADED_ITEMS];            //Visibility Booleans for each of the current menu page's loaded items (Spells are the only kind of inventory item that still load while their gamebitHidden is set, however they're drawn as an empty tile when hidden)
+extern u8 sMenuItemQuantities[MAX_LOADED_ITEMS];              //Item quantities for each of the current menu page's loaded items
+extern Texture* sActiveSpellIcon;             //Icon in bottom-right of screen, showing the Spell currently in use
+extern Texture* sActiveSpellRing;             //Icon in bottom-right of screen, circling the Spell currently in use
+extern Texture* sAButtonAnimTex;              //Animated A button icon, shown on the tutorial textbox
+extern s16 sPrevActiveSpellGamebit;           //The gamebitID of the mostly recently-used Spell (used to check if the active Spell changed)
+extern Texture* sActiveSidekickCommandIcon;   //Icon in bottom-right of screen, showing the Sidekick Command currently in use
+extern Texture* sActiveSidekickCommandRing;   //Icon in bottom-right of screen, circling the Sidekick Command currently in use
+extern s16 sPrevSidekickCommandIndex;         //The index of the mostly recently-used Sidekick Command (used to check if the active Sidekick Command changed)
+extern s32 sAButtonAnimRenderFlags;
+extern s32 sCrosshairAnimRenderFlags;
+extern s32 sAButtonAnimProgress;
+extern s32 sCrosshairAnimProgress;
+extern Texture* sTextures[];
+extern Texture* sInventoryStackNumbersTex;
+extern TextureTile sTextureTiles[][2];
+extern s16 sInventoryUnrollY;  //How far the inventory scroll has opened (0 when fully closed)
+extern s16 sInfoScrollUnrollY; //How far the R-button info scroll has opened (0 when fully closed)
+extern s16 sTutorialBoxHeight;
+extern s16 sTutorialBoxStringIndex;
+extern GameTextChunk* sTutorialBoxGametext;
+extern Texture* sCrosshairTex;
+extern s16 sUsedItemGamebitID;  //The gamebitID associated with the used item
+extern s16 sSubmenuGamebitID;   //The gamebitID associated with the item that opened a menu subpage (e.g. a foodbag's gamebit)
+extern s8 sUsedItemSoundType;   //Set to 0 when item selection successful (item given to character, etc.)
+extern s8 sUsedItemPageID;      //The pageID associated with the used item (see `CmdMenuPages`)
+extern s8 sInventoryPageID;     //The pageID currently open (see `CmdMenuPages`)
+extern s16 sMenuSelectedItemIdx; //Display index of the item currently selected in the menu page 
+extern s32 sDisplayedItemCount;  //The number of items displayed on the current page (while drawing the inventory icons, this number is updated to be at least the number of slots in the tile strip)
+extern s8 sShouldOverrideJoypadButtons;   //Whether to fully override the player's UI control with simulated button presses
+extern s32 sInventoryFrameCounter;        //Counts how many times `cmdmenu_update2` has run (clamped from 0-2, and resets to 0 upon closing the inventory)
+extern s32 sJoyPressedButtons;            //Joypad button bitfield
+extern s32 sJoyPressedButtonsOverride;    //Joypad button bitfield (for simulated presses, used during inventory tutorials)
+extern s32 sJoyHeldButtons;               //Joypad button bitfield
+extern TextureTile sTempIcon[2];
+extern s8 sAutoSelectItemGamebit;     //Always -1, but seems intended to auto-select a specific item when opening the inventory
+extern s16 sAutoSelectItemIdx;        //Index of the auto-selected item (unused in practice)
+extern s16 sInfoScrollOverrideTextID; //Causes the info scroll to open automatically (@bug: initialises at 0 instead of NO_GAMETEXT. This causes the info box to display for the first few frames of gameplay, leaving a beige smear in the top-left of the framebuffer.)
+extern s16 sInfoScrollOverrideX;      //Custom screen position for the info scroll when auto-shown
+extern s16 sInfoScrollOverrideY;      //Custom screen position for the info scroll when auto-shown
+extern CmdmenuInfoPopup sInfoPopup;   //Item info pop-up that appears after collecting certain items (e.g. Kyte's grubs)
+
+extern void cmdmenu_tick_tutorial_textbox(void);
+extern void cmdmenu_draw_tutorial_textbox(Gfx** gdl, Mtx** mtxs, Vertex** vtxs);
+extern void cmdmenu_tick_inventory_page(void);
+extern void cmdmenu_draw_main(Gfx** gdl, Mtx** mtxs, Vertex** vtxs);
+extern s32 cmdmenu_page_load_items(InventoryItem* items, s8 isSidekickMenu);
+extern s32 cmdmenu_page_count_shown_items(InventoryItem* menuItems, s8 isSidekickMenu);
+extern void cmdmenu_store_loaded_item_metadata(InventoryItem* items, s32 loadedItemIndex, s32 itemIndex);
+extern void cmdmenu_gfx_set_texture(Gfx** gdl, Texture* tex, s32 frame);
+extern int cmdmenu_is_inventory_open(void);
+extern int cmdmenu_is_inventory_closed(void);
+extern void cmdmenu_close_inventory(void);
+extern void cmdmenu_open_inventory(void);
+extern void cmdmenu_inventory_animate(void);
+extern void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtxs, Vertex** vtxs);
+extern void cmdmenu_gfx_set_scroll_scissor(Gfx** gdl);
+extern void cmdmenu_gfx_set_screen_scissor(Gfx** gdl);
+extern int cmdmenu_is_info_scroll_closed(void);
+extern void cmdmenu_close_info_scroll(void);
+extern void cmdmenu_open_info_scroll(void);
+extern void cmdmenu_info_scroll_animate(void);
+extern void cmdmenu_draw_info_scroll(Gfx** gdl, Mtx** mtxs, Vertex** vtxs);
+extern void cmdmenu_update_stats(void);
+extern void cmdmenu_draw_player_stats(Gfx** gdl, Mtx** mtxs, Vertex** vtxs);
+extern void cmdmenu_info_hide(CmdmenuInfoPopup* info);
+extern void cmdmenu_info_draw(Gfx** gdl, CmdmenuInfoPopup* box);
+extern void cmdmenu_draw_energy_bar(Gfx** gdl);
+extern void cmdmenu_energy_bar_free(void);
 
 static u32 useExtraDescriptions;
 
 /** Prevents a crash when trying to leave CloudRunner Fortress' racetrack (originally by MusicalProgrammer, 25th February 2024) */
-RECOMP_PATCH void dll_1_func_7550(void) {
-    EnergyBar* fuelGauge;
+void cmdmenu_energy_bar_free(void) {
+    EnergyBar* enbar;
 
-    fuelGauge = _bss_90;
+    /* default.dol
+    if (sEnergyBar == NULL) {
+        STUBBED_PRINTF(" WARNING : cmdmenu Energy bar alreadby freed \n");
+    }
+    */
 
-    if (!fuelGauge)
+    STUBBED_PRINTF(" Killing Bar ");
+    enbar = sEnergyBar;
+
+    //@recomp: null pointer return
+    if (!enbar) {
         return;
+    }
 
-    fuelGauge->unk14 = 0;
-    tex_free(fuelGauge->unk18);
-    tex_free(fuelGauge->unk30);
-    mmFree(_bss_90);
-    _bss_90 = NULL;
+    enbar->alpha = 0;
+    tex_free(enbar->fullbarTex[0].tex);
+    tex_free(enbar->emptybarTex[0].tex);
+    mmFree(sEnergyBar);
+    sEnergyBar = NULL;
 }
 
 #define INVENTORY_TEXT(bankID, lineID) ((bankID << 8) + (lineID & 0xFF))
@@ -43,41 +415,43 @@ RECOMP_PATCH void dll_1_func_7550(void) {
   * The icons for certain items were also changed, for example making the SpellStones use their activated icon when in that form
   * Items without description strings (or with mismapped ones) were also assigned appropriate text, which already existed in the game but was left unused
   */
-RECOMP_HOOK_DLL(dll_1_ctor) void dll_1_ctor_hook_item_edits() {
-    _data_20 = 0x50; //Don't know what this does!
+RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits() {
+    dInfoScrollWidthHalf = 80; //Increase info scroll width to 160
 
-    //Flag edits (obtaining items)
-    _data_2E4[INVENTORY_ITEM_SABRE_0_NW_GATE_KEY].flagObtained = 0x7cc; //turns this into an activated version of Dragon Rock's SpellStone 
+    //Gamebit edits (obtaining items)
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_0_NW_GATE_KEY].gamebitObtained = BIT_7CC; //turns this into an activated version of Dragon Rock's SpellStone 
 
-    //Flag edits (hiding items once used)
-    _data_128[INVENTORY_ITEM_KRYSTAL_31_PRISON_KEY_CRF].flagHide = 0x453;
-    _data_2E4[INVENTORY_ITEM_SABRE_11_DIM_BELINA_TE_CELL_KEY].flagHide = 0x219;
-    _data_2E4[INVENTORY_ITEM_SABRE_12_DIM_TRICKY_CELL_KEY].flagHide = 0x208;
-    _data_2E4[INVENTORY_ITEM_SABRE_13_WM_WARP_CRYSTAL].flagHide = 0x899;
-    _data_2E4[INVENTORY_ITEM_SABRE_14_DIM_DOOR_KEY_1].flagHide = 0x24b;
-    _data_2E4[INVENTORY_ITEM_SABRE_15_DIM_DOOR_KEY_2].flagHide = 0x285;
-    _data_2E4[INVENTORY_ITEM_SABRE_25_WC_SILVER_TOOTH].flagHide = 0x25b;
-    _data_2E4[INVENTORY_ITEM_SABRE_26_WC_GOLD_TOOTH].flagHide = 0x25a;
-    _data_2E4[INVENTORY_ITEM_SABRE_31_SPELLSTONE_DIM_ACTIVATED].flagHide = 0x877;
-    _data_2E4[INVENTORY_ITEM_SABRE_32_SPELLSTONE_WC_ACTIVATED].flagHide = 0x63c;
+    //Gamebit edits (hiding items once used)
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_31_PRISON_KEY_CRF].gamebitHide = BIT_453;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_11_DIM_BELINA_TE_CELL_KEY].gamebitHide = BIT_219;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_12_DIM_TRICKY_CELL_KEY].gamebitHide = BIT_208;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_13_WM_WARP_CRYSTAL].gamebitHide = BIT_WM_Sabre_Transporter_Visible;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_14_DIM_DOOR_KEY_1].gamebitHide = BIT_24B;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_15_DIM_DOOR_KEY_2].gamebitHide = BIT_285;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_25_WC_SILVER_TOOTH].gamebitHide = BIT_25B;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_26_WC_GOLD_TOOTH].gamebitHide = BIT_25A;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_31_SPELLSTONE_DIM_ACTIVATED].gamebitHide = BIT_877;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_32_SPELLSTONE_WC_ACTIVATED].gamebitHide = BIT_DB_Unlock_Act_Three;
 
     //TextureID edits
-    _data_128[INVENTORY_ITEM_KRYSTAL_23_SPELLSTONE_CRF_ACTIVATED].textureID = 0x563; //using the activated SpellStone icon
-    _data_128[INVENTORY_ITEM_KRYSTAL_24_SPELLSTONE_BWC_ACTIVATED].textureID = 0x563; //using the activated SpellStone icon
-    _data_128[INVENTORY_ITEM_KRYSTAL_25_SPELLSTONE_KP_ACTIVATED].textureID = 0x563;  //using the activated SpellStone icon
-    _data_2E4[INVENTORY_ITEM_SABRE_0_NW_GATE_KEY].textureID = 0x563; //turns this unused item into an activated version of Dragon Rock's SpellStone
-    _data_2E4[INVENTORY_ITEM_SABRE_32_SPELLSTONE_WC_ACTIVATED].textureID = 0x563; //using the activated SpellStone icon
-    _data_2E4[INVENTORY_ITEM_SABRE_33_SPELLSTONE_DR_ACTIVATED].textureID = 0x562; //turns this into in inactive version of Dragon Rock's SpellStone
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_23_SPELLSTONE_CRF_ACTIVATED].textureID = TEXTABLE_563; //using the activated SpellStone icon
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_24_SPELLSTONE_BWC_ACTIVATED].textureID = TEXTABLE_563; //using the activated SpellStone icon
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_25_SPELLSTONE_KP_ACTIVATED].textureID = TEXTABLE_563;  //using the activated SpellStone icon
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_0_NW_GATE_KEY].textureID = TEXTABLE_563; //turns this unused item into an activated version of Dragon Rock's SpellStone
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_32_SPELLSTONE_WC_ACTIVATED].textureID = TEXTABLE_563; //using the activated SpellStone icon
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_33_SPELLSTONE_DR_ACTIVATED].textureID = TEXTABLE_562; //turns this into an inactive version of Dragon Rock's SpellStone
     
     //Description text edits
-    _data_128[INVENTORY_ITEM_KRYSTAL_19_GOLD_NUGGET_1_GP].textID = INVENTORY_TEXT(1, 3);
-    _data_128[INVENTORY_ITEM_KRYSTAL_20_GOLD_NUGGET_2_LFV].textID = INVENTORY_TEXT(1, 3);
-    _data_128[INVENTORY_ITEM_KRYSTAL_24_SPELLSTONE_BWC_ACTIVATED].textID = 85;
-    _data_128[INVENTORY_ITEM_KRYSTAL_27_HORN_OF_TRUTH].textID = 26;   
-    _data_128[INVENTORY_ITEM_KRYSTAL_28_CRF_TREASURE_CHEST_KEY].textID = 99;
-    _data_128[INVENTORY_ITEM_KRYSTAL_33_MOONSEEDS].textID = 98;
-    //_data_2E4[INVENTORY_ITEM_SABRE_22_CORRUPT_FORCEFIELD_SPELL].textID = 26; //Patched in Dinomod, but not necessary since unused
-    _data_2E4[INVENTORY_ITEM_SABRE_23_HORN_OF_TRUTH].textID = 26;
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_19_GOLD_NUGGET_1_GP].textID = INVENTORY_TEXT(1, GAMETEXT_UI_B_03_Shiney_Nugget);
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_20_GOLD_NUGGET_2_LFV].textID = INVENTORY_TEXT(1, GAMETEXT_UI_B_03_Shiney_Nugget);
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_24_SPELLSTONE_BWC_ACTIVATED].textID = GAMETEXT_UI_55_Ice_Mountain_Map; //replacing Ice Mountain Map description (TODO: add a new string for this, and restore Ice Mountain line?)
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_27_HORN_OF_TRUTH].textID = GAMETEXT_UI_1A_Horn_Of_Truth;
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_28_CRF_TREASURE_CHEST_KEY].textID = GAMETEXT_UI_63_Treasure_Chest_Key;
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_33_MOONSEEDS].textID = GAMETEXT_UI_62_Moon_Seeds;
+    //dPage1ItemsSabre[INVENTORY_ITEM_SABRE_22_CORRUPT_FORCEFIELD_SPELL].textID = 26; //Patched in Dinomod, but not necessary since unused
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_23_HORN_OF_TRUTH].textID = GAMETEXT_UI_1A_Horn_Of_Truth;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_25_WC_SILVER_TOOTH].textID = GAMETEXT_UI_5C_Silver_Trex_Tooth;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_26_WC_GOLD_TOOTH].textID = GAMETEXT_UI_5D_Gold_Trex_Tooth;
 }
 
 /** Adds new text for inventory items that didn't have any Gametext string (originally by LaminGaming)
@@ -86,27 +460,25 @@ RECOMP_HOOK_DLL(dll_1_ctor) void dll_1_ctor_hook_item_edits() {
 */
 static void add_extra_descriptions() {
     //Krystal's items
-    _data_128[INVENTORY_ITEM_KRYSTAL_9_DIM_GEAR_1].textID = 116;
-    _data_128[INVENTORY_ITEM_KRYSTAL_10_DIM_GEAR_2].textID = 122;
-    _data_128[INVENTORY_ITEM_KRYSTAL_11_DIM_GEAR_3].textID = 123;
-    _data_128[INVENTORY_ITEM_KRYSTAL_12_DIM_GEAR_4].textID = 124;
-    _data_128[INVENTORY_ITEM_KRYSTAL_23_SPELLSTONE_CRF_ACTIVATED].textID = 109;
-    _data_128[INVENTORY_ITEM_KRYSTAL_25_SPELLSTONE_KP_ACTIVATED].textID = 111;
-    _data_128[INVENTORY_ITEM_KRYSTAL_26_KRAZOA_TRANSLATOR].textID = 195;
-    _data_128[INVENTORY_ITEM_KRYSTAL_31_PRISON_KEY_CRF].textID = 118;
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_9_DIM_GEAR_1].textID = 116;
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_10_DIM_GEAR_2].textID = 122;
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_11_DIM_GEAR_3].textID = 123;
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_12_DIM_GEAR_4].textID = 124;
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_23_SPELLSTONE_CRF_ACTIVATED].textID = 109;
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_25_SPELLSTONE_KP_ACTIVATED].textID = 111;
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_26_KRAZOA_TRANSLATOR].textID = 195;
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_31_PRISON_KEY_CRF].textID = 118;
 
     //Sabre's items
-    _data_2E4[INVENTORY_ITEM_SABRE_0_NW_GATE_KEY].textID = 115;
-    _data_2E4[INVENTORY_ITEM_SABRE_7_DIM_GEAR_1].textID = 116;
-    _data_2E4[INVENTORY_ITEM_SABRE_8_DIM_GEAR_2].textID = 122;
-    _data_2E4[INVENTORY_ITEM_SABRE_9_DIM_GEAR_3].textID = 123;
-    _data_2E4[INVENTORY_ITEM_SABRE_10_DIM_GEAR_4].textID = 124;
-    _data_2E4[INVENTORY_ITEM_SABRE_11_DIM_BELINA_TE_CELL_KEY].textID = 119;
-    _data_2E4[INVENTORY_ITEM_SABRE_14_DIM_DOOR_KEY_1].textID = 120;
-    _data_2E4[INVENTORY_ITEM_SABRE_15_DIM_DOOR_KEY_2].textID = 121;
-    _data_2E4[INVENTORY_ITEM_SABRE_25_WC_SILVER_TOOTH].textID = 92;
-    _data_2E4[INVENTORY_ITEM_SABRE_26_WC_GOLD_TOOTH].textID = 93;
-    _data_2E4[INVENTORY_ITEM_SABRE_32_SPELLSTONE_WC_ACTIVATED].textID = 113;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_0_NW_GATE_KEY].textID = 115;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_7_DIM_GEAR_1].textID = 116;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_8_DIM_GEAR_2].textID = 122;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_9_DIM_GEAR_3].textID = 123;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_10_DIM_GEAR_4].textID = 124;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_11_DIM_BELINA_TE_CELL_KEY].textID = 119;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_14_DIM_DOOR_KEY_1].textID = 120;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_15_DIM_DOOR_KEY_2].textID = 121;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_32_SPELLSTONE_WC_ACTIVATED].textID = 113;
 }
 
 /** Resets extra description text back to default */
@@ -118,17 +490,17 @@ static void remove_extra_descriptions() {
     u32 end;
 
     for (bankID = 0; bankID < 2; bankID++){
-        bank = bankID == 0 ? _data_128 : _data_2E4;
-        end = bankID == 0 ? ARRAYCOUNT(_data_128) : ARRAYCOUNT(_data_2E4);
+        bank = bankID == 0 ? dPage0ItemsKrystal : dPage1ItemsSabre;
+        end = bankID == 0 ? ARRAYCOUNT(dPage0ItemsKrystal) : ARRAYCOUNT(dPage1ItemsSabre);
         for (index = 0; index < end; index++){
             item = &bank[index];
 
             //Check if description text in bank 0 (gametext3) and beyond original last line
-            if ((item->textID & 0xF00) == 0 && item->textID > 107){
+            if ((item->textID & 0xF00) == 0 && item->textID > GAMETEXT_UI_6B_Warp_Podium){
                 item->textID = -1;
                 
             //Check if description text in bank 1 (gametext568) and beyond original last line
-            } else if ((item->textID & 0xF00) == 0x100 && item->textID > 3){
+            } else if ((item->textID & 0xF00) == 0x100 && item->textID > GAMETEXT_UI_B_03_Shiney_Nugget){
                 item->textID = -1;
             }
         }
@@ -139,8 +511,8 @@ static void remove_extra_descriptions() {
     Note that this patch depends on the extra lines LaminGaming appended to file Gametext_3
     (This gametext file has 107 lines by default, so any indices beyond that number won't render without the text patch)
 */
-RECOMP_HOOK_DLL(dll_1_ctor) void dll_1_ctor_hook_item_edits_extra_text() {
-    _data_698[INVENTORY_SPELL_2_GRENADE].textID = 21; //Change from "Randorn" to "Fire Spell" (unused text that was overwritten with "Grenade")
+RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits_extra_text() {
+    dPage6MagicSpells[INVENTORY_SPELL_2_GRENADE].textID = GAMETEXT_UI_15_Fire_Spell; //Change from "Randorn" to "Fire Spell" (unused text that was overwritten with "Grenade") (TODO: restore "Fire Spell" string and append a new string for "Grenade Spell"?)
 
     useExtraDescriptions = recomp_get_config_u32("lamingaming_extra_description_text");
     if (!useExtraDescriptions)
@@ -165,67 +537,72 @@ RECOMP_CALLBACK("*", recomp_on_game_tick_start) void updateExtraTextInventory() 
     }
 }
 
-// TODO: replace with full match from the decomp
-RECOMP_PATCH s32 dll_1_func_F5C(Object **arg0, s32 arg1, u8 arg2, s32 arg3, f32 arg4) {
-    s32 _pad[2];
-    f32 temp_fa0;
-    f32 temp_fa1;
-    f32 temp_fv0;
-    Camera* temp_s2;
-    f32 sp9C;
-    f32 sp98;
-    f32 sp94;
-    s32 _sp8C_pad[2];
-    s32 sp88;
-    s32 sp84;
-    Object* temp_s0;
-    Object** temp_v0;
-    Object* temp_a0;
-    Object* temp_v1;
-    s32 var_a3;
-    s32 var_s1;
-    s32 var_s4;
-    s32 var_v1;
+/**
+  * Let LockIcon appear over low-opacity Objects; allows CCFirecrystal to be collected. 
+  * (Original patch by MusicalProgrammer)
+  */
+RECOMP_PATCH s32 cmdmenu_get_target_objects(Object **targetObjects, s32 maxObjects, u8 lockFlag, s32 arg3, f32 range) {
+    s32 _pad1[2];
+    f32 dx;
+    f32 dz;
+    f32 dy;
+    Camera* camera;
+    f32 objX;
+    f32 objY;
+    f32 objZ;
+    Object* obj;
+    Object** objects;
+    s32 count;
+    s32 index;
+    s32 _pad2[2];
+    s32 isSorted;
+    s32 i;
+    s32 targetCount;
+    s32 yaw;
 
     set_camera_selector(0);
-    temp_s2 = get_main_camera();
-    temp_v0 = get_world_objects(&sp84, &sp88);
-    var_s4 = 0;
-    for (var_s1 = sp84; var_s1 < sp88; var_s1++) {
-        temp_s0 = temp_v0[var_s1];
-        // @recomp: Allow transparent objects to be targeted. Allows CCFirecrystal to be picked up.
-        //          (Original patch by MusicalProgrammer)
-        if ((temp_s0->def->unk40 != NULL) && /*(temp_s0->opacity == 0xFF)*/(temp_s0->opacity >= 32) && !(temp_s0->unkAF & 8) && 
-                (temp_s0->def->unk40->flags & arg2) && (var_s4 < arg1) && (arg3 & 1)) {
-            get_object_child_position(temp_s0, &sp9C, &sp98, &sp94);
-            temp_fa0 = sp9C - temp_s2->srt.transl.x;
-            temp_fv0 = sp98 - temp_s2->srt.transl.y;
-            temp_fa1 = sp94 - temp_s2->srt.transl.z;
-            if ((SQ(temp_fa0) + SQ(temp_fv0) + SQ(temp_fa1)) < SQ(arg4)) {
-                var_v1 = temp_s2->srt.yaw - ((0x4000 - arctan2_f(temp_fa0, temp_fa1)) & 0xFFFF);
-                CIRCLE_WRAP(var_v1);
-                if ((var_v1 < -0x2710) && (var_v1 > -0x55F0)) {
-                    arg0[var_s4] = temp_s0;
-                    var_s4 += 1;
+    camera = get_main_camera();
+    objects = get_world_objects(&index, &count);
+
+    //Get the subset of Objects that can be targetted
+    for (targetCount = 0, i = index; i < count; i++) {
+        obj = objects[i];
+
+        if ((obj->def->lockdata != NULL) && 
+            /*(obj->opacity == OBJECT_OPACITY_MAX)*/ (obj->opacity >= 32) && //@recomp: opacity condition changed
+            ((obj->unkAF & ARROW_FLAG_8_No_Targetting) == FALSE) && 
+            (obj->def->lockdata->flags & lockFlag) && 
+            (targetCount < maxObjects) && 
+            (arg3 & 1)
+        ) {
+            get_object_child_position(obj, &objX, &objY, &objZ);
+            dx = objX - camera->srt.transl.x;
+            dy = objY - camera->srt.transl.y;
+            dz = objZ - camera->srt.transl.z;
+            if ((SQ(dx) + SQ(dy) + SQ(dz)) < SQ(range)) {
+                yaw = camera->srt.yaw - (u16)(M_90_DEGREES - arctan2_f(dx, dz));
+                CIRCLE_WRAP(yaw);
+                if (yaw < -10000 && yaw > -22000) {
+                    targetObjects[targetCount++] = obj;
                 }
             }
         }
     }
 
-    if (var_s4 > 0) {
+    //Sort the targettable Objects by address
+    if (targetCount > 0) {
         do {
-            var_a3 = 1;
-            for (var_s1 = 0; var_s1 < (var_s4 - 1); var_s1++) {
-                temp_v1 = arg0[var_s1];
-                temp_a0 = arg0[var_s1 + 1];
-                if ((s32)temp_v1 < (s32)temp_a0) {
-                    arg0[var_s1] = temp_a0;
-                    arg0[var_s1 + 1] = temp_v1;
-                    var_a3 = 0;
+            isSorted = TRUE;
+            for (i = 0; i < (targetCount - 1); i++) {
+                if ((s32)targetObjects[i] < (s32)targetObjects[i + 1]) {
+                    obj = targetObjects[i];
+                    targetObjects[i] = targetObjects[i + 1];
+                    targetObjects[i + 1] = obj;
+                    isSorted = FALSE;
                 }
             }
-        } while (var_a3 == 0);
+        } while (isSorted == FALSE);
     }
     
-    return var_s4;
+    return targetCount;
 }

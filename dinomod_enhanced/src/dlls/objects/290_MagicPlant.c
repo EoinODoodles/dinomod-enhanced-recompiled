@@ -1,10 +1,10 @@
 #include "modding.h"
 #include "recomputils.h"
 
-#include "functions.h"
 #include "game/objects/object_id.h"
 #include "game/objects/object.h"
 #include "sys/map.h"
+#include "sys/objlib.h"
 #include "sys/objprint.h"
 #include "sys/print.h"
 #include "dlls/objects/290_magicplant.h"

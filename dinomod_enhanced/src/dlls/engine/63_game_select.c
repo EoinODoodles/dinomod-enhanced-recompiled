@@ -10,7 +10,6 @@
 #include "dlls/engine/28_screen_fade.h"
 #include "dlls/engine/29_gplay.h"
 #include "dlls/engine/74_picmenu.h"
-#include "sys/gfx/gx.h"
 #include "sys/gfx/texture.h"
 #include "sys/fonts.h"
 #include "sys/main.h"
@@ -20,7 +19,6 @@
 #include "sys/rcp.h"
 #include "dll.h"
 #include "types.h"
-#include "functions.h"
 #include "macros.h"
 
 #include "player_stats.h"
@@ -223,17 +221,17 @@ RECOMP_PATCH void dll_63_draw_save_game_box(Gfx **gdl, s32 x, s32 y, GameSelectS
             x2 = x;
             y2 += 32;
         } else {
-            func_8003825C(gdl, sSaveGameBgTextures[sSaveGameBgIndices[i]], x2, y2, 0, 0, 0xFF, 0);
+            rcp_screen_full_write(gdl, sSaveGameBgTextures[sSaveGameBgIndices[i]], x2, y2, 0, 0, 0xFF, 0);
             x2 += 64;
         }
     }
 
     // Draw player icon
-    func_8003825C(gdl, sSaveGameTextures[saveInfo->playerno], x + 14, y + 8, 0, 0, 0xFF, 0);
+    rcp_screen_full_write(gdl, sSaveGameTextures[saveInfo->playerno], x + 14, y + 8, 0, 0, 0xFF, 0);
     // Draw spirit icon
-    func_8003825C(gdl, sSaveGameTextures[2], x + 241, y + 71, 0, 0, 0xFF, 0);
+    rcp_screen_full_write(gdl, sSaveGameTextures[2], x + 241, y + 71, 0, 0, 0xFF, 0);
     // Draw spell stone icon
-    func_8003825C(gdl, sSaveGameTextures[3], x2 + 14, y + 71, 0, 0, 0xFF, 0);
+    rcp_screen_full_write(gdl, sSaveGameTextures[3], x2 + 14, y + 71, 0, 0, 0xFF, 0);
 
     // Draw text
     font_window_use_font(1, FONT_DINO_MEDIUM_FONT_IN);

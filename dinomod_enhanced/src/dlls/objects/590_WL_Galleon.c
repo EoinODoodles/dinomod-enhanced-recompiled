@@ -1,5 +1,4 @@
 #include "PR/ultratypes.h"
-#include "functions.h"
 #include "modding.h"
 
 #include "game/objects/object.h"
@@ -7,7 +6,6 @@
 #include "game/gamebits.h"
 #include "recomputils.h"
 #include "sys/dll.h"
-#include "sys/gfx/gx.h"
 #include "sys/main.h"
 #include "sys/objects.h"
 #include "sys/objtype.h"
