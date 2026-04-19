@@ -229,7 +229,7 @@ curves:
   - { channel: 0xD, time: 125, value: -144.9866943359375, interp: 0, weight: 8 }
   - { channel: 0xD, time: 702, value: -144.9866943359375, interp: 0, weight: 0 }
   - { channel: 0xD, time: 703, value: -146.211669921875, interp: 0, weight: 60 }
-  - { channel: 0xE, time: 0, value: 60, interp: 1, weight: 0 }
+  - { channel: 0xE, time: 0, value: 60, interp: 1, weight: 0 }  # added keyframe to initialise camera's FOV (fixes bug where camera would be overly zoomed-in when Rolling Demo loops back to start)
 # Curve 5
 - events:
   - { type: 0x0, delay: 0, params: 0x0 }
