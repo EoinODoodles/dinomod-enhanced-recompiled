@@ -22,6 +22,19 @@
 
 #include "recomp/dlls/engine/61_rareware_recomp.h"
 
+#define END_FADE_DURATION 60           //End of Rareware screen: duration for fade-out
+#define END_WAIT_DURATION 20            //End of Rareware screen: how long to hold on black at end of fade-out
+#define MAIN_MENU_FADE_IN_DURATION 120 //Start of Title Screen: duration for fade-in
+
+#define SKIP_FADE_DURATION 10 //When player skips Rareware screen: duration for fade-out
+#define SKIP_WAIT_DURATION 20 //When player skips Rareware screen: how long to hold on black at end of fade-out
+
+#define END_FADE_BEGIN_TIME (620 - (END_FADE_DURATION + END_WAIT_DURATION))
+#define END_FADE_TRANSITION_TIME (END_FADE_BEGIN_TIME + (END_FADE_DURATION + END_WAIT_DURATION))
+
+static int sDoSkip;
+static s32 sCutToTitleTimer;
+
 extern s32 data_0;
 extern s8 data_4;
 extern u32 data_8;
@@ -62,6 +75,9 @@ static void recomp_main_menu(void) {
     menu_set(MENU_TITLE_SCREEN);
 
     func_8001440C(1);
+
+    //Title Screen: fade in
+    gDLL_28_ScreenFade->vtbl->fade_reversed(MAIN_MENU_FADE_IN_DURATION, SCREEN_FADE_BLACK);
 }
 
 static s32 update1_hijack(void) {
@@ -76,24 +92,45 @@ static s32 update1_hijack(void) {
         bss_1 -= delay;
     }
 
-    // @recomp: Allow skipping (copy from base patch)
-    if (bss_2 != 0 || (joy_get_pressed_raw(0) & A_BUTTON) != 0) {
+    if (bss_2) {
         main_set_bits(BIT_44F, 0);
         //@recomp: title screen after Rareware
         recomp_main_menu();
     }
 
+    // @recomp: Allow skipping
+    if (bss_0 == FALSE) { //Make sure this isn't clashing with the shot's own end-of-sequence fade-out
+        if (sDoSkip == FALSE) {
+            //Fade to black
+            if ((joy_get_pressed_raw(0) & (A_BUTTON | START_BUTTON))) {
+                sDoSkip = TRUE;
+                sCutToTitleTimer = (SKIP_FADE_DURATION + SKIP_WAIT_DURATION);
+                gDLL_28_ScreenFade->vtbl->fade(SKIP_FADE_DURATION, SCREEN_FADE_BLACK);            
+            }
+        } else if (bss_0 == FALSE) {
+            //Cut to next shot after fade-out
+            sCutToTitleTimer -= gUpdateRate;
+            if (sCutToTitleTimer <= 0) {
+                bss_2 = TRUE;
+            }
+        }
+    }
+
+    //@recomp: fade out automatically when the Rareware sequence is nearly finished
     data_0 += gUpdateRate;
-    if (data_0 > 620) {
-        bss_0 = 1;
-    }
-
-    if (bss_0 != 0) {
+    if ((bss_0 == FALSE) && (data_0 >= END_FADE_BEGIN_TIME)) {
+        bss_0 = TRUE; //do fade-out
         gDLL_28_ScreenFade->vtbl->fade(30, SCREEN_FADE_BLACK);
-        bss_1 = 45;
-        bss_2 = 1;
+    }
+    //Cut to next shot after fade-out finished
+    if (bss_0 && data_0 >= END_FADE_TRANSITION_TIME) {
+        bss_2 = TRUE;
     }
 
+    if (bss_0) {
+        bss_1 = 45;
+    }
+    
     if (data_4 > 0) {
         bss_4 -= gUpdateRateF;
     }
@@ -144,8 +181,8 @@ RECOMP_PATCH void dll_61_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
         }
 
         //@recomp: reposition logo
-        func_8003825C(gdl, bss_10, 0x2A, 0xAF, 0, 0, (s16)(255.0f * var1), 0);
-        func_8003825C(gdl, bss_18, 0x82, 0xD0, 0, 0, (s16)(255.0f * var1), 0);
+        func_8003825C(gdl, bss_10, 42, 175, 0, 0, (s16)(255.0f * var1), 0);
+        func_8003825C(gdl, bss_18, 130, 208, 0, 0, (s16)(255.0f * var1), 0);
     }
 
     if (data_4 >= 1) {
@@ -162,7 +199,7 @@ RECOMP_PATCH void dll_61_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
         }
 
         //@recomp: reposition logo
-        func_8003825C(gdl, bss_C, 0x2A, 0xAF, 0, 0, (u32)(255.0f * var1) & 0xFF, 0);
-        func_8003825C(gdl, bss_14, 0x82, 0xD0, 0, 0, (u32)(255.0f * var1) & 0xFF, 0);
+        func_8003825C(gdl, bss_C, 42, 175, 0, 0, (u8)(255.0f * var1), 0);
+        func_8003825C(gdl, bss_14, 130, 208, 0, 0, (u8)(255.0f * var1), 0);
     }
 }
