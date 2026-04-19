@@ -54,6 +54,9 @@ static void recomp_main_menu(void) {
     func_80041D20(1);
     func_80041C6C(1);
 
+    //Load game options (makes sure languageID is initialised/remembered)
+    gDLL_29_Gplay->vtbl->load_game_options();
+
     main_demo_reset();
     main_start_game(12457.1f, -1474.875f, -6690.398f, PLAYER_KRYSTAL);
     menu_set(MENU_TITLE_SCREEN);
