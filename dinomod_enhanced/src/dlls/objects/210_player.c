@@ -2,6 +2,8 @@
 #include "recompconfig.h"
 #include "recomputils.h"
 #include "dll_util.h"
+#include "math_util.h"
+#include "object_util.h"
 #include "sidekick_util.h"
 
 #include "common.h"
@@ -746,8 +748,16 @@ RECOMP_HOOK_DLL(dll_210_control) void playerModAnimOffsetUnderflowFix(Object* se
     }
 }
 
-/** Fix bug where holdable objects would vanish when picked up off mobile maps, e.g. barrels from minecarts
+#define barrel_hold_offset 2.47f
+#define barrel_drop_offset 8.0f
+
+/** 
+  * [PLAYER_ASTATE_Picking_Up]
+  *
+  * Fix bug where holdable objects would vanish when picked up off mobile maps, e.g. barrels from minecarts
   * (originally by MusicalProgrammer, but relocated to this function)
+  *
+  * Fix bug where some barrels would hover at a small distance away from the player while held.
 */
 RECOMP_PATCH s32 dll_210_func_B4E0(Object* player, ObjFSA_Data* fsa, f32 deltaTime) {
     Player_Data* objdata;
@@ -780,18 +790,81 @@ RECOMP_PATCH s32 dll_210_func_B4E0(Object* player, ObjFSA_Data* fsa, f32 deltaTi
         if (player->animProgress > 0.8f) {
             objdata->modAnims = _data_F8;
             func_80023D30(player, *_data_F8, 0.0f, 0U);
-            return 2;
+            return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Standing);
         }
     } else {
         //Carry start anim not yet playing
         func_80023D30(player, 5, 0.0f, 0U);
         if (player->id == PLAYER_SABRE) {
-            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_701_Sabre_Ugh_EMPTY, 0x25U, NULL, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_701_Sabre_Ugh_EMPTY, 0x25, NULL, NULL, 0, NULL);
         } else {
-            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_700_Krystal_Ugh, 0x25U, NULL, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_700_Krystal_Ugh, 0x25, NULL, NULL, 0, NULL);
         }
-        gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_633, 0x61U, NULL, NULL, 0, NULL);
-        gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_6B4_Basket_Carry, 0x61U, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_633, 0x61, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_6B4_Basket_Carry, 0x61, NULL, NULL, 0, NULL);
+
+        //@recomp: override carry position offset value for specific objects 
+        //(usually sent as message by carried object)
+        heldObject = objdata->unk868;
+        if (heldObject){
+            switch (heldObject->id){
+            case OBJ_barrel:
+            case OBJ_CFbarrel:
+            case OBJ_DFbarrel:
+            case OBJ_MMP_barrel:
+                objdata->unk86C = barrel_hold_offset;
+                break;
+            }            
+        }
+    }
+    
+    return 0;
+}
+
+/** 
+  * [PLAYER_ASTATE_Placing_Down]
+  *
+  * Gradually move barrels away from body while placing them down.
+  */
+RECOMP_PATCH s32 dll_210_func_B73C(Object* player, ObjFSA_Data* fsa, f32 arg2) {
+    Player_Data* objdata;
+
+    objdata = player->data;
+
+    //Play anim and sound effect
+    if (fsa->enteredAnimState) {
+        func_80023D30(player, 0x447, 0.0f, 0);
+        gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_6B4_Basket_Carry, 0x61, NULL, NULL, 0, NULL);
+    }
+
+    fsa->unk278 = 0.0f;
+    fsa->animTickDelta = 0.02f;
+
+    //Return to standing when animation finished
+    if (objdata->unk868 == NULL && fsa->unk33A) {
+        //Switch from carry walk anims to default walk anims
+        objdata->unk3C4 = &_data_6F8;
+        objdata->modAnims = _data_98;
+        return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Standing);
+    }
+
+    //@recomp: gradually move held object away when dropping it (avoid clipping through body)
+    if (objdata->unk868){
+        switch (objdata->unk868->id){
+        case OBJ_barrel:
+        case OBJ_CFbarrel:
+        case OBJ_DFbarrel:
+        case OBJ_MMP_barrel:
+            objdata->unk86C = lerp_float(player->animProgress,
+                                        barrel_hold_offset, barrel_drop_offset);
+            break;
+        }            
+    }
+
+    //Stop holding the held object
+    if ((objdata->unk868) && (player->animProgress > 0.6f)) {
+        objdata->unk868->unkE0 = 0;
+        objdata->unk868 = NULL;
     }
     
     return 0;
