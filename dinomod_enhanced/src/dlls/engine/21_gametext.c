@@ -54,6 +54,7 @@ typedef union {
 static char LANGUAGE_NAMES[6][10] = {"English", "Français", "Deutsch", "Español", "Italiano", "Nihongo" };
 
 /** Logs a gametext file's strings to the console */
+PRAGMA_IGNORE_PUSH("-Wunused")
 static void recomp_log_strings(u16 fileID, GameTextChunk *gametext){
     s32 index;
 
@@ -66,8 +67,10 @@ static void recomp_log_strings(u16 fileID, GameTextChunk *gametext){
         recomp_eprintf("#%0d) %s\n", index, gametext->strings[index]);
     }
 }
+PRAGMA_IGNORE_POP()
 
 /** Moves to the next language index, to help debug across all languages */
+PRAGMA_IGNORE_PUSH("-Wunused")
 static void recomp_pick_next_language(){
     s8 nextLanguage = sCurrentBankIndex;
 
@@ -77,6 +80,7 @@ static void recomp_pick_next_language(){
 
     gametext_set_bank(nextLanguage);
 }
+PRAGMA_IGNORE_POP()
 
 /** Searches for a substring within a string */
 static char* recomp_strstr(char* string, char* searchSubstring){

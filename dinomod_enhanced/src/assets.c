@@ -306,7 +306,8 @@ static void golden_plains_modifications(void) {
     reasset_iterator_destroy(iterator);
 }
 
-/** Adds jetbike fuel refills around Golden Plains, only showing up in Act 3 */
+/** (CURRENTLY UNUSED) Adds jetbike fuel refills around Golden Plains, only showing up in Act 3 */
+PRAGMA_IGNORE_PUSH("-Wunused")
 static void golden_plains_fuel_modifications(void) {
     ReAssetID mapID = reasset_base_id(MAP_GOLDEN_PLAINS);
 
@@ -366,6 +367,7 @@ static void golden_plains_fuel_modifications(void) {
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &fuel, sizeof(fuel));
     }
 }
+PRAGMA_IGNORE_POP()
 
 static void cc_lightfoot_patch(void) {
     // Change CClightfoot model from chief to normal red-colored LightFoot

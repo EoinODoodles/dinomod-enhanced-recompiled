@@ -32,8 +32,8 @@ extern void dll_243_func_11C0(Object *self, Baddie *baddie, ObjFSA_Data *fsa);
 RECOMP_PATCH void dll_243_func_C44(Object *self, Baddie *baddie, ObjFSA_Data *fsa) {
     Lunaimar_ActualData *objdata;
     Object *sidekick;
-    Vec3f sp44;
-    f32 sp40;
+    Vec3f delta;
+    f32 sidekickDistance;
     TextureAnimator *animator;
 
     objdata = (Lunaimar_ActualData*)baddie->objdata;
@@ -43,12 +43,12 @@ RECOMP_PATCH void dll_243_func_C44(Object *self, Baddie *baddie, ObjFSA_Data *fs
     animator->frame = (s32) ((fsin16_precise(objdata->unk12) + 1.0f) * 127.0f);
     // @recomp: Sidekick null check
     if (sidekick != NULL) {
-        sp44.f[0] = sidekick->globalPosition.x - self->globalPosition.x;
-        sp44.f[1] = sidekick->globalPosition.y - self->globalPosition.y;
-        sp44.f[2] = sidekick->globalPosition.z - self->globalPosition.z;
-        sp40 = sqrtf(SQ(sp44.f[0]) + SQ(sp44.f[1]) + SQ(sp44.f[2]));
+        delta.f[0] = sidekick->globalPosition.x - self->globalPosition.x;
+        delta.f[1] = sidekick->globalPosition.y - self->globalPosition.y;
+        delta.f[2] = sidekick->globalPosition.z - self->globalPosition.z;
+        sidekickDistance = sqrtf(SQ(delta.f[0]) + SQ(delta.f[1]) + SQ(delta.f[2]));
     }
-    if (((DLL_ISidekick*)sidekick->dll)->vtbl->func24(sidekick) != 0 && (sp40 < baddie->unk3E2)) {
+    if (((DLL_ISidekick*)sidekick->dll)->vtbl->func24(sidekick) != 0 && (sidekickDistance < baddie->unk3E2)) {
         baddie->unk3B2 |= 4;
     } else {
         baddie->unk3B2 &= ~0x4;
