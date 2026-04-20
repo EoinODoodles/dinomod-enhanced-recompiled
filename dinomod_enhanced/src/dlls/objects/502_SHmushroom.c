@@ -1,10 +1,9 @@
-#include "PR/gbi.h"
-#include "dll.h"
-#include "dlls/engine/6_amsfx.h"
 #include "modding.h"
+#include "player_util.h"
 #include "recompconfig.h"
 #include "recomputils.h"
 
+#include "PR/gbi.h"
 #include "macros.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
@@ -19,6 +18,8 @@
 #include "sys/print.h"
 #include "sys/rand.h"
 #include "sys/segment_53F00.h"
+#include "dll.h"
+#include "dlls/engine/6_amsfx.h"
 #include "dlls/objects/common/sidekick.h"
 #include "dlls/objects/common/foodbag.h"
 #include "dlls/objects/315_sidefoodbag.h"
@@ -313,7 +314,7 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 
 	//@recomp: delete immediately if already collected
 	if (objData->flags & SHmushroom_FLAG_Delete_after_Setup) {
-		//TODO: check it's not being referenced by player?
+		playerUtil_clear_collected_object(get_player(), self);
 		obj_destroy_object(self);
 	}
 
@@ -354,6 +355,7 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 		//@recomp: delete self after being hidden for a while
 		objData->expireTimer += gUpdateRate;
 		if (objData->expireTimer >= 500) {
+			playerUtil_clear_collected_object(player, self);
 			obj_destroy_object(self);
 		}
 		return;
@@ -390,6 +392,7 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 			self->srt.flags |= OBJFLAG_INVISIBLE;
 			func_800267A4(self);
 
+			playerUtil_clear_collected_object(player, self);
 			obj_destroy_object(self); //@recomp: remove self
 		} else {
 			objData->flags |= SHmushroom_FLAG_Hurt;
@@ -738,6 +741,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 		add_to_inventory(self, objData, objSetup, player, (tutorialSeen == TRUE));
 
 		if (tutorialSeen) {
+			playerUtil_clear_collected_object(player, self);
 			obj_destroy_object(self);
 		}
 
