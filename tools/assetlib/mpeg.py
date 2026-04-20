@@ -1,5 +1,6 @@
 from __future__ import annotations
 from io import BufferedReader, BufferedWriter
+import math
 import os
 from pathlib import Path
 import struct
@@ -35,6 +36,9 @@ class MPEGList:
                 bin.write(bytearray())
             else:
                 bin.write(file.data)
+            # Align to 2 bytes
+            aligned_size = align(bin.tell(), 2)
+            bin.write(bytearray(max(aligned_size - bin.tell(), 0)))
         tab.write(struct.pack(">I", bin.tell()))
 
     @staticmethod
@@ -75,3 +79,6 @@ class MPEGList:
             files.append(mpeg_map.get(i))
 
         return MPEGList(files)
+
+def align(n: int, alignment: int) -> int:
+    return math.ceil(n / alignment) * alignment

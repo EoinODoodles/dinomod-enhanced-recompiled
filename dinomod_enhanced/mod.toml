@@ -13,7 +13,7 @@ game_id = "dino-planet"
 minimum_recomp_version = "0.2.0"
 
 dependencies = [
-    "asset_repacker:0.1.0"
+    
 ]
 
 native_libraries = [
