@@ -175,6 +175,18 @@ static void add_to_inventory(Object* self, SHmushroom_Data_Extended* objData, SH
 
 		recomp_eprintf("White Mushroom: added to inventory! (%d)\n", count);
 	}
+
+	//Optionally show an item collection pop-up
+	if (recomp_get_config_u32("cmdmenu_info_popup_expand") &&
+		count && 
+		objData->gamebitInventory != NO_GAMEBIT
+	) {
+		gDLL_1_cmdmenu->vtbl->info_show(
+			objData->gamebitInventory, 
+			300, //5 seconds
+			count
+		);
+	}
 }
 
 RECOMP_PATCH void SHmushroom_setup(Object* self, SHmushroom_Setup* setup, s32 arg2) {

@@ -177,3 +177,32 @@ step = 1
 precision = 0
 percent = false
 default = 10
+
+[[manifest.config_options]]
+id = "cmdmenu_info_popup_fix"
+name = "Item Pop-Up (Visual Fix)"
+description = '''
+The game's UI has a feature where it can display an info pop-up in the bottom-left of screen upon collecting an item.
+
+In the unpatched December 2000 Prototype the pop-up's visuals are slightly broken-looking, since it was designed around an older horizontally-scrolling version of the inventory menu seen in early footage.
+
+This mod option fixes up its visuals so that it matches the later inventory design. It also prevents a clash between the minimap and the pop-up: ensuring one fades out before showing the other. The pop-up also stays on-screen if another of the displayed item is collected before the pop-up disappears.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "cmdmenu_info_popup_expand"
+name = "Item Pop-Up (More Uses)"
+description = '''
+The game's UI has a feature where it can display an info pop-up in the bottom-left of screen upon collecting an item.
+
+In the unpatched December 2000 Prototype this pop-up only appears when collecting Kyte's Grubs. This mod option expands the pool of items to include the following items (more can be added over time, as more of the game is decompiled):
+
+- Blue Mushrooms
+- White Mushrooms
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"

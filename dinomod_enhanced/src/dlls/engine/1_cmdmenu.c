@@ -10,6 +10,10 @@
 
 #include "recomp/dlls/engine/1_cmdmenu_recomp.h"
 
+#include "engine/1_cmdmenu.h"
+#include "engine/59_minimap.h"
+#include "sys/main.h"
+
 #define MAX_LOADED_ITEMS 64
 #define MAX_OPACITY 0xFF
 #define MAX_OPACITY_F 255.0f
@@ -236,6 +240,67 @@
 #define AIMING_RETICLE_WIDTH 32
 #define AIMING_RETICLE_HEIGHT 32
 #define AIMING_RETICLE_OPACITY 150
+
+enum CmdMenuTextures {
+    CMDMENU_TEX_00_Scroll_BG = 0,
+    CMDMENU_TEX_01_Scroll_Bottom = 1,
+    CMDMENU_TEX_02_Scroll_Top = 2,
+    CMDMENU_TEX_03_InfoScroll_Roll_End = 3,
+    CMDMENU_TEX_04_InfoScroll_Roll = 4,
+    CMDMENU_TEX_05_InfoScroll_Side = 5,
+    CMDMENU_TEX_06_InfoScroll_BG = 6,
+    CMDMENU_TEX_07_InfoScroll_SelfShadow = 7,
+    CMDMENU_TEX_08_Apple_0_Pct = 8,
+    CMDMENU_TEX_09_Apple_25_Pct = 9,
+    CMDMENU_TEX_10_Apple_50_Pct = 10,
+    CMDMENU_TEX_11_Apple_75_Pct = 11,
+    CMDMENU_TEX_12_Mushroom_Blue_Full = 12,
+    CMDMENU_TEX_13_Grub_Blue_Full = 13,
+    CMDMENU_TEX_14_Unk_Circle_Glow = 14,
+    CMDMENU_TEX_15_Unk_Circle_Blue = 15,
+    CMDMENU_TEX_16_Grub_Blue_Half = 16,
+    CMDMENU_TEX_17_Apple_100_Pct = 17,
+    CMDMENU_TEX_18_Scarab = 18,
+    CMDMENU_TEX_19_Scarab_Flutter_Frame1 = 19,
+    CMDMENU_TEX_20_Scarab_Flutter_Frame2 = 20,
+    CMDMENU_TEX_21_Scarab_Flutter_Frame3 = 21,
+    CMDMENU_TEX_22_Scarab_Spin_Frame1 = 22,
+    CMDMENU_TEX_23_Scarab_Spin_Frame2 = 23,
+    CMDMENU_TEX_24_Scarab_Spin_Frame3 = 24,
+    CMDMENU_TEX_25_Scarab_Spin_Frame4 = 25,
+    CMDMENU_TEX_26_Scarab_Spin_Frame5 = 26,
+    CMDMENU_TEX_27_Scarab_Spin_Frame6 = 27,
+    CMDMENU_TEX_28_Scarab_Spin_Frame7 = 28,
+    CMDMENU_TEX_29_Page_Torn_Left = 29,
+    CMDMENU_TEX_30_Page_Torn_Right = 30,
+    CMDMENU_TEX_31_Highlight_Corner_Top_Left = 31,
+    CMDMENU_TEX_32_Highlight_Corner_Top_Right = 32,
+    CMDMENU_TEX_33_Highlight_Corner_Bottom_Left = 33,
+    CMDMENU_TEX_34_Highlight_Corner_Bottom_Right = 34,
+    CMDMENU_TEX_35_MagicBar_Empty = 35,
+    CMDMENU_TEX_36_MagicBar_Full = 36,
+    CMDMENU_TEX_37_C_Down = 37,
+    CMDMENU_TEX_38_LeftDownButtons_SpellBook_With_Kyte = 38,
+    CMDMENU_TEX_39_C_Left = 39,
+    CMDMENU_TEX_40_Sabre = 40,
+    CMDMENU_TEX_41_C_Right = 41,
+    CMDMENU_TEX_42_Tricky = 42,
+    CMDMENU_TEX_43_LeftDownButtons_SpellBook_With_Tricky = 43,
+    CMDMENU_TEX_44_Mushroom_Empty = 44,
+    CMDMENU_TEX_45_Mushroom_Red_Full = 45,
+    CMDMENU_TEX_46_Mushroom_Red_Half = 46,
+    CMDMENU_TEX_47_RightButton_With_Bag = 47,
+    CMDMENU_TEX_48_LeftDownButtons_SpellBook_NoSidekick = 48,
+    CMDMENU_TEX_49_MagicBook = 49,
+    CMDMENU_TEX_50_Bag = 50,
+    CMDMENU_TEX_51_Mushroom_Blue_Half = 51,
+    CMDMENU_TEX_52_Page_Torn_Shadow = 52,
+    CMDMENU_TEX_53_Krystal = 53,
+    CMDMENU_TEX_54_Kyte = 54,
+    CMDMENU_TEX_55_Grub_Empty = 55,
+    CMDMENU_TEX_56_Grub_Red_Full = 56,
+    CMDMENU_TEX_57_Grub_Red_Half = 57
+};
 
 extern s8 dInventoryShow;
 extern s8 sInventoryScrollOffset;
@@ -605,4 +670,283 @@ RECOMP_PATCH s32 cmdmenu_get_target_objects(Object **targetObjects, s32 maxObjec
     }
     
     return targetCount;
+}
+
+static s8 sInfoPopupUnroll = 0;
+
+/**
+  * Fix issues when repeatedly collecting the same item: 
+  * just reset timer and show count increasing, instead of repeatedly fading in from 0 opacity. 
+  */
+RECOMP_PATCH void cmdmenu_info_show(s16 itemGamebit, s32 displayDuration, s32 itemCount) {
+    InventoryItem *items;
+    CmdmenuPage *inventoryPage;
+    Texture* tex = NULL;
+
+    inventoryPage = dCmdmenuPages;
+    STUBBED_PRINTF("qInfoShow\n");
+    // sInfoPopup.texture = NULL;
+
+    //Find the item's TEXTABLE textureID, using the item's collection gamebitID
+    while (inventoryPage->items != NULL) {
+        items = inventoryPage->items;
+        while (items->gamebitObtained != NO_GAMEBIT) {
+            if (itemGamebit == items->gamebitObtained) {
+                tex = tex_load_deferred(items->textureID);
+                break;
+            }
+            items++;
+        }
+        inventoryPage++;
+    }
+
+    //@recomp: if the texture is the same as the one the pop-up is already showing, just keep it visible
+    if (recomp_get_config_u32("cmdmenu_info_popup_fix") &&
+        (sInfoPopup.texture == tex) && (sInfoPopup.timer > 0)
+    ) {
+        sInfoPopup.timer = displayDuration;
+        sInfoPopup.count = itemCount;
+    } else {
+        //Assign the rest of the info box's parameters, and set it up to fade in
+        sInfoPopup.texture = tex;
+        sInfoPopup.timer = displayDuration;
+        sInfoPopup.count = itemCount;
+        sInfoPopup.opacity = 0.0f;
+        sInfoPopupUnroll = 0; //@recomp: close up scroll
+    }
+}
+
+#define POPUP_FIX_X 20
+#define POPUP_FIX_Y 182
+
+#define POPUP_FIX_TOP_X (POPUP_FIX_X + 0)
+#define POPUP_FIX_TOP_Y (POPUP_FIX_Y + -1)
+
+#define POPUP_FIX_BOTTOM_X (POPUP_FIX_X + 0)
+#define POPUP_FIX_BOTTOM_Y (POPUP_FIX_Y + 31)
+
+#define POPUP_FIX_ICON_X (POPUP_FIX_X + 4)
+#define POPUP_FIX_ICON_Y (POPUP_FIX_Y + 7)
+
+#define POPUP_FIX_ICON_CENTRE_Y (POPUP_FIX_ICON_Y + 12)
+
+#define POPUP_FIX_COUNT_X (POPUP_FIX_X + 18)
+#define POPUP_FIX_COUNT_Y (POPUP_FIX_Y + 16)
+
+static void cmdmenu_gfx_set_info_popup_scissor(Gfx **gdl) {
+    gDPSetScissor((*gdl)++, G_SC_NON_INTERLACE, 
+        POPUP_FIX_ICON_X, 
+        POPUP_FIX_ICON_CENTRE_Y - sInfoPopupUnroll, 
+        POPUP_FIX_ICON_X + MENU_ITEM_WIDTH, 
+        POPUP_FIX_ICON_CENTRE_Y + sInfoPopupUnroll
+    );
+}
+
+/**
+  * An edited version of the info pop-up's draw function, using the December 2000 inventory design.
+  */
+void cmdmenu_info_draw_custom(Gfx** gdl, CmdmenuInfoPopup* box) {
+    //Do nothing after item's timer finished
+    if (box->timer < 0) {
+        return;
+    }
+
+    //@recomp: do nothing if the minimap is still visible
+    if (minimap_get_opacity() > 0) {
+        return;
+    }
+
+    //Decrement box's timer
+    box->timer -= gUpdateRate;
+    if (box->timer < 0) {
+        tex_free(box->texture);
+        box->texture = NULL;
+        return;
+    }
+
+    //Update box's opacity
+    if (box->timer < 30.0f) {
+        //Fade out box during last half-second on-screen
+        box->opacity = (box->timer * MAX_OPACITY_F) / 30.0f;
+
+        //@recomp: roll up scroll
+        sInfoPopupUnroll -= gUpdateRate;
+        if (sInfoPopupUnroll < 0) {
+            sInfoPopupUnroll = 0;
+        }
+    } else {
+        //Otherwise, fade the box in if it's not fully visible
+        if (box->opacity != MAX_OPACITY_F) {
+            box->opacity += 8.5f * (f32) gUpdateRate;
+            if (box->opacity > MAX_OPACITY_F) {
+                box->opacity = MAX_OPACITY_F;
+            }
+        }
+
+        //@recomp: unroll scroll
+        if (box->opacity >= 64.0f) {
+            sInfoPopupUnroll += gUpdateRate;
+            if (sInfoPopupUnroll > MENU_ITEM_HEIGHT/2) {
+                sInfoPopupUnroll = MENU_ITEM_HEIGHT/2;
+            }
+        }
+    }
+
+    //@recomp: draw the top of the scroll
+    rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top], 
+        POPUP_FIX_TOP_X,
+        POPUP_FIX_TOP_Y + 12 - sInfoPopupUnroll,
+        0xFF, 
+        0xFF, 
+        0xFF, 
+        box->opacity
+    );        
+
+    //@recomp: draw the bottom of the scroll
+    rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], 
+        POPUP_FIX_BOTTOM_X,
+        POPUP_FIX_BOTTOM_Y - 12 + sInfoPopupUnroll,
+        0xFF, 
+        0xFF, 
+        0xFF, 
+        box->opacity
+    );        
+
+    //@recomp: set scissor for inner scroll
+    cmdmenu_gfx_set_info_popup_scissor(gdl);
+
+    //Draw the item's inventory icon (including embedded page background)
+    bzero(sTempIcon, sizeof(TextureTile));
+    sTempIcon->tex = box->texture;
+    sTempIcon[1].tex = NULL;
+    rcp_tile_write(gdl, sTempIcon, 
+        POPUP_FIX_ICON_X, //@recomp: different coord
+        POPUP_FIX_ICON_Y, //@recomp: different coord 
+        0xFF, 
+        0xFF, 
+        0xFF, 
+        box->opacity
+    );
+
+    //Draw item count (NOTE: can't draw values under 2 or over 10, because no icons provided)
+    if (box->count > 1) {
+        sTempIcon->tex = sInventoryStackNumbersTex;
+        sTempIcon->animProgress = (box->count - 2) << 8;
+        rcp_tile_write(gdl, sTempIcon, 
+            POPUP_FIX_COUNT_X, //@recomp: different coord
+            POPUP_FIX_COUNT_Y, //@recomp: different coord
+            0xFF, 
+            0xFF, 
+            0xFF, 
+            box->opacity
+        );
+    }
+
+    //@recomp: restore full-screen scissor
+    cmdmenu_gfx_set_screen_scissor(gdl);
+}
+
+/**
+  * Fix up the item info pop-up to better match December 2000's inventory design.
+  *
+  * By default it looked quite broken, since it seemed to expect the older/taller item
+  * icons from the horizontally scrolling version of the inventory seen in early footage.
+  */
+RECOMP_PATCH void cmdmenu_info_draw(Gfx** gdl, CmdmenuInfoPopup* box) {
+    //@recomp: use the fixed-up info pop-up instead, if wanted
+    if (recomp_get_config_u32("cmdmenu_info_popup_fix")) {
+        return cmdmenu_info_draw_custom(gdl, box);
+    }
+
+    //Do nothing after item's timer finished
+    if (box->timer < 0) {
+        return;
+    }
+
+    //Decrement box's timer
+    box->timer -= gUpdateRate;
+    if (box->timer < 0) {
+        tex_free(box->texture);
+        box->texture = NULL;
+        return;
+    }
+
+    //Update box's opacity
+    if (box->timer < 30.0f) {
+        //Fade out box during last half-second on-screen
+        box->opacity = (box->timer * MAX_OPACITY_F) / 30.0f;
+    } else {
+        //Otherwise, fade the box in if it's not fully visible
+        if (box->opacity != MAX_OPACITY_F) {
+            box->opacity += 8.5f * (f32) gUpdateRate;
+            if (box->opacity > MAX_OPACITY_F) {
+                box->opacity = MAX_OPACITY_F;
+            }
+        }
+    }
+
+    //Draw the box's shadow
+    rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_52_Page_Torn_Shadow], 
+        INFO_POPUP_SHADOW_X, 
+        INFO_POPUP_SHADOW_Y, 
+        0xFF, 
+        0xFF, 
+        0xFF, 
+        box->opacity
+    );
+
+    //Draw the item's inventory icon (including embedded page background)
+    bzero(sTempIcon, sizeof(TextureTile));
+    sTempIcon->tex = box->texture;
+    sTempIcon[1].tex = NULL;
+    rcp_tile_write(gdl, sTempIcon, 
+        INFO_POPUP_M_X, 
+        INFO_POPUP_Y, 
+        0xFF, 
+        0xFF, 
+        0xFF, 
+        box->opacity
+    );
+
+    //Draw tattered left edge of box (@unfinished: outdated page design, mismatched with icons' newer BG)
+    rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_29_Page_Torn_Left], 
+        INFO_POPUP_L_X, 
+        INFO_POPUP_Y, 
+        0xFF, 
+        0xFF, 
+        0xFF, 
+        box->opacity
+    );
+
+    //Draw tattered right edge of box (@unfinished: outdated page design, mismatched with icons' newer BG)
+    rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_30_Page_Torn_Right], 
+        INFO_POPUP_R_X,
+        INFO_POPUP_Y, 
+        0xFF, 
+        0xFF, 
+        0xFF, 
+        box->opacity
+    );
+
+    //Draw item count (NOTE: can't draw values under 2 or over 10, because no icons provided)
+    if (box->count > 1) {
+        sTempIcon->tex = sInventoryStackNumbersTex;
+        sTempIcon->animProgress = (box->count - 2) << 8;
+        rcp_tile_write(gdl, sTempIcon, 
+            INFO_POPUP_QUANTITY_X, 
+            INFO_POPUP_QUANTITY_Y, 
+            0xFF, 
+            0xFF, 
+            0xFF, 
+            box->opacity
+        );
+    }
+}
+
+/** 
+  * Custom pseudo-export, so the minimap can check if the cmdmenu's item info pop-up should appear.
+  * (To avoid visual clash between minimap and item info pop-up). 
+  */
+s16 cmdmenu_info_popup_is_visible() {
+    return (sInfoPopup.timer > 0);
 }
