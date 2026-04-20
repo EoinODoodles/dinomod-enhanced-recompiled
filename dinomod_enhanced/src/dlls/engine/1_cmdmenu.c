@@ -952,6 +952,12 @@ void cmdmenu_info_draw_custom(Gfx** gdl, CmdmenuInfoPopup* box) {
         return;
     }
 
+    //@recomp: hide if the tutorial textbox is visible
+    if ((dTutorialBoxOpacity > 0) && (box->timer > 30.0f)) {
+        box->timer = 30.0f;
+        return;
+    }
+
     //Decrement box's timer
     box->timer -= gUpdateRate;
     if (box->timer < 0) {

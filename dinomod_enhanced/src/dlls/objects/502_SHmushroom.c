@@ -144,7 +144,7 @@ static void get_tutorial_gamebit_and_animObjID(Object* self, s16* tutorialGamebi
   *
   * (Fixes a softlock where you could be missing mushrooms for Queen EarthWalker)
   */
-static void add_to_inventory(Object* self, SHmushroom_Data_Extended* objData, SHmushroom_Setup* objSetup, Object* player) {
+static void add_to_inventory(Object* self, SHmushroom_Data_Extended* objData, SHmushroom_Setup* objSetup, Object* player, int showPopup) {
 	Object* dinoFoodBag;
 	s32 count;
 
@@ -178,6 +178,7 @@ static void add_to_inventory(Object* self, SHmushroom_Data_Extended* objData, SH
 
 	//Optionally show an item collection pop-up
 	if (recomp_get_config_u32("cmdmenu_info_popup_expand") &&
+		showPopup &&
 		count && 
 		objData->gamebitInventory != NO_GAMEBIT
 	) {
@@ -734,7 +735,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 			(void*)(s32)objData->tutorialGamebit
 		);
 
-		add_to_inventory(self, objData, objSetup, player);
+		add_to_inventory(self, objData, objSetup, player, (tutorialSeen == TRUE));
 
 		if (tutorialSeen) {
 			obj_destroy_object(self);

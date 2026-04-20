@@ -202,6 +202,7 @@ In the unpatched December 2000 Prototype this pop-up only appears when collectin
 
 - Blue Mushrooms
 - White Mushrooms
+- Purple Mushroom Spores
 '''
 type = "Enum"
 options = [ "Off", "On" ]
