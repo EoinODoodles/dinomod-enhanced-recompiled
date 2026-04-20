@@ -161,3 +161,19 @@ Which version of the item pickup jingle to play.
 type = "Enum"
 options = [ "Old (variant A)", "Old (variant B)", "New" ]
 default = "Old (variant B)"
+
+[[manifest.config_options]]
+id = "shmushroom_dance_chance"
+name = "Mushroom Dance Chance"
+description = '''
+Blue/White Mushrooms have an unseen dance animation. To offer a way of seeing it, this slider lets you control the probability of mushrooms starting to dance during their idle state!
+
+Setting it to 0% will prevent this behaviour completely, if preferred.
+'''
+type = "Number"
+min = 0
+max = 100
+step = 1
+precision = 0
+percent = false
+default = 10
