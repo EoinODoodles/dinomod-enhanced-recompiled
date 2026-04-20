@@ -377,7 +377,8 @@ static void golden_plains_modifications(void) {
     }
 }
 
-/** Adds jetbike fuel refills around Golden Plains, only showing up in Act 3 */
+/** (CURRENTLY UNUSED) Adds jetbike fuel refills around Golden Plains, only showing up in Act 3 */
+PRAGMA_IGNORE_PUSH("-Wunused")
 static void golden_plains_fuel_modifications(void) {
     u32 mapID = MAP_GOLDEN_PLAINS;
 
@@ -469,6 +470,7 @@ static void golden_plains_fuel_modifications(void) {
         header->objectInstanceCount += count;
     }
 }
+PRAGMA_IGNORE_POP()
 
 static void cc_lightfoot_patch(void) {
     // Change CClightfoot model from chief to normal red-colored LightFoot

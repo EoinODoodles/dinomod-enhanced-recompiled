@@ -29,40 +29,47 @@ extern ObjFSA_StateCallback sLogicStateCallbacks[6];
 
 extern void dll_243_func_11C0(Object *self, Baddie *arg1, ObjFSA_Data *fsa);
 
-RECOMP_PATCH void dll_243_func_C44(Object *self, Baddie *arg1, ObjFSA_Data *fsa) {
+RECOMP_PATCH void dll_243_func_C44(Object *self, Baddie *baddie, ObjFSA_Data *fsa) {
     Lunaimar_ActualData *objdata;
     Object *sidekick;
-    Vec3f sp44;
-    f32 sp40;
-    s32 *sp3C;
+    Vec3f delta;
+    f32 sidekickDistance;
+    TextureAnimator* texAnimator;
 
-    objdata = (Lunaimar_ActualData*)arg1->objdata;
+    objdata = (Lunaimar_ActualData*)baddie->objdata;
     sidekick = get_sidekick();
-    sp3C = func_800348A0(self, 0, 0);
+    texAnimator = func_800348A0(self, 0, 0);
     objdata->unk12 += 0x1000;
-    *sp3C = (s32) ((fsin16_precise(objdata->unk12) + 1.0f) * 127.0f);
+    texAnimator->frame = (s32) ((fsin16_precise(objdata->unk12) + 1.0f) * 127.0f);
+
     // @recomp: Sidekick null check
     if (sidekick != NULL) {
-        sp44.f[0] = sidekick->globalPosition.x - self->globalPosition.x;
-        sp44.f[1] = sidekick->globalPosition.y - self->globalPosition.y;
-        sp44.f[2] = sidekick->globalPosition.z - self->globalPosition.z;
-        sp40 = sqrtf(SQ(sp44.f[0]) + SQ(sp44.f[1]) + SQ(sp44.f[2]));
+        delta.f[0] = sidekick->globalPosition.x - self->globalPosition.x;
+        delta.f[1] = sidekick->globalPosition.y - self->globalPosition.y;
+        delta.f[2] = sidekick->globalPosition.z - self->globalPosition.z;
+        sidekickDistance = sqrtf(SQ(delta.f[0]) + SQ(delta.f[1]) + SQ(delta.f[2]));
     }
-    if (sidekick != NULL && ((DLL_ISidekick*)sidekick->dll)->vtbl->func24(sidekick) != 0 && (sp40 < (f32) arg1->unk3E2)) {
-        arg1->unk3B2 |= 4;
+
+    if ((sidekick != NULL) && 
+        ((DLL_ISidekick*)sidekick->dll)->vtbl->func24(sidekick) && 
+        (sidekickDistance < (f32) baddie->unk3E2)
+    ) {
+        baddie->unk3B2 |= 4;
     } else {
-        arg1->unk3B2 &= ~0x4;
+        baddie->unk3B2 &= ~0x4;
     }
-    if (arg1->unk3B2 & 4) {
+
+    if (baddie->unk3B2 & 4) {
         fsa->target = sidekick;
     } else {
         fsa->target = get_player();
     }
-    dll_243_func_11C0(self, arg1, fsa);
+
+    dll_243_func_11C0(self, baddie, fsa);
     gDLL_33_BaddieControl->vtbl->func10(self, fsa, 0.0f, -1);
     gDLL_18_objfsa->vtbl->turn_to_target(self, fsa, gUpdateRateF, 5);
-    arg1->unk3AC = self->unkC0;
+    baddie->unk3AC = self->unkC0;
     self->unkC0 = NULL;
     gDLL_18_objfsa->vtbl->tick(self, fsa, gUpdateRateF, gUpdateRateF, sAnimStateCallbacks, sLogicStateCallbacks);
-    self->unkC0 = arg1->unk3AC;
+    self->unkC0 = baddie->unk3AC;
 }
