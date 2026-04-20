@@ -449,29 +449,14 @@ extern void cmdmenu_energy_bar_free(void);
 
 static u32 useExtraDescriptions;
 
-/** Prevents a crash when trying to leave CloudRunner Fortress' racetrack (originally by MusicalProgrammer, 25th February 2024) */
-void cmdmenu_energy_bar_free(void) {
-    EnergyBar* enbar;
-
-    /* default.dol
-    if (sEnergyBar == NULL) {
-        STUBBED_PRINTF(" WARNING : cmdmenu Energy bar alreadby freed \n");
-    }
-    */
-
-    STUBBED_PRINTF(" Killing Bar ");
-    enbar = sEnergyBar;
-
-    //@recomp: null pointer return
-    if (!enbar) {
-        return;
-    }
-
-    enbar->alpha = 0;
-    tex_free(enbar->fullbarTex[0].tex);
-    tex_free(enbar->emptybarTex[0].tex);
-    mmFree(sEnergyBar);
-    sEnergyBar = NULL;
+/**
+  * Fixes a bug where the info scroll (the box that appears when holding R in the inventory, etc.)
+  * ended up accidentally drawing during the first few frames of gameplay due to an incorrectly initialised variable.
+  * The bug caused a beige smear to appear in the top-left corner of the screen's framebuffer.
+  * This fix is more relevant for N64/emulators than recomp.
+  */
+RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_fix_game_start_framebuffer_smear() {
+    sInfoScrollOverrideTextID = NO_GAMETEXT;
 }
 
 #define INVENTORY_TEXT(bankID, lineID) ((bankID << 8) + (lineID & 0xFF))
@@ -1151,4 +1136,29 @@ RECOMP_PATCH void cmdmenu_info_draw(Gfx** gdl, CmdmenuInfoPopup* box) {
   */
 s16 cmdmenu_info_popup_is_visible() {
     return (sInfoPopup.timer > 0);
+}
+
+/** Prevents a crash when trying to leave CloudRunner Fortress' racetrack (originally by MusicalProgrammer, 25th February 2024) */
+RECOMP_PATCH void cmdmenu_energy_bar_free(void) {
+    EnergyBar* enbar;
+
+    /* default.dol
+    if (sEnergyBar == NULL) {
+        STUBBED_PRINTF(" WARNING : cmdmenu Energy bar alreadby freed \n");
+    }
+    */
+
+    STUBBED_PRINTF(" Killing Bar ");
+    enbar = sEnergyBar;
+
+    //@recomp: null pointer return
+    if (!enbar) {
+        return;
+    }
+
+    enbar->alpha = 0;
+    tex_free(enbar->fullbarTex[0].tex);
+    tex_free(enbar->emptybarTex[0].tex);
+    mmFree(sEnergyBar);
+    sEnergyBar = NULL;
 }
