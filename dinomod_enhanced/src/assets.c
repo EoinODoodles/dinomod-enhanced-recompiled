@@ -290,8 +290,8 @@ static void dragon_rock_upper_modifications(void) {
     reasset_map_objects_delete(drTop, reasset_base_id(0x406A1));
 }
 
-// /** Change the fade settings of the GP_ShrinePillar so they're visible across Golden Plains 
-//   * (they're fairly low-poly, should be grand even on N64!) */
+/** Change the fade settings of the GP_ShrinePillar so they're visible across Golden Plains 
+  * (they're fairly low-poly, should be grand even on N64!) */
 static void golden_plains_modifications(void) {
     ReAssetID mapID = reasset_base_id(MAP_GOLDEN_PLAINS);
 

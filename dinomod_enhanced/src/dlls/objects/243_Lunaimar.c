@@ -34,13 +34,14 @@ RECOMP_PATCH void dll_243_func_C44(Object *self, Baddie *baddie, ObjFSA_Data *fs
     Object *sidekick;
     Vec3f delta;
     f32 sidekickDistance;
-    TextureAnimator *animator;
+    TextureAnimator *texAnimator;
 
     objdata = (Lunaimar_ActualData*)baddie->objdata;
     sidekick = get_sidekick();
-    animator = func_800348A0(self, 0, 0);
+    texAnimator = func_800348A0(self, 0, 0);
     objdata->unk12 += 0x1000;
-    animator->frame = (s32) ((fsin16_precise(objdata->unk12) + 1.0f) * 127.0f);
+    texAnimator->frame = (s32) ((fsin16_precise(objdata->unk12) + 1.0f) * 127.0f);
+
     // @recomp: Sidekick null check
     if (sidekick != NULL) {
         delta.f[0] = sidekick->globalPosition.x - self->globalPosition.x;
@@ -48,16 +49,21 @@ RECOMP_PATCH void dll_243_func_C44(Object *self, Baddie *baddie, ObjFSA_Data *fs
         delta.f[2] = sidekick->globalPosition.z - self->globalPosition.z;
         sidekickDistance = sqrtf(SQ(delta.f[0]) + SQ(delta.f[1]) + SQ(delta.f[2]));
     }
-    if (((DLL_ISidekick*)sidekick->dll)->vtbl->func24(sidekick) != 0 && (sidekickDistance < baddie->unk3E2)) {
+    if (sidekick != NULL && 
+        ((DLL_ISidekick*)sidekick->dll)->vtbl->func24(sidekick) != 0 && 
+        (sidekickDistance < baddie->unk3E2)
+    ) {
         baddie->unk3B2 |= 4;
     } else {
         baddie->unk3B2 &= ~0x4;
     }
+
     if (baddie->unk3B2 & 4) {
         fsa->target = sidekick;
     } else {
         fsa->target = get_player();
     }
+
     dll_243_func_11C0(self, baddie, fsa);
     gDLL_33_BaddieControl->vtbl->func10(self, fsa, 0.0f, -1);
     gDLL_18_objfsa->vtbl->turn_to_target(self, fsa, gUpdateRateF, 5);
