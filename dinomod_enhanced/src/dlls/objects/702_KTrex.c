@@ -3,19 +3,19 @@
 
 #include "dlls/engine/18_objfsa.h"
 #include "dlls/engine/28_screen_fade.h"
-#include "dlls/engine/33.h"
+#include "dlls/engine/33_BaddieControl.h"
 #include "dlls/objects/214_animobj.h"
 #include "game/gamebits.h"
 #include "sys/generic_stack.h"
 #include "sys/gfx/model.h"
 #include "sys/gfx/modgfx.h"
 #include "sys/main.h"
+#include "sys/map_enums.h"
 #include "sys/objanim.h"
 #include "sys/objhits.h"
 #include "sys/objmsg.h"
 #include "sys/objtype.h"
 #include "sys/rand.h"
-#include "segment_334F0.h"
 #include "dll.h"
 
 /**
@@ -174,7 +174,7 @@ typedef struct {
 } KTrex_Data;
 
 typedef struct {
-/*00*/ DLL33_ObjSetup base;
+/*00*/ Baddie_Setup base;
 /*38*/ f32 speeds[3]; // Movement speed, per "anger" level.
 /*44*/ u16 roarTime[3]; // How long a roar lasts.
 /*4A*/ u16 vulnerableTime[4]; // How long the boss is vulnerable for.
@@ -242,7 +242,7 @@ extern f32 sTurn90AnimTickDeltas[3];
 extern f32 _data_6C[3];
 extern f32 _data_78[3];
 
-extern DLL33_Data* sDLL33Data;
+extern Baddie* sDLL33Data;
 extern KTrex_Data *sKTData;
 
 extern void dll_702_anim_event_to_fx(s32 modAnimEvent, s32 fxFlags);
@@ -415,7 +415,7 @@ RECOMP_PATCH s32 dll_702_anim_state_2(Object* self, ObjFSA_Data* fsa, f32 update
     tempSRT.transl.z = 0.0f;
     tempSRT.scale = 1.0f;
     matrix_from_srt(&tempMtx, &tempSRT);
-    vec3_transform(&tempMtx, fsa->unk27C, 0.0f, -fsa->unk278, &self->speed.x, &tempY, &self->speed.z);
+    vec3_transform(&tempMtx, fsa->unk27C, 0.0f, -fsa->unk278, &self->velocity.x, &tempY, &self->velocity.z);
     if (reversed) {
         self->srt.yaw = (f32) sKTData->turnStartYaw + (16384.0f * self->animProgress);
     } else {
@@ -697,7 +697,7 @@ RECOMP_PATCH s32 dll_702_logic_state_9(Object* self, ObjFSA_Data* fsa, f32 updat
         ktflags = sKTData->flags;
         sKTData->standingUpSegment = KTFLAG_GET_SEGMENT(ktflags);
         sKTData->timer = 300.0f;
-        gDLL_2_Camera->vtbl->func8(2, 0);
+        gDLL_2_Camera->vtbl->change_mode(2, 0);
         if (dinomod_kt_enhanced()) {
             // @recomp: (enhanced) Kick in more intense version of music for charge
             gDLL_5_AMSEQ2->vtbl->set(self, 0xD9, 0, 0, 0);
@@ -753,7 +753,7 @@ RECOMP_PATCH s32 dll_702_logic_state_10(Object* self, ObjFSA_Data* fsa, f32 upda
             sKTData->fightProgress -= 1;
             dll_702_push_state(KT_LSTATE_2_WALK);
         }
-        gDLL_2_Camera->vtbl->func8(3, 0);
+        gDLL_2_Camera->vtbl->change_mode(3, 0);
         main_set_bits(BIT_572_KT_FightProgress, sKTData->fightProgress);
         return KT_LSTATE_6_CHARGE_END + 1;
     }

@@ -2,24 +2,24 @@
 
 #include "PR/ultratypes.h"
 #include "PR/gbi.h"
-#include "dll.h"
-#include "dlls/objects/214_animobj.h"
+#include "types.h"
 #include "game/objects/object.h"
-#include "sys/gfx/texture.h"
-#include "sys/main.h"
 #include "game/gamebits.h"
+#include "sys/gfx/model.h"
+#include "sys/gfx/modgfx.h"
+#include "sys/gfx/texture.h"
 #include "sys/dll.h"
 #include "sys/objects.h"
+#include "sys/main.h"
 #include "sys/math.h"
 #include "sys/map_enums.h"
-#include "functions.h"
-#include "sys/gfx/model.h"
 #include "sys/map.h"
 #include "sys/objmsg.h"
 #include "sys/objtype.h"
-#include "sys/gfx/modgfx.h"
 #include "sys/print.h"
-#include "types.h"
+#include "sys/segment_1460.h"
+#include "dll.h"
+#include "dlls/objects/214_animobj.h"
 
 #include "recomp/dlls/objects/472_GPSH_Shrine_recomp.h"
 
@@ -145,7 +145,7 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
         }
         switch (objdata->unk15) {
         case 0:
-            if (vec3_distance(&self->positionMirror, &player->positionMirror) < (f32) objdata->unk0) {
+            if (vec3_distance(&self->globalPosition, &player->globalPosition) < (f32) objdata->unk0) {
                 objdata->unk15 = 1;
                 main_set_bits(BIT_DB_Entered_Shrine_3, 0);
                 gDLL_3_Animation->vtbl->func17(0, self, -1);
@@ -228,8 +228,8 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
             objdata->unk15 = 5;
             return;
         case 5:
-            if (main_get_bits(BIT_FD) == 0) {
-                main_set_bits(BIT_FD, 1);
+            if (main_get_bits(BIT_Shrine_Do_Exit_Warp) == 0) {
+                main_set_bits(BIT_Shrine_Do_Exit_Warp, 1);
             }
             main_set_bits(BIT_MMP_GP_Shrine_Spirit_Light_Beams, 0);
             main_set_bits(BIT_DB_Entered_Shrine_2, 0);
@@ -349,7 +349,7 @@ RECOMP_PATCH int GPSH_Shrine_func_1024(Object* a0, Object* a1, AnimObj_Data* a2,
         }
         a2->unk8E[i] = 0;
     }
-    if ((objdata->unk15 == 3) && ((f32)objdata->unk0 < vec3_distance(&a0->positionMirror, &player->positionMirror))) {
+    if ((objdata->unk15 == 3) && ((f32)objdata->unk0 < vec3_distance(&a0->globalPosition, &player->globalPosition))) {
         gDLL_3_Animation->vtbl->func18(a2->unk63);
     }
     return 0;

@@ -18,7 +18,6 @@
 #include "sys/fs.h"
 #include "sys/memory.h"
 #include "dll.h"
-#include "functions.h"
 #include "types.h"
 
 enum RecompPickupJingle {

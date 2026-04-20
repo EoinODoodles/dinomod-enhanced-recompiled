@@ -7,7 +7,7 @@ A work-in-progress mod porting over Dinomod Enhanced's ROM fixes to recomp.
 short_description = "WIP port of Dinomod Enhanced patches"
 
 version = "0.8.0"
-authors = [ "Banjeoin", "jeebs2kx", "LaminGaming", "MusicalProgrammer", "Shinx121" ]
+authors = [ "Banjeoin", "jeebs2kx", "LaminGaming", "MusicalProgrammer", "Shinx121", "nuggs" ]
 
 game_id = "dino-planet"
 minimum_recomp_version = "0.2.0"

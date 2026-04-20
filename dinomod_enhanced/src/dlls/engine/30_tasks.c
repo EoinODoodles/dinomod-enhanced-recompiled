@@ -9,7 +9,6 @@
 #include "sys/print.h"
 #include "dll.h"
 #include "types.h"
-#include "functions.h"
 #include "macros.h"
 
 extern u8 sRecentlyCompleted[5];

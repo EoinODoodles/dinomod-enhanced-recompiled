@@ -10,7 +10,6 @@
 #include "dlls/engine/28_screen_fade.h"
 #include "dlls/engine/29_gplay.h"
 #include "dlls/engine/74_picmenu.h"
-#include "sys/gfx/gx.h"
 #include "sys/gfx/texture.h"
 #include "sys/fonts.h"
 #include "sys/main.h"
@@ -20,7 +19,6 @@
 #include "sys/rcp.h"
 #include "dll.h"
 #include "types.h"
-#include "functions.h"
 #include "macros.h"
 
 #include "player_stats.h"
@@ -60,6 +58,9 @@ extern void dll_63_goto_game_select(s32 param1);
 extern void dll_63_load_save_game_info();
 extern void dll_63_goto_game_confirm();
 extern void dll_63_init_submenu(GameSelectSubmenu *submenu);
+extern void dll_63_goto_game_select(s32 param1);
+extern void dll_63_goto_erase_select();
+extern void dll_63_goto_copy_src_select();
 
 /** If no name is entered when starting a save, display "Krystal"/"Sabre" instead of nothing */
 static const char *dinomod_get_save_filename(const GameSelectSaveInfo *saveInfo) {
@@ -100,6 +101,48 @@ RECOMP_PATCH void dll_63_goto_game_select(s32 param1) {
         /*textHighlight*/ 0, 0, 0);
     
     sRedrawFrames = 2;
+}
+
+RECOMP_PATCH void dll_63_act_game_select(PicMenuAction action, s32 selected) {
+    //@recomp: enable back navigation from game select to title screen
+    if (action == PICMENU_ACTION_BACK) {
+        sExitToMainMenu = TRUE;
+        gDLL_28_ScreenFade->vtbl->fade(20, SCREEN_FADE_BLACK);
+        gDLL_5_AMSEQ->vtbl->stop(0);
+        gDLL_5_AMSEQ->vtbl->stop(1);
+        gDLL_5_AMSEQ->vtbl->stop(2);
+        gDLL_5_AMSEQ->vtbl->stop(3);
+        sExitTransitionTimer = 35;
+        return;
+    }
+    switch (selected) {
+        case 4:
+            if (action == PICMENU_ACTION_SELECT) {
+                dll_63_goto_erase_select();
+            }
+            break;
+        case 3:
+            if (action == PICMENU_ACTION_SELECT) {
+                dll_63_goto_copy_src_select();
+            }
+            break;
+        default:
+            // Selected a save file button
+            if (action == PICMENU_ACTION_SELECT) {
+                if (sSaveGameInfo[selected].isEmpty) {
+                    // Go to name entry menu
+                    dll_63_clean_up(0);
+                    set_save_game_idx(selected);
+                    menu_set(MENU_ENTER_NAME);
+                } else {
+                    sSelectedSaveIdx = selected;
+                    sSaveGameBoxX = 56;
+                    sSaveGameBoxY = 179;
+                    dll_63_goto_game_confirm();
+                }
+            }
+            break;
+    }
 }
 
 /** Retains your save slot selection when backing out from the "Previously On" menu page to the save slot info page */
@@ -178,17 +221,17 @@ RECOMP_PATCH void dll_63_draw_save_game_box(Gfx **gdl, s32 x, s32 y, GameSelectS
             x2 = x;
             y2 += 32;
         } else {
-            func_8003825C(gdl, sSaveGameBgTextures[sSaveGameBgIndices[i]], x2, y2, 0, 0, 0xFF, 0);
+            rcp_screen_full_write(gdl, sSaveGameBgTextures[sSaveGameBgIndices[i]], x2, y2, 0, 0, 0xFF, 0);
             x2 += 64;
         }
     }
 
     // Draw player icon
-    func_8003825C(gdl, sSaveGameTextures[saveInfo->playerno], x + 14, y + 8, 0, 0, 0xFF, 0);
+    rcp_screen_full_write(gdl, sSaveGameTextures[saveInfo->playerno], x + 14, y + 8, 0, 0, 0xFF, 0);
     // Draw spirit icon
-    func_8003825C(gdl, sSaveGameTextures[2], x + 241, y + 71, 0, 0, 0xFF, 0);
+    rcp_screen_full_write(gdl, sSaveGameTextures[2], x + 241, y + 71, 0, 0, 0xFF, 0);
     // Draw spell stone icon
-    func_8003825C(gdl, sSaveGameTextures[3], x2 + 14, y + 71, 0, 0, 0xFF, 0);
+    rcp_screen_full_write(gdl, sSaveGameTextures[3], x2 + 14, y + 71, 0, 0, 0xFF, 0);
 
     // Draw text
     font_window_use_font(1, FONT_DINO_MEDIUM_FONT_IN);

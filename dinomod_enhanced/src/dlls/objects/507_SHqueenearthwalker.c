@@ -103,7 +103,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
         //If arrow visible above Queen
         if (self->unkAF & 4) {
             //@recomp: when inventory opened, handle White Mushroom contradictions
-            if (gDLL_1_UI->vtbl->func_F24() == PAGE_Inventory){
+            if (gDLL_1_cmdmenu->vtbl->get_page_category() == CMDMENU_CATEGORY_3_Items){
                 if (!objdata->wasMenuOpen){
                     recomp_eprintf("CHECKING MUSHROOMS!\n");
                     handle_mushroom_gamebit_contradictions();
@@ -113,7 +113,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
                 objdata->wasMenuOpen = FALSE;
             }
 
-            if (gDLL_1_UI->vtbl->func_DF4(BIT_Inventory_White_Mushrooms) != 0) {
+            if (gDLL_1_cmdmenu->vtbl->was_this_item_used(BIT_Inventory_White_Mushrooms) != 0) {
                 joy_set_button_mask(0, 0x8000);
                 objdata->eatenWhiteMushrooms += main_get_bits(BIT_Inventory_White_Mushrooms);
                 // @recomp: Require all ten white mushrooms instead of just one. (originally by MusicalProgrammer)

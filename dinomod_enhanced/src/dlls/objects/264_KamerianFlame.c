@@ -22,21 +22,21 @@ RECOMP_PATCH void kamerian_flame_create_flame_billboards(Object* self) {
     transform.scale = 0.003f;
     
     //@recomp: arg1 changed to 0x9F
-    gDLL_17_partfx->vtbl->spawn(self, 0x9F, (SRT* ) &transform, 1, -1, NULL);
+    gDLL_17_partfx->vtbl->spawn(self, 0x9F, &transform, 1, -1, NULL);
     
-    delta.x = self->srt.transl.x - self->positionMirror2.x;
-    delta.y = self->srt.transl.y - self->positionMirror2.y;
-    delta.z = self->srt.transl.z - self->positionMirror2.z;
+    delta.x = self->srt.transl.x - self->prevLocalPosition.x;
+    delta.y = self->srt.transl.y - self->prevLocalPosition.y;
+    delta.z = self->srt.transl.z - self->prevLocalPosition.z;
     
     transform.transl.x = delta.x / 3.0f;
     transform.transl.y = delta.y / 3.0f;
     transform.transl.z = delta.z / 3.0f;
     
-    gDLL_17_partfx->vtbl->spawn(self, 0x680, (SRT* ) &transform, 1, -1, NULL);
+    gDLL_17_partfx->vtbl->spawn(self, PARTICLE_680, &transform, 1, -1, NULL);
     
     transform.transl.x *= 4.0f;
     transform.transl.y *= 4.0f;
     transform.transl.z *= 4.0f;
     
-    gDLL_17_partfx->vtbl->spawn(self, 0x680, (SRT* ) &transform, 1, -1, NULL);
+    gDLL_17_partfx->vtbl->spawn(self, PARTICLE_680, &transform, 1, -1, NULL);
 }

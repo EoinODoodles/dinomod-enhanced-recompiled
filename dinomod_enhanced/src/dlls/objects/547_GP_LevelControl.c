@@ -2,6 +2,7 @@
 #include "recomputils.h"
 
 #include "common.h"
+#include "sys/map_enums.h"
 
 #include "recomp/dlls/objects/547_GP_LevelControl_recomp.h"
 

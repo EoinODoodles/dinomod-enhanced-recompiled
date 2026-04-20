@@ -5,11 +5,9 @@
 #include "dlls/engine/66_pausemenu.h"
 
 #include "PR/ultratypes.h"
-#include "functions.h"
 #include "dll.h"
 #include "sys/joypad.h"
 #include "sys/fonts.h"
-#include "sys/gfx/map.h"
 #include "sys/main.h"
 #include "sys/memory.h"
 #include "sys/menu.h"
@@ -95,7 +93,7 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
     screen_height = screen_dimensions >> 0x10;
 
     //Draw background and dimming overlay
-    func_80002130(&ulx, &uly, &lrx, &lry);
+    viewport_get_full_rect(&ulx, &uly, &lrx, &lry);
     gDPSetCombineMode(*gfx, G_CC_PRIMITIVE, G_CC_PRIMITIVE);    
     dl_apply_combine(gfx);
     gDPSetOtherMode(*gfx, 
@@ -129,9 +127,9 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
             break;
         default:   
             //Draw icons
-            func_8003825C(gfx, textureSpellStone, 44, 136, 0, 0, opacity_main, 0);
-            func_8003825C(gfx, textureDuster, 127, 162, 0, 0, opacity_main, 0);
-            func_8003825C(gfx, textureSpirit, 216, 137, 0, 0, opacity_main, 0);
+            rcp_screen_full_write(gfx, textureSpellStone, 44, 136, 0, 0, opacity_main, 0);
+            rcp_screen_full_write(gfx, textureDuster, 127, 162, 0, 0, opacity_main, 0);
+            rcp_screen_full_write(gfx, textureSpirit, 216, 137, 0, 0, opacity_main, 0);
             
             //Draw completion percentage
             sprintf(completionPercentage, formatCompletionPercentage, gDLL_30_Task->vtbl->get_completion_percentage());

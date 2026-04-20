@@ -12,7 +12,6 @@
 #include "sys/print.h"
 #include "sys/string.h"
 #include "dll.h"
-#include "functions.h"
 #include "types.h"
 #include "game/objects/object_id.h"
 #include "dlls/engine/29_gplay.h"

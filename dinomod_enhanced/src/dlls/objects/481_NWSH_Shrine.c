@@ -2,16 +2,16 @@
 
 #include "PR/ultratypes.h"
 #include "PR/gbi.h"
-#include "dlls/objects/214_animobj.h"
 #include "game/gamebits.h"
 #include "sys/dll.h"
 #include "sys/gfx/modgfx.h"
 #include "sys/main.h"
+#include "sys/map_enums.h"
 #include "sys/objmsg.h"
 #include "sys/objtype.h"
 #include "sys/rand.h"
 #include "dll.h"
-#include "functions.h"
+#include "dlls/objects/214_animobj.h"
 
 #include "recomp/dlls/objects/481_NWSH_Shrine_recomp.h"
 
@@ -91,9 +91,9 @@ RECOMP_PATCH void dll_481_control(Object *self) {
     objdata = self->data;
     player = get_player();
     sp3C = 1000.0f;
-    self->positionMirror.x = self->srt.transl.x;
-    self->positionMirror.y = self->srt.transl.y;
-    self->positionMirror.z = self->srt.transl.z;
+    self->globalPosition.x = self->srt.transl.x;
+    self->globalPosition.y = self->srt.transl.y;
+    self->globalPosition.z = self->srt.transl.z;
     dll_481_func_1084(self);
     main_set_bits(BIT_DB_Entered_Shrine_2, 1);
     if (objdata->unk6 != 0) {
@@ -157,7 +157,7 @@ RECOMP_PATCH void dll_481_control(Object *self) {
         case 0:
             if (objdata->unkE <= 0) {
                 main_set_bits(BIT_176, 1);
-                func_80003B70(1.0f);
+                camera_set_shake_offset(1.0f);
                 objdata->unkE = rand_next(0x64, 0x96);
                 objdata->unk10 = 0x91;
             } else {
@@ -172,7 +172,7 @@ RECOMP_PATCH void dll_481_control(Object *self) {
                 main_set_bits(BIT_176, 0);
                 objdata->unkE -= gUpdateRate;
             }
-            if (vec3_distance(&self->positionMirror, &player->positionMirror) < (f32) objdata->unk0) {
+            if (vec3_distance(&self->globalPosition, &player->globalPosition) < (f32) objdata->unk0) {
                 main_set_bits(BIT_5C6, 1);
                 objdata->unk12 = 1;
                 main_set_bits(BIT_DB_Entered_Shrine_3, 0);
@@ -221,8 +221,8 @@ RECOMP_PATCH void dll_481_control(Object *self) {
             objdata->unk12 = 5;
             return;
         case 5:
-            if (main_get_bits(BIT_FD) == 0) {
-                main_set_bits(BIT_FD, 1);
+            if (main_get_bits(BIT_Shrine_Do_Exit_Warp) == 0) {
+                main_set_bits(BIT_Shrine_Do_Exit_Warp, 1);
             }
             main_set_bits(BIT_15F, 0);
             main_set_bits(BIT_DB_Entered_Shrine_2, 0);

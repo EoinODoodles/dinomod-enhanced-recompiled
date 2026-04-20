@@ -119,9 +119,9 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
             objsetup = (SnowHorn_Setup*)self->setup;
             if (frostWeed && (frostWeed->id == OBJ_Tumbleweed2 || 
                 (FROSTWEED_TWIGS_ACCEPTED && frostWeed->id == OBJ_Tumbleweed2twig)) &&  //@recomp: option of accepting FrostWeed twigs as well
-                vec3_distance_xz_squared(&self->positionMirror, &frostWeed->positionMirror) < objsetup->unkRadius * objsetup->unkRadius) {
-                if (!((DLL_227_Tumbleweed*)frostWeed->dll)->vtbl->func11(frostWeed)) {
-                    ((DLL_227_Tumbleweed*)(frostWeed->dll))->vtbl->func10(frostWeed, &objdata->playerPositionCopy);
+                vec3_distance_xz_squared(&self->globalPosition, &frostWeed->globalPosition) < objsetup->unkRadius * objsetup->unkRadius) {
+                if (!((DLL_227_Tumbleweed*)frostWeed->dll)->vtbl->is_gravitating(frostWeed)) {
+                    ((DLL_227_Tumbleweed*)(frostWeed->dll))->vtbl->gravitate_towards_point(frostWeed, &objdata->playerPositionCopy);
                     objdata->frostWeed = frostWeed;
                     if (0){
                         objdata->garundaTe_weedsEaten = FROSTWEED_MAX_OVERRIDE;
@@ -136,7 +136,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
             }
             break;
         case 3:
-            if (vec3_distance_xz_squared(&objdata->playerPositionCopy, &objdata->frostWeed->positionMirror) < 6.25f) {
+            if (vec3_distance_xz_squared(&objdata->playerPositionCopy, &objdata->frostWeed->globalPosition) < 6.25f) {
                 objdata->flags = 4;
             }
             break;
@@ -170,7 +170,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
             //SpellStone activation
             if (func_80032538(self)) {
                 gDLL_3_Animation->vtbl->func17(4, self, -1);
-            } else if (gDLL_1_UI->vtbl->func_DF4(0x123)) {
+            } else if (gDLL_1_cmdmenu->vtbl->was_this_item_used(BIT_SpellStone_DIM)) {
                 main_set_bits(0x22B, 1);
                 objdata->flags = 7;
                 main_set_bits(0x115, objdata->flags);

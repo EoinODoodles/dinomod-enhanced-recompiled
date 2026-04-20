@@ -3,7 +3,6 @@
 #include "dlls/objects/214_animobj.h"
 #include "sys/main.h"
 #include "sys/objects.h"
-#include "functions.h"
 #include "dll.h"
 
 #include "recomp/dlls/objects/393_CFMainSlideDoor_recomp.h"
@@ -38,5 +37,5 @@ RECOMP_PATCH void CFMainSlideDoor_setup(Object* self, CFMainSlideDoor_Setup* set
 
     // @recomp: Don't crash if player isn't found (original patch by MusicalProgrammer)
     Object *player = get_player();
-    objdata->unk0 = player == NULL ? FALSE : vec3_distance_xz(&self->positionMirror, &player->positionMirror) < 130.0f;
+    objdata->unk0 = player == NULL ? FALSE : vec3_distance_xz(&self->globalPosition, &player->globalPosition) < 130.0f;
 }

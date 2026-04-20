@@ -121,10 +121,10 @@ static void walled_city_additions(void) {
     for (s32 i = 0; i < 2; i++) {
         FXEmit_Setup fxemit = {0};
         fxemit.base.objId = OBJ_FXEmit;
-        fxemit.base.setupExclusions1 = 0;
-        fxemit.base.setupExclusions2 = 0;
+        fxemit.base.actExclusions1 = 0;
+        fxemit.base.actExclusions2 = 0;
         fxemit.base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
-        fxemit.base.fadeFlags = OBJSETUP_FADE_FLAG4;
+        fxemit.base.fadeFlags = OBJSETUP_FADE_CAMERA;
         fxemit.base.mapObjGroup = 7;
         fxemit.base.fadeDistance = 50;
 
@@ -237,9 +237,9 @@ static void warlock_mountain_platform_additions(void) {
     for (s32 i = 0; i < 2; i++) {
         HitAnimator_Setup hitAnimator = {0};
         hitAnimator.base.objId = OBJ_HitAnimator;
-        hitAnimator.base.setupExclusions1 = 0;
-        hitAnimator.base.loadFlags = OBJSETUP_LOAD_FLAG4;
-        hitAnimator.base.fadeFlags = OBJSETUP_FADE_FLAG4;
+        hitAnimator.base.actExclusions1 = 0;
+        hitAnimator.base.loadFlags = OBJSETUP_LOAD_MAIN;
+        hitAnimator.base.fadeFlags = OBJSETUP_FADE_CAMERA;
         hitAnimator.base.loadDistance = 10;
         hitAnimator.base.fadeDistance = 10;
 
@@ -300,7 +300,7 @@ static void golden_plains_modifications(void) {
     while (reasset_iterator_next(iterator, &id)) {
         ObjSetup *setup = reasset_map_objects_get(mapID, id, NULL);
         if (setup->objId == OBJ_GP_PillarDoor || setup->objId == OBJ_GP_ShrinePillar) {
-            setup->fadeFlags = OBJSETUP_FADE_DISABLE;
+            setup->fadeFlags = OBJSETUP_FADE_MANUAL;
         }
     }
     reasset_iterator_destroy(iterator);
@@ -352,9 +352,9 @@ static void golden_plains_fuel_modifications(void) {
     for (s32 i = 0; i < count; i++) {
         CRFuelTank_Setup fuel = {0};
         fuel.base.objId = OBJ_CRFuelTank;
-        fuel.base.setupExclusions1 = ~MAP_ACT(3);
-        fuel.base.loadFlags = OBJSETUP_LOAD_FLAG4;
-        fuel.base.fadeFlags = OBJSETUP_FADE_FLAG4;
+        fuel.base.actExclusions1 = ~MAP_ACT(3);
+        fuel.base.loadFlags = OBJSETUP_LOAD_MAIN;
+        fuel.base.fadeFlags = OBJSETUP_FADE_CAMERA;
         fuel.base.loadDistance = 140;
         fuel.base.fadeDistance = 140;
         fuel.base.x = fuelData[i].coords.x;

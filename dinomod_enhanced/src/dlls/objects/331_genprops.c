@@ -3,7 +3,9 @@
 #include "object_util.h"
 
 #include "common.h"
+#include "sys/map_enums.h"
 #include "sys/objmsg.h"
+#include "sys/segment_1050.h"
 #include "dlls/objects/210_player.h"
 
 extern MapHeader* gMapActiveStreamMap;
@@ -635,8 +637,8 @@ RECOMP_PATCH void dll_331_setup(Object* self, GenProps_Setup* objSetup, s32 arg2
     case OBJ_WMrock:
         objData->roll = rand_next(100, 400);
         objData->pitch = rand_next(100, 400);
-        self->speed.x = rand_next(0, 100) * 0.04f;
-        self->speed.z = rand_next(0, 100) * 0.04f;
+        self->velocity.x = rand_next(0, 100) * 0.04f;
+        self->velocity.z = rand_next(0, 100) * 0.04f;
         self->srt.scale *= 0.3f + (0.01f * rand_next(0, 10));
         objData->speed = 200;
         objData->debugPrintDistance = 0;
@@ -751,7 +753,7 @@ RECOMP_PATCH void dll_331_setup(Object* self, GenProps_Setup* objSetup, s32 arg2
 RECOMP_PATCH void dll_331_control(Object* self) {
     s32 index;
     Object* player;
-    ObjectStruct58* temp_v0;
+    ObjectPolyhits* temp_v0;
     s16 id;
     Object** new_var;
     GenProps_Setup *objSetup;
@@ -780,11 +782,11 @@ RECOMP_PATCH void dll_331_control(Object* self) {
         break;
     case OBJ_DFP_PowerBolt: //0x4fa
         self->unkE0 -= (s16)gUpdateRateF;
-        self->srt.transl.f[0] += self->speed.f[0] * gUpdateRateF; 
-        self->srt.transl.f[1] += self->speed.f[1] * gUpdateRateF; 
-        self->srt.transl.f[2] += self->speed.f[2] * gUpdateRateF;
+        self->srt.transl.f[0] += self->velocity.f[0] * gUpdateRateF; 
+        self->srt.transl.f[1] += self->velocity.f[1] * gUpdateRateF; 
+        self->srt.transl.f[2] += self->velocity.f[2] * gUpdateRateF;
         gDLL_17_partfx->vtbl->spawn(self, 0x5F3, NULL, 0x10001, -1, NULL);
-        if (vec3_distance(&self->positionMirror, &player->positionMirror) < 30.0f) {
+        if (vec3_distance(&self->globalPosition, &player->globalPosition) < 30.0f) {
             diPrintf("\tHit Krystal\n");
             obj_send_mesg(player, 0x60004, self, (void*)1);
             obj_destroy_object(self);
@@ -795,11 +797,11 @@ RECOMP_PATCH void dll_331_control(Object* self) {
         return;
     case OBJ_VFP_PowerBolt: //0x549
         self->unkE0 -= (s16)gUpdateRateF;
-        self->srt.transl.f[0] += self->speed.f[0] * gUpdateRateF;
-        self->srt.transl.f[1] += self->speed.f[1] * gUpdateRateF;
-        self->srt.transl.f[2] += self->speed.f[2] * gUpdateRateF;
+        self->srt.transl.f[0] += self->velocity.f[0] * gUpdateRateF;
+        self->srt.transl.f[1] += self->velocity.f[1] * gUpdateRateF;
+        self->srt.transl.f[2] += self->velocity.f[2] * gUpdateRateF;
         gDLL_17_partfx->vtbl->spawn(self, 0x39D, NULL, 0x10001, -1, NULL);
-        if (vec3_distance(&self->positionMirror, &player->positionMirror) < 30.0f) {
+        if (vec3_distance(&self->globalPosition, &player->globalPosition) < 30.0f) {
             diPrintf("\tHit Krystal\n");
             obj_send_mesg(player, 0x60004, self, (void*)1);
             obj_destroy_object(self);
@@ -818,8 +820,8 @@ RECOMP_PATCH void dll_331_control(Object* self) {
         break;
     case OBJ_DFturbinelever: //0xae
         
-        new_var = &self->unk58->unk100[0];
-        if ((self->unkDC == 0) && (new_var != NULL) && (*(s16*)(((s32)self->unk58) + 0x146) == 0x2B)) {
+        new_var = &self->polyhits->unk100[0];
+        if ((self->unkDC == 0) && (new_var != NULL) && (*(s16*)(((s32)self->polyhits) + 0x146) == 0x2B)) {
             gDLL_3_Animation->vtbl->func17(0, self, -1);
             self->unkDC = 1;
         }
@@ -841,7 +843,7 @@ RECOMP_PATCH void dll_331_control(Object* self) {
         }
         break;
     case OBJ_WM_MoonSeedMoun: //0x271
-        if (vec3_distance(&self->positionMirror, &player->positionMirror) < objData->debugPrintDistance) {
+        if (vec3_distance(&self->globalPosition, &player->globalPosition) < objData->debugPrintDistance) {
             diPrintf("\tMoonSeed Mound\n");
             diPrintf("\tThe Player Guesses that a Seed goes here!\n");
         }
@@ -868,7 +870,7 @@ RECOMP_PATCH void dll_331_control(Object* self) {
             }
         }
         //Print debug info about object's purpose
-        if (vec3_distance(&self->positionMirror, &player->positionMirror) < objData->debugPrintDistance) {
+        if (vec3_distance(&self->globalPosition, &player->globalPosition) < objData->debugPrintDistance) {
             diPrintf("\tNoPass Vine\n");
             diPrintf("\tThe Player Burns it away!\n");
         }
@@ -883,7 +885,7 @@ RECOMP_PATCH void dll_331_control(Object* self) {
             }
         }
         //Print debug info about object's purpose
-        if (vec3_distance(&self->positionMirror, &player->positionMirror) < objData->debugPrintDistance) {
+        if (vec3_distance(&self->globalPosition, &player->globalPosition) < objData->debugPrintDistance) {
             diPrintf("\tNoPass Vine\n");
             diPrintf("\tThe Player Burns it away!\n");
         }
@@ -896,23 +898,23 @@ RECOMP_PATCH void dll_331_control(Object* self) {
         self->objhitInfo->unkC = 10.0f;
         self->objhitInfo->unk50 = 30;
         self->objhitInfo->unk58 |= 1;
-        if (main_get_bits(BIT_1D9) != 0) {
+        if (main_get_bits(BIT_Player_Immune_to_Rainbow_Scarabs) != 0) {
             self->objhitInfo->unk58 &= 0xFFFE;
         }
         if (objData->unk3E == 2) {
             gDLL_6_AMSFX->vtbl->play_sound(self, 0x35A, 0x43, NULL, NULL, 0, NULL);
             objData->unk3E--;
         }
-        if ((objData->unk3E != 0) && ((self->srt.transl.f[1] + self->speed.f[1]) <= player->srt.transl.f[1])) {
+        if ((objData->unk3E != 0) && ((self->srt.transl.f[1] + self->velocity.f[1]) <= player->srt.transl.f[1])) {
             objData->unk3E = 0;
-            self->speed.f[1] *= -0.4f;
-            self->speed.f[0] *= 2.0f;
-            self->speed.f[2] *= 2.0f;
+            self->velocity.f[1] *= -0.4f;
+            self->velocity.f[0] *= 2.0f;
+            self->velocity.f[2] *= 2.0f;
             self->srt.scale *= 0.5f;
             objData->roll *= 2;
             objData->pitch *= 2;
             gDLL_6_AMSFX->vtbl->play_sound(NULL, 0x35B, 0x43, NULL, NULL, 0, NULL);
-            func_80003B70(0.5f);
+            camera_set_shake_offset(0.5f);
         }
         if (objData->unk3E == 0) {
             if (objData->debugPrintDistance <= 40000.0f) {
@@ -920,15 +922,15 @@ RECOMP_PATCH void dll_331_control(Object* self) {
                 func_80026940(self, (s16)(objData->debugPrintDistance / 10.0f) + 20);
             }
         }
-        self->speed.f[1] += -0.15f * gUpdateRateF;
+        self->velocity.f[1] += -0.15f * gUpdateRateF;
         self->srt.roll += objData->roll;
         self->srt.pitch += objData->pitch;
-        self->srt.transl.y += self->speed.y;
-        self->srt.transl.x += self->speed.x;
-        self->srt.transl.z += self->speed.z;
-        self->positionMirror.y = self->srt.transl.y;
-        self->positionMirror.x = self->srt.transl.x;
-        self->positionMirror.z = self->srt.transl.z;
+        self->srt.transl.y += self->velocity.y;
+        self->srt.transl.x += self->velocity.x;
+        self->srt.transl.z += self->velocity.z;
+        self->globalPosition.y = self->srt.transl.y;
+        self->globalPosition.x = self->srt.transl.x;
+        self->globalPosition.z = self->srt.transl.z;
         objData->speed -= gUpdateRate;
         if (player->srt.transl.f[1] < self->srt.transl.f[1]) {
             if (rand_next(0, 2) == 0) {
@@ -952,8 +954,8 @@ RECOMP_PATCH void dll_331_control(Object* self) {
     case 133: //unknown deleted object (0x85)
         player = get_player();
         if (player != NULL) {
-            dx = player->positionMirror.f[0] - self->positionMirror.f[0];
-            dz = player->positionMirror.f[2] - self->positionMirror.f[2];
+            dx = player->globalPosition.f[0] - self->globalPosition.f[0];
+            dz = player->globalPosition.f[2] - self->globalPosition.f[2];
             distance = sqrtf(SQ(dx) + SQ(dz));
             if ((distance < 400.0f) && (self->unkDC <= 0)) {
 
@@ -986,8 +988,8 @@ RECOMP_PATCH void dll_331_control(Object* self) {
     case 134: //unknown deleted object (0x86)
         player = get_player();
         if (player != NULL) {
-            dx = player->positionMirror.f[0] - self->positionMirror.f[0];
-            dz = player->positionMirror.f[2] - self->positionMirror.f[2];
+            dx = player->globalPosition.f[0] - self->globalPosition.f[0];
+            dz = player->globalPosition.f[2] - self->globalPosition.f[2];
             distance = sqrtf(SQ(dx) + SQ(dz));
             if (self->unkDC != 0) {
                 self->unkDC -= gUpdateRate;
@@ -1024,9 +1026,9 @@ RECOMP_PATCH void dll_331_control(Object* self) {
     case OBJ_SB_Lamp: //0x125
         self->srt.roll = -camera->srt.roll * 1.5;
         player = get_player();
-        dx = player->positionMirror.x - self->positionMirror.x;
-        dz = player->positionMirror.z - self->positionMirror.z;
-        dy = player->positionMirror.y - self->positionMirror.y;
+        dx = player->globalPosition.x - self->globalPosition.x;
+        dz = player->globalPosition.z - self->globalPosition.z;
+        dy = player->globalPosition.y - self->globalPosition.y;
         distance = sqrtf(SQ(dx) + SQ(dz) + SQ(dy));
         if ((distance < 75.0f) && (objData->lampBool == TRUE)) {
             objData->lampBool = FALSE;

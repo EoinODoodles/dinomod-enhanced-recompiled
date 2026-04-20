@@ -1,21 +1,18 @@
 #include "PR/ultratypes.h"
-#include "functions.h"
 #include "modding.h"
 
 #include "game/objects/object.h"
 #include "game/gamebits.h"
 #include "recomputils.h"
 #include "sys/dll.h"
-#include "sys/gfx/gx.h"
 #include "sys/main.h"
 #include "sys/objects.h"
+#include "sys/objprint.h"
 #include "sys/objtype.h"
 #include "game/gamebits.h"
 #include "dll.h"
 
 #include "recomp/dlls/objects/581_SB_KyteCage_recomp.h"
-
-void func_80034FF0(s32);
 
 typedef struct {
     Object* kyte;
@@ -77,7 +74,7 @@ RECOMP_PATCH void kyteCage_print(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** v
                     boneTransform.roll = 0;
                     matrix_from_srt(&resultMatrix, &boneTransform);
                     matrix_concat_4x3(&resultMatrix, boneMatrix, &resultMatrix);
-                    func_80034FF0((s32)&resultMatrix);
+                    func_80034FF0(&resultMatrix);
                     draw_object(kyte, gfx, mtxs, vtxs, pols, 1.0f);
                     func_80034FF0(NULL);
                 }

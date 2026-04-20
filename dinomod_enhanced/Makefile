@@ -23,7 +23,7 @@ C_OBJS := $(addprefix $(BUILD_DIR)/, $(C_SRCS:.c=.o))
 C_DEPS := $(addprefix $(BUILD_DIR)/, $(C_SRCS:.c=.d))
 
 BUILD_DIRS := $(BUILD_DIR) $(BUILD_DIR)/src $(BUILD_DIR)/src/core $(BUILD_DIR)/src/custom \
-	          $(BUILD_DIR)/src/dlls/engine $(BUILD_DIR)/src/dlls/objects
+	          $(BUILD_DIR)/src/dlls $(BUILD_DIR)/src/dlls/engine $(BUILD_DIR)/src/dlls/objects
 
 $(TARGET): $(C_OBJS) $(LDSCRIPT)
 	$(LD) $(C_OBJS) $(LDFLAGS) -o $@

@@ -1,6 +1,7 @@
 #include "modding.h"
 
 #include "common.h"
+#include "sys/map_enums.h"
 #include "sys/menu.h"
 #include "dlls/objects/210_player.h"
 

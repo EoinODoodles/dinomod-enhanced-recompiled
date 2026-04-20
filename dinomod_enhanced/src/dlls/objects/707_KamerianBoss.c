@@ -10,9 +10,10 @@
 #include "sys/gfx/model.h"
 #include "sys/objects.h"
 #include "sys/objanim.h"
+#include "sys/objlib.h"
+#include "sys/objprint.h"
 #include "sys/objtype.h"
 #include "dll.h"
-#include "functions.h"
 
 #include "recomp/dlls/objects/707_KamerianBoss_recomp.h"
 
@@ -67,24 +68,12 @@ enum KDModAnims {
     KD_MODANIM_MELT = 11
 };
 
-typedef struct {
-    Texture *texture;
-    s32 unk4;
-    s16 unk8;
-    s16 unkA;
-    s32 unkC;
-    s32 unk10;
-    s32 unk14;
-} BSS8;
-
-extern void func_800390A4(Gfx**, BSS8*, f32, f32, f32, f32, s32, s32, f32, f32, s32, s32);
-
 /*0x0*/ extern u8 _data_0[8];
 /*0x8*/ extern Model *sModel;
 /*0xC*/ extern s16 sHealthBarTextureIDs[2];
 
 /*0x0*/ extern Texture *sHealthBarTextures[2];
-/*0x8*/ extern BSS8 _bss_8[2];
+/*0x8*/ extern TextureTile _bss_8[2][2];
 /*0x38*/ extern s32 sHealthBarAlpha;
 /*0x40*/ extern u8 _bss_40[0x4c0];
 
@@ -137,13 +126,13 @@ RECOMP_PATCH void KamerianBoss_setup(Object *self, KamerianBoss_Setup *setup, s3
     KamerianBoss_disable_hit_sphere(1);
 
     for (i = 0; i < 2; i++) {
-        texture = queue_load_texture_proxy(sHealthBarTextureIDs[i]);
+        texture = tex_load_deferred(sHealthBarTextureIDs[i]);
         sHealthBarTextures[i] = texture;
-        _bss_8[i].texture = texture;
-        _bss_8[i].unk4 = 0;
-        _bss_8[i].unk8 = 0;
-        _bss_8[i].unkA = 0;
-        _bss_8[i].unkC = 0;
+        _bss_8[i][0].tex = texture;
+        _bss_8[i][0].animProgress = 0;
+        _bss_8[i][0].x = 0;
+        _bss_8[i][0].y = 0;
+        _bss_8[i][1].tex = NULL;
     }
 
     // load fxemit objects
@@ -152,9 +141,9 @@ RECOMP_PATCH void KamerianBoss_setup(Object *self, KamerianBoss_Setup *setup, s3
         var_s0_2 = i != 0 ? 163 : -163;        
         objdata->unk8[i] = KamerianBoss_create_fx_emit(
             self,
-            var_s0_2 + self->positionMirror.x,
-            self->positionMirror.y + 175.0f,
-            self->positionMirror.z + 145.0f,
+            var_s0_2 + self->globalPosition.x,
+            self->globalPosition.y + 175.0f,
+            self->globalPosition.z + 145.0f,
             0x691
         );
         var_s0_2 = i--;
@@ -318,7 +307,7 @@ RECOMP_PATCH void KamerianBoss_control(Object *self) {
         i = self->objhitInfo->unk62;
         while (i--) {
             hitSphereIdx = self->objhitInfo->unk63[i];
-            collisionType = self->objhitInfo->unk66[i];
+            collisionType = self->objhitInfo->hitTypeList[i];
             if (objdata->animTickDelta == 0.0f) {
                 // @recomp: Fix hit sphere indices
                 switch (hitSphereIdx) {
@@ -330,7 +319,7 @@ RECOMP_PATCH void KamerianBoss_control(Object *self) {
                     if (objdata->rightPipeTimer == 0) {
                         objdata->rightPipeTimer = 600;
                         for (j = 0; j < 6; j += 2) {
-                            objdata->unk10[j] = KamerianBoss_create_fx_emit(self, self->positionMirror.x - 163.0f, self->positionMirror.y + 175.0f, self->positionMirror.z + 145.0f, 0x693);
+                            objdata->unk10[j] = KamerianBoss_create_fx_emit(self, self->globalPosition.x - 163.0f, self->globalPosition.y + 175.0f, self->globalPosition.z + 145.0f, 0x693);
                         }
                         gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_9AA, MAX_VOLUME, NULL, NULL, 0, NULL);
                     } else if ((collisionType == 0xF) && (objdata->rightPipeTimer > 50)) {
@@ -358,7 +347,7 @@ RECOMP_PATCH void KamerianBoss_control(Object *self) {
                     if (objdata->leftPipeTimer == 0) {
                         objdata->leftPipeTimer = 600;
                         for (j = 1; j < 7; j += 2) {
-                            objdata->unk10[j] = KamerianBoss_create_fx_emit(self, self->positionMirror.x + 163.0f, self->positionMirror.y + 175.0f, self->positionMirror.z + 145.0f, 0x693);
+                            objdata->unk10[j] = KamerianBoss_create_fx_emit(self, self->globalPosition.x + 163.0f, self->globalPosition.y + 175.0f, self->globalPosition.z + 145.0f, 0x693);
                         }
                         gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_9AA, MAX_VOLUME, NULL, NULL, 0, NULL);
                     } else if ((collisionType == 0xF) && (objdata->leftPipeTimer > 50)) {
@@ -470,7 +459,7 @@ RECOMP_PATCH void KamerianBoss_print(Object *self, Gfx **gdl, Mtx **mtxs, Vertex
         // Draw health bar
         if (sHealthBarAlpha != 0 && objdata->health > 0) {
             // @recomp: New, but still kinda jank, health bar
-            func_800390A4(gdl, &_bss_8[0], 
+            rcp_tile_write_x(gdl, _bss_8[0], 
                 /*x*/96.0f, 
                 /*y*/24.0f, 
                 /*width*/(f32) hpBarWidth, 
@@ -482,7 +471,7 @@ RECOMP_PATCH void KamerianBoss_print(Object *self, Gfx **gdl, Mtx **mtxs, Vertex
                 /*color*/0xFF000000 | (sHealthBarAlpha & 0xFF), 
                 /*flags*/0x4002);
 
-            func_800390A4(gdl, &_bss_8[0], 
+            rcp_tile_write_x(gdl, _bss_8[0], 
                 /*x*/96.0f + ((hpBarWidth) * (128.0f / (sHealthBarTextures[0]->width - 18))), 
                 /*y*/24.0f, 
                 /*width*/(f32) ((sHealthBarTextures[0]->width - 18) - hpBarWidth), 

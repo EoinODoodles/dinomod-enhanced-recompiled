@@ -1,164 +1,38 @@
 #include "modding.h"
+#include "recomputils.h"
 
 #include "PR/ultratypes.h"
 #include "PR/gbi.h"
 #include "PR/gu.h"
-#include "dlls/objects/common/sidekick.h"
-#include "dlls/objects/210_player.h"
+#include "types.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
-#include "recomputils.h"
+#include "game/gamebits.h"
 #include "sys/asset_thread.h"
 #include "sys/camera.h"
 #include "sys/dll.h"
+#include "sys/footsteps.h"
 #include "sys/gfx/model.h"
+#include "sys/gfx/texture.h"
 #include "sys/main.h"
 #include "sys/math.h"
 #include "sys/objects.h"
-#include "sys/objtype.h"
 #include "sys/objmsg.h"
-#include "sys/gfx/gx.h"
-#include "sys/map.h"
-#include "sys/oldshadows.h"
+#include "sys/objtype.h"
+#include "sys/segment_1D900.h"
+#include "sys/segment_1050.h"
+#include "sys/segment_1460.h"
+#include "sys/vi.h"
 #include "dll.h"
-#include "types.h"
-#include "functions.h"
+#include "dlls/objects/common/sidekick.h"
+#include "dlls/objects/210_player.h"
+
+#include "dlls/objects/325_trigger.h"
 
 #include "recomp/dlls/objects/325_trigger_recomp.h"
 
-typedef struct {
-    u8 condition; // TriggerCommandConditionFlags enum
-    u8 id;
-    // For some commands, param1 and 2 are read as a single u16, but 
-    // in code they are read individually and then combined with bit math.
-    u8 param1;
-    u8 param2;
-} TriggerCommand;
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ TriggerCommand commands[8];
-/*38*/ s16 localID; // TODO: needs verification
-/*3A*/ u8 sizeX; // unit depends on trigger type
-/*3B*/ u8 sizeY; // unit depends on trigger type
-/*3C*/ u8 sizeZ; // unit depends on trigger type
-/*3D*/ u8 rotationY; // unit depends on trigger type
-/*3E*/ u8 rotationX; // unit depends on trigger type
-/*3F*/ u8 _unk3F[4];
-/// The object type of the object that can activate the trigger.
-/// If multiple instances of the given type exist in the scene, the one
-/// closest to the trigger will be used.
-/// Exceptions:
-/// 0 - Always the primary player (even if multiple player instances exist)
-/// 1 - Always the primary sidekick (even if multiple sidekick instances exist)
-/// 2 - The camera(?)
-/*43*/ u8 activatorObjType;
-// Game bit flag to save the entered state of the trigger in.
-// This flag will be set the first time the trigger is entered. If the flag is already
-// set upon object creation, the entered state of the trigger will be restored, possibly
-// running commands on the next update that support being restored.
-/*44*/ s16 bitFlagID;
-// Number of game ticks from object creation to wait before activating a 
-// TriggerTime instance.
-/*46*/ u16 timerDuration;
-// Game bit flags that must be *all* set before the trigger can activate.
-// Only supported by TriggerPlane and TriggerBits (plane only supports one flag to check).
-// A negative ID indicates that there is no flag to check for that condition slot. 
-/*48*/ s16 conditionBitFlagIDs[4];
-} Trigger_Setup;
-
-DLL_INTERFACE(DLL_TriggerScript) {
-    /*:*/ DLL_INTERFACE_BASE(DLL);
-    // Array length will vary
-    void (*subscripts[1])(Object *trigger, Object *activator, s8 dir, s32 activatorDistSquared);
-};
-
-typedef struct {
-/*00*/ u8 flags; // TriggerFlags enum
-/*01*/ u8 _unk1[3];
-/*04*/ f32 radiusSquared;
-/*08*/ u8 _unk8[4];
-/*0C*/ s32 elapsedTicks; // for TriggerTime
-/*10*/ Vec3f lookVector; // for TriggerPlane
-/*1C*/ f32 lookVectorNegDot;
-/*20*/ Vec3f activatorPrevPos;
-/*2C*/ Vec3f activatorCurrPos;
-/*38*/ Vec3f planeMin;
-/*44*/ Vec3f planeMax;
-/*50*/ u8 _unk50[8];
-/*58*/ s16 bitFlagID;
-/*5A*/ s16 conditionBitFlagIDs[4];
-/*62*/ u8 _unk62[2];
-/*64*/ u32 soundHandles[8];
-// Special "script" DLLs where each export is a "subscript".
-/*84*/ DLL_TriggerScript *scripts[8];
-} Trigger_Data;
-
-typedef enum {
-    // Activator entered at least once
-    TRG_ACTIVATOR_ENTERED = 0x1,
-    // Activator exited at least once
-    TRG_ACTIVATOR_EXITED = 0x2,
-    TRG_RESTORE_ENTERED_STATE = 0x4,
-    TRG_FIRST_TICK = 0x40
-} TriggerFlags;
-
-typedef enum {
-    // When activator is "inside" the trigger
-    CMD_COND_IN = 0x1,
-    // When activator is "outside" of the trigger
-    CMD_COND_OUT = 0x2,
-    // Command can be activated if trigger is entered more than once
-    CMD_COND_RE_ENTER = 0x4,
-    // Command can be activated if trigger is exited more than once
-    CMD_COND_RE_EXIT = 0x8,
-    // Command is activated every game tick the in/out conditions are met,
-    // and not just on the initial entry/exit tick
-    CMD_COND_CONTINUOUS = 0x10,
-    // Activate the command when restoring the trigger's entered state
-    CMD_COND_RESTORE = 0x20
-} TriggerCommandConditionFlags;
-
-typedef enum {
-    TRG_CMD_HAZARD = 0x1, // "gameplay vulnerable"?
-    TRG_CMD_2 = 0x2, // not implemented
-    TRG_CMD_MUSIC_ACTION = 0x3,
-    TRG_CMD_SOUND = 0x4,
-    TRG_CMD_5 = 0x5,
-    TRG_CMD_CAMERA_ACTION = 0x6,
-    TRG_CMD_7 = 0x7, // not implemented
-    TRG_CMD_TRACK = 0x8,
-    TRG_CMD_9 = 0x9, // not implemented
-    TRG_CMD_ENV_FX = 0xA,
-    TRG_CMD_ANIM_SEQ = 0xB,
-    TRG_CMD_TRIGGER = 0xC,
-    TRG_CMD_LIGHTING = 0xD,
-    TRG_CMD_E = 0xE, // not implemented
-    TRG_CMD_F = 0xF,
-    TRG_CMD_LOD_MODEL = 0x10,
-    TRG_CMD_11 = 0x11, // TRG_CMD_TRICKY_?
-    TRG_CMD_FLAG = 0x12,
-    TRG_CMD_ENABLE_OBJ_GROUP = 0x13,
-    TRG_CMD_DISABLE_OBJ_GROUP = 0x14,
-    TRG_CMD_TEXTURE_LOAD = 0x15,
-    TRG_CMD_TEXTURE_FREE = 0x16,
-    TRG_CMD_17 = 0x17, // not implemented
-    TRG_CMD_SET_MAP_SETUP = 0x18,
-    TRG_CMD_SCRIPT = 0x19,
-    TRG_CMD_WORLD_ENABLE_OBJ_GROUP = 0x1A,
-    TRG_CMD_WORLD_DISABLE_OBJ_GROUP = 0x1B,
-    TRG_CMD_KYTE_FLIGHT_GROUP = 0x1C,
-    TRG_CMD_KYTE_TALK_SEQ = 0x1D,
-    TRG_CMD_WORLD_SET_MAP_SETUP = 0x1E,
-    TRG_CMD_SAVE_GAME = 0x1F,
-    TRG_CMD_MAP_LAYER = 0x20,
-    TRG_CMD_FLAG_TOGGLE = 0x21,
-    TRG_CMD_TOGGLE_OBJ_GROUP = 0x22,
-    TRG_CMD_RESTART = 0x23,
-    TRG_CMD_WATER_FALLS_FLAGS = 0x24,
-    TRG_CMD_WATER_FALLS_FLAGS2 = 0x25,
-    TRG_CMD_SIDEKICK = 0x26
-} TriggerCommandID;
+extern s8 gMapLayer;
+extern u32 UINT_80092a98;
 
 extern void trigger_process_commands(Object *self, Object *activator, s8 dir, s32 activatorDistSquared);
 extern void trigger_func_1754(u8 param1, u8 param2);
@@ -189,7 +63,7 @@ RECOMP_PATCH void trigger_control(Object* self) {
     Trigger_Data* objdata;
     Trigger_Setup* setup;
     Object* player;
-    Object* temp_v0_2;
+    Object* vehicle;
     Object* sidekick;
     Object* activatorObj;
     s32 i;
@@ -204,9 +78,9 @@ RECOMP_PATCH void trigger_control(Object* self) {
    
     player = get_player();
     if (player != NULL) {
-        temp_v0_2 = ((DLL_210_Player*)player->dll)->vtbl->get_vehicle(player);
-        if (temp_v0_2 != NULL) {
-            player = temp_v0_2;
+        vehicle = ((DLL_210_Player*)player->dll)->vtbl->get_vehicle(player);
+        if (vehicle != NULL) {
+            player = vehicle;
         }
     }
     
@@ -241,7 +115,7 @@ RECOMP_PATCH void trigger_control(Object* self) {
                 }
                 break;
             case 2:
-                activatorObj = gDLL_2_Camera->vtbl->func2();
+                activatorObj = (Object*)gDLL_2_Camera->vtbl->get_data();
                 break;
             }
         }
@@ -250,9 +124,9 @@ RECOMP_PATCH void trigger_control(Object* self) {
             if (objdata->flags & TRG_FIRST_TICK) {
                 switch (setup->activatorObjType) {
                 default:
-                    objdata->activatorPrevPos.x = activatorObj->positionMirror2.x;
-                    objdata->activatorPrevPos.y = activatorObj->positionMirror2.y;
-                    objdata->activatorPrevPos.z = activatorObj->positionMirror2.z;
+                    objdata->activatorPrevPos.x = activatorObj->prevLocalPosition.x;
+                    objdata->activatorPrevPos.y = activatorObj->prevLocalPosition.y;
+                    objdata->activatorPrevPos.z = activatorObj->prevLocalPosition.z;
                     break;
                 case 2:
                     // Camera
@@ -263,9 +137,9 @@ RECOMP_PATCH void trigger_control(Object* self) {
                 case 0:
                 case 1:
                     // Player/sidekick
-                    objdata->activatorPrevPos.x = activatorObj->positionMirror3.x;
-                    objdata->activatorPrevPos.y = activatorObj->positionMirror3.y;
-                    objdata->activatorPrevPos.z = activatorObj->positionMirror3.z;
+                    objdata->activatorPrevPos.x = activatorObj->prevGlobalPosition.x;
+                    objdata->activatorPrevPos.y = activatorObj->prevGlobalPosition.y;
+                    objdata->activatorPrevPos.z = activatorObj->prevGlobalPosition.z;
                     break;
                 }
                 
@@ -280,9 +154,9 @@ RECOMP_PATCH void trigger_control(Object* self) {
             case 0:
             case 1:
                 // Player/sidekick
-                objdata->activatorCurrPos.x = activatorObj->positionMirror.x;
-                objdata->activatorCurrPos.y = activatorObj->positionMirror.y;
-                objdata->activatorCurrPos.z = activatorObj->positionMirror.z;
+                objdata->activatorCurrPos.x = activatorObj->globalPosition.x;
+                objdata->activatorCurrPos.y = activatorObj->globalPosition.y;
+                objdata->activatorCurrPos.z = activatorObj->globalPosition.z;
                 break;
             default:
             case 2:
@@ -376,14 +250,12 @@ static void set_map_layer(s8 layer) {
 RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 dir, s32 activatorDistSquared) {
     Trigger_Setup* setup; // sp+74
     Trigger_Data* objdata; // sp+70
-    //Object* player;
     s32 pad;
     TriggerCommand *cmd;
     s32 temp_a1;
     u8 i;
     Object* var_v0_2;
     Object* sidekick;
-    s32 pad2;
 
     objdata = (Trigger_Data*)self->data;
     setup = (Trigger_Setup*)self->setup;
@@ -435,16 +307,17 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
         switch (cmd->id) {                  /* switch 1 */
         case TRG_CMD_HAZARD: 
             // "Trigger [%d], Gamplay Vulnerable"
-            switch (cmd->param1) {              /* switch 2 */
-            case 0:                         /* switch 2 */
-            case 1:                         /* switch 2 */
-            case 2:                         /* switch 2 */
-            case 3:                         /* switch 2 */
-            case 4:                         /* switch 2 */
-            case 5:                         /* switch 2 */
-            case 6:                         /* switch 2 */
+            switch (cmd->param1) {
+            Object *obj;
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
                 break;
-            case 7: {                         /* switch 2 */
+            case 7: {
                     s32 mesgID; // sp+50
                     if (dir == 1) {
                         mesgID = 0x80;
@@ -455,24 +328,30 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                     obj_send_mesg_many_nearby(OBJ_GP_ChimneySwipe, 6000.0f, 0, self, mesgID, 0);
                 }
                 break;
-            case 8: {                        /* switch 2 */
-                    Object *player = get_player();
-                    if (player != NULL) {
-                        ((DLL_210_Player*)player->dll)->vtbl->func67(player, 9, 0.0f);
+            case 8: {
+                    // "Trigger [%d], Death drop" (default.dol)
+                    s16 pad;
+                    obj = get_player();
+                    if (obj != NULL) {
+                        ((DLL_210_Player*)obj->dll)->vtbl->func67(obj, 9, 0.0f);
                     }
                 }
                 break;
-            case 9: {                        /* switch 2 */
-                    Object *player = get_player();
-                    if (player != NULL) {
-                        ((DLL_210_Player*)player->dll)->vtbl->func67(player, 10, 0.0f);
+            case 9: {
+                    // "Trigger [%d], Dangerous Water" (default.dol)
+                    s16 pad;
+                    obj = get_player();
+                    if (obj != NULL) {
+                        ((DLL_210_Player*)obj->dll)->vtbl->func67(obj, 10, 0.0f);
                     }
                 }
                 break;
-            case 10: {                       /* switch 2 */
-                    Object *player = get_player();
-                    if (player != NULL) {
-                        ((DLL_210_Player*)player->dll)->vtbl->func67(player, 11, 0.0f);
+            case 10: {
+                    // "Trigger [%d], Safe Water" (default.dol)
+                    s32 pad;
+                    obj = get_player();
+                    if (obj != NULL) {
+                        ((DLL_210_Player*)obj->dll)->vtbl->func67(obj, 11, 0.0f);
                     }
                 }
                 break;
@@ -500,77 +379,82 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             break;
         case TRG_CMD_CAMERA_ACTION: 
             // "Trigger [%d], Camera,             Action [%d], Camera Num [%d], PassDir [%d]"
-            gDLL_2_Camera->vtbl->func8(cmd->param1, cmd->param2);
+            gDLL_2_Camera->vtbl->change_mode(cmd->param1, cmd->param2);
             break;
         case TRG_CMD_TRACK: 
-            // "Trigger [%d], Track Sky On"
-            // "Trigger [%d], Track Sky Off"
-            // "Trigger [%d], Track AntiAlias On"
-            // "Trigger [%d], Track AntiAlias Off"
-            // "Trigger [%d], Track SkyObjects On"
-            // "Trigger [%d], Track SkyObjects Off"
-            // "Trigger [%d], Track Dome On"
-            // "Trigger [%d], Track Dome Off"
-            // "Trigger [%d], Track MrSheen On %d"
-            // "Trigger [%d], Track MrSheen Off"
-            switch (cmd->param1) {              /* switch 3 */
-            case 0:                         /* switch 3 */
+            switch (cmd->param1) {
+            case 0:
                 if ((s32) cmd->param2 >= 2) {
                     cmd->param2 = 1;
                 }
                 func_80041C6C(cmd->param2);
                 if (cmd->param2 != 0) {
-
+                    // "Trigger [%d], Track Sky On"
+                } else {
+                    // "Trigger [%d], Track Sky Off"
                 }
                 break;
-            case 1:                         /* switch 3 */
+            case 1:
                 if ((s32) cmd->param2 >= 2) {
                     cmd->param2 = 1;
                 }
                 func_80041CA8((s32) cmd->param2);
                 if (cmd->param2 != 0) {
-
+                    // "Trigger [%d], Track AntiAlias On"
+                } else {
+                    // "Trigger [%d], Track AntiAlias Off"
                 }
                 break;
-            case 2:                         /* switch 3 */
+            case 2:
                 if ((s32) cmd->param2 >= 2) {
                     cmd->param2 = 1;
                 }
                 func_80041CE4((s32) cmd->param2);
                 if (cmd->param2 != 0) {
-
+                    // "Trigger [%d], Track SkyObjects On"
+                } else {
+                    // "Trigger [%d], Track SkyObjects Off"
                 }
                 break;
-            case 3:                         /* switch 3 */
+            case 3:
                 if ((s32) cmd->param2 >= 2) {
                     cmd->param2 = 1;
                 }
                 gDLL_12_Minic->vtbl->func6(cmd->param2);
                 if (cmd->param2 != 0) {
-
+                    // "Trigger [%d], Track Dome On"
+                } else {
+                    // "Trigger [%d], Track Dome Off"
                 }
                 break;
-            case 4:                         /* switch 3 */
+            case 4:
                 gDLL_16->vtbl->func2(cmd->param2);
                 if (cmd->param2 != 0) {
-
+                    // "Trigger [%d], Track MrSheen On %d"
+                } else {
+                    // "Trigger [%d], Track MrSheen Off"
                 }
                 break;
-            case 5:                         /* switch 3 */
-                oldshadow_toggle((u32) cmd->param2);
+            case 5:
+                footsteps_toggle((u32) cmd->param2);
+                // "Trigger [%d], footstepsTurnOn %d" (default.dol)
                 break;
-            case 6:                         /* switch 3 */
+            case 6:
                 if ((s32) cmd->param2 > 0) {
                     func_8001EBD0(1);
+                    // "Trigger [%d], newlightInside(1)" (default.dol)
                 } else {
                     func_8001EBD0(0);
+                    // "Trigger [%d], newlightInside(0)" (default.dol)
                 }
                 break;
-            case 7:                         /* switch 3 */
+            case 7:
                 if ((s32) cmd->param2 > 0) {
                     func_80041E24(1);
+                    // "Trigger [%d], trackSetSunGlareOn(1)" (default.dol)
                 } else {
                     func_80041E24(0);
+                    // "Trigger [%d], trackSetSunGlareOn(0)" (default.dol)
                 }
                 break;
             }
@@ -609,22 +493,24 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             // "Trigger [%d], Trigger,            Local ID   [%d]"
             trigger_func_29C0((cmd->param2 | (cmd->param1 << 8)), activator, dir, activatorDistSquared);
             break;
-        // case TRG_CMD_?
+        case TRG_CMD_STORYBOARD:
             // "Storyboard disabled, please remove trigger\n"
+            break;
         case TRG_CMD_LOD_MODEL:
             // "Trigger [%d], LOD Model [%d]"
             func_80023A18(get_player(), (s32) cmd->param1);
             break;
-        case TRG_CMD_F:
+        case TRG_CMD_SETUP_POINT:
             // "Trigger [%d], Setup Point,        Level      [%d], SetupPoint [%d]"
-            // ?
             trigger_func_1754(cmd->param1, cmd->param2);
             break;
         case TRG_CMD_FLAG:
             // "Trigger [%d], Bits\n"
+            // "Trigger [%d], Bits No %d \n" (default.dol)
             trigger_func_1764((cmd->param2 | (cmd->param1 << 8)));
             break;
         case TRG_CMD_FLAG_TOGGLE:
+            // "Trigger [%d], toggleBits (%d)"(default.dol)
             trigger_func_17FC((cmd->param2 | (cmd->param1 << 8)));
             break;
         case TRG_CMD_ENABLE_OBJ_GROUP:
@@ -649,14 +535,16 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             trigger_func_1920((cmd->param2 | (cmd->param1 << 8)));
             break;
         case TRG_CMD_SET_MAP_SETUP:
+            // "Trigger [%d], act changed to %d" (default.dol)
             gDLL_29_Gplay->vtbl->set_map_setup((s32) self->mapID, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_SCRIPT:
-            // "TRIGGER: warning DLL not loaded\n"
-            // "Script [%d], Subscript [%d]\n"
             if (objdata->scripts[i] != NULL) {
                 objdata->scripts[i]->vtbl->subscripts[cmd->param2](self, activator, dir, activatorDistSquared);
+            } else {
+                // "TRIGGER: warning DLL not loaded\n"
             }
+            // "Script [%d], Subscript [%d]\n"
             break;
         case TRG_CMD_WORLD_ENABLE_OBJ_GROUP:
             // "Trigger [%d], Object Load\n"
@@ -667,19 +555,23 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             gDLL_29_Gplay->vtbl->set_obj_group_status((s32) cmd->param2, (s32) cmd->param1, 0);
             break;
         case TRG_CMD_KYTE_FLIGHT_GROUP:
-            main_set_bits(0x46E, cmd->param2 | (cmd->param1 << 8));
+            // "Trigger [%d], kyte flight group change\n" (default.dol)
+            main_set_bits(BIT_Kyte_Flight_Curve, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_KYTE_TALK_SEQ:
-            main_set_bits(0x488, cmd->param2 | (cmd->param1 << 8));
+            // "Trigger [%d], kyte flight talk sequence set\n" (default.dol)
+            main_set_bits(BIT_488, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_WORLD_SET_MAP_SETUP:
+            // "Trigger [%d], Act change on map %d to act %d\n" (default.dol)
             gDLL_29_Gplay->vtbl->set_map_setup((s32) cmd->param2, (s32) cmd->param1);
             break;
-        case TRG_CMD_11:
-            // Tricky related?
-            main_set_bits(0x4E2, cmd->param2 | (cmd->param1 << 8));
+        case TRG_CMD_TRICKY_TALK_SEQ:
+            // "Trigger [%d], Tricky talk sequence set to %d\n" (default.dol)
+            main_set_bits(BIT_4E2, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_SAVE_GAME:
+            // "Trigger [%d], Save Point\n" (default.dol)
             gDLL_29_Gplay->vtbl->checkpoint(&self->srt.transl, (s16) ((s16) self->srt.yaw >> 8), (s32) cmd->param2, map_get_layer());
             break;
         case TRG_CMD_MAP_LAYER:
@@ -688,46 +580,58 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 set_map_layer(cmd->param1);
             } else {
                 if (cmd->param1 == 0) {
+                    // "Trigger [%d],trackIncMapLayer\n" (default.dol)
                     map_increment_layer();
                 } else {
+                    // "Trigger [%d],trackIncMapLayer\n" (default.dol)
                     map_decrement_layer();
                 }
             }
             break;
         case TRG_CMD_RESTART:
-            switch (cmd->param1) {            /* switch 4; irregular */
-            case 0:                         /* switch 4 */
+            switch (cmd->param1) {
+            case 0:
                 // "Restart Set [%d]\n"
                 gDLL_29_Gplay->vtbl->restart_set(&self->srt.transl, self->srt.yaw, map_get_layer());
                 break;
-            case 1:                         /* switch 4 */
+            case 1:
                 // "Restart Clear [%d]\n"
                 gDLL_29_Gplay->vtbl->restart_clear();
                 break;
-            case 2:                         /* switch 4 */
+            case 2:
                 // "Restart Goto [%d]\n"
                 gDLL_29_Gplay->vtbl->restart_goto();
                 break;
+            /*
+            // default.dol
+            case 3:
+                // "Trigger [%d],Restart Set Dazed [%d]\n"
+                gDLL_29_Gplay->vtbl->restart_set(&self->srt.transl, self->srt.yaw, map_get_layer(), 1);
+                break;
+            */
             }
             break;
         case TRG_CMD_SIDEKICK:
             sidekick = get_sidekick();
             if (sidekick != NULL) {
-                switch (cmd->param1) {       /* switch 5; irregular */
-                case 0:                     /* switch 5 */
+                switch (cmd->param1) {
+                case 0:
+                    // "Trigger [%d], Sidekick Auto Heel\n" (default.dol)
                     ((DLL_ISidekick *)sidekick->dll)->vtbl->func23(sidekick);
                     break;
-                case 1:                     /* switch 5 */
+                case 1:
                     // "killing sidekick\n"
+                    // "Trigger [%d], Unloading Sidekick\n" (default.dol)
                     obj_destroy_object(get_sidekick());
                     break;
-                case 2:                     /* switch 5 */
+                case 2:
                     // "findobj %i \n"
-                    var_v0_2 = obj_get_nearest_type_to(0x34, sidekick, NULL);
+                    var_v0_2 = obj_get_nearest_type_to(OBJTYPE_52, sidekick, NULL);
                     if (var_v0_2 == NULL) {
-                        var_v0_2 = obj_get_nearest_type_to(0x33, sidekick, NULL);
+                        var_v0_2 = obj_get_nearest_type_to(OBJTYPE_51, sidekick, NULL);
                     }
                     if (var_v0_2 != NULL) {
+                        // "Trigger [%d], Sidekick Find On Object %d\n"
                         ((DLL_ISidekick *)sidekick->dll)->vtbl->func22(sidekick, var_v0_2);
                     }
                     break;

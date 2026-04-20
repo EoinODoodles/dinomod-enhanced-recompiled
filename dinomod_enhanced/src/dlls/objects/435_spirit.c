@@ -2,11 +2,10 @@
 #include "recomputils.h"
 
 #include "common.h"
-
-#include "recomp/dlls/objects/435_KrazoaSpirit_recomp.h"
-#include "segment_334F0.h"
 #include "sys/math.h"
 #include "sys/print.h"
+
+#include "recomp/dlls/objects/435_KrazoaSpirit_recomp.h"
 
 typedef struct {
     AnimObj_Setup base;

@@ -2,10 +2,10 @@
 #include "recomputils.h"
 
 #include "common.h"
+#include "sys/main.h"
+#include "sys/segment_1460.h"
 
 #include "recomp/dlls/objects/612_WL_Crystal_recomp.h"
-#include "segment_334F0.h"
-#include "sys/main.h"
 
 typedef struct {
 /*00*/    ObjSetup base;
@@ -262,7 +262,7 @@ RECOMP_PATCH void WL_Crystal_control(Object* self) {
 
         //While gamebit 0x38D not set and crystal spinning rapidly, 1% chance of camera shake(?)
         if (!main_get_bits(BIT_38D) && (objData->yawSpeed > 2400) && !rand_next(0, 100)) {
-            func_80003B70(((objData->yawSpeed - 2400) / 2400.0f) * 0.8f);
+            camera_set_shake_offset(((objData->yawSpeed - 2400) / 2400.0f) * 0.8f);
             main_set_bits(BIT_370, 1);
         }
         self->srt.yaw += objData->yawSpeed;
@@ -371,7 +371,7 @@ RECOMP_PATCH void WL_Crystal_control(Object* self) {
     if (self->modelInstIdx == WMSun_Core) {
         if (fxTimer4 == 0) {
             if ((fxTimer5 > 600) && !rand_next(0, 10)) {
-                func_80003B70(2.8f);
+                camera_set_shake_offset(2.8f);
             }
             if ((fxTimer5 < 700) && !rand_next(0, 5)) {
                 objData->sunFX->vtbl->func[0].withSevenArgs((s32)self, 0, 0, 0x10000, -1, 0x12, 0);
@@ -393,7 +393,7 @@ RECOMP_PATCH void WL_Crystal_control(Object* self) {
                     main_set_bits(BIT_38D, 0);
                     main_set_bits(BIT_WM_Quan_Ata_Lachu_Sun, 1);
                     func_80000860(self, self, 0x31, 0);
-                    func_80003B70(4.8f);
+                    camera_set_shake_offset(4.8f);
                 }
             }
         }
@@ -447,7 +447,7 @@ RECOMP_PATCH void WL_Crystal_control(Object* self) {
                 }
             }
             if (rand_next(0, 8) == 0) {
-                func_80003B70(2.8f);
+                camera_set_shake_offset(2.8f);
             }
         }
     }

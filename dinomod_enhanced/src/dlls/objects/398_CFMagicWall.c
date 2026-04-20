@@ -2,11 +2,9 @@
 #include "recomputils.h"
 
 #include "sys/camera.h"
-#include "sys/gfx/map.h"
 #include "sys/map.h"
 #include "sys/objects.h"
 #include "sys/objtype.h"
-#include "functions.h"
 #include "constants.h"
 
 #include "recomp/dlls/objects/398_CFMagicWall_recomp.h"
@@ -34,8 +32,8 @@ RECOMP_PATCH void CFMagicWall_control(Object* self) {
     // @recomp: Don't crash if player or sidekick isn't found (original by MusicalProgrammer)
     Object *sidekick = get_sidekick();
 
-    f32 playerDist = player == NULL ? F32_MAX : vec3_distance(&self->positionMirror, &player->positionMirror);
-    f32 sidekickDist = sidekick == NULL ? F32_MAX : vec3_distance(&self->positionMirror, &sidekick->positionMirror);
+    f32 playerDist = player == NULL ? F32_MAX : vec3_distance(&self->globalPosition, &player->globalPosition);
+    f32 sidekickDist = sidekick == NULL ? F32_MAX : vec3_distance(&self->globalPosition, &sidekick->globalPosition);
 
     if (playerDist < sidekickDist) {
         var_fv0 = playerDist;
@@ -43,7 +41,7 @@ RECOMP_PATCH void CFMagicWall_control(Object* self) {
         var_fv0 = sidekickDist;
     }
     
-    f32 camDist = func_80001884(self->srt.transl.x, self->srt.transl.y, self->srt.transl.z);
+    f32 camDist = camera_get_distance_to_point(self->srt.transl.x, self->srt.transl.y, self->srt.transl.z);
 
     if (camDist < var_fv0) {
         var_fv0 = camDist;

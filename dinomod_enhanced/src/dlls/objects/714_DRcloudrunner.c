@@ -6,9 +6,8 @@
 #include "sys/main.h"
 #include "sys/rand.h"
 #include "sys/objects.h"
-#include "game/objects/object_id.h"
 #include "sys/map.h"
-#include "functions.h"
+#include "game/objects/object_id.h"
 
 #include "dlls/objects/745_DR_Cage.h"
 #include "recomp/dlls/objects/714_DR_CloudRunner_recomp.h"

@@ -9,7 +9,6 @@
 #include "sys/objtype.h"
 #include "sys/gfx/modgfx.h"
 #include "sys/print.h"
-#include "functions.h"
 #include "dll.h"
 
 #include "recomp/dlls/objects/488_WGSH_Shrine_recomp.h"
@@ -103,7 +102,7 @@ RECOMP_PATCH void dll_488_control(Object *self) {
         }
         switch (objdata->unk13) {
         case 0:
-            if (vec3_distance(&self->positionMirror, &sp48->positionMirror) < (f32) objdata->unk0) {
+            if (vec3_distance(&self->globalPosition, &sp48->globalPosition) < (f32) objdata->unk0) {
                 objdata->unk13 = 1;
                 main_set_bits(BIT_DB_Entered_Shrine_3, 0);
                 gDLL_3_Animation->vtbl->func17(0, self, -1);
@@ -167,8 +166,8 @@ RECOMP_PATCH void dll_488_control(Object *self) {
             objdata->unk13 = 4;
             return;
         case 4:
-            if (main_get_bits(BIT_FD) == 0) {
-                main_set_bits(BIT_FD, 1);
+            if (main_get_bits(BIT_Shrine_Do_Exit_Warp) == 0) {
+                main_set_bits(BIT_Shrine_Do_Exit_Warp, 1);
             }
             // @recomp: Set spirit bits and WM act (original patch by MusicalProgrammer)
             main_set_bits(BIT_Spirit_Bits, 6);

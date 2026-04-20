@@ -1,3 +1,4 @@
+#include "game/objects/object_def.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
@@ -30,16 +31,16 @@ static s16* customObjDefTextIDs = NULL;
 
 /** For toggling LaminGaming's extra object description text */
 static void remove_extra_descriptions_object(ObjDef* def){
-    u16 bankID = (def->gametextIndex & 0xF00) >> 8;
-    u16 lineID = def->gametextIndex & 0xFF;
+    u16 bankID = (def->gametextIndex[0] & 0xF00) >> 8;
+    u16 lineID = def->gametextIndex[0] & 0xFF;
 
     //Check if description text in bank 0 (gametext3) and beyond original last line
     if (bankID == 0 && lineID > 107){
-        def->gametextIndex = -1;
+        def->gametextIndex[0] = -1;
         
     //Check if description text in bank 1 (gametext568) and beyond original last line
     } else if (bankID == 1 && lineID > 3){
-        def->gametextIndex = -1;
+        def->gametextIndex[0] = -1;
     }
 }
 
@@ -68,7 +69,7 @@ static void add_extra_descriptions_objects(){
             continue;
         }
 
-        def->gametextIndex = customObjDefTextIDs[index];
+        def->gametextIndex[0] = customObjDefTextIDs[index];
     }
 }
 
@@ -117,12 +118,12 @@ RECOMP_PATCH ObjDef *obj_load_objdef(s32 tabIdx) {
         def->pTextures = (UNK_PTR*)((u32)def + (u32)def->pTextures);
         def->pSequenceBones = (UNK_PTR*)((u32)def + (u32)def->pSequenceBones);
 
-        if (def->unk18 != 0) {
-            def->unk18 = (u32*)((u32)def + (u32)def->unk18);
+        if (def->collectableDef != 0) {
+            def->collectableDef = (CollectableDef*)((u32)def + (u32)def->collectableDef);
         }
 
-        if (def->unk40 != 0) {
-            def->unk40 = (ObjDefStruct40*)((u32)def + (u32)def->unk40);
+        if (def->lockdata != 0) {
+            def->lockdata = (ObjDefLockData*)((u32)def + (u32)def->lockdata);
         }
 
         if (def->pSeq != 0) {
@@ -144,7 +145,7 @@ RECOMP_PATCH ObjDef *obj_load_objdef(s32 tabIdx) {
         gObjDefRefCount[tabIdx] = 1;
 
         //@recomp: store copy of gametext index so custom object description strings can be toggled
-        customObjDefTextIDs[tabIdx] = def->gametextIndex;
+        customObjDefTextIDs[tabIdx] = def->gametextIndex[0];
 
         //@recomp: remove extra text if toggled off
         if (!useExtraText){

@@ -68,12 +68,12 @@ RECOMP_PATCH void FXEmit_control(Object* self) {
             objdata->randomDelay = 0;
         }
     } else {
-        self->srt.transl.x += self->speed.x * gUpdateRateF;
-        self->srt.transl.y += self->speed.y * gUpdateRateF;
-        self->srt.transl.z += self->speed.z * gUpdateRateF;
-        self->positionMirror.x = self->srt.transl.x;
-        self->positionMirror.y = self->srt.transl.y;
-        self->positionMirror.z = self->srt.transl.z;
+        self->srt.transl.x += self->velocity.x * gUpdateRateF;
+        self->srt.transl.y += self->velocity.y * gUpdateRateF;
+        self->srt.transl.z += self->velocity.z * gUpdateRateF;
+        self->globalPosition.x = self->srt.transl.x;
+        self->globalPosition.y = self->srt.transl.y;
+        self->globalPosition.z = self->srt.transl.z;
 
         player = get_player();
         if (!player || !setup) {
@@ -133,9 +133,9 @@ RECOMP_PATCH void FXEmit_control(Object* self) {
         }
 
         if ((objdata->fxCount >= 0) || ((objdata->fxCount < 0) && (self->unkDC <= 0))) {
-            vectorToPlayer.f[0] = self->positionMirror.x - player->positionMirror.x;
-            vectorToPlayer.f[1] = self->positionMirror.y - player->positionMirror.y;
-            vectorToPlayer.f[2] = self->positionMirror.z - player->positionMirror.z;
+            vectorToPlayer.f[0] = self->globalPosition.x - player->globalPosition.x;
+            vectorToPlayer.f[1] = self->globalPosition.y - player->globalPosition.y;
+            vectorToPlayer.f[2] = self->globalPosition.z - player->globalPosition.z;
             if (objdata->fxCount == 0) {
                 objdata->disabled = TRUE;
             }
