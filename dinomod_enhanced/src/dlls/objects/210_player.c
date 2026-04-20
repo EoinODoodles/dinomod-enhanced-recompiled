@@ -1370,7 +1370,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
             if (temp_v0_6 == NULL || temp_v0_6->unk74 == NULL) {
                 return 0;
             }
-            temp_s0 = temp_v0_6->unk74;
+            temp_s0 = (Vec3f*)temp_v0_6->unk74;
             spB4 = arg0->srt.transl.x - temp_s0->x;
             spB0 = arg0->srt.transl.z - temp_s0->z;
             spA4 = (arg0->srt.transl.y + 30.0f) - temp_s0->y;
