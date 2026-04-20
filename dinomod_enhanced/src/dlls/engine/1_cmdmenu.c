@@ -6,13 +6,14 @@
 #include "common.h"
 #include "game/objects/inventory_items.h"
 #include "game/gametexts_ui.h"
+#include "sys/main.h"
+#include "sys/objmsg.h"
 #include "dlls/engine/1_cmdmenu.h"
 
 #include "recomp/dlls/engine/1_cmdmenu_recomp.h"
 
 #include "engine/1_cmdmenu.h"
 #include "engine/59_minimap.h"
-#include "sys/main.h"
 
 #define MAX_LOADED_ITEMS 64
 #define MAX_OPACITY 0xFF
@@ -600,6 +601,201 @@ RECOMP_CALLBACK("*", recomp_on_game_tick_start) void updateExtraTextInventory() 
     } else {
         remove_extra_descriptions();
     }
+}
+
+/**
+  * Fix a visual "pop" when scrolling through inventory items:
+  *
+  * The item icon strip would jump too far (especially when wrapping from top-to-bottom),
+  * causing a visual judder and occasionally exposing an empty gap at the top of the icon strip.
+  *
+  * Rare seem to have accidentally used the tiles' width instead of height to calculate the jump size 
+  * (possibly leftover from the horizontally-scrolling design) - changing it to the height fixes it!
+  */
+RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
+    s16* pageSelectionIndex;
+    Object* player;
+    InventoryItem *pageItems;
+    u32 pageMsg;
+    s32 pageBtnMask;
+    s32 usedGamebit;
+    s8 isSidekickMenu;
+
+    player = get_player();
+
+    isSidekickMenu = FALSE;
+
+    //Do nothing if the player's unloaded
+    if (player == NULL) {
+        return;
+    }
+
+    //Lock/unlock accessing the C-button scroll menu
+    if (player->unkB0 & 0x1000) {
+        joy_set_button_mask(0, L_CBUTTONS | R_CBUTTONS | D_CBUTTONS);
+    } else if (sJoyButtonMask != 0) {
+        joy_set_button_mask(0, sJoyButtonMask);
+    }
+
+    //Get button presses (or simulated ones, for tutorial sequences)
+    if (sShouldOverrideJoypadButtons) {
+        sJoyPressedButtons = sJoyPressedButtonsOverride;
+    } else {
+        sJoyPressedButtons = joy_get_pressed(0);
+        if ((player->unkB0 & 0x1000) || (sJoyButtonMask != 0)) {
+            sJoyPressedButtons |= B_BUTTON;
+        }
+    }
+
+    //Play item use sound if needed
+    switch (sUsedItemSoundType) {
+    case CMDMENU_SOUND_NONE:
+        break;
+    case CMDMENU_SOUND_ITEM:
+        gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_79C_Cmdmenu_CantUse, MAX_VOLUME, NULL, NULL, 0, NULL);
+        break;
+    case CMDMENU_SOUND_PAGE:
+        gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_814_Cmdmenu_OpenSubMenu, MAX_VOLUME, NULL, NULL, 0, NULL);
+        break;
+    }
+
+    sUsedItemGamebitID = NO_GAMEBIT;
+    sUsedItemSoundType = CMDMENU_SOUND_NONE;
+    sUsedItemPageID = NO_PAGE;
+
+    pageItems = dCmdmenuPages[sInventoryPageID].items;
+    pageSelectionIndex = &dCmdmenuPages[sInventoryPageID].selectedIndex;
+    pageMsg = dCmdmenuPages[sInventoryPageID].mesgID;
+    pageBtnMask = dCmdmenuPages[sInventoryPageID].btnMask;
+
+    //Check if the current page is a sidekick command page
+    if ((sInventoryPageID == CMDMENU_PAGE_7_Sidekick_Kyte) || 
+        (sInventoryPageID == CMDMENU_PAGE_8_Sidekick_Tricky)
+    ) {
+        isSidekickMenu = TRUE;
+    }
+
+    sMenuSelectedItemIdx = *pageSelectionIndex;
+    sDisplayedItemCount = cmdmenu_page_load_items(pageItems, isSidekickMenu);
+
+    //If the current page has no visible items, close the inventory
+    if (sDisplayedItemCount == 0) {
+        dPageCategory = 0;
+        cmdmenu_close_inventory();
+        return;
+    }
+
+    if (sMenuSelectedItemIdx >= sDisplayedItemCount) {
+        sMenuSelectedItemIdx = 0;
+    }
+
+    dSelectedItemTextID = sMenuItemTextIDs[sMenuSelectedItemIdx];
+
+    //Handle scrolling through the inventory
+    if (cmdmenu_is_inventory_open()) {
+        //If the page's scroll button was pressed
+        if ((sJoyPressedButtons & pageBtnMask) && (sInventoryScrollOffset < 8) && (dInventoryIsScrolling == FALSE)) {
+            gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_28A_Cmdmenu_MoveSelection, MAX_VOLUME, NULL, NULL, 0, NULL);
+            dInventoryMovesQueued++;
+
+            if (sInventoryScrollOffset != 0) {
+                dInventoryIsScrolling = TRUE;
+            }
+        }
+
+        //Limit the number of moves
+        if (dInventoryMovesQueued > 255) {
+            dInventoryMovesQueued = 255;
+        }
+
+        //Auto-select a specific item (unused feature)
+        if (sAutoSelectItemIdx != NO_ITEM) {
+            sMenuSelectedItemIdx = sAutoSelectItemIdx;
+        }
+
+        //Move between items
+        if ((dInventoryMovesQueued > 0) && (sInventoryScrollOffset == 0)) {
+            dInventoryMovesQueued--;
+
+            if (sDisplayedItemCount > 1) {
+                //When wrapping to top, skip over a gap in the inventory in specific cases (2 or 4 items)
+                if (((sDisplayedItemCount == 2) && (sMenuSelectedItemIdx == 1)) || 
+                    ((sDisplayedItemCount == 4) && (sMenuSelectedItemIdx == 3))
+                ) {
+                    //@bug: causes visual pop: should be MENU_ITEM_HEIGHT
+                    // sInventoryScrollOffset = 2 * MENU_ITEM_WIDTH;
+                    sInventoryScrollOffset = 2 * MENU_ITEM_HEIGHT; //@recomp: fix
+                    dInventoryMoveSpeed = 2;
+                    dInventoryIsScrolling = FALSE;
+                } else {
+                    //@bug: causes visual pop: should be MENU_ITEM_HEIGHT
+                    // sInventoryScrollOffset = MENU_ITEM_WIDTH;
+                    sInventoryScrollOffset = MENU_ITEM_HEIGHT; //@recomp: fix
+                    dInventoryMoveSpeed = 2;
+                    dInventoryIsScrolling = FALSE;
+                }
+
+                //Select next item
+                sMenuSelectedItemIdx++;
+
+                //Wrap selection back to top of item list
+                if (sMenuSelectedItemIdx >= sDisplayedItemCount) {
+                    sMenuSelectedItemIdx = 0;
+                }
+            }
+
+        //Close the inventory with the B button
+        } else if (sJoyPressedButtons & B_BUTTON) {
+            gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_28C_Cmdmenu_Close, MAX_VOLUME, NULL, NULL, 0, NULL);
+            cmdmenu_close_inventory();
+
+        //Use an inventory item with the A button
+        } else if ((sJoyPressedButtons & A_BUTTON) && cmdmenu_is_inventory_open()) {
+            usedGamebit = sMenuItemGamebits[sMenuSelectedItemIdx];
+            
+            //Items/Spells
+            if (isSidekickMenu == FALSE) {
+                obj_send_mesg(player, pageMsg, NULL, (void*)usedGamebit);
+                
+                sUsedItemGamebitID = usedGamebit;
+                sUsedItemSoundType = sMenuItemUseSounds[sMenuSelectedItemIdx];
+                sUsedItemPageID = sMenuItemOpenPageIDs[sMenuSelectedItemIdx];
+                gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_28B_Cmdmenu_Use, MAX_VOLUME, NULL, NULL, 0, NULL);
+                cmdmenu_close_inventory();
+                
+            //Sidekick commands
+            } else {
+                if (sMenuItemVisibilities[sMenuSelectedItemIdx]) {
+                    gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_28B_Cmdmenu_Use, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    cmdmenu_close_inventory();
+                    sUsedItemGamebitID = usedGamebit;
+                    sUsedItemSoundType = CMDMENU_SOUND_NONE;
+                } else {
+                    /*  If the item's gamebitHidden is set, play a refusal sound and keep the menu open.
+                        
+                        This feature is unused in practice, because loaded Sidekick Commands 
+                        always have their sMenuItemVisibilities set to TRUE.
+                        
+                        Possibly intended for Spells instead, since they're the only kind of 
+                        inventory item that can have their sMenuItemVisibilities set to FALSE?
+                    */
+                    gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_A0_Cmdmenu_Item_Locked, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    sUsedItemGamebitID = NO_GAMEBIT;
+                    sUsedItemSoundType = CMDMENU_SOUND_NONE;
+                }
+            }
+        }
+    }
+
+    if (cmdmenu_is_inventory_closed()) {
+        dPageCategory = 0;
+        sInventoryFrameCounter = 0;
+        dInventoryMovesQueued = 0;
+    } else {
+        joy_set_button_mask(0, A_BUTTON | B_BUTTON);
+    }
+
+    *pageSelectionIndex = sMenuSelectedItemIdx;
 }
 
 /**
