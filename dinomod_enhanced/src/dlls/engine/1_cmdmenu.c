@@ -1,5 +1,11 @@
+#include "dll.h"
+#include "dlls/engine/29_gplay.h"
+#include "dlls/engine/6_amsfx.h"
+#include "game/gamebits.h"
 #include "game/objects/interaction_arrow.h"
+#include "game/objects/object_id.h"
 #include "modding.h"
+#include "recomp/dlls/engine/2_camcontrol_recomp.h"
 #include "recompconfig.h"
 #include "recomputils.h"
 
@@ -7,6 +13,7 @@
 #include "game/objects/inventory_items.h"
 #include "game/gametexts_ui.h"
 #include "sys/main.h"
+#include "sys/objects.h"
 #include "sys/objmsg.h"
 #include "dlls/engine/1_cmdmenu.h"
 
@@ -14,6 +21,7 @@
 
 #include "engine/1_cmdmenu.h"
 #include "engine/59_minimap.h"
+#include "sys/print.h"
 
 #define MAX_LOADED_ITEMS 64
 #define MAX_OPACITY 0xFF
@@ -303,6 +311,13 @@ enum CmdMenuTextures {
     CMDMENU_TEX_57_Grub_Red_Half = 57
 };
 
+typedef enum {
+    CIcon_FLAG_None = 0,
+    CIcon_FLAG_Have_Spells = 1,
+    CIcon_FLAG_Have_Items = 2,
+    CIcon_FLAG_Have_Sidekick_Commands = 4
+} CmdMenuCIconFlags;
+
 extern s8 dInventoryShow;
 extern s8 sInventoryScrollOffset;
 extern s8 dInventoryMoveSpeed;
@@ -588,6 +603,120 @@ RECOMP_CALLBACK("*", recomp_on_game_tick_start) void updateExtraTextInventory() 
     }
 }
 
+#define SIDEKICK_FOOD_MAX 16
+
+/** Handle attempting to feed the sidekick while the meter is already full:
+  * If the meter is totally one colour (say blue) and the food being fed is also that colour, refuse it.
+  * Otherwise, discard enough of the opposite colour (say red) to make room for what's being fed.
+  */
+static int sidekick_meter_handle_full(int isBlueEnergy, s8 energyAdded) {
+    Object* highlighted; //Object with LockIcon over it
+    Object* sidekick;
+    SidekickStats* dinoStats;
+    s32 blueSlotsOccupied;
+    s32 redSlotsOccupied;
+    u8* statToIncrease;
+    u8* statToDecrease;
+    s8 newValue;
+
+    sidekick = get_sidekick();
+    highlighted = gDLL_2_Camera->vtbl->get_highlighted_object();
+
+    //Return if the sidekick isn't who the food's being given to
+    if (highlighted != sidekick) {
+        return 0;
+    }
+
+    dinoStats = gDLL_29_Gplay->vtbl->get_sidekick_stats();
+    if (!dinoStats) {
+        return 0;
+    }
+
+    if (isBlueEnergy) {
+        statToIncrease = &dinoStats->blueFood;
+        statToDecrease = &dinoStats->redFood;
+    } else {
+        statToIncrease = &dinoStats->redFood;
+        statToDecrease = &dinoStats->blueFood;
+    }
+
+    recomp_eprintf("\n\n1) BLUE: %d\tRED: %d\n", dinoStats->blueFood, dinoStats->redFood);
+
+    //Only showing Blue energy (ignoring Red energy)
+    if (recomp_get_config_u32("cmdmenu_sidekick_meter_hide_red")) {
+        if (*statToIncrease >= SIDEKICK_FOOD_MAX) {
+            *statToIncrease = SIDEKICK_FOOD_MAX;
+
+            //Bark
+            gDLL_6_AMSFX->vtbl->play_sound(sidekick, 0x4B8, MAX_VOLUME, NULL, NULL, 0, NULL);
+            
+            return 1;
+        }
+    } else {
+    //Increasing Blue energy while Red energy is visible
+        blueSlotsOccupied = (dinoStats->blueFood/2) + (dinoStats->blueFood % 2);
+        redSlotsOccupied = (dinoStats->redFood/2) + (dinoStats->redFood % 2);
+
+        //Check if all slots are already occupied
+        if ((blueSlotsOccupied + redSlotsOccupied) >= SIDEKICK_FOOD_MAX/2) {
+
+            //Refuse food if the meter's already fully filled with that colour
+            if (*statToIncrease >= SIDEKICK_FOOD_MAX) {
+                gDLL_6_AMSFX->vtbl->play_sound(sidekick, 0x4B8, MAX_VOLUME, NULL, NULL, 0, NULL);
+                return 1;
+            } else {
+            //Otherwise: discard enough of the opposite-colour food icon to make space
+               newValue = *statToDecrease;
+                if (newValue % 2) {
+                    newValue -= 1 + (energyAdded - 2); //remove half-filled red slot
+                } else {
+                    newValue -= 2 + (energyAdded - 2); //remove filled red slot
+                }
+                newValue = MAX(0, newValue);
+                *statToDecrease = newValue;
+
+                recomp_eprintf("3) BLUE: %d\tRED: %d\n", dinoStats->blueFood, dinoStats->redFood);
+            }
+        }
+    }
+
+    return 0;
+}
+
+static int cmdmenu_handle_item_use_special_cases(s32 itemGamebitID) {
+    switch (itemGamebitID) {
+    case BIT_Inventory_Blue_Mushrooms:
+        return sidekick_meter_handle_full(TRUE, 2);
+    case BIT_Dino_Bag_Old_Mushrooms:
+        return sidekick_meter_handle_full(TRUE, 1);
+    case BIT_Dino_Bag_Red_Mushrooms:
+        return sidekick_meter_handle_full(FALSE, 2);
+    case BIT_CloudRunner_Grubs:
+        return sidekick_meter_handle_full(TRUE, 2);
+    case BIT_Dino_Bag_Old_Grubs:
+        return sidekick_meter_handle_full(TRUE, 1);
+    case BIT_Dino_Bag_Red_Grubs:
+        return sidekick_meter_handle_full(FALSE, 2);
+    }
+
+    return 0;
+}
+
+/** Handle special cases: e.g. Tricky refusing food */
+RECOMP_PATCH int cmdmenu_was_this_item_used(s32 itemGamebitID) {
+    //@recomp: handle special cases (e.g. Tricky refusing food)
+    if (cmdmenu_handle_item_use_special_cases(itemGamebitID)) {
+        return FALSE;
+    }
+
+    if (itemGamebitID == sUsedItemGamebitID) {
+        //Don't play the "item refused" sound when an item was used successfully
+        sUsedItemSoundType = CMDMENU_SOUND_NONE;
+        return TRUE;
+    }
+    return FALSE;
+}
+
 /**
   * Fix a visual "pop" when scrolling through inventory items:
   *
@@ -851,6 +980,298 @@ RECOMP_PATCH s32 cmdmenu_get_target_objects(Object **targetObjects, s32 maxObjec
     }
     
     return targetCount;
+}
+
+/**
+  * Checks if the selected inventory item is a sidekick food item
+  * (for showing the sidekick meter while food is selected).
+  */
+static int cmdmenu_is_selected_item_sidekick_food(int isForTricky) {
+    switch (sMenuItemGamebits[sMenuSelectedItemIdx]) {
+        //Tricky's food
+        case BIT_Inventory_Blue_Mushrooms:
+        case BIT_Dino_Bag_Blue_Mushrooms:
+        case BIT_Dino_Bag_Old_Mushrooms:
+        case BIT_Dino_Bag_Red_Mushrooms:
+            return isForTricky;
+        //Kyte's food
+        case BIT_CloudRunner_Grubs:
+        case BIT_Dino_Bag_Blue_Grubs:
+        case BIT_Dino_Bag_Old_Grubs:
+        case BIT_Dino_Bag_Red_Grubs:
+            return !isForTricky;
+    }
+
+    return FALSE;
+}
+
+/** Checks if the sidekick meter should appear while a sidekick food item is selected in the inventory */
+static int cmdmenu_should_sidekick_meter_appear_over_food_items(Object* sidekick) {
+    if (sidekick == NULL) {
+        return FALSE;
+    }
+    
+    if (recomp_get_config_u32("cmdmenu_sidekick_meter_show_over_food") == FALSE) {
+        return FALSE;
+    }
+        
+    if (dPageCategory != CMDMENU_CATEGORY_3_Items && dPageCategory != CMDMENU_CATEGORY_7_Sidekick_Food) {
+        return FALSE;
+    }
+    
+    return (cmdmenu_is_selected_item_sidekick_food(sidekick->id == OBJ_Tricky));
+}
+
+RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
+    Gfx* dl;
+    Object* sidekick;
+    Object* player;
+    u8 texIdx;
+    u8 pad;
+    u8 isKyte;
+    u8 pageIdx;
+    u8 hasHalfRed;
+    u8 fullBlueEnd;
+    u8 hasHalfBlue;
+    u8 cIconFlags;
+    u8 fullRedEnd;
+    u8 i;
+    u8 iconIndex;
+    /* RECOMP */
+    SidekickStats* dinoStats;
+    u8 isSidekickFoodSelected;
+
+    sidekick = get_sidekick();
+    player = get_player();
+    isKyte = FALSE;
+    cIconFlags = CIcon_FLAG_None;
+
+    if (sidekick != NULL) {
+        isKyte = (sidekick->id == OBJ_Kyte);
+    }
+
+    //Draw C buttons (only while the inventory scroll is hidden)
+    if (dInventoryOpacity == 0) {
+        if (sOpacityR != 0.0f) {
+            //Check whether each C button has items to show
+            {
+                //Check if player has inventory items
+                if (player != NULL) {
+                    pageIdx = player->id == OBJ_Krystal ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
+                    cIconFlags = CIcon_FLAG_None;
+                    if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageIdx].items, FALSE) != 0) {
+                        cIconFlags = CIcon_FLAG_Have_Items;
+                    }
+                }
+
+                //Check if Sidekick Commands are available
+                if (sidekick != NULL) {
+                    pageIdx = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Tricky : CMDMENU_PAGE_7_Sidekick_Kyte;
+                    if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageIdx].items, TRUE) != 0) {
+                        cIconFlags |= CIcon_FLAG_Have_Sidekick_Commands;
+                    }
+                }
+
+                //Check if Spells are available
+                if (cmdmenu_page_count_shown_items(dCmdmenuPages[CMDMENU_PAGE_6_Spells].items, FALSE) != 0) {
+                    cIconFlags |= CIcon_FLAG_Have_Spells;
+                }
+            }
+
+            //Draw C-right button
+            {
+                if (cIconFlags & CIcon_FLAG_Have_Items) {
+                    //With inventory bag
+                    texIdx = CMDMENU_TEX_47_RightButton_With_Bag;
+                    dInventoryPageIcon = tex_load_deferred(dTextableIDs[texIdx]);
+                    rcp_screen_full_write(gdl, 
+                        dInventoryPageIcon, 
+                        C_BUTTONS_RIGHT_BAG_X, 
+                        C_BUTTONS_RIGHT_BAG_Y, 
+                        0, 
+                        0, 
+                        sOpacityR, 
+                        SCREEN_WRITE_TRANSLUCENT
+                    );
+                    tex_free(dInventoryPageIcon);
+                } else {
+                    //Empty C-right button
+                    texIdx = CMDMENU_TEX_41_C_Right;
+                    rcp_tile_write(
+                        gdl,
+                        sTextureTiles[texIdx], 
+                        C_BUTTONS_RIGHT_EMPTY_X, 
+                        C_BUTTONS_RIGHT_EMPTY_Y, 
+                        255, 255, 255, sOpacityR
+                    );
+                }
+            }
+
+            //Draw C-left and C-down buttons
+            {
+                if (((cIconFlags & CIcon_FLAG_Have_Sidekick_Commands) && sidekick) || 
+                    (cIconFlags & CIcon_FLAG_Have_Spells)
+                ) {
+                    //If Sidekick Commands AND Spells are available
+                    if ((cIconFlags & CIcon_FLAG_Have_Sidekick_Commands) && sidekick && (cIconFlags & CIcon_FLAG_Have_Spells)) {
+                        //Show the SpellBook on C-left and Kyte/Tricky on C-down
+                        if (isKyte) {
+                            texIdx = CMDMENU_TEX_38_LeftDownButtons_SpellBook_With_Kyte;
+                        } else {
+                            texIdx = CMDMENU_TEX_43_LeftDownButtons_SpellBook_With_Tricky;
+                        }
+                    } else if (cIconFlags & CIcon_FLAG_Have_Items) { //@bug: should be checking `CIcon_FLAG_Have_Spells`?
+                        //Show the SpellBook on C-left and nothing on C-down
+                        texIdx = CMDMENU_TEX_48_LeftDownButtons_SpellBook_NoSidekick;
+                    }
+                    /* @bug: texIdx could end up reusing the C-right section's value here if neither condition is met
+                       (i.e. have commands but not spells and items, or have spells but not commands and items) 
+                    */
+
+                    dInventoryPageIcon = tex_load_deferred(dTextableIDs[texIdx]);
+                    rcp_screen_full_write(
+                        gdl, 
+                        dInventoryPageIcon, 
+                        C_BUTTONS_LEFT_DOWN_BOOK_SIDEKICK_X, 
+                        C_BUTTONS_LEFT_DOWN_BOOK_SIDEKICK_Y, 
+                        0, 
+                        0, 
+                        sOpacityR, 
+                        SCREEN_WRITE_TRANSLUCENT
+                    );
+                    tex_free(dInventoryPageIcon);
+                } else {
+                    //Draw empty C-down and C-left buttons
+                    rcp_tile_write(
+                        gdl,
+                        sTextureTiles[CMDMENU_TEX_37_C_Down], 
+                        C_BUTTONS_DOWN_EMPTY_X, 
+                        C_BUTTONS_DOWN_EMPTY_Y, 
+                        255, 255, 255, sOpacityR
+                    );
+                    rcp_tile_write(
+                        gdl, 
+                        sTextureTiles[CMDMENU_TEX_39_C_Left], 
+                        C_BUTTONS_LEFT_EMPTY_X, 
+                        C_BUTTONS_LEFT_EMPTY_Y, 
+                        255, 255, 255, sOpacityR
+                    );
+                }
+            }
+        }
+    } else {
+        sOpacityR = 0.0f;
+    }
+
+    dl = *gdl;
+
+    //Draw the top/bottom of the inventory scroll
+    /* @bug: why is this handled in the C-button/sidekick-meter function?
+             Should likely be in `cmdmenu_draw_main` instead, and maybe ended up here by mistake!
+     */
+    if (dInventoryOpacity != 0) {
+        rcp_tile_write(&dl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
+        rcp_tile_write(&dl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], MENU_SCROLL_X, MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY, 255, 255, 255, dInventoryOpacity);
+    }
+
+    //Draw the sidekick food meter
+    if (sidekick != NULL) {
+
+        //Handle the meter's opacity
+        if (((sInventoryPageID == CMDMENU_PAGE_7_Sidekick_Kyte || sInventoryPageID == CMDMENU_PAGE_8_Sidekick_Tricky) && dInventoryOpacity) || 
+            (sStatsChangeTimers.sidekickBlueFood >= 0.0f) ||
+            cmdmenu_should_sidekick_meter_appear_over_food_items(sidekick) //@recomp: optionally show meter while relevant food selected on Items page
+        ) {
+            /* Fade in while the sidekick's inventory page is open, 
+               or when the sidekick's blue food count has recently changed */
+            dOpacitySidekickMeter += gUpdateRate * 8;
+            if (dOpacitySidekickMeter > MAX_OPACITY) {
+                dOpacitySidekickMeter = MAX_OPACITY;
+            }
+        } else {
+            //Otherwise fade out
+            dOpacitySidekickMeter -= gUpdateRate * 8;
+            if (dOpacitySidekickMeter < 0) {
+                dOpacitySidekickMeter = 0;
+            }
+        }
+
+        if (dOpacitySidekickMeter != 0) {
+            //Get sidekick's red/blue food counts (@unfinished: hard-coded quantities)
+            // sStats.sidekickRedFood = 3;
+            // sStats.sidekickBlueFood = 3;
+
+            //@recomp: use sidekick's actual stats, instead of hard-coded quantities
+            dinoStats = gDLL_29_Gplay->vtbl->get_sidekick_stats();
+            if (dinoStats) {
+                //Option to hide red food for now (since there's no way to increase it through the inventory)
+                if (recomp_get_config_u32("cmdmenu_sidekick_meter_hide_red")) {
+                    sStats.sidekickRedFood = 0;
+                } else {
+                    sStats.sidekickRedFood = dinoStats->redFood;
+                }
+
+                sStats.sidekickBlueFood = dinoStats->blueFood;
+            }
+
+            //Determine the values to show on the meter (2 food units per icon)
+            fullRedEnd = sStats.sidekickRedFood >> 1;
+            hasHalfRed = sStats.sidekickRedFood & 1;
+            fullBlueEnd = (sStats.sidekickBlueFood >> 1) + fullRedEnd + hasHalfRed;
+            hasHalfBlue = sStats.sidekickBlueFood & 1;
+
+            //Draw the sidekick's food icons
+            for (i = 0; i < sStats.sidekickMaxFood; i++) {
+                //Draw red food first (full icons)
+                if (i < fullRedEnd) {
+                    if (isKyte) {
+                        iconIndex = CMDMENU_TEX_56_Grub_Red_Full;
+                    } else {
+                        iconIndex = CMDMENU_TEX_45_Mushroom_Red_Full;
+                    }
+                //Draw red food's remainder second (half icon)
+                } else if (i == fullRedEnd && hasHalfRed) {
+                    if (isKyte) {
+                        iconIndex = CMDMENU_TEX_57_Grub_Red_Half;
+                    } else {
+                        iconIndex = CMDMENU_TEX_46_Mushroom_Red_Half;
+                    }
+                //Draw blue food third (full icons)
+                } else if (i < fullBlueEnd) {
+                    if (isKyte) {
+                        iconIndex = CMDMENU_TEX_13_Grub_Blue_Full;
+                    } else {
+                        iconIndex = CMDMENU_TEX_12_Mushroom_Blue_Full;
+                    }
+                //Draw blue food's remainder last (half icon)
+                } else if (i == fullBlueEnd && hasHalfBlue) {
+                    if (isKyte) {
+                        iconIndex = CMDMENU_TEX_16_Grub_Blue_Half;
+                    } else {
+                        iconIndex = CMDMENU_TEX_51_Mushroom_Blue_Half;
+                    }
+                //Pad out with empty icons
+                } else {
+                    if (isKyte) {
+                        iconIndex = CMDMENU_TEX_55_Grub_Empty;
+                    } else {
+                        iconIndex = CMDMENU_TEX_44_Mushroom_Empty;
+                    }
+                }
+                
+                //Draw icons (in 2x4 grid: starting top-right to bottom-right, then top-left to bottom-left)
+                rcp_tile_write(&dl, sTextureTiles[iconIndex], 
+                    SIDEKICK_METER_X - ((i / SIDEKICK_METER_ICONS_PER_COLUMN) * SIDEKICK_METER_SPACING_X), 
+                    SIDEKICK_METER_Y + ((i % SIDEKICK_METER_ICONS_PER_COLUMN) * SIDEKICK_METER_SPACING_Y), 
+                    255, 255, 255, dOpacitySidekickMeter
+                );
+            }
+        }
+    }
+
+    dl_set_prim_color(&dl, 255, 255, 255, 255);
+
+    *gdl = dl;
 }
 
 static s8 sInfoPopupUnroll = 0;

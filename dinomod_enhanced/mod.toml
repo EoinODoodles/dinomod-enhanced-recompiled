@@ -207,3 +207,29 @@ In the unpatched December 2000 Prototype this pop-up only appears when collectin
 type = "Enum"
 options = [ "Off", "On" ]
 default = "On"
+
+[[manifest.config_options]]
+id = "cmdmenu_sidekick_meter_hide_red"
+name = "Sidekick Meter (Hide Red Food)"
+description = '''
+In the unpatched December 2000 Prototype the sidekicks' food meter always shows hard-coded food quantities: 3 blue and 3 red.
+
+Dinomod Enhanced connects up the sidekicks' actual food counts to the meters, letting you see Tricky's blue energy decreasing as he digs at certain spots (note that not all dig spots have an energy cost assigned).
+
+It's not possible to increase the sidekick's red food count however, since there's no Red Mushroom inventory item. If you'd like to only see the sidekick's blue food count and exclude red food from the meter, this config option can be enabled.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "cmdmenu_sidekick_meter_show_over_food"
+name = "Sidekick Meter (While Food Selected)"
+description = '''
+By default the sidekick food meter shows up while browsing the Sidekick inventory page, when the sidekick's food energy changes, or when the sidekick loads.
+
+This config option allows the meter to also show up while relevant food items are highlighted in the Items inventory! This lets you check how full Tricky is while feeding him a Blue Mushroom directly from your Items (as opposed to from a sidekick food bag).
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
