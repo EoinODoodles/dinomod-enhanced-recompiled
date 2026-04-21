@@ -1,5 +1,6 @@
 #include "modding.h"
 #include "recompconfig.h"
+#include "configs.h"
 
 #include "PR/gbi.h"
 #include "PR/ultratypes.h"
@@ -92,8 +93,13 @@ static s32 update1_hijack(void) {
 
     if (bss_2) {
         main_set_bits(BIT_44F, 0);
-        //@recomp: title screen after Rareware
-        recomp_main_menu();
+
+        if (recomp_get_config_u32("rolling_demo") == BOOTCONFIG_Restore_Rolling_Demo) {
+            //@recomp: title screen after Rareware
+            recomp_main_menu();
+        } else {
+            menu_set(MENU_GAME_SELECT);
+        }
     }
 
     // @recomp: Allow skipping
