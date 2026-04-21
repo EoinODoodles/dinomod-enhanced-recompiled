@@ -36,7 +36,7 @@ additional_files = [
 
 [[manifest.config_options]]
 id = "gametext_flavor"
-name = "Text Flavor"
+name = "Text: Flavor"
 description = '''
 Which version of Dinomod Enhanced's subtitle/text patches to use.
 
@@ -49,7 +49,7 @@ default = "Vanilla"
 
 [[manifest.config_options]]
 id = "lamingaming_extra_description_text"
-name = "Add Extra Description Text"
+name = "Text: Add Extra Descriptions"
 description = '''
 Adds custom description text for inventory items, objects, and characters that had yet to have text created for them. Many of these strings are sourced from DP leftovers in Star Fox Adventures' Kiosk build, or from appropriate counterparts in SFA itself.
 
@@ -61,7 +61,7 @@ default = "On"
 
 [[manifest.config_options]]
 id = "upcoming_subtitle_trans"
-name = "Upcoming Subtitle Transparency"
+name = "Text: Upcoming Subtitle Transparency"
 description = '''
 In the vanilla game, the upcoming subtitle text is shown behind the current subtitle text with low transparency. This option lets you turn upcoming text invisible instead, for improved clarity. This is left as an option since the upcoming text being visible early may have been an intentional style choice by Rare. 
 '''
@@ -70,8 +70,161 @@ options = [ "Vanilla", "Invisible" ]
 default = "Invisible"
 
 [[manifest.config_options]]
+id = "pickup_jingle"
+name = "Audio: Item Pickup Jingle"
+description = '''
+Which version of the item pickup jingle to play.
+
+- Old (variant A)
+  A slower arrangement of the original pickup jingle.
+
+- Old (variant B)
+  The original pickup jingle as heard in the One Hour Footage.
+
+- New 
+  The Star Fox themed jingle played in the December 2000 Prototype.
+'''
+type = "Enum"
+options = [ "Old (variant A)", "Old (variant B)", "New" ]
+default = "Old (variant B)"
+
+[[manifest.config_options]]
+id = "cmdmenu_new_controls"
+name = "Inventory: New Controls"
+description = '''
+In the unpatched prototype you can only scroll down through an inventory page, which can make it easy to accidentally overshoot the desired item. 
+
+This option revamps the controls for the C-button inventory, adding a way to scroll up as well as down!
+
+As before, when the inventory is closed: 
+- C-left opens Spells
+- C-down opens Sidekick Commands
+- C-right opens Items
+
+What's different is, once the inventory is open:
+- C-down moves down the page
+- C-up moves up the page
+- C-left switches to the previous page
+- C-right switches to the next page 
+
+(Switching to the next page works like:
+Items>Sidekick, Sidekick>Spells, Spells>Items, etc.)
+
+The new controls also let you hold C-up or C-down to scroll continuously through the inventory, without having to tap repeatedly.
+
+The separate "Inventory: D-Pad Controls" config can be used in conjunction with the new controls!
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "Off"
+
+[[manifest.config_options]]
+id = "cmdmenu_d_controls"
+name = "Inventory: D-Pad Controls"
+description = '''
+This lets you navigate the inventory using the D-pad! Here are the modes:
+
+- Off
+ Only the C-buttons navigate the inventory.
+
+- On (D-Pad & C-Buttons)
+ Both the D-pad and C-buttons can be used to navigate.
+
+- On (D-Pad Only)
+ Only the D-pad navigates, freeing up the C-buttons.
+
+NOTE:
+This D-pad config can be used with or without "Inventory: New Controls".
+'''
+type = "Enum"
+options = [ "Off", "On (D-Pad & C-Buttons)", "On (D-Pad Only)" ]
+default = "Off"
+
+[[manifest.config_options]]
+id = "cmdmenu_info_popup_fix"
+name = "Item Pop-Up: Visual Fix"
+description = '''
+The game's UI has a feature where it can display an info pop-up in the bottom-left of screen upon collecting an item.
+
+In the unpatched December 2000 Prototype the pop-up's visuals are slightly broken-looking, since it was designed around an older horizontally-scrolling version of the inventory menu seen in early footage.
+
+This mod option fixes up its visuals so that it matches the later inventory design. It also prevents a clash between the minimap and the pop-up: ensuring one fades out before showing the other. The pop-up also stays on-screen if another of the displayed item is collected before the pop-up disappears.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "cmdmenu_info_popup_expand"
+name = "Item Pop-Up: More Uses"
+description = '''
+The game's UI has a feature where it can display an info pop-up in the bottom-left of screen upon collecting an item.
+
+In the unpatched December 2000 Prototype this pop-up only appears when collecting Kyte's Grubs. This mod option expands the pool of items to include the following items:
+
+- Blue Mushrooms
+- White Mushrooms
+- Purple Mushroom Spores
+
+ (This list can be expanded over time, as more of the game is decompiled)
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "cmdmenu_sidekick_meter_hide_red"
+name = "Sidekick Meter: Hide Red Food"
+description = '''
+In the unpatched December 2000 Prototype the sidekicks' food meter always shows hard-coded food quantities: 3 blue and 3 red.
+
+Dinomod Enhanced connects up the sidekicks' actual food counts to the meters, letting you see Tricky's blue energy decreasing as he digs at certain spots (note that not all dig spots have an energy cost assigned).
+
+It's not possible to increase the sidekick's red food count however, since there's no Red Mushroom inventory item. If you'd like to only see the sidekick's blue food count and exclude red food from the meter, this config option can be enabled.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "cmdmenu_sidekick_meter_show_over_food"
+name = "Sidekick Meter: While Food Selected"
+description = '''
+By default the sidekick food meter shows up while browsing the Sidekick inventory page, when the sidekick's food energy changes, or when the sidekick loads.
+
+This config option allows the meter to also show up while relevant food items are highlighted in the Items inventory! This lets you check how full Tricky is while feeding him a Blue Mushroom directly from your Items (as opposed to from a sidekick food bag).
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "log_a_button"
+name = "Log: Rowing Controls"
+description = '''
+When riding a log, whether rowing requires the A button to be tapped (vanilla) or allows A to be held to continuously row.
+'''
+type = "Enum"
+options = [ "Tap", "Hold" ]
+default = "Tap"
+
+[[manifest.config_options]]
+id = "iceblast_cost"
+name = "Ice Blast Spell: Reduced Magic Cost"
+description = '''
+When this is enabled, using the Ice Blast Spell will drain 1 unit of magic every half-second.
+
+In the unpatched game the Ice Blast Spell's collision detectors also drain 1 magic per half-second. However: 3 of these detector objects exist while the spell is being fired, so the depletion rate ends up tripled (possibly by mistake)!
+
+Switching this toggle off will use the original more rapid drain.
+'''
+type = "Enum"
+options = [ "Off", "On"]
+default = "On"
+
+[[manifest.config_options]]
 id = "garunda_te_frostweeds_override"
-name = "Garunda Te - Total FrostWeeds"
+name = "Garunda Te: Total FrostWeeds"
 description = '''
 Modifies the total number of FrostWeeds that need to be fed to Garunda Te before he can free himself from the ice.
 
@@ -87,7 +240,7 @@ default = 12
 
 [[manifest.config_options]]
 id = "garunda_te_frostweeds_accept_twigs"
-name = "Garunda Te - Accept FrostWeed Twigs"
+name = "Garunda Te: Accept FrostWeed Twigs"
 description = '''
 Garunda Te only eats whole FrostWeeds in the original December 2000 Prototype, and won't accept any FrostWeeds Sabre carries over in their twig form. Your only option was to herd FrostWeeds towards him, which can be easier said than done!
 
@@ -114,32 +267,8 @@ options = [ "Vanilla", "Enhanced", "Enhanced (Hard Mode)" ]
 default = "Enhanced"
 
 [[manifest.config_options]]
-id = "log_a_button"
-name = "Log - Rowing Controls"
-description = '''
-When riding a log, whether rowing requires the A button to be tapped (vanilla) or allows A to be held to continuously row.
-'''
-type = "Enum"
-options = [ "Tap", "Hold" ]
-default = "Tap"
-
-[[manifest.config_options]]
-id = "iceblast_cost"
-name = "Ice Blast Spell - Reduced Magic Cost"
-description = '''
-When this is enabled, using the Ice Blast Spell will drain 1 unit of magic every half-second.
-
-In the unpatched game the Ice Blast Spell's collision detectors also drain 1 magic per half-second. However: 3 of these detector objects exist while the spell is being fired, so the depletion rate ends up tripled (possibly by mistake)!
-
-Switching this toggle off will use the original more rapid drain.
-'''
-type = "Enum"
-options = [ "Off", "On"]
-default = "On"
-
-[[manifest.config_options]]
 id = "fxemit_hide_default"
-name = "FXEmit - Hide Debug Flashes"
+name = "FXEmit: Hide Debug Flashes"
 description = '''
 In the unpatched game, FXEmit objects flash a default fallback particle (a small red glow) for a single frame after they load. Rare's staff may have added this behaviour intentionally to assist in configuring FXEmitters.
 
@@ -148,126 +277,6 @@ This setting prevents those single-frame flashes from appearing, however they ca
 type = "Enum"
 options = [ "Show", "Hide" ]
 default = "Hide"
-
-[[manifest.config_options]]
-id = "pickup_jingle"
-name = "Item Pickup Jingle"
-description = '''
-Which version of the item pickup jingle to play.
-
-- Old: The original pickup jingle as heard in the One Hour Footage.
-- New: The new Star Fox themed jingle played by default in the December 2000 Prototype.
-'''
-type = "Enum"
-options = [ "Old (variant A)", "Old (variant B)", "New" ]
-default = "Old (variant B)"
-
-[[manifest.config_options]]
-id = "cmdmenu_new_controls"
-name = "Inventory (New Controls)"
-description = '''
-In the unpatched prototype you can only scroll down through an inventory page, which can make it easy to accidentally overshoot the desired item. 
-
-This option revamps the controls for the C-button inventory, adding a way to scroll up as well as down!
-
-As before, when the inventory is closed: 
-- C-left opens Spells
-- C-down opens Sidekick Commands
-- C-right opens Items
-
-What's different is, once the inventory is open:
-- C-down moves down the page
-- C-up moves up the page
-- C-left switches to the previous page
-- C-right switches to the next page 
-
-(Switching to the next page works like: Items>Sidekick, Sidekick>Spells, Spells>Items, etc.)
-
-The new controls also let you hold C-up or C-down to scroll continuously through the inventory, without having to tap repeatedly.
-
-The separate "Inventory (D-Pad Controls)" config can be used in conjunction with the new controls!
-'''
-type = "Enum"
-options = [ "Off", "On" ]
-default = "Off"
-
-[[manifest.config_options]]
-id = "cmdmenu_d_controls"
-name = "Inventory (D-Pad Controls)"
-description = '''
-This lets you navigate the inventory using the D-pad! Here are the modes:
-
-- Off
- Only the C-buttons navigate the inventory.
-
-- On (D-Pad & C-Buttons)
- Both the D-pad and C-buttons can be used to navigate.
-
-- On (D-Pad Only)
- Only the D-pad navigates, freeing up the C-buttons.
-
-NOTE:
-This D-pad config can be used with or without "Inventory (New Controls)".
-'''
-type = "Enum"
-options = [ "Off", "On (D-Pad & C-Buttons)", "On (D-Pad Only)" ]
-default = "Off"
-
-[[manifest.config_options]]
-id = "cmdmenu_info_popup_fix"
-name = "Item Pop-Up (Visual Fix)"
-description = '''
-The game's UI has a feature where it can display an info pop-up in the bottom-left of screen upon collecting an item.
-
-In the unpatched December 2000 Prototype the pop-up's visuals are slightly broken-looking, since it was designed around an older horizontally-scrolling version of the inventory menu seen in early footage.
-
-This mod option fixes up its visuals so that it matches the later inventory design. It also prevents a clash between the minimap and the pop-up: ensuring one fades out before showing the other. The pop-up also stays on-screen if another of the displayed item is collected before the pop-up disappears.
-'''
-type = "Enum"
-options = [ "Off", "On" ]
-default = "On"
-
-[[manifest.config_options]]
-id = "cmdmenu_info_popup_expand"
-name = "Item Pop-Up (More Uses)"
-description = '''
-The game's UI has a feature where it can display an info pop-up in the bottom-left of screen upon collecting an item.
-
-In the unpatched December 2000 Prototype this pop-up only appears when collecting Kyte's Grubs. This mod option expands the pool of items to include the following items (more can be added over time, as more of the game is decompiled):
-
-- Blue Mushrooms
-- White Mushrooms
-- Purple Mushroom Spores
-'''
-type = "Enum"
-options = [ "Off", "On" ]
-default = "On"
-
-[[manifest.config_options]]
-id = "cmdmenu_sidekick_meter_hide_red"
-name = "Sidekick Meter (Hide Red Food)"
-description = '''
-In the unpatched December 2000 Prototype the sidekicks' food meter always shows hard-coded food quantities: 3 blue and 3 red.
-
-Dinomod Enhanced connects up the sidekicks' actual food counts to the meters, letting you see Tricky's blue energy decreasing as he digs at certain spots (note that not all dig spots have an energy cost assigned).
-
-It's not possible to increase the sidekick's red food count however, since there's no Red Mushroom inventory item. If you'd like to only see the sidekick's blue food count and exclude red food from the meter, this config option can be enabled.
-'''
-type = "Enum"
-options = [ "Off", "On" ]
-default = "On"
-
-[[manifest.config_options]]
-id = "cmdmenu_sidekick_meter_show_over_food"
-name = "Sidekick Meter (While Food Selected)"
-description = '''
-By default the sidekick food meter shows up while browsing the Sidekick inventory page, when the sidekick's food energy changes, or when the sidekick loads.
-
-This config option allows the meter to also show up while relevant food items are highlighted in the Items inventory! This lets you check how full Tricky is while feeding him a Blue Mushroom directly from your Items (as opposed to from a sidekick food bag).
-'''
-type = "Enum"
-options = [ "Off", "On" ]
-default = "On"
 
 [[manifest.config_options]]
 id = "shmushroom_dance_chance"
