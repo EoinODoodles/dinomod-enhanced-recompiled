@@ -15,11 +15,7 @@
 #include "mod_common.h"
 #include "common_objsetups.h"
 #include "object_util.h"
-
-typedef enum {
-    GAMETEXT_VANILLA,
-    GAMETEXT_COSMETIC,
-} GametextFlavor;
+#include "configs.h"
 
 INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
 

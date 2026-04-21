@@ -1,6 +1,7 @@
 #include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
+#include "configs.h"
 
 #include "PR/os.h"
 #include "common.h"
@@ -724,12 +725,6 @@ RECOMP_PATCH int cmdmenu_was_this_item_used(s32 itemGamebitID) {
     }
     return FALSE;
 }
-
-enum {
-    DPAD_OFF,
-    DPAD_ON_CBUTTONS_ON,
-    DPAD_ON_CBUTTONS_OFF
-} CmdmenuDPadModes;
 
 #define ALL_MENUOPEN_C_BUTTONS (L_CBUTTONS | R_CBUTTONS | D_CBUTTONS)
 #define ALL_MENUOPEN_D_PAD (L_JPAD | R_JPAD | D_JPAD)

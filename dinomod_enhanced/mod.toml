@@ -293,3 +293,17 @@ step = 1
 precision = 0
 percent = false
 default = 10
+
+[[manifest.config_options]]
+id = "rolling_demo"
+name = "Rolling Demo"
+description = '''
+The unpatched December 2000 Prototype skips to the Game Select screen after the Rareware logo screen, bypassing the Rolling Demo sequence.
+
+This config option restores the Rolling Demo sequence (many thanks to nuggs!)
+
+Alternatively, "Boot to Game Select" can be used as a convenience when modding the game.
+'''
+type = "Enum"
+options = [ "Off", "On", "Boot to Game Select" ]
+default = "On"
