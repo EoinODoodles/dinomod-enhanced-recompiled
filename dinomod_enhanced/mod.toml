@@ -163,20 +163,55 @@ options = [ "Old (variant A)", "Old (variant B)", "New" ]
 default = "Old (variant B)"
 
 [[manifest.config_options]]
-id = "shmushroom_dance_chance"
-name = "Mushroom Dance Chance"
+id = "cmdmenu_new_controls"
+name = "Inventory (New Controls)"
 description = '''
-Blue/White Mushrooms have an unseen dance animation. To offer a way of seeing it, this slider lets you control the probability of mushrooms starting to dance during their idle state!
+In the unpatched prototype you can only scroll down through an inventory page, which can make it easy to accidentally overshoot the desired item. 
 
-Setting it to 0% will prevent this behaviour completely, if preferred.
+This option revamps the controls for the C-button inventory, adding a way to scroll up as well as down!
+
+As before, when the inventory is closed: 
+- C-left opens Spells
+- C-down opens Sidekick Commands
+- C-right opens Items
+
+What's different is, once the inventory is open:
+- C-down moves down the page
+- C-up moves up the page
+- C-left switches to the previous page
+- C-right switches to the next page 
+
+(Switching to the next page works like: Items>Sidekick, Sidekick>Spells, Spells>Items, etc.)
+
+The new controls also let you hold C-up or C-down to scroll continuously through the inventory, without having to tap repeatedly.
+
+The separate "Inventory (D-Pad Controls)" config can be used in conjunction with the new controls!
 '''
-type = "Number"
-min = 0
-max = 100
-step = 1
-precision = 0
-percent = false
-default = 10
+type = "Enum"
+options = [ "Off", "On" ]
+default = "Off"
+
+[[manifest.config_options]]
+id = "cmdmenu_d_controls"
+name = "Inventory (D-Pad Controls)"
+description = '''
+This lets you navigate the inventory using the D-pad! Here are the modes:
+
+- Off
+ Only the C-buttons navigate the inventory.
+
+- On (D-Pad & C-Buttons)
+ Both the D-pad and C-buttons can be used to navigate.
+
+- On (D-Pad Only)
+ Only the D-pad navigates, freeing up the C-buttons.
+
+NOTE:
+This D-pad config can be used with or without "Inventory (New Controls)".
+'''
+type = "Enum"
+options = [ "Off", "On (D-Pad & C-Buttons)", "On (D-Pad Only)" ]
+default = "Off"
 
 [[manifest.config_options]]
 id = "cmdmenu_info_popup_fix"
@@ -233,3 +268,19 @@ This config option allows the meter to also show up while relevant food items ar
 type = "Enum"
 options = [ "Off", "On" ]
 default = "On"
+
+[[manifest.config_options]]
+id = "shmushroom_dance_chance"
+name = "Mushroom Dance Chance"
+description = '''
+Blue/White Mushrooms have an unseen dance animation. To offer a way of seeing it, this slider lets you control the probability (in percent) of mushrooms starting to dance during their idle state!
+
+Setting it to 0% will prevent this behaviour completely, if preferred.
+'''
+type = "Number"
+min = 0
+max = 100
+step = 1
+precision = 0
+percent = false
+default = 10
