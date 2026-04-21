@@ -1,10 +1,10 @@
-#include "player_util.h"
-#include "dll.h"
-#include "dlls/engine/18_objfsa.h"
 #include "recomputils.h"
+#include "player_util.h"
 
 #include "game/objects/object_id.h"
 #include "sys/objects.h"
+#include "dll.h"
+#include "dlls/engine/18_objfsa.h"
 #include "dlls/objects/210_player.h"
 
 #include "recomp/dlls/objects/210_player_recomp.h"
@@ -68,4 +68,26 @@ int playerUtil_is_player_standing_or_walking(Object* player){
     return (fsa->animState == PLAYER_ASTATE_Standing || 
             fsa->animState == PLAYER_ASTATE_Turning_On_Spot || 
             fsa->animState == PLAYER_ASTATE_Walking);
+}
+
+/**
+  * Clear references to a specific collected Object.
+  */
+void playerUtil_clear_collected_object(Object* player, Object* collected) {
+    Player_Data* objData;
+
+    if (player == NULL || collected == NULL) {
+        return;
+    }
+
+    objData = player->data;
+    if (objData == NULL) {
+        return;
+    }
+
+    //Clear references to a specific collected Object
+    if (objData->unk708 == collected) {
+        objData->unk708 = NULL;
+        objData->unk8A9 = FALSE;
+    }
 }
