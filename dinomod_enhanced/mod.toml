@@ -10,7 +10,7 @@ version = "0.8.0"
 authors = [ "Banjeoin", "jeebs2kx", "LaminGaming", "MusicalProgrammer", "Shinx121", "nuggs" ]
 
 game_id = "dino-planet"
-minimum_recomp_version = "0.2.0"
+minimum_recomp_version = "0.3.0"
 
 dependencies = [
     
