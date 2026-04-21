@@ -16,11 +16,7 @@
 #include "common_objsetups.h"
 #include "object_util.h"
 #include "custom_uids.h"
-
-typedef enum {
-    GAMETEXT_VANILLA,
-    GAMETEXT_COSMETIC,
-} GametextFlavor;
+#include "configs.h"
 
 #define INCFST(fileID, filename, ext) \
     INCBIN(fst_assets_##filename##_##ext, "assets/" #filename "."#ext); \

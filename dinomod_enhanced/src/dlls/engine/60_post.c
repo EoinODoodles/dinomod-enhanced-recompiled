@@ -1,10 +1,12 @@
 #include "modding.h"
 #include "recompconfig.h"
+#include "configs.h"
 
 #include "PR/gbi.h"
 #include "PR/ultratypes.h"
 #include "PR/os.h"
 #include "game/objects/object.h"
+#include "game/gamebits.h"
 #include "sys/fonts.h"
 #include "sys/gfx/texture.h"
 #include "sys/main.h"
@@ -34,6 +36,14 @@ extern Texture *sTexDolbyBig;
 extern Texture *sTexDolbySmall;
 
 static char dinomod_enhanced_message[] = "(Dinomod Enhanced: Recompiled - v0.8.0)";
+
+RECOMP_PATCH void dll_60_update2(void) {
+    if (recomp_get_config_u32("rolling_demo") == BOOTCONFIG_Skip_to_Game_Select) {
+        main_set_bits(BIT_44F, 0);
+        gDLL_29_Gplay->vtbl->load_game_options();
+        menu_set(MENU_GAME_SELECT);
+    }
+}
 
 // Repositions the N64 and text (originally by MusicalProgrammer)
 RECOMP_PATCH void dll_60_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
