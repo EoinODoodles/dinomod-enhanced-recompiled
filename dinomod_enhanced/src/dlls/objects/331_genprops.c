@@ -84,6 +84,8 @@ extern u16 _data_4[];
 
 extern s32 dll_331_func_1D34(Object* self, Object* animObj, AnimObj_Data* animObjData, s32 arg3);
 
+#define PLATFORM_DEBUG FALSE
+
 //WMPlatform params         //patched values    //unpatched values        
 #define platformStartX      13219.537           //34022.0f
 #define platformStartY      -34.524             //457.0f
@@ -422,13 +424,15 @@ static void WMPlatform_control_custom(Object* self){
     }
 
     //Debug print player's coords in objectSpace, and other details
-    diPrintf("local coords:\nx: %d\ny: %d\nz: %d\n", (s32)localCoords.x, (s32)localCoords.y, (s32)localCoords.z);
-    diPrintf("playerOnPlatform: %d\n", playerOnPlatform);
-    diPrintf("timer: %d\n", (s32)objData->timer);
-    diPrintf("state: %d\n", state);
-    diPrintf("soundHandleHum: %d\n", objData->soundHandleHum);
-    diPrintf("t_value: %3d%s\n", (s32)(objData->tValue*100.0f), "%");
-    diPrintf("speed: %d\n", (s32)objData->speed);
+    if (PLATFORM_DEBUG) {
+        diPrintf("local coords:\nx: %d\ny: %d\nz: %d\n", (s32)localCoords.x, (s32)localCoords.y, (s32)localCoords.z);
+        diPrintf("playerOnPlatform: %d\n", playerOnPlatform);
+        diPrintf("timer: %d\n", (s32)objData->timer);
+        diPrintf("state: %d\n", state);
+        diPrintf("soundHandleHum: %d\n", objData->soundHandleHum);
+        diPrintf("t_value: %3d%s\n", (s32)(objData->tValue*100.0f), "%");
+        diPrintf("speed: %d\n\n", (s32)objData->speed);
+    }
 
     //State Machine
     switch (state){
