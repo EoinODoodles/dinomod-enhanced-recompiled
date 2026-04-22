@@ -62,9 +62,9 @@ static void recomp_log_strings(u16 fileID, GameTextChunk *gametext){
         return;
     }
 
-    recomp_eprintf("GAMETEXT_%0d (language: %s)\n", fileID, LANGUAGE_NAMES[sCurrentBankIndex]);
+    recomp_printf("GAMETEXT_%0d (language: %s)\n", fileID, LANGUAGE_NAMES[sCurrentBankIndex]);
     for (index = 0; index < gametext->count; index++){
-        recomp_eprintf("#%0d) %s\n", index, gametext->strings[index]);
+        recomp_printf("#%0d) %s\n", index, gametext->strings[index]);
     }
 }
 PRAGMA_IGNORE_POP()
@@ -135,7 +135,7 @@ static void recomp_replace_substring(char* originalString, char* searchSubstring
     
     matchPosition = substringPtr - originalString;
     remainderPtr = substringPtr + searchLength;
-    recomp_eprintf("Substring '%s' at index %d in string '%s'\n", searchSubstring, matchPosition, originalString);
+    recomp_printf("Substring '%s' at index %d in string '%s'\n", searchSubstring, matchPosition, originalString);
 
     bcopy(originalString, destination, matchPosition);
     bcopy(replacement, destination + matchPosition, replacementLength);

@@ -152,7 +152,7 @@ RECOMP_PATCH u32 dll_6_play_sound(Object* obj, u16 soundID, u8 volume, u32* soun
     ALBank *bank = _bss_0->bankArray[0];
 
     //@recomp: intercept sound calls and edit as needed
-    //recomp_eprintf("AMSFX: play sound #%d (%s)\n", soundID, soundEntry.unk0 & 0x8000 ? "MP3" : "WAV");
+    //recomp_printf("AMSFX: play sound #%d (%s)\n", soundID, soundEntry.unk0 & 0x8000 ? "MP3" : "WAV");
     recomp_intercept_soundIDs(soundID, &soundDef, &bank);
 
     //Bail if sound's clipID is 0

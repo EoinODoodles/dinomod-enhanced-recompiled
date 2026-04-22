@@ -503,7 +503,7 @@ static void WMPlatform_control_custom(Object* self){
         objData->tValue += 0.001f * objData->speed * gUpdateRateF;
         tValue_clamped = (objData->tValue < 0.0f) ? 0.0f : ((objData->tValue > 1.0f) ? 1.0f : objData->tValue);
         tValue_eased = easeInOutSine(tValue_clamped);
-        // recomp_eprintf("t_value: %f\nt_value_eased: %f\n", tValue_clamped, tValue_eased);
+        // recomp_printf("t_value: %f\nt_value_eased: %f\n", tValue_clamped, tValue_eased);
         calculateLerp(self, tValue_eased, &lerpP, &lerpYaw);
 
         //Calculate the position/rotation deltas (for updating player transform)

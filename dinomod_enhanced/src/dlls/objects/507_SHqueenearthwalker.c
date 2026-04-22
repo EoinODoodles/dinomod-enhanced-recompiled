@@ -57,22 +57,22 @@ static void handle_mushroom_gamebit_contradictions(){
 
     //Handle contradictions
     if (mushroomsCollected != (mushroomsHeld + mushroomsGiven)){
-        recomp_eprintf("Contradiction found (White Mushrooms)!\n");
-        recomp_eprintf("Total collected: %d\n", mushroomsCollected);
-        recomp_eprintf("Total held: %d\n", mushroomsHeld);
-        recomp_eprintf("Total given: %d\n", mushroomsGiven);
-        recomp_eprintf("...fixing:\n");
+        recomp_printf("Contradiction found (White Mushrooms)!\n");
+        recomp_printf("Total collected: %d\n", mushroomsCollected);
+        recomp_printf("Total held: %d\n", mushroomsHeld);
+        recomp_printf("Total given: %d\n", mushroomsGiven);
+        recomp_printf("...fixing:\n");
 
         main_set_bits(BIT_Inventory_White_Mushrooms, mushroomsCollected - mushroomsGiven);
         main_set_bits(BIT_SH_Queen_EW_White_Mushrooms_Eaten, mushroomsGiven);
 
-        recomp_eprintf("Total collected: %d\n", mushroomsCollected);
-        recomp_eprintf("Total held: %d\n", mushroomsCollected - mushroomsGiven);
-        recomp_eprintf("Total given: %d\n", mushroomsGiven);
+        recomp_printf("Total collected: %d\n", mushroomsCollected);
+        recomp_printf("Total held: %d\n", mushroomsCollected - mushroomsGiven);
+        recomp_printf("Total given: %d\n", mushroomsGiven);
         return;
     }
 
-    recomp_eprintf("No contradictions found for White Mushrooms!\n");
+    recomp_printf("No contradictions found for White Mushrooms!\n");
 }
 
 RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
@@ -105,7 +105,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
             //@recomp: when inventory opened, handle White Mushroom contradictions
             if (gDLL_1_cmdmenu->vtbl->get_page_category() == CMDMENU_CATEGORY_3_Items){
                 if (!objdata->wasMenuOpen){
-                    recomp_eprintf("CHECKING MUSHROOMS!\n");
+                    recomp_printf("CHECKING MUSHROOMS!\n");
                     handle_mushroom_gamebit_contradictions();
                 }
                 objdata->wasMenuOpen = TRUE;

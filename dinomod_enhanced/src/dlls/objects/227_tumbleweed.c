@@ -22,8 +22,6 @@ extern int Tumbleweed_did_player_lift_twig(Object* self);
 void tumbleweed_set_silent_delete(Object* self, int enable){
     Tumbleweed_Data_Extended* objData;
 
-    recomp_eprintf("SETTING SILENT DELETE ON TUMBLEWEED!\n");
-
     if (!self){
         return;
     }

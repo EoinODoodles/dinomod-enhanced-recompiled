@@ -151,8 +151,6 @@ static void add_to_inventory(Object* self, SHmushroom_Data_Extended* objData, SH
 	Object* dinoFoodBag;
 	s32 count;
 
-	recomp_eprintf("ADDING TO INVENTORY: %s\n", (self->def ? self->def->name : ""));
-
 	//Set this mushroom's collection gamebit, so it won't reappear
 	if (objSetup->gamebitCollected != NO_GAMEBIT) {
 		main_set_bits(objSetup->gamebitCollected, TRUE);
@@ -164,19 +162,13 @@ static void add_to_inventory(Object* self, SHmushroom_Data_Extended* objData, SH
 		//If the player has a sidekick foodbag, store Blue Mushrooms there
 		if (dinoFoodBag && ((DLL_315_SideFoodbag*)dinoFoodBag->dll)->vtbl->is_obtained(dinoFoodBag)) {
 			((DLL_315_SideFoodbag*)dinoFoodBag->dll)->vtbl->collect_food(dinoFoodBag, SIDEFOOD_Blue_Mushrooms);
-
-			recomp_eprintf("Blue Mushroom: added to sidekick food bag.\n");
 		//Otherwise store Blue Mushrooms directly in the inventory
 		} else {
 			count = main_increment_bits(objData->gamebitInventory);
-
-			recomp_eprintf("Blue Mushroom: added directly to inventory (not in food bag)! (%d)\n", count);
 		}
 	} else {
 		//Other mushroom types (White Mushrooms) are always stored directly in the inventory
 		count = main_increment_bits(objData->gamebitInventory);
-
-		recomp_eprintf("White Mushroom: added to inventory! (%d)\n", count);
 	}
 
 	//Optionally show an item collection pop-up
@@ -342,7 +334,6 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 		//@recomp: wait for player message, but only use it to delete the mushroom
 		while (obj_recv_mesg(self, &outMesgID, NULL, NULL)) {
 			if (outMesgID == 0x7000B) {
-				DEBUG_MUSHROOM && recomp_eprintf("Message received!\n");
 				objData->flags &= ~SHmushroom_FLAG_Message_Sent_to_Player;
 				break;
 			}

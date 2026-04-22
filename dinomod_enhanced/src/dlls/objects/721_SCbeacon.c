@@ -22,6 +22,8 @@
 #include "recomp/dlls/objects/227_tumbleweed_recomp.h"
 #include "recomp/dlls/objects/721_SC_beacon_recomp.h"
 
+#define DEBUG_BEACON FALSE
+
 typedef struct {
     u8 state;
     u8 flags;                   //Tracks twigs being added to bowl, and LightAction use (when lit)
@@ -121,9 +123,11 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
     objSetup = (SCbeacon_Setup*)self->setup;
     player = get_player();
 
-    diPrintf("soundHandleBurn1: %d\n", objData->soundHandleBurn1);
-    diPrintf("soundHandleBurn2: %d\n", objData->soundHandleBurn2);
-    
+    if (DEBUG_BEACON) {
+        diPrintf("soundHandleBurn1: %d\n", objData->soundHandleBurn1);
+        diPrintf("soundHandleBurn2: %d\n", objData->soundHandleBurn2);
+    }
+
     playerDistSQ = vec3_distance_xz_squared(&player->globalPosition, &self->globalPosition);
     interactRangeSQ = SQ(objSetup->playerRange);
     playerIsNearby = (playerDistSQ <= interactRangeSQ);
@@ -183,7 +187,7 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
                 objData->destroyTumbleweed = TRUE;
                 tumbleweed_set_silent_delete(objData->heldTumbleweed, TRUE);
                 tumbleweed_stop_being_carried(objData->heldTumbleweed);
-                recomp_eprintf("PLACING: setting up silent delete!\n");
+                DEBUG_BEACON && recomp_printf("PLACING: setting up silent delete!\n");
 
                 //Play deposit sequence
                 gDLL_3_Animation->vtbl->func17(objData->seqIdxPlaceTwigs, self, -1);
@@ -193,15 +197,15 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
     case SCbeacon_STATE_Twigs_in_Bowl:
         //@recomp: destroy the Tumbleweed that was being held
         if (objData->destroyTumbleweed) {
-            recomp_eprintf("IN BOWL: destroyTumbleweed? %d\n", objData->destroyTumbleweed);
+            DEBUG_BEACON && recomp_printf("IN BOWL: destroyTumbleweed? %d\n", objData->destroyTumbleweed);
 
             if (objData->heldTumbleweed && !(objData->heldTumbleweed->unkB0 & 0x40)){
-                recomp_eprintf("IN BOWL: deleting Tumbleweed!\n");
+                DEBUG_BEACON && recomp_printf("IN BOWL: deleting Tumbleweed!\n");
                 obj_destroy_object(objData->heldTumbleweed);
             }
             objData->destroyTumbleweed = FALSE;
 
-            recomp_eprintf("IN BOWL: stop player carry!\n");
+            DEBUG_BEACON && recomp_printf("IN BOWL: stop player carry!\n");
             playerUtil_stop_carrying(player);
         }
 

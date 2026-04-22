@@ -32,6 +32,7 @@
 #include "engine/59_minimap.h"
 
 #define DEBUG_INVENTORY_SCROLLING FALSE
+#define DEBUG_SIDEKICK_METER FALSE
 
 #define MAX_LOADED_ITEMS 64
 #define MAX_OPACITY 0xFF
@@ -652,7 +653,7 @@ static int sidekick_meter_handle_full(int isBlueEnergy, s8 energyAdded) {
         statToDecrease = &dinoStats->blueFood;
     }
 
-    recomp_eprintf("\nBLUE: %d\tRED: %d (Before)\n", dinoStats->blueFood, dinoStats->redFood);
+    DEBUG_SIDEKICK_METER && recomp_printf("\nBLUE: %d\tRED: %d (Before)\n", dinoStats->blueFood, dinoStats->redFood);
 
     //Only showing Blue energy (ignoring Red energy)
     if (recomp_get_config_u32("cmdmenu_sidekick_meter_hide_red")) {
@@ -690,7 +691,7 @@ static int sidekick_meter_handle_full(int isBlueEnergy, s8 energyAdded) {
         }
     }
 
-    recomp_eprintf("BLUE: %d\tRED: %d (After)\n", dinoStats->blueFood, dinoStats->redFood);
+    DEBUG_SIDEKICK_METER && recomp_printf("BLUE: %d\tRED: %d (After)\n", dinoStats->blueFood, dinoStats->redFood);
 
     return returnValue;
 }
