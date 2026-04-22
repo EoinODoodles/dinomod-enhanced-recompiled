@@ -118,9 +118,11 @@ static void func_1D04C_hijack(Object *self, s32 a1) {
     player_func_1D04C(self, a1);
 }
 
+#define DEBUG_MESSAGES FALSE
+
 /** Fix Ice Blast / Grenade Spell selection (originally by MusicalProgrammer) */
 RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Data* fsa) {
-    Object* sp8C;
+    Object* outSender;
     s32 messageArgument;
     f32 temp_fv0;
     u32 message;
@@ -129,7 +131,7 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
     s32 camDLLID;
 
     messageArgument = NULL;
-    while (obj_recv_mesg(player, &message, &sp8C, (void **)&messageArgument)) {
+    while (obj_recv_mesg(player, &message, &outSender, (void **)&messageArgument)) {
         switch (message) {
         case 0x80002:
             if (messageArgument == BIT_Spell_Projectile || 
@@ -155,15 +157,15 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
             dll_210_func_6DD8(player, arg1, messageArgument);
             break;
         case 0xE0000:
-            if (sp8C == fsa->target) {
+            if (outSender == fsa->target) {
                 fsa->target = 0;
                 fsa->unk33D = 0;
                 gDLL_2_Camera->vtbl->set_target_object(NULL);
             }
             break;
         case 0x60003:
-            var_fs0 = sp8C->srt.transl.x - player->srt.transl.x;
-            var_fs1 = sp8C->srt.transl.z - player->srt.transl.z;
+            var_fs0 = outSender->srt.transl.x - player->srt.transl.x;
+            var_fs1 = outSender->srt.transl.z - player->srt.transl.z;
             temp_fv0 = sqrtf(SQ(var_fs0) + SQ(var_fs1));
             if (temp_fv0 > 1.0f) {
                 var_fs0 /= temp_fv0;
@@ -180,8 +182,8 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
             }
             break;
         case 0x60004:
-            var_fs0 = sp8C->srt.transl.x - player->srt.transl.x;
-            var_fs1 = sp8C->srt.transl.z - player->srt.transl.z;
+            var_fs0 = outSender->srt.transl.x - player->srt.transl.x;
+            var_fs1 = outSender->srt.transl.z - player->srt.transl.z;
             temp_fv0 = sqrtf((var_fs0 * var_fs0) + (var_fs1 * var_fs1));
             if (temp_fv0 > 1.0f) {
                 var_fs0 /= temp_fv0;
@@ -198,8 +200,8 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
             }
             break;
         case 0x60005:
-            var_fs0 = sp8C->srt.transl.x - player->srt.transl.x;
-            var_fs1 = sp8C->srt.transl.z - player->srt.transl.z;
+            var_fs0 = outSender->srt.transl.x - player->srt.transl.x;
+            var_fs1 = outSender->srt.transl.z - player->srt.transl.z;
             temp_fv0 = sqrtf((var_fs0 * var_fs0) + (var_fs1 * var_fs1));
             if (temp_fv0 > 1.0f) {
                 var_fs0 /= temp_fv0;
@@ -218,22 +220,53 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
             }
             break;
         case 0x7000A:
+            if (DEBUG_MESSAGES && outSender && outSender->def) {
+                recomp_eprintf("Message received from %s!\n", outSender->def->name);
+            }
+
             if (messageArgument > 0) {
                 if (main_get_bits(messageArgument) != 0) {
-                    obj_send_mesg(sp8C, 0x7000BU, player, NULL);
+                    obj_send_mesg(outSender, 0x7000B, player, (void*)FALSE);
                     if (fsa->animState != PLAYER_ASTATE_Collecting) {
                         gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, PLAYER_ASTATE_Collecting);
                     }
+                    if (DEBUG_MESSAGES && outSender && outSender->def) {
+                        recomp_eprintf("Reply sent to %s! Tutorial seen.\n", outSender->def->name);
+                    }
                 } else {
-                    main_set_bits(messageArgument, 1U);
+                    main_set_bits(messageArgument, 1);
                     if (fsa->animState != PLAYER_ASTATE_42) {
                         gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, PLAYER_ASTATE_42);
+                    }
+
+                    //@recomp: send a reply (with different mesgArg) when tutorial hasn't been seen
+                    if (outSender) {
+                        switch (outSender->id) {
+                        case OBJ_SHbluemushroom:
+                            obj_send_mesg(outSender, 0x7000B, player, (void*)TRUE);
+                            if (DEBUG_MESSAGES && outSender->def) {
+                                recomp_eprintf("Reply sent to %s! Tutorial not seen.\n", outSender->def->name);
+                            }
+                            break;
+                        }
                     }
                 }
             } else if (fsa->animState != PLAYER_ASTATE_42) {
                 gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, PLAYER_ASTATE_42);
+
+                //@recomp: send a reply (with different mesgArg) when there's no tutorial gamebit
+                if (outSender) {
+                    switch (outSender->id) {
+                    case OBJ_SHbluemushroom:
+                        obj_send_mesg(outSender, 0x7000B, player, (void*)2);
+                        if (DEBUG_MESSAGES && outSender->def) {
+                            recomp_eprintf("Reply sent to %s! No tutorial gamebit.\n", outSender->def->name);
+                        }
+                        break;
+                    }
+                }
             }
-            arg1->unk708 = sp8C;
+            arg1->unk708 = outSender;
             arg1->unk70C = messageArgument & 0xFFFF;
             if (arg1->unk708->shadow != NULL) {
                 arg1->unk708->shadow->flags = OBJ_SHADOW_FLAG_20000;
@@ -243,7 +276,7 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
         case 0x100008:
             arg1->unk870 = 1;
             if (arg1->unk868 == NULL) {
-                arg1->unk868 = sp8C;
+                arg1->unk868 = outSender;
                 arg1->unk86C = (messageArgument >> 0x10) / 10.0f;
                 gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, PLAYER_ASTATE_Picking_Up);
                 arg1->unk8A9 = 1;
@@ -252,7 +285,7 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
         case 0x100010:
             arg1->unk870 = 1;
             if (arg1->unk868 == NULL) {
-                arg1->unk868 = sp8C;
+                arg1->unk868 = outSender;
                 arg1->unk86C = messageArgument >> 0x10;
                 gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, PLAYER_ASTATE_Picking_Up);
                 arg1->unk8A9 = 1;

@@ -107,8 +107,10 @@ typedef struct {
 };
 
 #define SHmushroom_FLAG_Delete_after_Setup 0x20
+#define SHmushroom_FLAG_Message_Sent_to_Player 0x40
 #define SHmushroom_STATE_10_Dance 10 //@recomp: custom idle state
 #define MUSHROOM_SNEAK_THRESHOLD 0.54f
+#define DEBUG_MUSHROOM FALSE
 
 extern s16 dStateModAnimIDs[];
 extern f32 dStateAnimSpeeds[];
@@ -254,7 +256,7 @@ RECOMP_PATCH void SHmushroom_setup(Object* self, SHmushroom_Setup* setup, s32 ar
 	objData->hopSpeed += 20.0f;
 
 	//Set up message queue
-	// obj_init_mesg_queue(self, 1); //@recomp: not needed, since inventory incremented immediately
+	obj_init_mesg_queue(self, 1);
 
 	//Optionally set the mushroom to follow curves (only affects specific mushrooms)
 	if ((setup->index == 4) || //White Mushroom around lily pond in SwapStone Hollow well
@@ -322,42 +324,30 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 	player = get_player();
 	sidekick = get_sidekick();
 
-	//@recomp: remove player message handling (inventory incremented immediately instead)
-	/*
-	if (objData->state == SHmushroom_STATE_8_Hidden) {
-
-		// Increment the player's inventory count when a message is received
-		while (obj_recv_mesg(self, &outMesgID, NULL, NULL)) {
-			if (outMesgID == 0x7000B) {
-				if (self->modelInstIdx == SHmushroom_MODEL_0_Blue_Mushroom) {
-					dinoFoodBag = ((DLL_210_Player*)player->dll)->vtbl->func66(player, 16);
-
-					//If the player has a sidekick foodbag, store Blue Mushrooms there
-					if (((DLL_315_SideFoodbag*)dinoFoodBag->dll)->vtbl->is_obtained(dinoFoodBag)) {
-						((DLL_315_SideFoodbag*)dinoFoodBag->dll)->vtbl->collect_food(dinoFoodBag, SIDEFOOD_Blue_Mushrooms);
-
-					//Otherwise store Blue Mushrooms directly in the inventory
-					} else {
-						main_increment_bits(objData->gamebitInventory);
-					}
-				} else {
-					//Other mushroom types (White Mushrooms) are always stored directly in the inventory
-					main_increment_bits(objData->gamebitInventory);
-				}
-			}
-		}
-		return;
+	if (DEBUG_MUSHROOM) {
+		diPrintf("\nSTATE: %d\n", objData->state);
+		diPrintf("FLAGS: %02x\n", objData->flags);
+		diPrintf("TIMER: %d\n", objData->expireTimer);
 	}
-	*/
 
 	//@recomp: do nothing else when hidden (fixes bug where Find command appears near invisible mushrooms)
 	if ((self->srt.flags & OBJFLAG_INVISIBLE) || (objData->state == SHmushroom_STATE_8_Hidden)) {
 		//@recomp: delete self after being hidden for a while
 		objData->expireTimer += gUpdateRate;
-		if (objData->expireTimer >= 500) {
+		if ((objData->expireTimer >= 500) && ((objData->flags & SHmushroom_FLAG_Message_Sent_to_Player) == FALSE)) {
 			playerUtil_clear_collected_object(player, self);
 			obj_destroy_object(self);
 		}
+
+		//@recomp: wait for player message, but only use it to delete the mushroom
+		while (obj_recv_mesg(self, &outMesgID, NULL, NULL)) {
+			if (outMesgID == 0x7000B) {
+				DEBUG_MUSHROOM && recomp_eprintf("Message received!\n");
+				objData->flags &= ~SHmushroom_FLAG_Message_Sent_to_Player;
+				break;
+			}
+		}
+
 		return;
 	}
 
@@ -393,7 +383,6 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 			func_800267A4(self);
 
 			playerUtil_clear_collected_object(player, self);
-			obj_destroy_object(self); //@recomp: remove self
 		} else {
 			objData->flags |= SHmushroom_FLAG_Hurt;
 		}
@@ -737,13 +726,9 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 			self,
 			(void*)(s32)objData->tutorialGamebit
 		);
+		objData->flags |= SHmushroom_FLAG_Message_Sent_to_Player;
 
 		add_to_inventory(self, objData, objSetup, player, (tutorialSeen == TRUE));
-
-		if (tutorialSeen) {
-			playerUtil_clear_collected_object(player, self);
-			obj_destroy_object(self);
-		}
 
 		self->unkAF |= ARROW_FLAG_8_No_Targetting;
 
