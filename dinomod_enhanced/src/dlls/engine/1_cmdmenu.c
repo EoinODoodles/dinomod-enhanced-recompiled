@@ -1761,9 +1761,15 @@ RECOMP_PATCH void cmdmenu_draw_main(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             cmdmenu_gfx_set_screen_scissor(gdl);
         }
 
+        //@recomp: draw top/bottom of the scroll here instead
+        if (dInventoryOpacity != 0) {
+            rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
+            rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], MENU_SCROLL_X, MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY, 255, 255, 255, dInventoryOpacity);
+        }
+
         //Get page icon (Bag/SpellBook/Kyte/Tricky)
         if (dInventoryShow || 
-            dInventoryOpacity == MAX_OPACITY || 
+            dInventoryOpacity > 0 || //@recomp: stop sidekick icon appearing halfway through fading out bag/book icon 
             (dInventoryOpacity != 0 && dOpacitySidekickMeter == 0)
         ) {
             switch (sInventoryPageID) {
@@ -2092,11 +2098,15 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
 
     dl = *gdl;
 
-    //Draw the top/bottom of the inventory scroll
-    if (dInventoryOpacity != 0) {
-        rcp_tile_write(&dl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
-        rcp_tile_write(&dl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], MENU_SCROLL_X, MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY, 255, 255, 255, dInventoryOpacity);
-    }
+    //Draw the top/bottom of the inventory scroll (@recomp: drawn with the rest of the inventory instead)
+    // if (dInventoryOpacity != 0) {
+    //     rcp_tile_write(&dl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
+    //     rcp_tile_write(&dl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], MENU_SCROLL_X, MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY, 255, 255, 255, dInventoryOpacity);
+    // }
+
+    //@recomp: fix flashing inventory issue
+    gDPSetCombineMode(dl, G_CC_MODULATEIA_PRIM, G_CC_MODULATEIA_PRIM);
+    dl_apply_combine(&dl);
 
     //Draw the sidekick food meter
     if (sidekick != NULL) {
