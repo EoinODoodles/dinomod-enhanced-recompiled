@@ -1769,7 +1769,7 @@ RECOMP_PATCH void cmdmenu_draw_main(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
 
         //Get page icon (Bag/SpellBook/Kyte/Tricky)
         if (dInventoryShow || 
-            dInventoryOpacity > 0 || //@recomp
+            dInventoryOpacity == MAX_OPACITY || 
             (dInventoryOpacity != 0 && dOpacitySidekickMeter == 0)
         ) {
             switch (sInventoryPageID) {
@@ -1805,6 +1805,7 @@ RECOMP_PATCH void cmdmenu_draw_main(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             }
         } else {
             //Show sidekick's icon when the sidekick meter should be visible
+            //@bug: can suddenly switch to sidekick icon halfway through fading out from bag/book
             if (dOpacitySidekickMeter != 0) {
                 pageIcon = CMDMENU_TEX_42_Tricky;
                 if (sidekick != NULL && sidekick->id == OBJ_Kyte) {
