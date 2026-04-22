@@ -27,14 +27,14 @@ typedef struct {
 extern ObjFSA_StateCallback sAnimStateCallbacks[6];
 extern ObjFSA_StateCallback sLogicStateCallbacks[6];
 
-extern void dll_243_func_11C0(Object *self, Baddie *arg1, ObjFSA_Data *fsa);
+extern void dll_243_func_11C0(Object *self, Baddie *baddie, ObjFSA_Data *fsa);
 
 RECOMP_PATCH void dll_243_func_C44(Object *self, Baddie *baddie, ObjFSA_Data *fsa) {
     Lunaimar_ActualData *objdata;
     Object *sidekick;
     Vec3f delta;
     f32 sidekickDistance;
-    TextureAnimator* texAnimator;
+    TextureAnimator *texAnimator;
 
     objdata = (Lunaimar_ActualData*)baddie->objdata;
     sidekick = get_sidekick();
@@ -49,10 +49,9 @@ RECOMP_PATCH void dll_243_func_C44(Object *self, Baddie *baddie, ObjFSA_Data *fs
         delta.f[2] = sidekick->globalPosition.z - self->globalPosition.z;
         sidekickDistance = sqrtf(SQ(delta.f[0]) + SQ(delta.f[1]) + SQ(delta.f[2]));
     }
-
-    if ((sidekick != NULL) && 
-        ((DLL_ISidekick*)sidekick->dll)->vtbl->func24(sidekick) && 
-        (sidekickDistance < (f32) baddie->unk3E2)
+    if (sidekick != NULL && 
+        ((DLL_ISidekick*)sidekick->dll)->vtbl->func24(sidekick) != 0 && 
+        (sidekickDistance < baddie->unk3E2)
     ) {
         baddie->unk3B2 |= 4;
     } else {

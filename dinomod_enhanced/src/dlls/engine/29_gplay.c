@@ -15,9 +15,13 @@ extern u16 sMapObjGroupBitKeys[];
 extern GplayOptions *sGameOptions;
 
 /** Modifies the flagIDs used to track maps' objectGroup load states (originally by MusicalProgrammer) */
-RECOMP_HOOK_DLL(gplay_ctor) void gplay_patch_map_object_group_flags() {
-    sMapObjGroupBitKeys[MAP_EARTHWALKER_TEMPLE] = BIT_WC_ObjGroup_Bits; //Shares Walled City's gamebit
-    sMapObjGroupBitKeys[MAP_BOSS_KAMERIAN_DRAGON] = BIT_DR_Bottom_ObjGroup_Bits; //Shares the same gamebit as the rest of Dragon Rock (Bottom)
+RECOMP_HOOK_DLL(gplay_start_game) void gplay_patch_map_object_group_flags() {
+    static _Bool patched = FALSE;
+    if (!patched) {
+        patched = TRUE;
+        sMapObjGroupBitKeys[MAP_EARTHWALKER_TEMPLE] = BIT_WC_ObjGroup_Bits; //Shares Walled City's gamebit
+        sMapObjGroupBitKeys[MAP_BOSS_KAMERIAN_DRAGON] = BIT_DR_Bottom_ObjGroup_Bits; //Shares the same gamebit as the rest of Dragon Rock (Bottom)
+    }
 }
 
 /** Checks if the Scarab collection cutscene has already played, and if so unlocks the Scarab UI
