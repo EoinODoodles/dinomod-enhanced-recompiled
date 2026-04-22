@@ -2287,11 +2287,15 @@ void cmdmenu_info_draw_custom(Gfx** gdl, CmdmenuInfoPopup* box) {
         return;
     }
 
+    if (!box || !box->texture) {
+        return;
+    }
+
     //@recomp: do nothing if the minimap is still visible
     if (minimap_get_opacity() > 0) {
         return;
     }
-
+    
     //@recomp: hide if the tutorial textbox is visible
     if ((dTutorialBoxOpacity > 0) && (box->timer > 30.0f)) {
         box->timer = 30.0f;
@@ -2371,9 +2375,11 @@ void cmdmenu_info_draw_custom(Gfx** gdl, CmdmenuInfoPopup* box) {
     );
 
     //Draw item count (NOTE: can't draw values under 2 or over 10, because no icons provided)
-    if (box->count > 1) {
+    if ((box->count > 1)) {
         sTempIcon->tex = sInventoryStackNumbersTex;
-        sTempIcon->animProgress = (box->count - 2) << 8;
+
+        //@recomp: don't try to draw beyond 10, since it'll crash
+        sTempIcon->animProgress = (MIN(8, box->count - 2)) << 8; 
         rcp_tile_write(gdl, sTempIcon, 
             POPUP_FIX_COUNT_X, //@recomp: different coord
             POPUP_FIX_COUNT_Y, //@recomp: different coord
@@ -2398,6 +2404,11 @@ RECOMP_PATCH void cmdmenu_info_draw(Gfx** gdl, CmdmenuInfoPopup* box) {
     //@recomp: use the fixed-up info pop-up instead, if wanted
     if (recomp_get_config_u32("cmdmenu_info_popup_fix")) {
         return cmdmenu_info_draw_custom(gdl, box);
+    }
+
+    //@recomp: null checks
+    if (!box || !box->texture) {
+        return;
     }
 
     //Do nothing after item's timer finished
@@ -2473,7 +2484,9 @@ RECOMP_PATCH void cmdmenu_info_draw(Gfx** gdl, CmdmenuInfoPopup* box) {
     //Draw item count (NOTE: can't draw values under 2 or over 10, because no icons provided)
     if (box->count > 1) {
         sTempIcon->tex = sInventoryStackNumbersTex;
-        sTempIcon->animProgress = (box->count - 2) << 8;
+        
+        //@recomp: don't try to draw beyond 10, since it'll crash
+        sTempIcon->animProgress = (MIN(8, box->count - 2)) << 8; 
         rcp_tile_write(gdl, sTempIcon, 
             INFO_POPUP_QUANTITY_X, 
             INFO_POPUP_QUANTITY_Y, 
