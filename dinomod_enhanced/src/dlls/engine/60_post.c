@@ -6,6 +6,7 @@
 #include "PR/ultratypes.h"
 #include "PR/os.h"
 #include "game/objects/object.h"
+#include "game/gamebits.h"
 #include "sys/fonts.h"
 #include "sys/gfx/texture.h"
 #include "sys/main.h"
@@ -36,8 +37,11 @@ extern Texture *sTexDolbySmall;
 
 static char dinomod_enhanced_message[] = "(Dinomod Enhanced: Recompiled - v0.8.0)";
 
+/** Option to skip directly to Game Select on boot-up (to speed up testing things when working on mods) */
 RECOMP_PATCH void dll_60_update2(void) {
     if (recomp_get_config_u32("rolling_demo") == BOOTCONFIG_Skip_to_Game_Select) {
+        main_set_bits(BIT_44F, 0);
+        gDLL_29_Gplay->vtbl->load_game_options();
         menu_set(MENU_GAME_SELECT);
     }
 }

@@ -730,7 +730,7 @@ RECOMP_PATCH int cmdmenu_was_this_item_used(s32 itemGamebitID) {
 #define ALL_MENUOPEN_D_PAD (L_JPAD | R_JPAD | D_JPAD)
 
 int cmdmenu_new_get_previous_category(Object* player, Object* sidekick, s8* rMoveToCategory, s8* rMoveToPage) {
-    s8 pageSidekick = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Tricky : CMDMENU_PAGE_7_Sidekick_Kyte; //TODO: sync with decomp update fixing the mislabel
+    s8 pageSidekick = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
     s8 pageItems = player->id == OBJ_Krystal ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
 
     switch (dPageCategory) {
@@ -776,7 +776,7 @@ int cmdmenu_new_get_previous_category(Object* player, Object* sidekick, s8* rMov
 }
 
 int cmdmenu_new_get_next_category(Object* player, Object* sidekick, s8* rMoveToCategory, s8* rMoveToPage) {
-    s8 pageSidekick = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Tricky : CMDMENU_PAGE_7_Sidekick_Kyte; //TODO: sync with decomp update fixing the mislabel
+    s8 pageSidekick = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
     s8 pageItems = player->id == OBJ_Krystal ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
 
     switch (dPageCategory) {
@@ -881,7 +881,7 @@ RECOMP_PATCH void cmdmenu_update2(void) {
     if (rNewControls == FALSE) {
         if ((sJoyPressedButtons & rMenuDown) && (sidekick != NULL) && (dPageCategory != CMDMENU_CATEGORY_2_Sidekick)) {
             //C-down: Sidekick Commands
-            newPageIndex = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Tricky : CMDMENU_PAGE_7_Sidekick_Kyte;
+            newPageIndex = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[newPageIndex].items, TRUE)) {
                 joy_set_button_mask(0, rMenuDown);
                 dNextPageCategory = CMDMENU_CATEGORY_2_Sidekick;
@@ -927,7 +927,7 @@ RECOMP_PATCH void cmdmenu_update2(void) {
         if ((!rIsInventoryOpen) && (sJoyPressedButtons & rMenuDown) && (sidekick != NULL) && (dPageCategory != CMDMENU_CATEGORY_2_Sidekick)
         ) {
             //C-down while Closed: Open on Sidekick Commands
-            newPageIndex = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Tricky : CMDMENU_PAGE_7_Sidekick_Kyte;
+            newPageIndex = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[newPageIndex].items, TRUE)) {
                 joy_set_button_mask(0, rMenuDown);
                 dNextPageCategory = CMDMENU_CATEGORY_2_Sidekick;
@@ -1000,8 +1000,8 @@ RECOMP_PATCH void cmdmenu_update2(void) {
             cmdmenu_open_inventory();
 
             //Sidekick command pages always open on index 0 (unlike other pages which remember last selection)
-            dCmdmenuPages[CMDMENU_PAGE_7_Sidekick_Kyte].selectedIndex = 0;
-            dCmdmenuPages[CMDMENU_PAGE_8_Sidekick_Tricky].selectedIndex = 0;
+            dCmdmenuPages[CMDMENU_PAGE_7_Sidekick_Tricky].selectedIndex = 0;
+            dCmdmenuPages[CMDMENU_PAGE_8_Sidekick_Kyte].selectedIndex = 0;
 
             dPageCategory = dNextPageCategory;
             sJoyPressedButtons = 0;
@@ -1227,8 +1227,8 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
     }
 
     //Check if the current page is a sidekick command page
-    if ((sInventoryPageID == CMDMENU_PAGE_7_Sidekick_Kyte) || 
-        (sInventoryPageID == CMDMENU_PAGE_8_Sidekick_Tricky)
+    if ((sInventoryPageID == CMDMENU_PAGE_7_Sidekick_Tricky) || 
+        (sInventoryPageID == CMDMENU_PAGE_8_Sidekick_Kyte)
     ) {
         isSidekickMenu = TRUE;
     }
@@ -1769,15 +1769,15 @@ RECOMP_PATCH void cmdmenu_draw_main(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
 
         //Get page icon (Bag/SpellBook/Kyte/Tricky)
         if (dInventoryShow || 
-            dInventoryOpacity > 0 || //@recomp
+            dInventoryOpacity == MAX_OPACITY || 
             (dInventoryOpacity != 0 && dOpacitySidekickMeter == 0)
         ) {
             switch (sInventoryPageID) {
-            case CMDMENU_PAGE_7_Sidekick_Kyte:
+            case CMDMENU_PAGE_7_Sidekick_Tricky:
                 pageIcon = CMDMENU_TEX_42_Tricky;
                 offsetY = 3;
                 break;
-            case CMDMENU_PAGE_8_Sidekick_Tricky:
+            case CMDMENU_PAGE_8_Sidekick_Kyte:
                 pageIcon = CMDMENU_TEX_54_Kyte;
                 break;
             case CMDMENU_PAGE_6_Spells:
@@ -1805,6 +1805,7 @@ RECOMP_PATCH void cmdmenu_draw_main(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             }
         } else {
             //Show sidekick's icon when the sidekick meter should be visible
+            //@bug: can suddenly switch to sidekick icon halfway through fading out from bag/book
             if (dOpacitySidekickMeter != 0) {
                 pageIcon = CMDMENU_TEX_42_Tricky;
                 if (sidekick != NULL && sidekick->id == OBJ_Kyte) {
@@ -1998,7 +1999,7 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
 
                 //Check if Sidekick Commands are available
                 if (sidekick != NULL) {
-                    pageIdx = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Tricky : CMDMENU_PAGE_7_Sidekick_Kyte;
+                    pageIdx = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
                     if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageIdx].items, TRUE) != 0) {
                         cIconFlags |= CIcon_FLAG_Have_Sidekick_Commands;
                     }
@@ -2110,7 +2111,7 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
     if (sidekick != NULL) {
 
         //Handle the meter's opacity
-        if (((sInventoryPageID == CMDMENU_PAGE_7_Sidekick_Kyte || sInventoryPageID == CMDMENU_PAGE_8_Sidekick_Tricky) && dInventoryOpacity) || 
+        if (((sInventoryPageID == CMDMENU_PAGE_7_Sidekick_Tricky || sInventoryPageID == CMDMENU_PAGE_8_Sidekick_Kyte) && dInventoryOpacity) || 
             (sStatsChangeTimers.sidekickBlueFood >= 0.0f) ||
             cmdmenu_should_sidekick_meter_appear_over_food_items(sidekick) //@recomp: optionally show meter while relevant food selected on Items page
         ) {
