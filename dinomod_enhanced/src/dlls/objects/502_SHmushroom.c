@@ -162,7 +162,7 @@ static void add_to_inventory(Object* self, SHmushroom_Data_Extended* objData, SH
 		dinoFoodBag = ((DLL_210_Player*)player->dll)->vtbl->func66(player, 16);
 
 		//If the player has a sidekick foodbag, store Blue Mushrooms there
-		if (((DLL_315_SideFoodbag*)dinoFoodBag->dll)->vtbl->is_obtained(dinoFoodBag)) {
+		if (dinoFoodBag && ((DLL_315_SideFoodbag*)dinoFoodBag->dll)->vtbl->is_obtained(dinoFoodBag)) {
 			((DLL_315_SideFoodbag*)dinoFoodBag->dll)->vtbl->collect_food(dinoFoodBag, SIDEFOOD_Blue_Mushrooms);
 
 			recomp_eprintf("Blue Mushroom: added to sidekick food bag.\n");
