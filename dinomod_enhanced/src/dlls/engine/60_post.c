@@ -37,6 +37,7 @@ extern Texture *sTexDolbySmall;
 
 static char dinomod_enhanced_message[] = "(Dinomod Enhanced: Recompiled - v0.8.0)";
 
+/** Option to skip directly to Game Select on boot-up (to speed up testing things when working on mods) */
 RECOMP_PATCH void dll_60_update2(void) {
     if (recomp_get_config_u32("rolling_demo") == BOOTCONFIG_Skip_to_Game_Select) {
         main_set_bits(BIT_44F, 0);
