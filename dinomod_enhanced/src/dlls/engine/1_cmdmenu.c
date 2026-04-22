@@ -5,11 +5,14 @@
 
 #include "PR/os.h"
 #include "common.h"
+#include "gbi_extra.h"
 #include "game/gamebits.h"
+#include "game/gametexts.h"
 #include "game/gametexts_ui.h"
 #include "game/objects/interaction_arrow.h"
 #include "game/objects/inventory_items.h"
 #include "game/objects/object_id.h"
+#include "sys/fonts.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
 #include "sys/objects.h"
@@ -1489,6 +1492,275 @@ RECOMP_PATCH void cmdmenu_inventory_animate(void) {
     }
 }
 
+/** Fix display list desync bug */
+RECOMP_PATCH void cmdmenu_draw_info_scroll(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
+    s32 x;
+    s32 y;
+    s32 halfWidth;
+    s32 height;
+    s32 tempY;
+    s32 lineIdx;
+    Gfx* dl;
+
+    if (dInfoScrollOpacity == 0) {
+        return;
+    }
+
+    dl = *gdl;
+
+    gDPSetCombineMode(dl, G_CC_MODULATEIA_PRIM, G_CC_MODULATEIA_PRIM);
+    dl_apply_combine(&dl);
+    gDPSetOtherMode(dl,
+        G_AD_PATTERN | G_CD_MAGICSQ | G_CK_NONE | G_TC_FILT | G_TF_POINT | G_TT_NONE | G_TL_TILE | G_TD_CLAMP | G_TP_NONE | G_CYC_1CYCLE | G_PM_NPRIMITIVE, 
+        G_AC_NONE | G_ZS_PIXEL | G_RM_XLU_SURF | G_RM_XLU_SURF2);
+    dl_apply_other_mode(&dl);
+    gSPLoadGeometryMode(dl, G_SHADE | G_SHADING_SMOOTH);
+    dl_apply_geometry_mode(&dl);
+    dl_set_prim_color(&dl, 255, 255, 255, dInfoScrollOpacity);
+
+    //Get dimensions (note: coords multiplied by 4 for gSPTextureRectangle)
+    x = dInfoScrollX << 2;
+    halfWidth = dInfoScrollWidthHalf << 2;
+    halfWidth -= INFO_SCROLL_PAGE_EDGE_WIDTH << 2; //Subtract the page's edge margin
+    y = dInfoScrollY << 2;
+    height = sInfoScrollUnrollY << 2;
+
+    //Draw main paper background
+    {
+        //Middle section (excluding the paper's left/right edges)
+        cmdmenu_gfx_set_texture(&dl, sTextures[CMDMENU_TEX_06_InfoScroll_BG], 0);
+        gSPTextureRectangle(dl++, 
+            /*ulx*/ x - halfWidth,
+            /*uly*/ y,
+            /*lrx*/ x + halfWidth,
+            /*lry*/ y + height,
+            /*tile*/ G_TX_RENDERTILE,
+            /*s*/ qs105(0), /*t*/ qs105(0), 
+            /*dsdx*/ qs510(1), /*dtdy*/ qs510(1)
+        );
+        gDLBuilder->needsPipeSync = TRUE;
+
+        //Left edge of paper
+        cmdmenu_gfx_set_texture(&dl, sTextures[CMDMENU_TEX_05_InfoScroll_Side], 0);
+        gSPTextureRectangle(dl++, 
+            /*lrx*/ x - halfWidth - (INFO_SCROLL_PAGE_EDGE_WIDTH << 2),
+            /*lry*/ y,
+            /*ulx*/ x - halfWidth,
+            /*uly*/ y + height,
+            /*tile*/ G_TX_RENDERTILE,
+            /*s*/ qs105(0), /*t*/ qs105(0), 
+            /*dsdx*/ qs510(1), /*dtdy*/ qs510(1)
+        );
+        gDLBuilder->needsPipeSync = TRUE;
+
+        //Right edge of paper
+        gSPTextureRectangle(dl++, 
+            /*ulx*/ x + halfWidth,
+            /*uly*/ y,
+            /*lrx*/ x + halfWidth + (INFO_SCROLL_PAGE_EDGE_WIDTH << 2),
+            /*lry*/ y + height,
+            /*tile*/ G_TX_RENDERTILE,
+            /*s*/ qs105(15), /*t*/ qs105(0),
+            /*dsdx*/ qs510(-1), /*dtdy*/ qs510(1)
+        );
+        gDLBuilder->needsPipeSync = TRUE;
+
+        halfWidth += (INFO_SCROLL_PAGE_EDGE_WIDTH << 2); //restore half-width
+    }
+
+    //Draw the top/bottom rolls' page shadows
+    if (sInfoScrollUnrollY > INFO_SCROLL_PAGE_SHADOW_HEIGHT) {
+        cmdmenu_gfx_set_texture(&dl, sTextures[CMDMENU_TEX_07_InfoScroll_SelfShadow], 0);
+        dl_set_prim_color(&dl, 255, 128, 128, 128);
+        
+        //Top shadow
+        tempY = y;
+        gSPTextureRectangle(dl++, 
+            /*ulx*/ x - halfWidth,
+            /*uly*/ tempY,
+            /*lrx*/ x + halfWidth,
+            /*lry*/ tempY + (INFO_SCROLL_PAGE_SHADOW_HEIGHT << 2),
+            /*tile*/ G_TX_RENDERTILE,
+            /*s*/ qs105(0), /*t*/ qs105(7), 
+            /*dsdx*/ qs510(1), /*dtdy*/ qs510(-1)
+        );
+        gDLBuilder->needsPipeSync = TRUE;
+
+        //Bottom shadow
+        tempY = y + height - ((INFO_SCROLL_PAGE_SHADOW_HEIGHT - 2) << 2);
+        gSPTextureRectangle(dl++, 
+            /*ulx*/ x - halfWidth,
+            /*uly*/ tempY,
+            /*lrx*/ x + halfWidth,
+            /*lry*/ tempY + (INFO_SCROLL_PAGE_SHADOW_HEIGHT << 2),
+            /*tile*/ G_TX_RENDERTILE,
+            /*s*/ qs105(0), /*t*/ qs105(0), 
+            /*dsdx*/ qs510(1), /*dtdy*/ qs510(1)
+        );
+        gDLBuilder->needsPipeSync = TRUE;
+
+        //Restore prim colour
+        dl_set_prim_color(&dl, 255, 255, 255, dInfoScrollOpacity);
+    }
+
+    //Draw the top/bottom rolls
+    {
+        //Top roll (middle span)
+        {
+            tempY = y - (INFO_SCROLL_ROLL_TOP_Y_OFFSET << 2);
+            cmdmenu_gfx_set_texture(
+                &dl,
+                sTextures[CMDMENU_TEX_04_InfoScroll_Roll], 
+                dInfoScrollFrameTop //Unused/scrapped rolling animation (always set to frame 0)
+            );
+            gSPTextureRectangle(dl++, 
+                /*ulx*/ x - halfWidth,
+                /*uly*/ tempY,
+                /*lrx*/ x + halfWidth,
+                /*lry*/ tempY + (INFO_SCROLL_ROLL_HEIGHT << 2),
+                /*tile*/ G_TX_RENDERTILE,
+                /*s*/ qs105(0), /*t*/ qs105(15.9688), 
+                /*dsdx*/ qs510(1), /*dtdy*/ qs510(-1)
+            );
+            gDLBuilder->needsPipeSync = TRUE;
+        }
+
+        //Bottom roll (middle span)
+        {
+            tempY = y + height - (INFO_SCROLL_ROLL_BOTTOM_Y_OFFSET << 2);
+            cmdmenu_gfx_set_texture(&dl, sTextures[CMDMENU_TEX_04_InfoScroll_Roll], dInfoScrollFrameBottom);
+            gSPTextureRectangle(dl++, 
+                /*ulx*/ x - halfWidth,
+                /*uly*/ tempY,
+                /*lrx*/ x + halfWidth,
+                /*lry*/ tempY + (INFO_SCROLL_ROLL_HEIGHT << 2),
+                /*tile*/ G_TX_RENDERTILE,
+                /*s*/ qs105(0), /*t*/ qs105(15.9688), 
+                /*dsdx*/ qs510(1), /*dtdy*/ qs510(-1)
+            );
+            gDLBuilder->needsPipeSync = TRUE;
+        }
+
+        //Roll handles
+        {
+            cmdmenu_gfx_set_texture(
+                &dl, 
+                sTextures[CMDMENU_TEX_03_InfoScroll_Roll_End], 
+                0
+            );
+            
+            //Top roll handle (left)
+            tempY = y - (INFO_SCROLL_ROLL_TOP_Y_OFFSET << 2);
+            gSPTextureRectangle(dl++, 
+                /*ulx*/ x - halfWidth - (INFO_SCROLL_HANDLE_WIDTH << 2),
+                /*uly*/ tempY,
+                /*lrx*/ x - halfWidth,
+                /*lry*/ tempY + (INFO_SCROLL_HANDLE_HEIGHT << 2),
+                /*tile*/ G_TX_RENDERTILE,
+                /*s*/ qs105(0), /*t*/ qs105(15.9688), 
+                /*dsdx*/ qs510(1), /*dtdy*/ qs510(-1)
+            );
+            gDLBuilder->needsPipeSync = TRUE;
+
+            //Top roll handle (right)
+            gSPTextureRectangle(dl++, 
+                /*ulx*/ x + halfWidth,
+                /*uly*/ tempY,
+                /*lrx*/ x + halfWidth + (INFO_SCROLL_HANDLE_WIDTH << 2),
+                /*lry*/ tempY + (INFO_SCROLL_HANDLE_HEIGHT << 2),
+                /*tile*/ G_TX_RENDERTILE,
+                /*s*/ qs105(15), /*t*/ qs105(15.9688), 
+                /*dsdx*/ qs510(-1), /*dtdy*/ qs510(-1)
+            );
+            gDLBuilder->needsPipeSync = TRUE;
+
+            //Bottom roll handle (left)
+            tempY = y + height - (INFO_SCROLL_ROLL_BOTTOM_Y_OFFSET << 2);
+            gSPTextureRectangle(dl++, 
+                /*ulx*/ x - halfWidth - (INFO_SCROLL_HANDLE_WIDTH << 2),
+                /*uly*/ tempY,
+                /*lrx*/ x - halfWidth,
+                /*lry*/ tempY + (INFO_SCROLL_HANDLE_HEIGHT << 2),
+                /*tile*/ G_TX_RENDERTILE,
+                /*s*/ qs105(0), /*t*/ qs105(15.9688), 
+                /*dsdx*/ qs510(1), /*dtdy*/ qs510(-1)
+            );
+            gDLBuilder->needsPipeSync = TRUE;
+
+            //Bottom roll handle (right)
+            gSPTextureRectangle(dl++, 
+                /*ulx*/ x + halfWidth,
+                /*uly*/ tempY,
+                /*lrx*/ x + halfWidth + (INFO_SCROLL_HANDLE_WIDTH << 2),
+                /*lry*/ tempY + (INFO_SCROLL_HANDLE_HEIGHT << 2),
+                /*tile*/ G_TX_RENDERTILE,
+                /*s*/ qs105(15), /*t*/ qs105(15.9688), 
+                /*dsdx*/ qs510(-1), /*dtdy*/ qs510(-1)
+            );
+            gDLBuilder->needsPipeSync = TRUE;
+        }
+    }
+
+    //Restore prim colour
+    dl_set_prim_color(&dl, 255, 255, 255, 255);
+
+    //Return early if there's no gametext
+    if (dInfoScrollTextID <= NO_GAMETEXT) {
+        *gdl = dl; //@bug: fix display list desync bug
+        return;
+    }
+
+    //Get the gametext lines
+    if (dInfoScrollStrings[0] == NULL) {
+        //Get the item's string (use a different gametext file for textIDs beyond 255) 
+        dInfoScrollStrings[0] = dInfoScrollTextID >= 256 
+            ? gDLL_21_Gametext->vtbl->get_text(GAMETEXT_238_UI_Text_2, dInfoScrollTextID - 256) 
+            : gDLL_21_Gametext->vtbl->get_text(GAMETEXT_003_UI_Text_1, dInfoScrollTextID);
+        dInfoScrollStrings[1] = NULL;
+        dInfoScrollStrings[2] = NULL;
+        dInfoScrollStrings[3] = NULL;
+
+        //Check for bar delimiter in text (separates lines)
+        for (x = 0, lineIdx = 1; dInfoScrollStrings[0][x] != '\0'; x++) {
+            if (dInfoScrollStrings[0][x] == '|') {
+                dInfoScrollStrings[0][x] = '\0';
+                x += 2; //ROM's text should have space after bar ("| "), so skipping over it
+                
+                dInfoScrollStrings[lineIdx] = &dInfoScrollStrings[0][x]; //store address of new line
+                lineIdx++;
+            }            
+        }
+    }
+
+    //Draw text if the scroll's open
+    if (sInfoScrollUnrollY > 0) {
+        font_window_set_coords(3, 
+            /*x1*/ dInfoScrollX - dInfoScrollWidthHalf, 
+            /*y1*/ dInfoScrollY, 
+            /*x2*/ dInfoScrollX + dInfoScrollWidthHalf, 
+            /*y2*/ dInfoScrollY + sInfoScrollUnrollY);
+        font_window_use_font(3, FONT_DINO_SUBTITLE_FONT_1);
+        font_window_set_bg_colour(3, 0, 0, 0, 0);
+        font_window_flush_strings(3);
+        font_window_set_text_colour(3, 0, 0, 255, 255, 255);
+
+        //Print the text lines
+        for (y = INFO_SCROLL_TEXT_Y, lineIdx = 0; lineIdx <= 3; lineIdx++) {
+            if (dInfoScrollStrings[lineIdx] == NULL) {
+                break;
+            }
+            font_window_add_string_xy(3, -0x8000, y, dInfoScrollStrings[lineIdx], 1, ALIGN_TOP_CENTER);
+            font_window_set_text_colour(3, 20, 20, 20, 255, 255);
+            font_window_use_font(3, FONT_DINO_SUBTITLE_FONT_1);
+            y += INFO_SCROLL_LINE_HEIGHT;
+        }
+
+        font_window_draw(&dl, mtxs, vtxs, 3);
+    }
+
+    *gdl = dl;
+}
+
 /** Fix sidekick icon appearing half-way through fading out from exiting Items/Spells page */
 RECOMP_PATCH void cmdmenu_draw_main(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     s16 commandTexTableID;
@@ -2484,7 +2756,7 @@ RECOMP_PATCH void cmdmenu_info_draw(Gfx** gdl, CmdmenuInfoPopup* box) {
     //Draw item count (NOTE: can't draw values under 2 or over 10, because no icons provided)
     if (box->count > 1) {
         sTempIcon->tex = sInventoryStackNumbersTex;
-        
+
         //@recomp: don't try to draw beyond 10, since it'll crash
         sTempIcon->animProgress = (MIN(8, box->count - 2)) << 8; 
         rcp_tile_write(gdl, sTempIcon, 
