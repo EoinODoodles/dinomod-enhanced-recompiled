@@ -1761,12 +1761,6 @@ RECOMP_PATCH void cmdmenu_draw_main(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             cmdmenu_gfx_set_screen_scissor(gdl);
         }
 
-        //@recomp: draw top/bottom of the scroll here (so it appears on top of the rest of the inventory scroll)
-        if (dInventoryOpacity != 0) {
-            rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
-            rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], MENU_SCROLL_X, MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY, 255, 255, 255, dInventoryOpacity);
-        }
-
         //Get page icon (Bag/SpellBook/Kyte/Tricky)
         if (dInventoryShow || 
             dInventoryOpacity == MAX_OPACITY || 
@@ -2099,13 +2093,10 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
     dl = *gdl;
 
     //Draw the top/bottom of the inventory scroll
-    //@recomp: move to inventory drawing function, so it draws above the rest of the scroll
-    /* 
     if (dInventoryOpacity != 0) {
         rcp_tile_write(&dl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
         rcp_tile_write(&dl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], MENU_SCROLL_X, MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY, 255, 255, 255, dInventoryOpacity);
     }
-    */
 
     //Draw the sidekick food meter
     if (sidekick != NULL) {
