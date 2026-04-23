@@ -39,6 +39,8 @@ typedef enum {
 #define MENU_TRANSITION_THRESHOLD 12
 #define MENU_TRANSITION_DURATION 35
 
+extern s32 D_8008C890;
+
 extern PicMenuItem pressStartItem[];
 extern PicMenuItem mainMenuItems[];
 extern s16 gametextLineIndices[];
@@ -218,10 +220,23 @@ RECOMP_PATCH void mainmenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
         font_window_set_coords(1, 0, 0, GET_VIDEO_WIDTH(vi_get_current_size()), GET_VIDEO_HEIGHT(vi_get_current_size()));
         font_window_flush_strings(1);
         gDLL_74_Picmenu->vtbl->draw(gfx);
+        
         //@recomp: use the showDPLogo flag to actually show the DP logo
         if (main_demo_finished() || showDPLogo) {
+            //@rom-patch: centre logo in widescreen
+            #if DINOMOD_ROM_PATCH
+                if (D_8008C890) { 
+                    //Widescreen aspect
+                    rcp_screen_full_write(gfx, logoDinosaurPlanet, 71, 50, 0, 0, 0xFF, 0);
+                } else { 
+                    //Standard aspect
+                    rcp_screen_full_write(gfx, logoDinosaurPlanet, 50, 50, 0, 0, 0xFF, 0);
+                }
+            #else
             rcp_screen_full_write(gfx, logoDinosaurPlanet, 50, 50, 0, 0, 0xFF, 0);
+            #endif
         }
+
         font_window_draw(gfx, NULL, NULL, 1);
     }
 }
