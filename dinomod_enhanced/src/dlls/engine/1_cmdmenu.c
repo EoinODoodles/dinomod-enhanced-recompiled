@@ -1,7 +1,9 @@
+#include "configs.h"
+#include "dll_util.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
-#include "configs.h"
+#include "rt64_extended_gbi.h"
 
 #include "PR/os.h"
 #include "common.h"
@@ -737,53 +739,13 @@ RECOMP_PATCH int cmdmenu_was_this_item_used(s32 itemGamebitID) {
 #define ALL_MENUOPEN_C_BUTTONS (L_CBUTTONS | R_CBUTTONS | D_CBUTTONS)
 #define ALL_MENUOPEN_D_PAD (L_JPAD | R_JPAD | D_JPAD)
 
-int cmdmenu_new_get_previous_category(Object* player, Object* sidekick, s8* rMoveToCategory, s8* rMoveToPage) {
-    s8 pageSidekick = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
-    s8 pageItems = player->id == OBJ_Krystal ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
-
-    switch (dPageCategory) {
-    case CMDMENU_CATEGORY_3_Items:
-        if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageSidekick].items, TRUE) && sidekick) {
-            *rMoveToCategory = CMDMENU_CATEGORY_2_Sidekick;
-            *rMoveToPage = pageSidekick;
-            return 1;
-        }
-        if (cmdmenu_page_count_shown_items(dCmdmenuPages[CMDMENU_PAGE_6_Spells].items, FALSE)) {
-            *rMoveToCategory = CMDMENU_CATEGORY_4_Spells;
-            *rMoveToPage = CMDMENU_PAGE_6_Spells;
-            return 1;
-        }
-        break;
-    case CMDMENU_CATEGORY_2_Sidekick:
-        if (cmdmenu_page_count_shown_items(dCmdmenuPages[CMDMENU_PAGE_6_Spells].items, FALSE)) {
-            *rMoveToCategory = CMDMENU_CATEGORY_4_Spells;
-            *rMoveToPage = CMDMENU_PAGE_6_Spells;
-            return 1;
-        }
-        if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageItems].items, FALSE)) {
-            *rMoveToCategory = CMDMENU_CATEGORY_3_Items;
-            *rMoveToPage = pageItems;
-            return 1;
-        }
-        break;
-    case CMDMENU_CATEGORY_4_Spells:
-        if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageItems].items, FALSE)) {
-            *rMoveToCategory = CMDMENU_CATEGORY_3_Items;
-            *rMoveToPage = pageItems;
-            return 1;
-        }
-        if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageSidekick].items, TRUE) && sidekick) {
-            *rMoveToCategory = CMDMENU_CATEGORY_2_Sidekick;
-            *rMoveToPage = pageSidekick;
-            return 1;
-        }
-        break;
-    }
-    
-    return 0;
-}
-
-int cmdmenu_new_get_next_category(Object* player, Object* sidekick, s8* rMoveToCategory, s8* rMoveToPage) {
+/**
+  * For inventory's New Controls mode: gets next available page category to the left of the current page.
+  * (e.g. Items -> Sidekick, Sidekick -> Spells, Spells -> Items)
+  *
+  * A category is skipped if it's unavailable (i.e. no items to show, or sidekick missing)
+  */
+s8 cmdmenu_new_get_next_category_left(Object* player, Object* sidekick, s8* rMoveToCategory, s8* rMoveToPage) {
     s8 pageSidekick = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
     s8 pageItems = player->id == OBJ_Krystal ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
 
@@ -829,7 +791,66 @@ int cmdmenu_new_get_next_category(Object* player, Object* sidekick, s8* rMoveToC
     return 0;
 }
 
-/** Add optional D-pad controls (either alongside C-button controls, or replacing C-button controls) */
+/**
+  * For inventory's New Controls mode: gets next available page category to the right of the current page.
+  * (e.g. Spells -> Sidekick, Sidekick -> Items, Items -> Spells)
+  *
+  * A category is skipped if it's unavailable (i.e. no items to show, or sidekick missing)
+  */
+s8 cmdmenu_new_get_next_category_right(Object* player, Object* sidekick, s8* rMoveToCategory, s8* rMoveToPage) {
+    s8 pageSidekick = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
+    s8 pageItems = player->id == OBJ_Krystal ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
+
+    switch (dPageCategory) {
+    case CMDMENU_CATEGORY_3_Items:
+        if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageSidekick].items, TRUE) && sidekick) {
+            *rMoveToCategory = CMDMENU_CATEGORY_2_Sidekick;
+            *rMoveToPage = pageSidekick;
+            return 1;
+        }
+        if (cmdmenu_page_count_shown_items(dCmdmenuPages[CMDMENU_PAGE_6_Spells].items, FALSE)) {
+            *rMoveToCategory = CMDMENU_CATEGORY_4_Spells;
+            *rMoveToPage = CMDMENU_PAGE_6_Spells;
+            return 1;
+        }
+        break;
+    case CMDMENU_CATEGORY_2_Sidekick:
+        if (cmdmenu_page_count_shown_items(dCmdmenuPages[CMDMENU_PAGE_6_Spells].items, FALSE)) {
+            *rMoveToCategory = CMDMENU_CATEGORY_4_Spells;
+            *rMoveToPage = CMDMENU_PAGE_6_Spells;
+            return 1;
+        }
+        if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageItems].items, FALSE)) {
+            *rMoveToCategory = CMDMENU_CATEGORY_3_Items;
+            *rMoveToPage = pageItems;
+            return 1;
+        }
+        break;
+    case CMDMENU_CATEGORY_4_Spells:
+        if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageItems].items, FALSE)) {
+            *rMoveToCategory = CMDMENU_CATEGORY_3_Items;
+            *rMoveToPage = pageItems;
+            return 1;
+        }
+        if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageSidekick].items, TRUE) && sidekick) {
+            *rMoveToCategory = CMDMENU_CATEGORY_2_Sidekick;
+            *rMoveToPage = pageSidekick;
+            return 1;
+        }
+        break;
+    }
+    
+    return 0;
+}
+
+/** 
+  * - Add optional D-pad controls (either alongside C-button controls, or replacing C-button controls)
+  *
+  * - Add optional New Controls mode: 
+  *   C-left/down/right opens inventory to Spells/Sidekick/Items as before.
+  *   But when the inventory is open, C-left/right go to previous/next page category.
+  *   This frees up C-down/up so they can be used to scroll down OR up through the page's items.
+  */
 RECOMP_PATCH void cmdmenu_update2(void) {
     Object* player;
     Object* sidekick;
@@ -956,12 +977,12 @@ RECOMP_PATCH void cmdmenu_update2(void) {
                 dNextPageCategory = CMDMENU_CATEGORY_4_Spells;
                 sInventoryPageID = CMDMENU_PAGE_6_Spells;
             }
-        } else if (rIsInventoryOpen && (sJoyPressedButtons & rMenuLeft) && cmdmenu_new_get_previous_category(player, sidekick, &rMoveToCategory, &rMoveToPage)) {
+        } else if (rIsInventoryOpen && (sJoyPressedButtons & rMenuLeft) && cmdmenu_new_get_next_category_right(player, sidekick, &rMoveToCategory, &rMoveToPage)) {
             //C-left while Open: go to previous category
             joy_set_button_mask(0, rMenuLeft);
             dNextPageCategory = rMoveToCategory;
             sInventoryPageID = rMoveToPage;
-        } else if (rIsInventoryOpen && (sJoyPressedButtons & rMenuRight) && cmdmenu_new_get_next_category(player, sidekick, &rMoveToCategory, &rMoveToPage)) {
+        } else if (rIsInventoryOpen && (sJoyPressedButtons & rMenuRight) && cmdmenu_new_get_next_category_left(player, sidekick, &rMoveToCategory, &rMoveToPage)) {
             //C-right while Open: go to next category
             joy_set_button_mask(0, rMenuRight);
             dNextPageCategory = rMoveToCategory;
@@ -1089,13 +1110,20 @@ RECOMP_PATCH void cmdmenu_update2(void) {
 #define NEW_CONTROLS_CONTINUOUS_SCROLL_REPEAT 20
 
 /**
-  * Fix a visual "pop" when scrolling through inventory items:
+  * - Fix a visual "pop" when scrolling through inventory items:
   *
-  * The item icon strip would jump too far (especially when wrapping from top-to-bottom),
-  * causing a visual judder and occasionally exposing an empty gap at the top of the icon strip.
+  *   The item icon strip would jump too far (especially when wrapping from top-to-bottom),
+  *   causing a visual judder and occasionally exposing an empty gap at the top of the icon strip.
   *
-  * Rare seem to have accidentally used the tiles' width instead of height to calculate the jump size 
-  * (possibly leftover from the horizontally-scrolling design) - changing it to the height fixes it!
+  *   Rare seem to have accidentally used the tiles' width instead of height to calculate the jump size 
+  *   (possibly leftover from the horizontally-scrolling design) - changing it to the height fixes it!
+  *
+  * - Add optional New Controls mode: 
+  *   C-down/up let you scroll down OR up through the page's items, 
+  *   instead of only being able to scroll down with the page's particular C button.
+  *
+  *   New Controls also lets you hold C-down/up to scroll continuously through your items, 
+  *   without having to tap repeatedly.
   */
 RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
     s16* pageSelectionIndex;
@@ -1147,7 +1175,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
         }
     }
 
-    //NEW CONTROLS: Allow held buttons as well, for delayed continuous scrolling without tapping
+    //NEW CONTROLS: Allow held buttons as well, for delayed continuous scrolling (without having to tap repeatedly)
     {
         #if DEBUG_INVENTORY_SCROLLING
         {
@@ -1768,8 +1796,89 @@ RECOMP_PATCH void cmdmenu_draw_info_scroll(Gfx** gdl, Mtx** mtxs, Vertex** vtxs)
     *gdl = dl;
 }
 
+/** Hijack the print function to allow patching of `cmdmenu_draw_main`
+  * (Base Recomp already patches `cmdmenu_draw_main`, 
+  * and the nearest relevant export we can hijack is `cmdmenu_print`) */
+typedef s32 (*CmdmenuPrint)(Gfx **gdl, s32 arg1);
+static CmdmenuPrint print_func; 
+static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs);
+static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs);
+
+RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook(DLLFile *dll) {
+    print_func = dinomod_hijack_dll_export(dll, 2, cmdmenu_print_custom);
+}
+
+RECOMP_HOOK_RETURN_DLL(cmdmenu_dtor) void cmdmenu_dtor_hook() {
+    print_func = NULL;
+}
+
+static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
+    Object* player;
+    s32 viSize;
+    s32 screenX;
+    s32 screenY;
+
+    player = get_player();
+    if (player == NULL) {
+        return;
+    }
+
+    // @recomp: Fullscreen scissors
+    #if !DINOMOD_ROM_PATCH
+    gEXSetScissorAlign((*gdl)++, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_RIGHT, 0, 0, -SCREEN_WIDTH, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    #endif
+
+    //Draw Spell reticle when aiming (@bug: x coord not adjusted in widescreen)
+    if (((DLL_210_Player*)player->dll)->vtbl->func77(player, &screenX, &screenY)) {
+        tex_animate(sCrosshairTex, &sCrosshairAnimRenderFlags, &sCrosshairAnimProgress);
+        rcp_screen_full_write(
+            gdl, 
+            sCrosshairTex, 
+            screenX - (AIMING_RETICLE_WIDTH/2), 
+            screenY - (AIMING_RETICLE_HEIGHT/2), 
+            0, 
+            sCrosshairAnimProgress >> 8, 
+            AIMING_RETICLE_OPACITY, 
+            SCREEN_WRITE_TRANSLUCENT
+        );
+    }
+
+    cmdmenu_draw_player_stats(gdl, mtxs, vtxs);
+
+    viSize = vi_get_current_size();
+    gDPSetScissor((*gdl)++, G_SC_NON_INTERLACE, 
+        0, 
+        0, 
+        GET_VIDEO_WIDTH(viSize), 
+        GET_VIDEO_HEIGHT(viSize));
+
+    // @recomp: Align C buttons/sidekick meter to right
+    #if !DINOMOD_ROM_PATCH
+    gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
+    gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0, -SCREEN_WIDTH * 4, 0);
+    #endif
+
+    cmdmenu_draw_c_buttons_and_sidekick_meter(gdl, mtxs, vtxs);
+
+    // @recomp: Reset alignment
+    #if !DINOMOD_ROM_PATCH
+    gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
+    gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_NONE, 0, 0);
+    #endif
+
+    cmdmenu_draw_info_scroll(gdl, mtxs, vtxs);
+    cmdmenu_draw_tutorial_textbox(gdl, mtxs, vtxs);
+    cmdmenu_draw_main_custom(gdl, mtxs, vtxs); //@recomp
+    camera_apply_scissor(gdl);
+
+    // @recomp: Reset scissor align
+    #if !DINOMOD_ROM_PATCH
+    gEXSetScissorAlign((*gdl)++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    #endif
+}
+
 /** Fix sidekick icon appearing half-way through fading out from exiting Items/Spells page */
-RECOMP_PATCH void cmdmenu_draw_main(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
+static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     s16 commandTexTableID;
     Object* player;
     s32 activeSpellGamebit;
@@ -1795,8 +1904,20 @@ RECOMP_PATCH void cmdmenu_draw_main(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     offsetY = 0;
     sidekick = get_sidekick();
 
+    // @recomp: Align item popup to left
+    #if !DINOMOD_ROM_PATCH
+    gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_LEFT, 0, 0);
+    gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_LEFT, 0, 0, 0, 0);
+    #endif
+
     //Call the item info pop-up's draw
     cmdmenu_info_draw(gdl, &sInfoPopup);
+
+    // @recomp: Align active spell/active sidekick command to right
+    #if !DINOMOD_ROM_PATCH
+    gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
+    gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0, -SCREEN_WIDTH * 4, 0);
+    #endif
 
     //Draw active spell icon
     {
@@ -1856,8 +1977,20 @@ RECOMP_PATCH void cmdmenu_draw_main(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
         }
     }
 
+    // @recomp: Reset alignment for energy bar
+    #if !DINOMOD_ROM_PATCH
+    gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
+    gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_NONE, 0, 0);
+    #endif
+
     //Call the energy bar's draw
     cmdmenu_draw_energy_bar(gdl);
+
+    // @recomp: Align command menu to right
+    #if !DINOMOD_ROM_PATCH
+    gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
+    gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0, -SCREEN_WIDTH * 4, 0);
+    #endif
 
     //Draw the inventory's vertical icon strip
     //(i.e. every part of the scroll except its top/bottom rolls)
@@ -2123,6 +2256,12 @@ RECOMP_PATCH void cmdmenu_draw_main(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
         }
         #endif
     }
+
+    // @recomp: Reset alignment
+    #if !DINOMOD_ROM_PATCH
+    gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
+    gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_NONE, 0, 0);
+    #endif
 }
 
 /**
@@ -2333,13 +2472,14 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
                         } else {
                             texIdx = CMDMENU_TEX_43_LeftDownButtons_SpellBook_With_Tricky;
                         }
-                    } else if (cIconFlags & CIcon_FLAG_Have_Items) { //@bug: should be checking `CIcon_FLAG_Have_Spells`?
+                    } else if (cIconFlags & CIcon_FLAG_Have_Spells) { //@recomp: check for spells instead of items
                         //Show the SpellBook on C-left and nothing on C-down
                         texIdx = CMDMENU_TEX_48_LeftDownButtons_SpellBook_NoSidekick;
                     }
                     /* @bug: texIdx could end up reusing the C-right section's value here if neither condition is met
                        (i.e. have commands but not spells and items, or have spells but not commands and items) 
                     */
+                    //TODO: fix condition not being met
 
                     dInventoryPageIcon = tex_load_deferred(dTextableIDs[texIdx]);
                     rcp_screen_full_write(
@@ -2383,10 +2523,6 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
     //     rcp_tile_write(&dl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
     //     rcp_tile_write(&dl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], MENU_SCROLL_X, MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY, 255, 255, 255, dInventoryOpacity);
     // }
-
-    //@recomp: fix flashing inventory issue
-    gDPSetCombineMode(dl, G_CC_MODULATEIA_PRIM, G_CC_MODULATEIA_PRIM);
-    dl_apply_combine(&dl);
 
     //Draw the sidekick food meter
     if (sidekick != NULL) {
@@ -2488,7 +2624,7 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
     *gdl = dl;
 }
 
-static s8 sInfoPopupUnroll = 0;
+static s8 rsInfoPopupUnroll = 0;
 
 /**
   * Fix issues when repeatedly collecting the same item: 
@@ -2528,7 +2664,7 @@ RECOMP_PATCH void cmdmenu_info_show(s16 itemGamebit, s32 displayDuration, s32 it
         sInfoPopup.timer = displayDuration;
         sInfoPopup.count = itemCount;
         sInfoPopup.opacity = 0.0f;
-        sInfoPopupUnroll = 0; //@recomp: close up scroll
+        rsInfoPopupUnroll = 0; //@recomp: close up scroll
     }
 }
 
@@ -2552,9 +2688,9 @@ RECOMP_PATCH void cmdmenu_info_show(s16 itemGamebit, s32 displayDuration, s32 it
 static void cmdmenu_gfx_set_info_popup_scissor(Gfx **gdl) {
     gDPSetScissor((*gdl)++, G_SC_NON_INTERLACE, 
         POPUP_FIX_ICON_X, 
-        POPUP_FIX_ICON_CENTRE_Y - sInfoPopupUnroll, 
+        POPUP_FIX_ICON_CENTRE_Y - rsInfoPopupUnroll, 
         POPUP_FIX_ICON_X + MENU_ITEM_WIDTH, 
-        POPUP_FIX_ICON_CENTRE_Y + sInfoPopupUnroll
+        POPUP_FIX_ICON_CENTRE_Y + rsInfoPopupUnroll
     );
 }
 
@@ -2596,9 +2732,9 @@ void cmdmenu_info_draw_custom(Gfx** gdl, CmdmenuInfoPopup* box) {
         box->opacity = (box->timer * MAX_OPACITY_F) / 30.0f;
 
         //@recomp: roll up scroll
-        sInfoPopupUnroll -= gUpdateRate;
-        if (sInfoPopupUnroll < 0) {
-            sInfoPopupUnroll = 0;
+        rsInfoPopupUnroll -= gUpdateRate;
+        if (rsInfoPopupUnroll < 0) {
+            rsInfoPopupUnroll = 0;
         }
     } else {
         //Otherwise, fade the box in if it's not fully visible
@@ -2611,9 +2747,9 @@ void cmdmenu_info_draw_custom(Gfx** gdl, CmdmenuInfoPopup* box) {
 
         //@recomp: unroll scroll
         if (box->opacity >= 64.0f) {
-            sInfoPopupUnroll += gUpdateRate;
-            if (sInfoPopupUnroll > MENU_ITEM_HEIGHT/2) {
-                sInfoPopupUnroll = MENU_ITEM_HEIGHT/2;
+            rsInfoPopupUnroll += gUpdateRate;
+            if (rsInfoPopupUnroll > MENU_ITEM_HEIGHT/2) {
+                rsInfoPopupUnroll = MENU_ITEM_HEIGHT/2;
             }
         }
     }
@@ -2621,7 +2757,7 @@ void cmdmenu_info_draw_custom(Gfx** gdl, CmdmenuInfoPopup* box) {
     //@recomp: draw the top of the scroll
     rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top], 
         POPUP_FIX_TOP_X,
-        POPUP_FIX_TOP_Y + 12 - sInfoPopupUnroll,
+        POPUP_FIX_TOP_Y + 12 - rsInfoPopupUnroll,
         0xFF, 
         0xFF, 
         0xFF, 
@@ -2631,7 +2767,7 @@ void cmdmenu_info_draw_custom(Gfx** gdl, CmdmenuInfoPopup* box) {
     //@recomp: draw the bottom of the scroll
     rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], 
         POPUP_FIX_BOTTOM_X,
-        POPUP_FIX_BOTTOM_Y - 12 + sInfoPopupUnroll,
+        POPUP_FIX_BOTTOM_Y - 12 + rsInfoPopupUnroll,
         0xFF, 
         0xFF, 
         0xFF, 

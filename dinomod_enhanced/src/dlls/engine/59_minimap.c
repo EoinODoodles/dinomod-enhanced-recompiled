@@ -1,9 +1,13 @@
+#include "configs.h"
+#include "dll_util.h"
+#include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
-#include "modding.h"
+#include "rt64_extended_gbi.h"
 
 #include "PR/ultratypes.h"
 #include "game/gamebits.h"
+#include "sys/dll.h"
 #include "sys/main.h"
 #include "sys/objects.h"
 #include "sys/print.h"
@@ -16,6 +20,9 @@
 
 #include "engine/1_cmdmenu.h"
 #include "engine/59_minimap.h"
+
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 240
 
 extern s32 sLoadedTexTableID;       //Current map tile's index in TEXTABLE.bin (maps a texture in TEX0.bin)
 extern u8 sMinimapVisible;
@@ -34,7 +41,20 @@ extern s16 sLevelMinZ;
 
 extern MinimapLevel sMinimapLevels[30];
 
-RECOMP_PATCH s32 minimap_print(Gfx **gdl, s32 arg1) {
+/** Hijack the print function (Base Recomp already patches it) */
+typedef s32 (*MinimapPrint)(Gfx **gdl, s32 arg1);
+static MinimapPrint print_func; 
+static s32 minimap_print_custom(Gfx **gdl, s32 arg1);
+
+RECOMP_HOOK_DLL(minimap_ctor) void minimap_ctor_hook(DLLFile *dll) {
+    print_func = dinomod_hijack_dll_export(dll, 1, minimap_print_custom);
+}
+
+RECOMP_HOOK_RETURN_DLL(minimap_dtor) void minimap_dtor_hook() {
+    print_func = NULL;
+}
+
+static s32 minimap_print_custom(Gfx **gdl, s32 arg1) {
     Object* player;
     Object* sidekick;
     s32 loadTextureID;
@@ -190,6 +210,18 @@ RECOMP_PATCH s32 minimap_print(Gfx **gdl, s32 arg1) {
     }
 
     if (sMapTile && sOpacity) {
+        #if !DINOMOD_ROM_PATCH
+        {
+            // @recomp: Fullscreen scissor
+            gEXPushScissor((*gdl)++);
+            gEXSetScissorAlign((*gdl)++, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_RIGHT, 0, 0, -SCREEN_WIDTH, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            gDPSetScissor((*gdl)++, G_SC_NON_INTERLACE, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            // @recomp: Align minimap to left
+            gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_LEFT, 0, 0);
+            gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_LEFT, 0, 0, 0, 0);
+        }
+        #endif
+
         //Draw minimap tile
         rcp_screen_full_write(gdl, sMapTile, 
                 (MINIMAP_SCREEN_X + sOffsetX - sGridX),
@@ -214,6 +246,17 @@ RECOMP_PATCH s32 minimap_print(Gfx **gdl, s32 arg1) {
                     0, 0, sOpacity, SCREEN_WRITE_TRANSLUCENT);
             }
         }
+
+        #if !DINOMOD_ROM_PATCH
+        {
+            // @recomp: Reset alignment
+            gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
+            gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_NONE, 0, 0);
+            // @recomp: Reset scissor align
+            gEXSetScissorAlign((*gdl)++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            gEXPopScissor((*gdl)++);
+        }
+        #endif
     }
 
     return 0;

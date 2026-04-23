@@ -1,5 +1,7 @@
 #pragma once
 
+#define DINOMOD_ROM_PATCH FALSE
+
 typedef enum {
     BOOTCONFIG_Default_Skip_Rolling_Demo,
     BOOTCONFIG_Restore_Rolling_Demo,
