@@ -5,15 +5,16 @@
 #include "recomputils.h"
 #include "rt64_extended_gbi.h"
 
+#include "PR/os.h"
 #include "PR/ultratypes.h"
+#include "macros.h"
+#include "types.h"
 #include "game/gamebits.h"
 #include "sys/dll.h"
 #include "sys/main.h"
 #include "sys/objects.h"
 #include "sys/print.h"
 #include "dll.h"
-#include "macros.h"
-#include "types.h"
 #include "dlls/engine/59_minimap.h"
 
 #include "recomp/dlls/engine/59_minimap_recomp.h"
@@ -40,6 +41,8 @@ extern s16 sLevelMinX;
 extern s16 sLevelMinZ;
 
 extern MinimapLevel sMinimapLevels[30];
+
+extern s32 D_8008C890;
 
 /** Hijack the print function (Base Recomp already patches it) */
 typedef s32 (*MinimapPrint)(Gfx **gdl, s32 arg1);
@@ -229,10 +232,31 @@ static s32 minimap_print_custom(Gfx **gdl, s32 arg1) {
                 0, 0, sOpacity, SCREEN_WRITE_TRANSLUCENT);
 
         //Draw player marker
+        #if DINOMOD_ROM_PATCH
+        {
+            if (D_8008C890) {
+                //Widescreen aspect
+                rcp_screen_full_write(gdl, sMarkerPlayer, 
+                    (MINIMAP_SCREEN_X - sGridX - (player->globalPosition.x - sLevelMaxX) * 0.02f) - 3.0f, //@rom-patch: widescreen, scale down along X to suit aspect
+                    (MINIMAP_SCREEN_Y - sGridZ - (player->globalPosition.z - sLevelMaxZ) * 0.025f) - 4.0f,
+                    0, 0, sOpacity, SCREEN_WRITE_TRANSLUCENT
+                );
+            } else {
+                //Standard aspect
+                rcp_screen_full_write(gdl, sMarkerPlayer, 
+                    (MINIMAP_SCREEN_X - sGridX - (player->globalPosition.x - sLevelMaxX) * 0.025f) - 4.0f,
+                    (MINIMAP_SCREEN_Y - sGridZ - (player->globalPosition.z - sLevelMaxZ) * 0.025f) - 4.0f,
+                    0, 0, sOpacity, SCREEN_WRITE_TRANSLUCENT
+                );
+            }
+        }
+        #else
         rcp_screen_full_write(gdl, sMarkerPlayer, 
-                (MINIMAP_SCREEN_X - sGridX - (player->globalPosition.x - sLevelMaxX) * 0.025f) - 4.0f,
-                (MINIMAP_SCREEN_Y - sGridZ - (player->globalPosition.z - sLevelMaxZ) * 0.025f) - 4.0f,
-                0, 0, sOpacity, SCREEN_WRITE_TRANSLUCENT);
+            (MINIMAP_SCREEN_X - sGridX - (player->globalPosition.x - sLevelMaxX) * 0.025f) - 4.0f,
+            (MINIMAP_SCREEN_Y - sGridZ - (player->globalPosition.z - sLevelMaxZ) * 0.025f) - 4.0f,
+            0, 0, sOpacity, SCREEN_WRITE_TRANSLUCENT
+        );
+        #endif
 
         //Draw sidekick marker (if the sidekick's somewhere inside the current map's extended bounds)
         if (sidekick != NULL) {
@@ -240,10 +264,31 @@ static s32 minimap_print_custom(Gfx **gdl, s32 arg1) {
                 (sLevelMinX - BLOCKS_GRID_UNIT_HALF < sidekick->globalPosition.x) && (sidekick->globalPosition.x < sLevelMaxX + BLOCKS_GRID_UNIT_HALF) &&
                 (sLevelMinZ - BLOCKS_GRID_UNIT_HALF < sidekick->globalPosition.z) && (sidekick->globalPosition.z < sLevelMaxZ + BLOCKS_GRID_UNIT_HALF)
             ) {
+                #if DINOMOD_ROM_PATCH
+                {
+                    if (D_8008C890) {
+                        //Widescreen aspect
+                        rcp_screen_full_write(gdl, sMarkerSidekick, 
+                            (MINIMAP_SCREEN_X - sGridX - (sidekick->globalPosition.x - sLevelMaxX) * 0.020f) - 3.0f, //@rom-patch: widescreen, scale down along X to suit aspect
+                            (MINIMAP_SCREEN_Y - sGridZ - (sidekick->globalPosition.z - sLevelMaxZ) * 0.025f) - 4.0f,
+                            0, 0, sOpacity, SCREEN_WRITE_TRANSLUCENT
+                        );
+                    } else {
+                        //Standard aspect
+                        rcp_screen_full_write(gdl, sMarkerSidekick, 
+                            (MINIMAP_SCREEN_X - sGridX - (sidekick->globalPosition.x - sLevelMaxX) * 0.025f) - 4.0f,
+                            (MINIMAP_SCREEN_Y - sGridZ - (sidekick->globalPosition.z - sLevelMaxZ) * 0.025f) - 4.0f,
+                            0, 0, sOpacity, SCREEN_WRITE_TRANSLUCENT
+                        );
+                    }
+                }
+                #else
                 rcp_screen_full_write(gdl, sMarkerSidekick, 
                     (MINIMAP_SCREEN_X - sGridX - (sidekick->globalPosition.x - sLevelMaxX) * 0.025f) - 4.0f,
                     (MINIMAP_SCREEN_Y - sGridZ - (sidekick->globalPosition.z - sLevelMaxZ) * 0.025f) - 4.0f,
-                    0, 0, sOpacity, SCREEN_WRITE_TRANSLUCENT);
+                    0, 0, sOpacity, SCREEN_WRITE_TRANSLUCENT
+                );
+                #endif
             }
         }
 
