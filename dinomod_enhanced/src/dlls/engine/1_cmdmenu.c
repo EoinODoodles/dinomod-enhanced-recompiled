@@ -746,12 +746,12 @@ RECOMP_PATCH int cmdmenu_was_this_item_used(s32 itemGamebitID) {
   * A category is skipped if it's unavailable (i.e. no items to show, or sidekick missing)
   */
 s8 cmdmenu_new_get_next_category_left(Object* player, Object* sidekick, s8* rMoveToCategory, s8* rMoveToPage) {
-    s8 pageSidekick = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
-    s8 pageItems = player->id == OBJ_Krystal ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
+    s8 pageSidekick = (sidekick && sidekick->id == OBJ_Kyte) ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
+    s8 pageItems = (player && player->id == OBJ_Krystal) ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
 
     switch (dPageCategory) {
     case CMDMENU_CATEGORY_4_Spells:
-        if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageSidekick].items, TRUE) && sidekick) {
+        if (sidekick && cmdmenu_page_count_shown_items(dCmdmenuPages[pageSidekick].items, TRUE)) {
             *rMoveToCategory = CMDMENU_CATEGORY_2_Sidekick;
             *rMoveToPage = pageSidekick;
             return 1;
@@ -780,7 +780,7 @@ s8 cmdmenu_new_get_next_category_left(Object* player, Object* sidekick, s8* rMov
             *rMoveToPage = CMDMENU_PAGE_6_Spells;
             return 1;
         }
-        if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageSidekick].items, TRUE) && sidekick) {
+        if (sidekick && cmdmenu_page_count_shown_items(dCmdmenuPages[pageSidekick].items, TRUE)) {
             *rMoveToCategory = CMDMENU_CATEGORY_2_Sidekick;
             *rMoveToPage = pageSidekick;
             return 1;
@@ -798,12 +798,12 @@ s8 cmdmenu_new_get_next_category_left(Object* player, Object* sidekick, s8* rMov
   * A category is skipped if it's unavailable (i.e. no items to show, or sidekick missing)
   */
 s8 cmdmenu_new_get_next_category_right(Object* player, Object* sidekick, s8* rMoveToCategory, s8* rMoveToPage) {
-    s8 pageSidekick = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
-    s8 pageItems = player->id == OBJ_Krystal ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
+    s8 pageSidekick = (sidekick && sidekick->id == OBJ_Kyte) ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
+    s8 pageItems = (player && player->id == OBJ_Krystal) ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
 
     switch (dPageCategory) {
     case CMDMENU_CATEGORY_3_Items:
-        if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageSidekick].items, TRUE) && sidekick) {
+        if (sidekick && cmdmenu_page_count_shown_items(dCmdmenuPages[pageSidekick].items, TRUE)) {
             *rMoveToCategory = CMDMENU_CATEGORY_2_Sidekick;
             *rMoveToPage = pageSidekick;
             return 1;
@@ -832,7 +832,7 @@ s8 cmdmenu_new_get_next_category_right(Object* player, Object* sidekick, s8* rMo
             *rMoveToPage = pageItems;
             return 1;
         }
-        if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageSidekick].items, TRUE) && sidekick) {
+        if (sidekick && cmdmenu_page_count_shown_items(dCmdmenuPages[pageSidekick].items, TRUE)) {
             *rMoveToCategory = CMDMENU_CATEGORY_2_Sidekick;
             *rMoveToPage = pageSidekick;
             return 1;
