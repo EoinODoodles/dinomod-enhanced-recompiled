@@ -1739,8 +1739,7 @@ RECOMP_PATCH void cmdmenu_draw_info_scroll(Gfx** gdl, Mtx** mtxs, Vertex** vtxs)
             /*x1*/ dInfoScrollX - dInfoScrollWidthHalf, 
             /*y1*/ dInfoScrollY, 
             /*x2*/ dInfoScrollX + dInfoScrollWidthHalf, 
-            /*y2*/ dInfoScrollY + (sInfoScrollUnrollY / 4) * 4 //@recomp: make sure height is a multiple of 4 (fixes visual bug)
-        );
+            /*y2*/ dInfoScrollY + sInfoScrollUnrollY);
         font_window_use_font(3, FONT_DINO_SUBTITLE_FONT_1);
         font_window_set_bg_colour(3, 0, 0, 0, 0);
         font_window_flush_strings(3);
