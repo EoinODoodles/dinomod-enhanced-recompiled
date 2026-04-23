@@ -224,7 +224,7 @@ RECOMP_PATCH void mainmenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
         //@recomp: use the showDPLogo flag to actually show the DP logo
         if (main_demo_finished() || showDPLogo) {
             //@rom-patch: centre logo in widescreen
-            #if DINOMOD_ROM_PATCH
+            #ifdef DINOMOD_ROM_PATCH
                 if (D_8008C890) { 
                     //Widescreen aspect
                     rcp_screen_full_write(gfx, logoDinosaurPlanet, 71, 50, 0, 0, 0xFF, 0);

@@ -213,7 +213,7 @@ static s32 minimap_print_custom(Gfx **gdl, s32 arg1) {
     }
 
     if (sMapTile && sOpacity) {
-        #if !DINOMOD_ROM_PATCH
+        #ifndef DINOMOD_ROM_PATCH
         {
             // @recomp: Fullscreen scissor
             gEXPushScissor((*gdl)++);
@@ -232,7 +232,7 @@ static s32 minimap_print_custom(Gfx **gdl, s32 arg1) {
                 0, 0, sOpacity, SCREEN_WRITE_TRANSLUCENT);
 
         //Draw player marker
-        #if DINOMOD_ROM_PATCH
+        #ifdef DINOMOD_ROM_PATCH
         {
             if (D_8008C890) {
                 //Widescreen aspect
@@ -264,7 +264,7 @@ static s32 minimap_print_custom(Gfx **gdl, s32 arg1) {
                 (sLevelMinX - BLOCKS_GRID_UNIT_HALF < sidekick->globalPosition.x) && (sidekick->globalPosition.x < sLevelMaxX + BLOCKS_GRID_UNIT_HALF) &&
                 (sLevelMinZ - BLOCKS_GRID_UNIT_HALF < sidekick->globalPosition.z) && (sidekick->globalPosition.z < sLevelMaxZ + BLOCKS_GRID_UNIT_HALF)
             ) {
-                #if DINOMOD_ROM_PATCH
+                #ifdef DINOMOD_ROM_PATCH
                 {
                     if (D_8008C890) {
                         //Widescreen aspect
@@ -292,7 +292,7 @@ static s32 minimap_print_custom(Gfx **gdl, s32 arg1) {
             }
         }
 
-        #if !DINOMOD_ROM_PATCH
+        #ifndef DINOMOD_ROM_PATCH
         {
             // @recomp: Reset alignment
             gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);

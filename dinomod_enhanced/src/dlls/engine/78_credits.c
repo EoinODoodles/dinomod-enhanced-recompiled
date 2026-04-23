@@ -82,7 +82,7 @@ RECOMP_PATCH void dll_78_func_570(Gfx** gdl, s32 arg1, s32 arg2) {
         line = &data_0[bss_4].lines[0];
 
         //@rom-patch: centre logo in widescreen
-        #if DINOMOD_ROM_PATCH
+        #ifdef DINOMOD_ROM_PATCH
         if (D_8008C890) { 
             //Widescreen aspect
             rcp_screen_full_write(gdl, bss_0, 45, 68, 0, 0, line->opacity, 0);

@@ -1824,7 +1824,7 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     }
 
     // @recomp: Fullscreen scissors
-    #if !DINOMOD_ROM_PATCH
+    #ifndef DINOMOD_ROM_PATCH
     gEXSetScissorAlign((*gdl)++, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_RIGHT, 0, 0, -SCREEN_WIDTH, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     #endif
 
@@ -1853,7 +1853,7 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
         GET_VIDEO_HEIGHT(viSize));
 
     // @recomp: Align C buttons/sidekick meter to right
-    #if !DINOMOD_ROM_PATCH
+    #ifndef DINOMOD_ROM_PATCH
     gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
     gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0, -SCREEN_WIDTH * 4, 0);
     #endif
@@ -1861,7 +1861,7 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     cmdmenu_draw_c_buttons_and_sidekick_meter(gdl, mtxs, vtxs);
 
     // @recomp: Reset alignment
-    #if !DINOMOD_ROM_PATCH
+    #ifndef DINOMOD_ROM_PATCH
     gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
     gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_NONE, 0, 0);
     #endif
@@ -1872,7 +1872,7 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     camera_apply_scissor(gdl);
 
     // @recomp: Reset scissor align
-    #if !DINOMOD_ROM_PATCH
+    #ifndef DINOMOD_ROM_PATCH
     gEXSetScissorAlign((*gdl)++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     #endif
 }
@@ -1905,7 +1905,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     sidekick = get_sidekick();
 
     // @recomp: Align item popup to left
-    #if !DINOMOD_ROM_PATCH
+    #ifndef DINOMOD_ROM_PATCH
     gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_LEFT, 0, 0);
     gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_LEFT, 0, 0, 0, 0);
     #endif
@@ -1914,7 +1914,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     cmdmenu_info_draw(gdl, &sInfoPopup);
 
     // @recomp: Align active spell/active sidekick command to right
-    #if !DINOMOD_ROM_PATCH
+    #ifndef DINOMOD_ROM_PATCH
     gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
     gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0, -SCREEN_WIDTH * 4, 0);
     #endif
@@ -1978,7 +1978,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     }
 
     // @recomp: Reset alignment for energy bar
-    #if !DINOMOD_ROM_PATCH
+    #ifndef DINOMOD_ROM_PATCH
     gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
     gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_NONE, 0, 0);
     #endif
@@ -1987,7 +1987,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     cmdmenu_draw_energy_bar(gdl);
 
     // @recomp: Align command menu to right
-    #if !DINOMOD_ROM_PATCH
+    #ifndef DINOMOD_ROM_PATCH
     gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
     gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0, -SCREEN_WIDTH * 4, 0);
     #endif
@@ -2258,7 +2258,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     }
 
     // @recomp: Reset alignment
-    #if !DINOMOD_ROM_PATCH
+    #ifndef DINOMOD_ROM_PATCH
     gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
     gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_NONE, 0, 0);
     #endif
