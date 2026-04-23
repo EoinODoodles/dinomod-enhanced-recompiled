@@ -653,7 +653,9 @@ static int sidekick_meter_handle_full(int isBlueEnergy, s8 energyAdded) {
         statToDecrease = &dinoStats->blueFood;
     }
 
-    DEBUG_SIDEKICK_METER && recomp_printf("\nBLUE: %d\tRED: %d (Before)\n", dinoStats->blueFood, dinoStats->redFood);
+    #if DEBUG_SIDEKICK_METER
+    recomp_printf("\nBLUE: %d\tRED: %d (Before)\n", dinoStats->blueFood, dinoStats->redFood);
+    #endif
 
     //Only showing Blue energy (ignoring Red energy)
     if (recomp_get_config_u32("cmdmenu_sidekick_meter_hide_red")) {
@@ -691,7 +693,9 @@ static int sidekick_meter_handle_full(int isBlueEnergy, s8 energyAdded) {
         }
     }
 
-    DEBUG_SIDEKICK_METER && recomp_printf("BLUE: %d\tRED: %d (After)\n", dinoStats->blueFood, dinoStats->redFood);
+    #if DEBUG_SIDEKICK_METER
+    recomp_printf("BLUE: %d\tRED: %d (After)\n", dinoStats->blueFood, dinoStats->redFood);
+    #endif
 
     return returnValue;
 }
@@ -1145,12 +1149,14 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
 
     //NEW CONTROLS: Allow held buttons as well, for delayed continuous scrolling without tapping
     {
-        if (DEBUG_INVENTORY_SCROLLING) {
+        #if DEBUG_INVENTORY_SCROLLING
+        {
             diPrintf("sJoyPressedButtons: %d\n", sJoyPressedButtons);
             diPrintf("rJoyHeldButtons: %d\n", rJoyHeldButtons);
             diPrintf("rsHeldButton: %d\n", rsHeldButton);
             diPrintf("rsHoldDirectionTimer: %d\n\n", rsHoldDirectionTimer);
         }
+        #endif
 
         //Forget held button once released
         if ((rJoyHeldButtons & rsHeldButton) == FALSE) { 
@@ -1890,10 +1896,9 @@ RECOMP_PATCH void cmdmenu_draw_main(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                 slot[i] = SLOT_PADDED;
             }
 
-            if (DEBUG_INVENTORY_SCROLLING) {
-                rTotalOccupiedSlots = sDisplayedItemCount;
-                diPrintf("rTotalOccupiedSlots: %d\n", rTotalOccupiedSlots);
-            }
+            #if DEBUG_INVENTORY_SCROLLING
+                diPrintf("Total items on page: %d\n", sDisplayedItemCount);
+            #endif
 
             //Change sDisplayedItemCount so it's at least the size of the tile strip (including empty slots)
             if (sDisplayedItemCount < tileCount) {
@@ -2109,12 +2114,14 @@ RECOMP_PATCH void cmdmenu_draw_main(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             tex_free(dInventoryPageIcon);
         }
     
-        if (DEBUG_INVENTORY_SCROLLING && dInventoryOpacity) {
+        #if DEBUG_INVENTORY_SCROLLING
+        if (dInventoryOpacity) {
             diPrintf("numSlotsAboveSelected: %d\n", numSlotsAboveSelected);
             diPrintf("rNumSlotsPaddedAtTop: %d\n", rNumSlotsPaddedAtTop);
             diPrintf("tileCount: %d\n", tileCount);
             diPrintf("sInventoryScrollOffset: %d\n", sInventoryScrollOffset);
         }
+        #endif
     }
 }
 

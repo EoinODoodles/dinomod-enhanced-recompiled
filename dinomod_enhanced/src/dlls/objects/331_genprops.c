@@ -424,7 +424,8 @@ static void WMPlatform_control_custom(Object* self){
     }
 
     //Debug print player's coords in objectSpace, and other details
-    if (PLATFORM_DEBUG) {
+    #if PLATFORM_DEBUG 
+    {
         diPrintf("local coords:\nx: %d\ny: %d\nz: %d\n", (s32)localCoords.x, (s32)localCoords.y, (s32)localCoords.z);
         diPrintf("playerOnPlatform: %d\n", playerOnPlatform);
         diPrintf("timer: %d\n", (s32)objData->timer);
@@ -433,6 +434,7 @@ static void WMPlatform_control_custom(Object* self){
         diPrintf("t_value: %3d%s\n", (s32)(objData->tValue*100.0f), "%");
         diPrintf("speed: %d\n\n", (s32)objData->speed);
     }
+    #endif
 
     //State Machine
     switch (state){

@@ -123,10 +123,12 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
     objSetup = (SCbeacon_Setup*)self->setup;
     player = get_player();
 
-    if (DEBUG_BEACON) {
+    #if DEBUG_BEACON 
+    {
         diPrintf("soundHandleBurn1: %d\n", objData->soundHandleBurn1);
         diPrintf("soundHandleBurn2: %d\n", objData->soundHandleBurn2);
     }
+    #endif
 
     playerDistSQ = vec3_distance_xz_squared(&player->globalPosition, &self->globalPosition);
     interactRangeSQ = SQ(objSetup->playerRange);
@@ -187,7 +189,10 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
                 objData->destroyTumbleweed = TRUE;
                 tumbleweed_set_silent_delete(objData->heldTumbleweed, TRUE);
                 tumbleweed_stop_being_carried(objData->heldTumbleweed);
-                DEBUG_BEACON && recomp_printf("PLACING: setting up silent delete!\n");
+
+                #if DEBUG_BEACON
+                recomp_printf("PLACING: setting up silent delete!\n");
+                #endif
 
                 //Play deposit sequence
                 gDLL_3_Animation->vtbl->func17(objData->seqIdxPlaceTwigs, self, -1);
@@ -197,15 +202,23 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
     case SCbeacon_STATE_Twigs_in_Bowl:
         //@recomp: destroy the Tumbleweed that was being held
         if (objData->destroyTumbleweed) {
-            DEBUG_BEACON && recomp_printf("IN BOWL: destroyTumbleweed? %d\n", objData->destroyTumbleweed);
+            #if DEBUG_BEACON
+            recomp_printf("IN BOWL: destroyTumbleweed? %d\n", objData->destroyTumbleweed);
+            #endif
 
             if (objData->heldTumbleweed && !(objData->heldTumbleweed->unkB0 & 0x40)){
-                DEBUG_BEACON && recomp_printf("IN BOWL: deleting Tumbleweed!\n");
+                #if DEBUG_BEACON
+                recomp_printf("IN BOWL: deleting Tumbleweed!\n");
+                #endif
+                
                 obj_destroy_object(objData->heldTumbleweed);
             }
             objData->destroyTumbleweed = FALSE;
 
-            DEBUG_BEACON && recomp_printf("IN BOWL: stop player carry!\n");
+            #if DEBUG_BEACON
+            recomp_printf("IN BOWL: stop player carry!\n");
+            #endif
+
             playerUtil_stop_carrying(player);
         }
 

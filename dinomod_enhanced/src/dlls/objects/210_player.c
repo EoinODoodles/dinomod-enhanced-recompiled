@@ -22,6 +22,8 @@
 
 #include "recomp/dlls/objects/210_player_recomp.h"
 
+#define DEBUG_MESSAGES FALSE
+
 void func_8001A3FC(ModelInstance *modelInst, u32 selector, s32 idx, f32 param_4, f32 scale, Vec3f *param_6, s16 *param_7);
 extern s32 func_80025140(Object*, f32, f32, s32);
 extern s16 func_80031DD8(Object* objA, Object* objB, f32* distance);
@@ -117,8 +119,6 @@ static void func_1D04C_hijack(Object *self, s32 a1) {
 
     player_func_1D04C(self, a1);
 }
-
-#define DEBUG_MESSAGES FALSE
 
 /** Fix Ice Blast / Grenade Spell selection (originally by MusicalProgrammer) */
 RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Data* fsa) {
@@ -220,9 +220,11 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
             }
             break;
         case 0x7000A:
-            if (DEBUG_MESSAGES && outSender && outSender->def) {
+            #if DEBUG_MESSAGES
+            if (outSender && outSender->def) {
                 recomp_printf("Message received from %s!\n", outSender->def->name);
             }
+            #endif
 
             if (messageArgument > 0) {
                 if (main_get_bits(messageArgument) != 0) {
@@ -230,9 +232,12 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                     if (fsa->animState != PLAYER_ASTATE_Collecting) {
                         gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, PLAYER_ASTATE_Collecting);
                     }
-                    if (DEBUG_MESSAGES && outSender && outSender->def) {
+
+                    #if DEBUG_MESSAGES
+                    if (outSender && outSender->def) {
                         recomp_printf("Reply sent to %s! Tutorial seen.\n", outSender->def->name);
                     }
+                    #endif
                 } else {
                     main_set_bits(messageArgument, 1);
                     if (fsa->animState != PLAYER_ASTATE_42) {
@@ -244,9 +249,13 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                         switch (outSender->id) {
                         case OBJ_SHbluemushroom:
                             obj_send_mesg(outSender, 0x7000B, player, (void*)TRUE);
-                            if (DEBUG_MESSAGES && outSender->def) {
+                            
+                            #if DEBUG_MESSAGES
+                            if (outSender->def) {
                                 recomp_printf("Reply sent to %s! Tutorial not seen.\n", outSender->def->name);
                             }
+                            #endif
+
                             break;
                         }
                     }
@@ -258,10 +267,14 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                 if (outSender) {
                     switch (outSender->id) {
                     case OBJ_SHbluemushroom:
-                        obj_send_mesg(outSender, 0x7000B, player, (void*)2);
-                        if (DEBUG_MESSAGES && outSender->def) {
+                        obj_send_mesg(outSender, 0x7000B, player, (void*)-1);
+
+                        #if DEBUG_MESSAGES
+                        if (outSender->def) {
                             recomp_printf("Reply sent to %s! No tutorial gamebit.\n", outSender->def->name);
                         }
+                        #endif
+
                         break;
                     }
                 }

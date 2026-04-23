@@ -6,6 +6,8 @@
 
 #include "recomp/dlls/objects/507_SHqueenearthwalker_recomp.h"
 
+#define DEBUG_MUSHROOMS FALSE
+
 typedef struct {
     u8 questProgress;
     u8 eatenWhiteMushrooms;
@@ -57,18 +59,27 @@ static void handle_mushroom_gamebit_contradictions(){
 
     //Handle contradictions
     if (mushroomsCollected != (mushroomsHeld + mushroomsGiven)){
-        recomp_printf("Contradiction found (White Mushrooms)!\n");
-        recomp_printf("Total collected: %d\n", mushroomsCollected);
-        recomp_printf("Total held: %d\n", mushroomsHeld);
-        recomp_printf("Total given: %d\n", mushroomsGiven);
-        recomp_printf("...fixing:\n");
+        #if DEBUG_MUSHROOMS
+        {
+            recomp_printf("Contradiction found (White Mushrooms)!\n");
+            recomp_printf("Total collected: %d\n", mushroomsCollected);
+            recomp_printf("Total held: %d\n", mushroomsHeld);
+            recomp_printf("Total given: %d\n", mushroomsGiven);
+            recomp_printf("...fixing:\n");
+        }
+        #endif
 
         main_set_bits(BIT_Inventory_White_Mushrooms, mushroomsCollected - mushroomsGiven);
         main_set_bits(BIT_SH_Queen_EW_White_Mushrooms_Eaten, mushroomsGiven);
 
-        recomp_printf("Total collected: %d\n", mushroomsCollected);
-        recomp_printf("Total held: %d\n", mushroomsCollected - mushroomsGiven);
-        recomp_printf("Total given: %d\n", mushroomsGiven);
+        #if DEBUG_MUSHROOMS
+        {
+            recomp_printf("Total collected: %d\n", mushroomsCollected);
+            recomp_printf("Total held: %d\n", mushroomsCollected - mushroomsGiven);
+            recomp_printf("Total given: %d\n", mushroomsGiven);
+        }
+        #endif
+        
         return;
     }
 

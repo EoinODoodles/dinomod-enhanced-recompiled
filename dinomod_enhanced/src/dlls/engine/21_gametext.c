@@ -18,6 +18,8 @@
 
 #include "recomp/dlls/engine/21_gametext_recomp.h"
 
+#define DEBUG_GAMETEXT FALSE
+
 extern s8 sCurrentBankIndex;
 extern u16 sBankCount;
 extern u16 sBankEntryCount;
@@ -62,10 +64,12 @@ static void recomp_log_strings(u16 fileID, GameTextChunk *gametext){
         return;
     }
 
+    #if DEBUG_GAMETEXT
     recomp_printf("GAMETEXT_%0d (language: %s)\n", fileID, LANGUAGE_NAMES[sCurrentBankIndex]);
     for (index = 0; index < gametext->count; index++){
         recomp_printf("#%0d) %s\n", index, gametext->strings[index]);
     }
+    #endif
 }
 PRAGMA_IGNORE_POP()
 
@@ -135,7 +139,10 @@ static void recomp_replace_substring(char* originalString, char* searchSubstring
     
     matchPosition = substringPtr - originalString;
     remainderPtr = substringPtr + searchLength;
+    
+    #if DEBUG_GAMETEXT
     recomp_printf("Substring '%s' at index %d in string '%s'\n", searchSubstring, matchPosition, originalString);
+    #endif
 
     bcopy(originalString, destination, matchPosition);
     bcopy(replacement, destination + matchPosition, replacementLength);
