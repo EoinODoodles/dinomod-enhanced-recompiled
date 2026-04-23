@@ -227,6 +227,11 @@ curves:
   - { type: 0xD, delay: 5, params: 0x8001 }
   - { type: 0xD, delay: 4, params: 0x8000 }
   - { type: 0x6, delay: 18, params: 0xB1B6 }
+
+#Show title credits
+  - { type: 0xB, delay: 0, params: 0x1 }      
+  - { type: 0x0, delay: 0, params: 0x286 }
+
   - { type: 0x4, delay: 136, params: 0xE315 }
   - { type: 0x4, delay: 0, params: 0x15 }
   - { type: 0x0, delay: 0, params: 0x5DC }

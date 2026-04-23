@@ -7,6 +7,8 @@
 #include "PR/os.h"
 #include "sys/fonts.h"
 #include "sys/gfx/texture.h"
+#include "sys/main.h"
+#include "sys/menu.h"
 #include "sys/rcp.h"
 #include "sys/vi.h"
 #include "types.h"
@@ -52,6 +54,87 @@ typedef enum {
 #define BASE_X_LEFT 19
 #define BASE_X_RIGHT 299
 #define BASE_Y 53
+
+#define FRAME_END 7350
+
+/** Make sure gameplay menu is restored at end of credits */
+RECOMP_PATCH s32 dll_78_func_D4(void) {
+    CreditsLine* line;
+    s32 i;
+    f32 tValue;
+    u8 opacity;
+
+    if (bss_4 < (s32)ARRAYCOUNT(data_0)) {
+        //Advance credits' time
+        bss_C += gUpdateRateF;
+        
+        //Advance to the next group of names
+        if (bss_C >= data_0[bss_4].frameFinished) {
+            bss_4++;
+        }
+        
+        //Update the current text group's opacity and spacing animation
+        if (bss_4 < (s32)ARRAYCOUNT(data_0)) {
+            //Iterate over the group's lines
+            for (i = 0; i < data_0[bss_4].lineCount; i++) {
+                line = &data_0[bss_4].lines[i];
+
+                //Line hasn't shown up yet, not visible
+                if (bss_C < line->frameIn) {
+                    opacity = 0;
+
+                //Line fading in
+                } else if (bss_C < line->frameHold) {
+                    //Get opacity tValue for fade-in
+                    tValue = (bss_C - line->frameIn) / (line->frameHold - line->frameIn);
+                    if (tValue < 0.0f) {
+                        tValue = 0.0f;
+                    } else if (tValue > 1.0f) {
+                        tValue = 1.0f;
+                    }
+                    
+                    opacity = (u8)(tValue * MAX_OPACITY);
+
+                //Line holding at max opacity
+                } else if (bss_C < line->frameOut) {
+                    opacity = MAX_OPACITY;
+
+                //Line fading out
+                } else if (bss_C < line->frameFinished) {
+                    tValue = (bss_C - line->frameOut) / (line->frameFinished - line->frameOut);
+                    if (tValue < 0.0f) {
+                        tValue = 0.0f;
+                    } else if (tValue > 1.0f) {
+                        tValue = 1.0f;
+                    }
+                    
+                    opacity = MAX_OPACITY - (u8)(tValue * MAX_OPACITY);
+
+                //Line finished fading out
+                } else {
+                    opacity = 0;
+                }
+                
+                line->opacity = opacity;
+                
+                //Animate group's text spacing expanding outwards before it disappears
+                if ((bss_C >= line->frameIn) && 
+                    (bss_C <= line->frameFinished) && 
+                    (bss_C >= data_0[bss_4].frameExpand)
+                ) {
+                    line->spacing += (gUpdateRateF / 60.0f) * 8.0f;
+                }
+            }
+        }
+    }
+    
+    //@recomp: make sure gameplay menu is restored at end
+    if (bss_C >= FRAME_END) {
+        menu_set(MENU_GAMEPLAY);
+    }
+
+    return 0;
+}
 
 /**
   * Centres the Dinosaur Planet logo in widescreen mode

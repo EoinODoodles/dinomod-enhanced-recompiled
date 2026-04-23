@@ -193,7 +193,16 @@ RECOMP_PATCH s32 dll_3_func_6620(Object *arg0, Object *arg1, AnimObj_Data *arg2,
     case 10:                                    /* switch 2 */
         // @recomp: Replace with new credits subcommand (original patch by MusicalProgrammer)
         //func_8000F64C(0x12, sp54);
-        menu_set(MENU_15);
+
+        switch (sp54) {
+        case 1: //restore gameplay menu (for skipping credits)
+            menu_set(MENU_GAMEPLAY);
+            break;
+        default: //play credits
+            menu_set(MENU_15);
+            break;
+        }
+
         break;
     case 11:                                    /* switch 2 */
         // @recomp: Replace with new collision toggle subcommand (original patch by MusicalProgrammer)
