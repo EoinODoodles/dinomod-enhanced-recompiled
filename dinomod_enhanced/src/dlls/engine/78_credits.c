@@ -1,3 +1,4 @@
+#include "recomputils.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "dll_util.h"
@@ -15,6 +16,9 @@
 #include "dlls/engine/21_gametext.h"
 
 #include "recomp/dlls/_asm/78_recomp.h"
+
+#include "engine/20_screens.h"
+#include "engine/78_credits.h"
 
 extern s32 D_8008C890;
 
@@ -57,12 +61,81 @@ typedef enum {
 
 #define FRAME_END 7350
 
-/** Make sure gameplay menu is restored at end of credits */
+/* For restoring the credits' playback frame when the DLL is reloaded (i.e. pausing/unpausing) */
+static f32 rsCreditsRestoredFrame = 0;
+
+static char rsCreditsLeadVoices[3][64] = {
+    "LEAD VOICES", 
+    "EVELINE FISCHER",
+    "STEVE MALPASS",
+};
+
+RECOMP_HOOK_DLL(dll_78_ctor) void credits_ctor_hook(void* dll) {
+    //Insert credits for Krystal/Sabre's voice actors
+    //Also retime things so names aren't fading in during a transition
+    {
+        CreditsGroup* audio = &data_0[7];
+        CreditsLine linesEdited[9] = {
+            {5067, 5107, 5233, 5273, 29, 1, CREDITS_L, 0, 0},
+            {5067, 5107, 5233, 5273, 30, 2, CREDITS_R, 0, 0},
+            {5193, 5233, 5359, 5399, 31, 3, CREDITS_L, 0, 0},
+            {5193, 5233, 5359, 5399, 32, 4, CREDITS_R, 0, 0},
+            {5319, 5359, 5514, 5554, /*(replaced)*/ 33, 5, CREDITS_L, 0, 0},
+            {5319, 5359, 5514, 5554, /*(replaced)*/ 33, 6, CREDITS_R, 0, 0},
+            {5372, 5412, 5514, 5554, /*(replaced)*/ 33, 7, CREDITS_R, 0, 0},
+            {5554, 5594, 5720, 5760, 33, 8, CREDITS_L, 0, 0},
+            {5554, 5594, 5720, 5760, 34, 9, CREDITS_R, 0, 0}
+        };
+        audio->frameExpand = 5720;
+        audio->frameFinished = 5760;
+        audio->lineCount += 3;
+
+        //Insert credits for Krystal/Sabre's voice actors
+        bcopy(linesEdited, audio->lines, sizeof(linesEdited));
+    }
+
+    //Shift animator credits slightly so they don't get obscured by a shot transition
+    {
+        CreditsGroup* animators = &data_0[5];
+        animators->frameExpand += 60;
+        animators->frameFinished += 60;
+        for (int i = 0; i < animators->lineCount; i++) {
+            animators->lines[i].frameIn += 132;
+            animators->lines[i].frameHold += 132;
+            animators->lines[i].frameOut += 60;
+            animators->lines[i].frameFinished += 60;
+        }
+
+        //Shift in-point of next group slightly so animator group doesn't overlap with it
+        CreditsGroup* design = &data_0[6];
+        for (int i = 0; i < design->lineCount; i++) {
+            design->lines[i].frameIn += 60;
+            design->lines[i].frameHold += 60;
+        }
+    }
+}
+
+/** 
+  * - Make sure gameplay menu is restored at end of credits .
+  * - End credits when a Screens image is shown (Krystal's Adventure).
+  * - Restore playback when unpausing.
+  */
 RECOMP_PATCH s32 dll_78_func_D4(void) {
     CreditsLine* line;
     s32 i;
     f32 tValue;
     u8 opacity;
+
+    //@recomp: restore playback position
+    if (rsCreditsRestoredFrame > bss_C) {
+        bss_C = rsCreditsRestoredFrame;
+    }
+
+    //@recomp: stop drawing if a Screens image is being shown (Krystal's Adventure)
+    if (screens_is_screen_visible()) {
+        credits_finish();
+        return 0;
+    }
 
     if (bss_4 < (s32)ARRAYCOUNT(data_0)) {
         //Advance credits' time
@@ -122,7 +195,10 @@ RECOMP_PATCH s32 dll_78_func_D4(void) {
                     (bss_C <= line->frameFinished) && 
                     (bss_C >= data_0[bss_4].frameExpand)
                 ) {
-                    line->spacing += (gUpdateRateF / 60.0f) * 8.0f;
+                    // line->spacing += (gUpdateRateF / 60.0f) * 8.0f;
+
+                    //@recomp: restore text tracking animation when unpausing
+                    line->spacing = (bss_C - data_0[bss_4].frameExpand) * 0.1333f;
                 }
             }
         }
@@ -130,15 +206,26 @@ RECOMP_PATCH s32 dll_78_func_D4(void) {
     
     //@recomp: make sure gameplay menu is restored at end
     if (bss_C >= FRAME_END) {
-        menu_set(MENU_GAMEPLAY);
+        credits_finish();
+    } else if (bss_C == 0) {
+        rsCreditsRestoredFrame = 0;
+    }
+
+    //@recomp: keep track of playback position so it can be restored when unpausing
+    if (rsCreditsRestoredFrame < bss_C) {
+        rsCreditsRestoredFrame = bss_C;
     }
 
     return 0;
 }
 
 /**
-  * Centres the Dinosaur Planet logo in widescreen mode
-  * (not needed in recomp, only for ROM patches)
+  * - Centres the Dinosaur Planet logo in widescreen mode
+  *   (not needed in recomp, only for ROM patches)
+  *
+  * - Stops drawing if a Screens image is being shown.
+  * 
+  * - Splices in static text for lead voice actors.
   */
 RECOMP_PATCH void dll_78_func_570(Gfx** gdl, s32 arg1, s32 arg2) {
     CreditsLine* line;
@@ -146,8 +233,14 @@ RECOMP_PATCH void dll_78_func_570(Gfx** gdl, s32 arg1, s32 arg2) {
     s32 i;
     s32 x;
     s32 y;
+    char* string;
 
     if (bss_4 == ARRAYCOUNT(data_0)) {
+        return;
+    }
+
+    //@recomp: stop drawing if a Screens image is being shown (Krystal's Adventure)
+    if (screens_is_screen_visible()) {
         return;
     }
     
@@ -159,7 +252,7 @@ RECOMP_PATCH void dll_78_func_570(Gfx** gdl, s32 arg1, s32 arg2) {
     );
     font_window_flush_strings(1);
     font_window_use_font(1, FONT_DINO_SUBTITLE_FONT_1);
-        
+
     if (bss_4 == 0) {
         //Draw the Dinosaur Planet logo
         line = &data_0[bss_4].lines[0];
@@ -199,16 +292,75 @@ RECOMP_PATCH void dll_78_func_570(Gfx** gdl, s32 arg1, s32 arg2) {
             }
             
             y = BASE_Y + ((line->lineIndex - 1) << 4);
-            
+
+            //@recomp: insert extra lines for Krystal/Sabre voice actors
+            string = bss_8->strings[line->textID];
+
+            if (bss_4 == 7) {
+                switch (i) {
+                case 4:
+                    string = rsCreditsLeadVoices[0];
+                    break;
+                case 5:
+                    string = rsCreditsLeadVoices[1];
+                    break;
+                case 6:
+                    string = rsCreditsLeadVoices[2];
+                    break;
+                }
+            }
+
             //Text
             font_window_set_extra_char_spacing(1, line->spacing);
-            font_window_add_string_xy(1, x, y, bss_8->strings[line->textID], 1, align);
+            font_window_add_string_xy(1, x, y, string, 1, align);
             
             //Text drop-shadow
             font_window_set_text_colour(1, 0, 0, 0, 0xFF, line->opacity);
-            font_window_add_string_xy(1, x - 2, y - 2, bss_8->strings[line->textID], 2, align);
+            font_window_add_string_xy(1, x - 2, y - 2, string, 2, align);
         }
     }
     
     font_window_draw(gdl, 0, 0, 1);
+}
+
+/** Restore credits when exiting pause menu */
+RECOMP_CALLBACK("*", recomp_on_game_tick_start) void restoreCredits() {
+    if (
+        ((menu_get_previous() == MENU_PAUSE)) && 
+        (rsCreditsRestoredFrame > 0) &&
+        (menu_get_current() != MENU_15) 
+    ) {
+        menu_set(MENU_15);
+        bss_C = rsCreditsRestoredFrame;
+    }
+}
+
+/** Returns the current frame of the credits */
+s32 credits_get_frame() {
+    return (s32)bss_C;
+}
+
+/** Allows the credits to be scrubbed to a particular frame */
+void credits_set_frame(s32 frame) {   
+    if (frame < 0) {
+        return;
+    }
+    rsCreditsRestoredFrame = frame;
+}
+
+/** Makes sure the credits are at least at a certain frame */
+void credits_sync_frame(s32 frame) {
+    if (frame < 0) {
+        return;
+    }
+    if (bss_C < frame) {
+        rsCreditsRestoredFrame = frame;
+    }
+}
+
+/** End the credits and restore gameplay menus */
+void credits_finish() {
+    bss_C = FRAME_END;
+    rsCreditsRestoredFrame = 0;
+    menu_set(MENU_GAMEPLAY);
 }

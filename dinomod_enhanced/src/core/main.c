@@ -5,10 +5,15 @@
 #include "PR/ultratypes.h"
 #include "game/gamebits.h"
 #include "sys/main.h"
+#include "sys/joypad.h"
+#include "sys/menu.h"
 #include "sys/objects.h"
 #include "sys/print.h"
 #include "types.h"
 #include "dlls/engine/29_gplay.h"
+
+#include "core/main.h"
+#include "engine/78_credits.h"
 
 extern GameState *gGplayState;
 extern BitTableEntry *gFile_BITTABLE;
@@ -112,3 +117,96 @@ RECOMP_PATCH s32 main_decrement_bits(s32 entry) {
 
     return 0;
 }
+
+/** Allows pausing to be blocked temporarily */
+static s8 rsBlockPausing = FALSE;
+
+/** Allows pausing to be blocked temporarily */
+void main_block_pausing(PauseBlockingStates value) {
+    rsBlockPausing = value;
+}
+
+extern s8 func_800143FC(void);
+extern void update_PlayerPosBuffer();
+
+extern s8 D_8008C94C;
+extern Gfx *gCurGfx;
+extern Mtx *gCurMtx;
+extern Vertex *gCurVtx;
+extern Triangle *gCurPol;
+extern s8 gPauseState;
+
+/** Allow pausing to be blocked temporarily */
+RECOMP_PATCH void func_80013D80(void) {
+    s32 button;
+
+    joy_set_button_mask(0, U_JPAD | R_JPAD);
+    gDLL_2_Camera->vtbl->lock_icon_tick();
+    gDLL_22_Subtitles->vtbl->func_4C0();
+
+    //@recomp: block pause
+    if (rsBlockPausing) {
+        gPauseState = 0;
+
+        if (rsBlockPausing != PauseBlock_On_Until_Removed) {
+            rsBlockPausing = FALSE;
+        }
+
+        if (menu_get_current() == MENU_PAUSE) {
+            if (credits_get_frame() > 0) {
+                menu_set(MENU_15);
+            } else {
+                menu_set(MENU_GAMEPLAY);
+            }
+        }
+    }
+
+    if (menu_update1() == 0) {
+        button = joy_get_pressed(0);
+
+        if (gPauseState != 0) {
+            draw_pause_screen_freeze_frame(&gCurGfx);
+        }
+
+        if (gPauseState == 0) {
+            update_objects();
+            func_80042174(0);
+
+            if ((camera_is_alternate_active() == 0) && (D_8008C94C == 0) && (func_800143FC() == 0) && ((button & START_BUTTON) != 0) && (main_get_bits(BIT_44F) == 0)) {
+                gPauseState = 1;
+                joy_set_button_mask(0, START_BUTTON);
+                menu_set(MENU_PAUSE);
+            }
+
+            gDLL_29_Gplay->vtbl->tick();
+        } else {
+            update_obj_models();
+        }
+
+        if (gPauseState == 0) {
+            update_PlayerPosBuffer();
+        }
+
+        menu_update2();
+        func_800591EC();
+        func_8004A67C();
+        map_update_streaming();
+        func_800210DC();
+
+        gDLL_4_Race->vtbl->func14();
+
+        if (gPauseState == 0) {
+            func_8004225C(&gCurGfx, &gCurMtx, &gCurVtx, &gCurPol, &gCurVtx, &gCurPol);
+        }
+
+        gDLL_20_Screens->vtbl->draw(&gCurGfx);
+        menu_draw(&gCurGfx, &gCurMtx, &gCurVtx, &gCurPol);
+
+        D_8008C94C -= gUpdateRate;
+
+        if ((s32)D_8008C94C < 0) {
+            D_8008C94C = 0;
+        }
+    }
+}
+
