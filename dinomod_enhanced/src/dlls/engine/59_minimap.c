@@ -186,7 +186,8 @@ static s32 minimap_print_custom(Gfx **gdl, s32 arg1) {
         }
     } else {
         //Fade minimap in/out
-        if (loadTextureID == sLoadedTexTableID) {
+        // @recomp: Fix opacity rising back to 255 while loadTextureID is 0 (causes the next fade in to be delayed)
+        if (loadTextureID == sLoadedTexTableID && loadTextureID != 0) {
             // sOpacity += 0x20; //@framerate-dependent
             sOpacity += 0x10 * gUpdateRate; //@recomp: fix framerate dependency
             if (sOpacity > 0xFF) {
