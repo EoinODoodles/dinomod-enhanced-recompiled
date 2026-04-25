@@ -4,7 +4,9 @@
 #include "PR/os.h"
 #include "common.h"
 #include "macros.h"
+#include "game/objects/object_id.h"
 #include "sys/joypad.h"
+#include "sys/objects.h"
 #include "sys/objtype.h"
 #include "sys/print.h"
 #include "sys/rand.h"
@@ -88,6 +90,19 @@ enum SB_Galleon_State {
     STATE_4
 };
 
+/** Deletes the Galleon's cannons */
+static void galleon_delete_cannons() {
+    Object** objects;
+    s32 i;
+    s32 count;
+
+    for (objects = get_world_objects(&i, &count); i < count; i++) {
+        if (objects[i]->id == OBJ_SB_ShipGun) {
+            obj_destroy_object(objects[i]);
+        }
+    }
+}
+
 /** 
   * Sets the approximate initial state `SB_Galleon` would have when first entering State 1 of its State Machine 
   * TODO: revisit once Galleon DLLs are documented, make sure this doesn't cause instability.
@@ -141,6 +156,8 @@ static void skip_galleon_fight(Object* self) {
 
     gDLL_3_Animation->vtbl->func17(0, self, -1);
     gDLL_30_Task->vtbl->mark_task_completed(1);
+
+    galleon_delete_cannons();
 }
 
 /** Automatically skip the Galleon fight (optional convenience when debugging) */
@@ -186,7 +203,6 @@ RECOMP_HOOK_DLL(SB_Galleon_control) void galleon_control_hook(Object *self) {
             rsCheatCode, 
             ARRAYCOUNT(rsCheatCode)
         );
-        button_code_print(&galleonCheat);
     }
 
     //Button sequence entered
