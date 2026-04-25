@@ -50,7 +50,11 @@ extern s32 _data_40;
 extern s32 _data_44;
 extern f32 _data_48;
 extern f32 _data_4C;
+extern s8 _data_58;
+extern s8 _data_5C;
+extern f32 _data_60;
 
+extern StructBss38 _bss_38[3];
 extern StructBss38 *_bss_780[3];
 extern u8 _bss_78C[0x4];
 extern s32 _bss_798;
@@ -68,6 +72,42 @@ extern void dll_22_func_D9C(Gfx **gdl);
 extern f32 dll_22_func_16A0(void);
 extern f32 dll_22_func_2118(void);
 
+RECOMP_PATCH void dll_22_func_C64(void) {
+    s32 i;
+    s32 j;
+
+    //@recomp: pause subtitles while gameplay paused
+    if (get_pause_state()) {
+        return;
+    }
+
+    _data_60 += gUpdateRateF;
+    
+    if (_data_5C) {
+        if (_data_60 > 10.0f) {
+            _data_60 -= 10.0f;
+            _data_58++;
+            if (_data_58 == 3) {
+                _data_5C = 0;
+            }
+        }
+    } else {
+        if (_data_60 > 10.0f) {
+            _data_60 -= 10.0f;
+            _data_58--;
+            if (_data_58 == 0) {
+                _data_5C = 1;
+            }
+        }
+    }
+    
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 8; j += 1) {
+            _bss_38[i].unkC8[0][j].unk4 = _data_58 << 8;
+        }
+    }
+}
+
 RECOMP_PATCH void dll_22_func_578(Gfx **gdl) {
     f32 temp;
     s32 temp_fv1;
@@ -75,10 +115,16 @@ RECOMP_PATCH void dll_22_func_578(Gfx **gdl) {
     s32 temp_v1;
     s32 temp_v0;
 
+    //@recomp: pause subtitles while gameplay paused
+    if (get_pause_state()){
+        dll_22_func_D9C(gdl);
+        return;
+    }
+
     temp_ft5 = (gUpdateRateF * 100.0f) / 30.0f;
     if (_data_38 != 0) {
         _data_40 += temp_ft5;
-        if (_data_40 >= 0x65) {
+        if (_data_40 > 0x64) {
             _data_40 = 0x64;
         }
     } else {
@@ -87,6 +133,7 @@ RECOMP_PATCH void dll_22_func_578(Gfx **gdl) {
             _data_40 = 0;
         }
     }
+
     dll_22_func_8F4();
     if (_data_34 == 0) {
         return;
