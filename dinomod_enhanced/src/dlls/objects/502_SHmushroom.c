@@ -162,6 +162,7 @@ static void add_to_inventory(Object* self, SHmushroom_Data_Extended* objData, SH
 		//If the player has a sidekick foodbag, store Blue Mushrooms there
 		if (dinoFoodBag && ((DLL_315_SideFoodbag*)dinoFoodBag->dll)->vtbl->is_obtained(dinoFoodBag)) {
 			((DLL_315_SideFoodbag*)dinoFoodBag->dll)->vtbl->collect_food(dinoFoodBag, SIDEFOOD_Blue_Mushrooms);
+			count = main_get_bits(BIT_Dino_Bag_Blue_Mushrooms);
 		//Otherwise store Blue Mushrooms directly in the inventory
 		} else {
 			count = main_increment_bits(objData->gamebitInventory);

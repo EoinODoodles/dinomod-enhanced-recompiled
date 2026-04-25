@@ -520,6 +520,8 @@ RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits() {
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_0_NW_GATE_KEY].textureID = TEXTABLE_563; //turns this unused item into an activated version of Dragon Rock's SpellStone
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_32_SPELLSTONE_WC_ACTIVATED].textureID = TEXTABLE_563; //using the activated SpellStone icon
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_33_SPELLSTONE_DR_ACTIVATED].textureID = TEXTABLE_562; //turns this into an inactive version of Dragon Rock's SpellStone
+    dPage11FoodItemsKyte[3].textureID = TEXTABLE_1A5;   //use Blue Mushroom icon instead of Old Apple icon (TODO: update index with enum)
+    dPage12FoodItemsTricky[3].textureID = TEXTABLE_1A5; //use Blue Mushroom icon instead of Old Apple icon (TODO: update index with enum)
     
     //Description text edits
     dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_19_GOLD_NUGGET_1_GP].textID = INVENTORY_TEXT(1, GAMETEXT_UI_B_03_Shiney_Nugget);
