@@ -117,6 +117,7 @@ RECOMP_PATCH void dll_22_func_578(Gfx **gdl) {
 
     //@recomp: pause subtitles while gameplay paused
     if (get_pause_state()){
+        _bss_7A4 = 0; //hide background strip
         dll_22_func_D9C(gdl);
         return;
     }
