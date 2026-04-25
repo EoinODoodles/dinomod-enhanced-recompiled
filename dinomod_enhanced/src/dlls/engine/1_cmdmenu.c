@@ -1502,6 +1502,11 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
     *pageSelectionIndex = sMenuSelectedItemIdx;
 }
 
+/** Returns whether the cmdmenu has an active button override */
+int cmdmenu_is_button_override_active() {
+    return sShouldOverrideJoypadButtons;
+}
+
 /** Make sure inventory tutorials still function the same while using optional D-pad controls */
 RECOMP_PATCH void cmdmenu_set_buttons_override(s32 buttonsOverride) {
     // u8 rNewControls; //whether to use new controls
