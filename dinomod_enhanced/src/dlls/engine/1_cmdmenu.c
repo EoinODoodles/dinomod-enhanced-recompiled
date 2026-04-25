@@ -1082,7 +1082,9 @@ RECOMP_PATCH void cmdmenu_update2(void) {
         autoShowInfoScroll = TRUE;
     } else {
         //Restore the scroll's default position when closed
-        if (cmdmenu_is_info_scroll_closed()) {
+        if (cmdmenu_is_info_scroll_closed() &&
+            (dInfoScrollOpacity == 0) //@recomp: don't reset position until fully hidden
+        ) {
             dInfoScrollX = INFO_SCROLL_X;
             dInfoScrollY = INFO_SCROLL_Y;
         }
