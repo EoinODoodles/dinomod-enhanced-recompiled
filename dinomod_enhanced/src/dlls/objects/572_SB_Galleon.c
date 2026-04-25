@@ -88,7 +88,10 @@ enum SB_Galleon_State {
     STATE_4
 };
 
-/** Sets the approximate initial state `SB_Galleon` would have when first entering State 1 of its State Machine */
+/** 
+  * Sets the approximate initial state `SB_Galleon` would have when first entering State 1 of its State Machine 
+  * TODO: revisit once Galleon DLLs are documented, make sure this doesn't cause instability.
+  */
 static void skip_galleon_fight(Object* self) {
     SB_Galleon_Data *objData;
     ObjSetup *objSetup;
