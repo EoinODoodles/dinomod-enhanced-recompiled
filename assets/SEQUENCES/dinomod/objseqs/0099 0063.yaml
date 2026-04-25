@@ -1,7 +1,9 @@
+# Ice Mountain: Sabre Intro
+
 actors:
 # Actor 0
 - uid: 0x0
-  settings: 0x0
+  settings: 0x8 #Allow skipping
   unk5: 0x0
   objectID: -1
 # Actor 1
