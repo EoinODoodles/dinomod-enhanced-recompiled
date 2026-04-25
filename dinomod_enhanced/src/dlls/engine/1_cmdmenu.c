@@ -851,6 +851,40 @@ s8 cmdmenu_new_get_next_category_right(Object* player, Object* sidekick, s8* rMo
     return 0;
 }
 
+/** Map the blocked C-buttons onto the D-pad when using optional D-pad controls */
+static u16 cmdmenu_get_extended_disabled_buttons() {
+    u8 rNewControls = recomp_get_config_u32("cmdmenu_new_controls");  //whether to use new controls
+    u8 rDControls = recomp_get_config_u32("cmdmenu_d_controls") > DPAD_OFF; //whether D-pad can navigate
+    u16 joyButtonMaskExtended = sJoyButtonMask;
+
+
+    //@recomp: handle optional new controls
+    if (rNewControls && (joyButtonMaskExtended & D_CBUTTONS)) {
+        joyButtonMaskExtended |= U_CBUTTONS;
+    }
+
+    //@recomp: handle optional D-pad controls
+    if (rDControls) {
+        if (joyButtonMaskExtended & U_CBUTTONS) { 
+            joyButtonMaskExtended |= U_JPAD;
+        }
+
+        if (joyButtonMaskExtended & D_CBUTTONS) { 
+            joyButtonMaskExtended |= D_JPAD;
+        }
+
+        if (joyButtonMaskExtended & L_CBUTTONS) { 
+            joyButtonMaskExtended |= L_JPAD;
+        }
+
+        if (joyButtonMaskExtended & R_CBUTTONS) { 
+            joyButtonMaskExtended |= R_JPAD;
+        }
+    }
+
+    return joyButtonMaskExtended;
+}
+
 /** 
   * - Add optional D-pad controls (either alongside C-button controls, or replacing C-button controls)
   *
@@ -879,10 +913,11 @@ RECOMP_PATCH void cmdmenu_update2(void) {
     u8 rIsInventoryOpen;
     s8 rMoveToCategory;
     s8 rMoveToPage;
+    u16 rJoyButtonMaskExtended = cmdmenu_get_extended_disabled_buttons();
 
     //@recomp: set button mask
     if (rDControls) {
-        joy_set_button_mask(0, sJoyButtonMask | ALL_MENUOPEN_D_PAD);
+        joy_set_button_mask(0, rJoyButtonMaskExtended | ALL_MENUOPEN_D_PAD);
     }
 
     player = get_player();
@@ -900,17 +935,17 @@ RECOMP_PATCH void cmdmenu_update2(void) {
         joy_set_button_mask(0, rAllMenuOpenButtons);
         sJoyPressedButtons &= ~(R_TRIG | rAllMenuOpenButtons);
         sJoyHeldButtons &= ~(R_TRIG | rAllMenuOpenButtons);
-    } else if (sJoyButtonMask != 0) {
-        joy_set_button_mask(0, sJoyButtonMask);
-        sJoyPressedButtons &= ~sJoyButtonMask;
-        sJoyHeldButtons &= ~sJoyButtonMask;
+    } else if (rJoyButtonMaskExtended != 0) {
+        joy_set_button_mask(0, rJoyButtonMaskExtended);
+        sJoyPressedButtons &= ~rJoyButtonMaskExtended;
+        sJoyHeldButtons &= ~rJoyButtonMaskExtended;
     }
 
     if (sShouldOverrideJoypadButtons) {
         sJoyPressedButtons = sJoyPressedButtonsOverride;
     } else {
         sJoyPressedButtons |= sJoyPressedButtonsOverride;
-        if ((player->unkB0 & 0x1000) || (sJoyButtonMask != 0)) {
+        if ((player->unkB0 & 0x1000) || (rJoyButtonMaskExtended != 0)) {
             sJoyPressedButtons |= B_BUTTON;
         }
     }
@@ -1157,6 +1192,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
     u32 rJoyHeldButtons = 0;
     static s8 rsHoldDirectionTimer = NEW_CONTROLS_CONTINUOUS_SCROLL_WAIT;
     static s16 rsHeldButton = 0;
+    u16 rJoyButtonMaskExtended = cmdmenu_get_extended_disabled_buttons();
 
     player = get_player();
 
@@ -1170,8 +1206,8 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
     //Lock/unlock accessing the C-button scroll menu
     if (player->unkB0 & 0x1000) {
         joy_set_button_mask(0, (rCControls * (ALL_MENUOPEN_C_BUTTONS | U_CBUTTONS)) | (rDControls * (ALL_MENUOPEN_D_PAD | U_JPAD)));
-    } else if (sJoyButtonMask != 0) {
-        joy_set_button_mask(0, sJoyButtonMask);
+    } else if (rJoyButtonMaskExtended != 0) {
+        joy_set_button_mask(0, rJoyButtonMaskExtended);
     }
 
     //Get button presses (or simulated ones, for tutorial sequences)
@@ -1181,7 +1217,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
         sJoyPressedButtons = joy_get_pressed(0) | rRawDPad; //@recomp: optionally factor in D-pad
         rJoyHeldButtons = rNewControls ? gContPads[gVirtualContPortMap[0]].button : 0; //@recomp: get held buttons (for continuous scrolling)
 
-        if ((player->unkB0 & 0x1000) || (sJoyButtonMask != 0)) {
+        if ((player->unkB0 & 0x1000) || (rJoyButtonMaskExtended != 0)) {
             sJoyPressedButtons |= B_BUTTON;
         }
     }
@@ -1228,7 +1264,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
 
     //@recomp: disable C-up while inventory open (to prevent entering 1st-person while navigating up)
     if (rNewControls && (dInventoryShow > 0)) {
-        joy_set_button_mask(0, sJoyButtonMask | rMenuUp);
+        joy_set_button_mask(0, rJoyButtonMaskExtended | rMenuUp);
     }
 
     //Play item use sound if needed
