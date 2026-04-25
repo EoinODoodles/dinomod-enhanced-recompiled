@@ -195,6 +195,10 @@ static void walled_city_modifications(void) {
             reasset_base_id(0x41463), NULL);
         moonAperture->unk20 = BIT_ALWAYS_1;
     }
+
+    // Delete DummyObjects in Moon/Sun temple basements (these are objects with an unmapped OBJINDEX.bin entry)
+    reasset_map_objects_delete(walledCity, reasset_base_id(0x41AFC));
+    reasset_map_objects_delete(walledCity, reasset_base_id(0x41B35));
 }
 
 static void shrine_fxemit_modifications(void) {
