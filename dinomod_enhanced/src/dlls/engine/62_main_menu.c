@@ -143,7 +143,7 @@ RECOMP_PATCH s32 mainmenu_update1(void) {
             }
         } else if (sExitTransitionTimer < 1) {
             gDLL_29_Gplay->vtbl->save_game_options(); //@recomp: save options
-            func_800141A4(1, 0, PLAYER_KRYSTAL, nextMenuID);
+            main_change_map(1, 0, PLAYER_KRYSTAL, nextMenuID);
         }
 
         if (sExitTransitionTimer <= MENU_TRANSITION_THRESHOLD) {
