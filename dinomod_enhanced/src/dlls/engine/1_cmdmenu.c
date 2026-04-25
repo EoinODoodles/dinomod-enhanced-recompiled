@@ -880,6 +880,7 @@ RECOMP_PATCH void cmdmenu_update2(void) {
     s8 rMoveToCategory;
     s8 rMoveToPage;
 
+    //@recomp: set button mask
     if (rDControls) {
         joy_set_button_mask(0, sJoyButtonMask | ALL_MENUOPEN_D_PAD);
     }
@@ -1197,7 +1198,10 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
         #endif
 
         //Forget held button once released
-        if ((rJoyHeldButtons & rsHeldButton) == FALSE) { 
+        if (sShouldOverrideJoypadButtons) {
+            rsHeldButton = 0;
+            rsHoldDirectionTimer = NEW_CONTROLS_CONTINUOUS_SCROLL_WAIT;
+        } else if ((rJoyHeldButtons & rsHeldButton) == FALSE) { 
             rsHeldButton = 0;
             rsHoldDirectionTimer = NEW_CONTROLS_CONTINUOUS_SCROLL_WAIT;
 
@@ -1460,6 +1464,69 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
     }
 
     *pageSelectionIndex = sMenuSelectedItemIdx;
+}
+
+/** Make sure inventory tutorials still function the same while using optional D-pad controls */
+RECOMP_PATCH void cmdmenu_set_buttons_override(s32 buttonsOverride) {
+    // u8 rNewControls; //whether to use new controls
+    u8 rDControls; //whether D-pad can navigate
+    u8 rCControls; //whether C-buttons can navigate
+
+    if (buttonsOverride == CMDMENU_CLEAR_BUTTONS_OVERRIDE) {
+        sJoyPressedButtonsOverride = 0;
+        sShouldOverrideJoypadButtons = FALSE;
+    } else {
+        // rNewControls = recomp_get_config_u32("cmdmenu_new_controls");
+        rDControls = recomp_get_config_u32("cmdmenu_d_controls") > DPAD_OFF;
+        rCControls = recomp_get_config_u32("cmdmenu_d_controls") < DPAD_ON_CBUTTONS_OFF;
+
+        //@recomp: handle optional D-pad and/or C-button controls
+        if (rDControls && rCControls) {
+            //D-pad controls AND C-button controls
+
+            if ((buttonsOverride & U_JPAD) && !(buttonsOverride & U_CBUTTONS) ) { 
+                buttonsOverride &= ~U_JPAD;
+                buttonsOverride |= U_CBUTTONS;
+            }
+
+            if ((buttonsOverride & D_JPAD) && !(buttonsOverride & D_CBUTTONS) ) { 
+                buttonsOverride &= ~D_JPAD;
+                buttonsOverride |= D_CBUTTONS;
+            }
+
+
+            if ((buttonsOverride & L_JPAD) && !(buttonsOverride & L_CBUTTONS) ) { 
+                buttonsOverride &= ~L_JPAD;
+                buttonsOverride |= L_CBUTTONS;
+            }
+
+            if ((buttonsOverride & R_JPAD) && !(buttonsOverride & R_CBUTTONS) ) { 
+                buttonsOverride &= ~R_JPAD;
+                buttonsOverride |= R_CBUTTONS;
+            }
+        } else if (rDControls && !rCControls) { 
+            //D-pad controls only
+            if (buttonsOverride & U_CBUTTONS) { 
+                buttonsOverride |= U_JPAD;
+            }
+
+            if (buttonsOverride & D_CBUTTONS) { 
+                buttonsOverride |= D_JPAD;
+            }
+
+
+            if (buttonsOverride & L_CBUTTONS) { 
+                buttonsOverride |= L_JPAD;
+            }
+
+            if (buttonsOverride & R_CBUTTONS) { 
+                buttonsOverride |= R_JPAD;
+            }
+        }
+
+        sJoyPressedButtonsOverride = buttonsOverride;
+        sShouldOverrideJoypadButtons = TRUE;
+    }
 }
 
 /** Add animation for scrolling up as well as down */
