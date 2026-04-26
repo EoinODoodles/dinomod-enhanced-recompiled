@@ -13,6 +13,7 @@
 #include "macros.h"
 
 #include "mod_common.h"
+#include "compression_util.h"
 #include "common_objsetups.h"
 #include "object_util.h"
 #include "configs.h"
@@ -405,6 +406,24 @@ static void music_actions_patch(void) {
     action140->seqID = 66;
 }
 
+static void df_patches(void) {
+    ReAssetID df = reasset_base_id(MAP_DISCOVERY_FALLS);
+    ReAssetID dfTrkblk = reasset_base_id(11);
+    
+    // Fix block shapes that are missing the fog render flag
+    ReAssetID blockID = reasset_base_id(338 - 319);
+    u32 blockDataSize;
+    u8 *blockData = reasset_blocks_get(dfTrkblk, blockID, &blockDataSize);
+    blockData = dinomod_block_decompress(blockData, blockDataSize, &blockDataSize);
+    Block *block = (Block*)(blockData + 8);
+    BlockShape *shapes = (BlockShape*)((u8*)block + (u32)block->shapes);
+    // Shape index 2 is also missing fog but i don't know where it is?
+    shapes[26].flags |= RENDER_FOG_ACTIVE; // The shapes around the climbable bit at the start of DF
+    shapes[27].flags |= RENDER_FOG_ACTIVE;
+    reasset_blocks_set(dfTrkblk, blockID, REASSET_BASE_NAMESPACE, blockData, blockDataSize);
+    recomp_free(blockData);
+}
+
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     walled_city_additions();
     warlock_mountain_platform_additions();
@@ -419,4 +438,5 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     // golden_plains_fuel_modifications();
     cc_lightfoot_patch();
     music_actions_patch();
+    df_patches();
 }
