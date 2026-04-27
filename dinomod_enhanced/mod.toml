@@ -162,14 +162,21 @@ The game's UI has a feature where it can display an info pop-up in the bottom-le
 
 In the unpatched December 2000 Prototype this pop-up only appears when collecting Kyte's Grubs. This mod option expands the pool of items to include the following items:
 
+- Energy Eggs
+- Alpine Roots
 - Blue Mushrooms
 - White Mushrooms
 - Purple Mushroom Spores
+- Shiny Nuggets*
+- DarkIce Mines Bridge Cogs*
+- Fire Crystal
 
  (This list can be expanded over time, as more of the game is decompiled)
+
+ * The item collection cutscene is usually shown every time these particular items are collected. Using the "On+" setting, the item pop-up will appear instead after the first time the collection cutscene is seen.
 '''
 type = "Enum"
-options = [ "Off", "On" ]
+options = [ "Off", "On", "On+" ]
 default = "On"
 
 [[manifest.config_options]]

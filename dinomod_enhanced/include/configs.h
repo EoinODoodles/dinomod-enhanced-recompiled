@@ -16,3 +16,11 @@ typedef enum {
     DPAD_ON_CBUTTONS_ON,
     DPAD_ON_CBUTTONS_OFF
 } CmdmenuDPadModes;
+
+typedef enum {
+    POPUP_CONFIG_DEFAULT,
+    POPUP_CONFIG_EXPANDED,
+    POPUP_CONFIG_OVERRIDE_TUTORIAL_ON_REPEAT
+} InfoPopupModes;
+
+#define INFO_POPUP_DURATION 300

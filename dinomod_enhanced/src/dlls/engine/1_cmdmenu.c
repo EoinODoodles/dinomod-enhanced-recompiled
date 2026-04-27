@@ -33,8 +33,12 @@
 #include "engine/1_cmdmenu.h"
 #include "engine/59_minimap.h"
 
+/* RECOMP CMDMENU MACROS */
+
 #define DEBUG_INVENTORY_SCROLLING FALSE
 #define DEBUG_SIDEKICK_METER FALSE
+
+/* DECOMP CMDMENU MACROS */
 
 #define MAX_LOADED_ITEMS 64
 #define MAX_OPACITY 0xFF
@@ -502,6 +506,7 @@ RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits() {
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_0_NW_GATE_KEY].gamebitObtained = BIT_7CC; //turns this into an activated version of Dragon Rock's SpellStone 
 
     //Gamebit edits (hiding items once used)
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_20_GOLD_NUGGET_2_LFV].gamebitHide = BIT_CC_Bribed_GuardClaw; //fix issue where it used the "Rescued Kyte" gamebit instead of "Bribed GuardClaw", unlike the other Shiny Nuggets
     dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_31_PRISON_KEY_CRF].gamebitHide = BIT_453;
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_11_DIM_BELINA_TE_CELL_KEY].gamebitHide = BIT_219;
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_12_DIM_TRICKY_CELL_KEY].gamebitHide = BIT_208;
@@ -604,7 +609,7 @@ RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits_extra_text() {
 }
 
 /** Check if extra text user config has changed */
-RECOMP_CALLBACK("*", recomp_on_game_tick_start) void updateExtraTextInventory() {
+RECOMP_CALLBACK("*", recomp_on_game_tick_start) void update_extra_text_inventory() {
     u32 setting = recomp_get_config_u32("lamingaming_extra_description_text");
     if (useExtraDescriptions == setting){
         return;

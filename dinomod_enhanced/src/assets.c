@@ -1,8 +1,14 @@
 #include "recompconfig.h"
 #include "recomputils.h"
+#include "mod_common.h"
 #include "reasset.h"
+#include "compression_util.h"
+#include "object_util.h"
+#include "configs.h"
 
 #include "PR/ultratypes.h"
+#include "macros.h"
+#include "common_objsetups.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
 #include "game/gamebits.h"
@@ -10,13 +16,7 @@
 #include "sys/map.h"
 #include "sys/map_enums.h"
 #include "sys/memory.h"
-#include "macros.h"
-
-#include "mod_common.h"
-#include "compression_util.h"
-#include "common_objsetups.h"
-#include "object_util.h"
-#include "configs.h"
+#include "dlls/objects/common/collectable.h"
 
 INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
 
@@ -307,9 +307,59 @@ static void golden_plains_modifications(void) {
     reasset_iterator_destroy(iterator);
 }
 
+/** Makes sure collectables have objectIDs for the animObj that should appear when they're collected */
+static void collectables_animobj_patch(void) {
+    typedef struct {
+        u32 objIndexID; //the collectable object
+        u32 animObjID;  //the objectID of the animObj to show during the item collection cutscene
+    } Object_AnimObj_Pair;
+
+    Object_AnimObj_Pair collectables[] = {
+        {OBJ_SC_golden_nugge, OBJ_CCgolden_nugget}, //Shiny Nugget (SwapStone Circle)
+        {OBJ_CCgoldnuggetPic, OBJ_CCgolden_nugget}  //Shiny Nugget (Cape Claw)
+    };
+
+    ReAssetID objectIndex;
+    ObjDef *objDef;
+    CollectableDef* collectable;
+
+    for (u32 i = 0; i < ARRAYCOUNT(collectables); i++) {
+        reasset_object_indices_get(
+            reasset_base_id(collectables[i].objIndexID), 
+            &objectIndex
+        );
+
+        objDef = reasset_objects_get(objectIndex, NULL);
+        if (!objDef) {
+            recomp_eprintf("[ASSETS.C] Couldn't find objDef for objIndex %x\n", collectables[i].objIndexID);
+            continue;
+        }
+
+        if ((u32)objDef->collectableDef == 0) {
+            recomp_eprintf("[ASSETS.C] Couldn't find collectableDef for %s\n", objDef->name);
+            continue;
+        }
+
+        collectable = (CollectableDef*)((u32)objDef + (u32)objDef->collectableDef);
+        collectable->seqObjectID = collectables[i].animObjID;
+        recomp_printf("Patched %s!\n", objDef->name);
+    } 
+}
+
+/** Causes Cape Claw's Shiny Nugget to increment the same gamebit used by SwapStone Circle's Shiny Nuggets */
+static void cc_shiny_nugget_patch(void) {
+    ReAssetID capeClaw = reasset_base_id(MAP_CAPE_CLAW);
+
+    Collectable_Setup *gold = (Collectable_Setup*)reasset_map_objects_get(capeClaw, 
+            reasset_base_id(0x42DFD), NULL);
+    if (gold->base.objId == OBJ_CCgoldnuggetPic) {
+        gold->gamebitCount = BIT_627;
+    }
+}
+
 /** (CURRENTLY UNUSED) Adds jetbike fuel refills around Golden Plains, only showing up in Act 3 */
 PRAGMA_IGNORE_PUSH("-Wunused")
-static void golden_plains_fuel_modifications(void) {
+static void golden_plains_fuel_additions(void) {
     ReAssetID mapID = reasset_base_id(MAP_GOLDEN_PLAINS);
 
     typedef struct {
@@ -427,12 +477,19 @@ static void df_patches(void) {
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     walled_city_additions();
     warlock_mountain_platform_additions();
+    //golden_plains_fuel_additions();
 }
 
 REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
-    walled_city_modifications();
+    music_actions_patch();
+    collectables_animobj_patch();
+
     shrine_fxemit_modifications();
     warlock_mountain_platform_modifications();
+    cc_lightfoot_patch();
+    cc_shiny_nugget_patch();
+    golden_plains_modifications();
+    walled_city_modifications();
     dragon_rock_upper_modifications();
     golden_plains_modifications();
     // golden_plains_fuel_modifications();

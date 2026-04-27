@@ -2,6 +2,7 @@
 #include "player_util.h"
 #include "recompconfig.h"
 #include "recomputils.h"
+#include "configs.h"
 
 #include "PR/gbi.h"
 #include "macros.h"
@@ -180,7 +181,7 @@ static void add_to_inventory(Object* self, SHmushroom_Data_Extended* objData, SH
 	) {
 		gDLL_1_cmdmenu->vtbl->info_show(
 			objData->gamebitInventory, 
-			300, //5 seconds
+			INFO_POPUP_DURATION,
 			count
 		);
 	}

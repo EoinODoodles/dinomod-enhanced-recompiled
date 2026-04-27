@@ -1,6 +1,7 @@
 #include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
+#include "configs.h"
 
 #include "common.h"
 #include "sys/main.h"
@@ -120,7 +121,7 @@ RECOMP_PATCH void SHspore_control(Object* self) {
                 if (recomp_get_config_u32("cmdmenu_info_popup_expand")) {
                     gDLL_1_cmdmenu->vtbl->info_show(
                         BIT_Inventory_Purple_Mushrooms, 
-                        300, //5 seconds
+                        INFO_POPUP_DURATION,
                         i
                     );
                 }
