@@ -17,7 +17,7 @@
   *
   * TODO: patch the constructor function instead once it's decomped?
   */
-RECOMP_HOOK_DLL(dll_251_control) void weapon_phase_through_transparent_shapes(Object* self) {
+RECOMP_HOOK_DLL(dll_251_control) void weapons_phase_through_transparent_shapes(Object* self) {
     if ((self->objhitInfo) && (self->objhitInfo->unkA1 != 1)) {
         self->objhitInfo->unkA1 = 1;
     }
