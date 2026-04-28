@@ -12,6 +12,9 @@
 #include "sys/objanim.h"
 #include "sys/objtype.h"
 #include "sys/objmsg.h"
+#include "sys/objlib.h"
+#include "sys/segment_53F00.h"
+#include "sys/gfx/model.h"
 #include "dll.h"
 
 #include "dlls/objects/common/vehicle.h"
@@ -23,11 +26,6 @@
 #include "recomp/dlls/objects/210_player_recomp.h"
 
 #define DEBUG_MESSAGES FALSE
-
-void func_8001A3FC(ModelInstance *modelInst, u32 selector, s32 idx, f32 param_4, f32 scale, Vec3f *param_6, s16 *param_7);
-extern s32 func_80025140(Object*, f32, f32, s32);
-extern s16 func_80031DD8(Object* objA, Object* objB, f32* distance);
-extern void func_8005B5B8(Object*, Object*, s32);
 
 extern f32 _data_C[];
 extern u8 _data_14[4];
@@ -63,7 +61,7 @@ extern void dll_210_func_14B70(Object* arg0, ObjFSA_Data *arg1);
 extern void dll_210_func_18DB0(Object* obj, ObjFSA_Data* fsa);
 extern s32 dll_210_func_1A9D4(Object* player, s32* arg1, s32* arg2, s32* arg3, f32 arg4, f32 arg5);
 extern void dll_210_func_1AAD8(Object* player, ObjFSA_Data *fsa);
-void dll_210_add_health(Object* player, s32 amount);
+extern void dll_210_add_health(Object* player, s32 amount);
 extern s32 dll_210_func_1D2A8(Object* arg0, Object* arg1);
 extern void dll_210_func_1D4E0(Object* arg0, s32 arg1);
 extern void dll_210_func_1D8B8(Object* player);
