@@ -2,10 +2,8 @@
 #include "recomputils.h"
 
 #include "recomp/dlls/engine/66_pausemenu_recomp.h"
-#include "dlls/engine/66_pausemenu.h"
 
 #include "PR/ultratypes.h"
-#include "dll.h"
 #include "sys/joypad.h"
 #include "sys/fonts.h"
 #include "sys/main.h"
@@ -14,8 +12,12 @@
 #include "sys/objects.h"
 #include "sys/print.h"
 #include "sys/rcp.h"
+#include "dll.h"
+#include "dlls/engine/66_pausemenu.h"
 
 #include "player_stats.h"
+
+extern s32 D_8008C890;
 
 extern const char formatCompletionPercentage[];
 extern const char formatGameplayTime[];
@@ -71,7 +73,11 @@ static void printWithDropshadow(char message[], s16 x, s16 y, s32 colour_main, s
     font_window_add_string_xy(1, x - 1, y - 1, message, 2, alignment);
 }
 
-/** Allows the SpellStone/Spirit/Duster counters show your actual counts, and adds missing drop-shadow to completion percentage text */
+/** 
+  * - Allows the SpellStone/Spirit/Duster counters show your actual counts
+  * - Adds in the completion percentage text's missing drop-shadow 
+  * - Adapts for widescreen mode (only used by ROM patches, recomp handles widescreen differently)
+  */
 RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
     s32 ulx;
     s32 uly;
@@ -127,9 +133,23 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
             break;
         default:   
             //Draw icons
+            #ifdef DINOMOD_ROM_PATCH
+            if (D_8008C890) {
+                //Widescreen aspect
+                rcp_screen_full_write(gfx, textureSpellStone, 52, 136, 0, 0, opacity_main, 0);
+                rcp_screen_full_write(gfx, textureDuster, 134, 162, 0, 0, opacity_main, 0);
+                rcp_screen_full_write(gfx, textureSpirit, 219, 137, 0, 0, opacity_main, 0);
+            } else {
+                //Standard aspect
+                rcp_screen_full_write(gfx, textureSpellStone, 44, 136, 0, 0, opacity_main, 0);
+                rcp_screen_full_write(gfx, textureDuster, 127, 162, 0, 0, opacity_main, 0);
+                rcp_screen_full_write(gfx, textureSpirit, 216, 137, 0, 0, opacity_main, 0);
+            }
+            #else
             rcp_screen_full_write(gfx, textureSpellStone, 44, 136, 0, 0, opacity_main, 0);
             rcp_screen_full_write(gfx, textureDuster, 127, 162, 0, 0, opacity_main, 0);
             rcp_screen_full_write(gfx, textureSpirit, 216, 137, 0, 0, opacity_main, 0);
+            #endif
             
             //Draw completion percentage
             sprintf(completionPercentage, formatCompletionPercentage, gDLL_30_Task->vtbl->get_completion_percentage());
@@ -146,6 +166,31 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
             //Update stats
             getPlayerStats();
 
+            #ifdef DINOMOD_ROM_PATCH
+            if (D_8008C890) {
+                //Widescreen aspect
+
+                //Draw SpellStone count
+                font_window_add_string_xy(1, 85, 156, spellStoneCount, 1, ALIGN_TOP_LEFT);
+        
+                //Draw Duster count
+                font_window_add_string_xy(1, 177, 184, dusterCount, 1, ALIGN_TOP_RIGHT);
+        
+                //Draw Spirit count
+                font_window_add_string_xy(1, 232, 156, spiritCount, 1, ALIGN_TOP_LEFT);
+            } else {
+                //Standard aspect
+
+                //Draw SpellStone count
+                font_window_add_string_xy(1, 85, 156, spellStoneCount, 1, ALIGN_TOP_LEFT);
+        
+                //Draw Duster count
+                font_window_add_string_xy(1, 182, 184, dusterCount, 1, ALIGN_TOP_RIGHT);
+        
+                //Draw Spirit count
+                font_window_add_string_xy(1, 232, 156, spiritCount, 1, ALIGN_TOP_LEFT);
+            }
+            #else
             //Draw SpellStone count
             font_window_add_string_xy(1, 85, 156, spellStoneCount, 1, ALIGN_TOP_LEFT);
     
@@ -154,7 +199,8 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
     
             //Draw Spirit count
             font_window_add_string_xy(1, 232, 156, spiritCount, 1, ALIGN_TOP_LEFT);
-    
+            #endif
+
             //Draw "Game Time" and "Complete" strings
             printWithDropshadow(gametext->strings[2], 74, 21, colour_main, colour_shadow, opacity_main, ALIGN_TOP_CENTER);
             printWithDropshadow(gametext->strings[3], 264, 21, colour_main, colour_shadow, opacity_main, ALIGN_TOP_CENTER);
