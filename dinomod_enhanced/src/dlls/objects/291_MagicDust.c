@@ -1,4 +1,5 @@
 #include "modding.h"
+#include "recompconfig.h"
 #include "recomputils.h"
 
 #include "game/gamebits.h"
@@ -200,8 +201,10 @@ RECOMP_PATCH void MagicDust_control(Object* self) {
                     gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_66E_Ting, volumeMultiplier * 32.0f, NULL, NULL, 0, NULL);
                 }
                 
-                //Reflect speed vector off surface normal (@bug: result unused?)
-                {
+                //Reflect speed vector off surface normal (@recomp: make use of unused reflect calculation!)
+				if (recomp_get_config_u32("magic_dust_reflect_bounce")) {
+					//FANCY REFLECTED BOUNCE
+
                     //R = V - 2*(V ⋅ N)*N
 
                     //Get negative velocity unit vector
@@ -225,28 +228,49 @@ RECOMP_PATCH void MagicDust_control(Object* self) {
                     vReflect.f[0] -= negativeS.f[0];
                     vReflect.f[1] -= negativeS.f[1];
                     vReflect.f[2] -= negativeS.f[2];
-                }
-                
-                //Bounce upwards if the ground is mostly level
-                if (nSurface.f[1] >= 0.707f) {
-                    self->velocity.y = -self->velocity.y;
-                    self->velocity.y *= 0.85f;
 
-                    //Stop after 6 bounces
-                    objData->bounces++;
-                    if (objData->bounces >= 6) {
-                        objData->flags |= MagicDust_FLAG_On_Ground;
-                        self->velocity.x = 0;
-                        self->velocity.y = 0;
-                        self->velocity.z = 0;
-                    }
-                //Otherwise bounce laterally and lose vertical momentum
+					//@recomp: use reflected bounce
+					self->velocity.x = vReflect.f[0]*absSpeed*0.85f;
+					self->velocity.y = vReflect.f[1]*absSpeed*0.85f;
+					self->velocity.z = vReflect.f[2]*absSpeed*0.85f;
+
+					//Stop after 6 bounces off the ground
+					if (nSurface.f[1] >= 0.707f) {
+						objData->bounces++;
+						if (objData->bounces >= 6) {
+							objData->flags |= MagicDust_FLAG_On_Ground;
+							self->velocity.x = 0;
+							self->velocity.y = 0;
+							self->velocity.z = 0;
+						}
+					}
                 } else {
-                    self->velocity.x = -self->velocity.x;
-                    self->velocity.z = -self->velocity.z;
-                    self->velocity.x *= 0.85f;
-                    self->velocity.z *= 0.85f;
-                }
+					//BASIC BOUNCE
+                
+					//@recomp: get vertical component of surface normal
+					nSurface.f[1] = collision->unk68.unk0[0].f[1];
+
+					//Bounce upwards if the ground is mostly level
+					if (nSurface.f[1] >= 0.707f) {
+						self->velocity.y = -self->velocity.y;
+						self->velocity.y *= 0.85f;
+
+						//Stop after 6 bounces
+						objData->bounces++;
+						if (objData->bounces >= 6) {
+							objData->flags |= MagicDust_FLAG_On_Ground;
+							self->velocity.x = 0;
+							self->velocity.y = 0;
+							self->velocity.z = 0;
+						}
+					//Otherwise bounce laterally and lose vertical momentum
+					} else {
+						self->velocity.x = -self->velocity.x;
+						self->velocity.z = -self->velocity.z;
+						self->velocity.x *= 0.85f;
+						self->velocity.z *= 0.85f;
+					}
+				}
             }
         }
     }

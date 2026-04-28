@@ -286,6 +286,18 @@ options = [ "Show", "Hide" ]
 default = "Hide"
 
 [[manifest.config_options]]
+id = "magic_dust_reflect_bounce"
+name = "Magic Crystals: Use Reflected Bounce"
+description = '''
+By default Magic Crystals' bounce behaviour treats the ground like it's perfectly flat: reversing and diminishing only the vertical component of the gem's velocity each time it bounces.
+
+Despite this, Magic Crystals' code also contains an unused section where it calculates an accurate bounce vector reflected off the ground's angle at the point of collision! Enabling this config option lets the gems use that calculation's result, so you'll see gems bounce downhill!
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "Off"
+
+[[manifest.config_options]]
 id = "shmushroom_dance_chance"
 name = "Mushroom Dance Chance"
 description = '''
