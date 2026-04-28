@@ -33,6 +33,8 @@
 #include "engine/1_cmdmenu.h"
 #include "engine/59_minimap.h"
 
+extern s32 D_8008C890;
+
 /* RECOMP CMDMENU MACROS */
 
 #define DEBUG_INVENTORY_SCROLLING FALSE
@@ -1937,6 +1939,10 @@ RECOMP_HOOK_RETURN_DLL(cmdmenu_dtor) void cmdmenu_dtor_hook() {
     print_func = NULL;
 }
 
+/**
+  * - Duplicates Shinx's base recomp widescreen HUD patches, allowing more patches to be added on top.
+  * - Ports the ROM patches' widescreen reticle aiming fix (not used in recomp itself).
+  */
 static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     Object* player;
     s32 viSize;
@@ -1956,6 +1962,36 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     //Draw Spell reticle when aiming (@bug: x coord not adjusted in widescreen)
     if (((DLL_210_Player*)player->dll)->vtbl->func77(player, &screenX, &screenY)) {
         tex_animate(sCrosshairTex, &sCrosshairAnimRenderFlags, &sCrosshairAnimProgress);
+        
+        #ifdef DINOMOD_ROM_PATCH
+        {
+            if (D_8008C890) {
+                //Widescreen aspect
+                rcp_screen_full_write(
+                    gdl, 
+                    sCrosshairTex, 
+                    (u32)(screenX*0.75f) - (AIMING_RETICLE_WIDTH/2) + 43, 
+                    screenY - (AIMING_RETICLE_HEIGHT/2), 
+                    0, 
+                    sCrosshairAnimProgress >> 8, 
+                    AIMING_RETICLE_OPACITY, 
+                    SCREEN_WRITE_TRANSLUCENT
+                );
+            } else {
+                //Standard aspect
+                rcp_screen_full_write(
+                    gdl, 
+                    sCrosshairTex, 
+                    screenX - (AIMING_RETICLE_WIDTH/2), 
+                    screenY - (AIMING_RETICLE_HEIGHT/2), 
+                    0, 
+                    sCrosshairAnimProgress >> 8, 
+                    AIMING_RETICLE_OPACITY, 
+                    SCREEN_WRITE_TRANSLUCENT
+                );
+            }
+        }
+        #else
         rcp_screen_full_write(
             gdl, 
             sCrosshairTex, 
@@ -1966,6 +2002,7 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             AIMING_RETICLE_OPACITY, 
             SCREEN_WRITE_TRANSLUCENT
         );
+        #endif
     }
 
     cmdmenu_draw_player_stats(gdl, mtxs, vtxs);
