@@ -173,10 +173,48 @@ In the unpatched December 2000 Prototype this pop-up only appears when collectin
 
  (This list can be expanded over time, as more of the game is decompiled)
 
- * The item collection cutscene is usually shown every time these particular items are collected. Using the "On+" setting, the item pop-up will appear instead after the first time the collection cutscene is seen.
+ * The item collection cutscene is usually shown every time these particular items are collected. Using the "On+" setting, the item's collection cutscene will be shown the first time it's collected, and then the pop-up will appear instead on subsequent collections.
 '''
 type = "Enum"
 options = [ "Off", "On", "On+" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "cmdmenu_active_icon_overlap"
+name = "Active Spell/Command: Overlap Fix"
+description = '''
+When a Spell or a Sidekick Command is selected in the inventory, the game's UI displays its icon in the bottom-right of screen. Both the active Spell and active Sidekick Command's icons can be shown at the same time, with the Sidekick Command stacked above the Spell.
+
+There's a minor problem with this: the Sidekick Command icon's screen position overlaps with the position of the inventory scroll. So, if the inventory is opened while a Sidekick Command is issued, the UI elements will clash in an awkward way. This config option addresses that!
+
+There are three options:
+
+- Off
+  The original unedited behaviour.
+
+- On (Hide)
+  The Sidekick Command icon will be hidden while the inventory is open.
+
+- On (Move)
+  The Sidekick Command icon will scoot down while the inventory is open. 
+  The Spell icon will also over move if the Sidekick Icon needs space.
+'''
+type = "Enum"
+options = [ "Off", "On (Hide)", "On (Move)" ]
+default = "On (Move)"
+
+[[manifest.config_options]]
+id = "cmdmenu_active_icon_fade"
+name = "Active Spell/Command: Animate Fade"
+description = '''
+When a Spell or a Sidekick Command is selected in the inventory, the game's UI displays its icon in the bottom-right of screen.
+
+Unlike other elements of the UI, the active Spell/Command icons appear and disappear immediately without any fade animation.
+
+This config option lets you add fade-in/out animation to the icons.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
 default = "On"
 
 [[manifest.config_options]]
@@ -310,7 +348,7 @@ min = 0
 max = 100
 step = 1
 precision = 0
-percent = false
+percent = true
 default = 10
 
 [[manifest.config_options]]

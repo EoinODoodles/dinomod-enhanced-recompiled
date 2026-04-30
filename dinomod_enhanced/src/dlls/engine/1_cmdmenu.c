@@ -1,5 +1,6 @@
 #include "configs.h"
 #include "dll_util.h"
+#include "math_util.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
@@ -35,10 +36,21 @@
 
 extern s32 D_8008C890;
 
+/* RECOMP VARS */
+
+static f32 rsLerpActiveSpell = 0;               //Lerp tValue for (optionally) moving the Active Spell icon
+static f32 rsLerpActiveSideCommand = 0;         //Lerp tValue for (optionally) moving the Active Sidekick Command icon
+static s16 rsOpacityActiveSpell = 0;            //Opacity value for (optionally) fading in/out the Active Spell icon
+static s16 rsOpacityActiveSideCommand = 0;      //Opacity value for (optionally) fading in/out the Active Sidekick Command icon
+static u8 rsShowActiveSpell = FALSE;            //Whether to show/hide the Active Spell icon (used when optionally fading)
+static u8 rsShowActiveSideCommand = FALSE;      //Whether to show/hide the Active Spell icon (used when optionally fading)
+
 /* RECOMP CMDMENU MACROS */
 
 #define DEBUG_INVENTORY_SCROLLING FALSE
 #define DEBUG_SIDEKICK_METER FALSE
+
+#define INVENTORY_LERP_SPEED (1.0f/((f32)(MENU_HEIGHT_OPEN >> 2)))
 
 /* DECOMP CMDMENU MACROS */
 
@@ -61,22 +73,6 @@ extern s32 D_8008C890;
 
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
-
-//Change these to move the UI elements in the top-left of screen (character icon, health, magic)
-#define UI_TOP_LEFT_X 0
-#define UI_TOP_LEFT_Y 0
-
-//Change these to move the UI elements in the top-right of screen (C-buttons, inventory scroll)
-#define UI_TOP_RIGHT_X 0
-#define UI_TOP_RIGHT_Y 0
-
-//Change these to move the UI elements in the bottom-left of screen (item info pop-up, minimap)
-#define UI_BOTTOM_LEFT_X 0
-#define UI_BOTTOM_LEFT_Y 0
-
-//Change these to move the UI elements in the bottom-right of screen (Scarab counter, active Spell/Command)
-#define UI_BOTTOM_RIGHT_X 0
-#define UI_BOTTOM_RIGHT_Y 0
 
 /* UI TOP-LEFT */
 
@@ -624,6 +620,333 @@ RECOMP_CALLBACK("*", recomp_on_game_tick_start) void update_extra_text_inventory
     } else {
         remove_extra_descriptions();
     }
+}
+
+/**
+  * - Duplicates Shinx's base recomp widescreen HUD patches, allowing more patches to be added on top.
+  * - Fixes framerate dependent behaviour in the Scarab counter.
+  * - Hides the Scarab counter while the Active Spell/Sidekick Command icons are overlapping it.
+  */
+static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
+    f32 goalOpacity;
+    u32 pad;
+    u8 i;
+    u8 statsOpacity;
+    s8 offsetX;
+    s8 offsetY;
+    s32 temp;
+    Gfx* dl;
+    Object* player = get_player();
+    u8 texIdx;
+    static char playerScarabCountText[4] = "   ";
+    /* RECOMP */
+    u8 rConfigActiveIconOverlapFix = recomp_get_config_u32("cmdmenu_active_icon_overlap");
+
+    dl = *gdl;
+    temp = vi_get_current_size();
+    
+    gDPSetScissor(dl++, G_SC_NON_INTERLACE, 0, 0, (u16)GET_VIDEO_WIDTH(temp) - 1, SCREEN_HEIGHT - 1);
+
+    // @recomp: Align stats to left
+    #ifndef DINOMOD_ROM_PATCH
+    gEXSetViewportAlign(dl++, G_EX_ORIGIN_LEFT, 0, 0);
+    gEXSetRectAlign(dl++, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_LEFT, 0, 0, 0, 0);
+    #endif
+    
+    //Draw player health
+    {
+        if ((sStatsChangeTimers.playerHealth >= 0.0f) || 
+            (sStatsChangeTimers.playerHealthMax >= 0.0f) || 
+            (sStatsChangeTimers.unk14 >= 0.0f) //Shows health when pressing R
+        ) {
+            goalOpacity = MAX_OPACITY_F;
+        } else {
+            goalOpacity = 0.0f;
+        }
+
+        if (sOpacityHealth < goalOpacity) {
+            sOpacityHealth += 8.5f * gUpdateRateF;
+            if (sOpacityHealth > MAX_OPACITY_F) {
+                sOpacityHealth = MAX_OPACITY_F;
+            }
+        } else if (goalOpacity < sOpacityHealth) {
+            sOpacityHealth -= 8.5f * gUpdateRateF;
+            if (sOpacityHealth < 0.0f) {
+                sOpacityHealth = 0.0f;
+            }
+        }
+        
+        statsOpacity = sOpacityHealth;
+        if (statsOpacity) {
+            for (i = 0; i < (sStats.playerHealthMax >> 2); i++) {
+                s32 appleCount;
+
+                //Get apple coords (3 rows)
+                if (i >= APPLES_ROW_3_IDX) {
+                    //Row 3
+                    offsetX = (i * APPLES_SPACING_X) + (APPLES_ROW_3_OFFSET_X - (APPLES_ROW_3_IDX * APPLES_SPACING_X));
+                    offsetY = 2 * APPLES_SPACING_Y;
+                } else if (i >= APPLES_ROW_2_IDX) {
+                    //Row 2
+                    offsetX = (i * APPLES_SPACING_X) + (APPLES_ROW_2_OFFSET_X - (APPLES_ROW_2_IDX * APPLES_SPACING_Y));
+                    offsetY = APPLES_SPACING_Y;
+                } else {
+                    //Row 1
+                    offsetX = (i * APPLES_SPACING_X) + (APPLES_ROW_1_OFFSET_X);
+                    offsetY = 0;
+                }
+
+                //Pick which texture to use for this apple
+                appleCount = sStats.playerHealth >> 2;
+                if (i < appleCount) {
+                    //Full apple
+                    texIdx = CMDMENU_TEX_17_Apple_100_Pct;
+                } else if (appleCount < i) {
+                    //Empty apple
+                    texIdx = CMDMENU_TEX_08_Apple_0_Pct;
+                } else {
+                    //Portion of an apple
+                    texIdx = CMDMENU_TEX_08_Apple_0_Pct + (sStats.playerHealth & 3);
+                }
+                
+                rcp_tile_write(
+                    &dl,
+                    sTextureTiles[texIdx], 
+                    HEALTH_ICONS_X + offsetX, 
+                    HEALTH_ICONS_Y + offsetY,
+                    0xFF,0xFF, 0xFF, statsOpacity
+                );
+            }
+        }
+    }
+
+    //Draw player magic
+    {
+        //Get opacity goal
+        if ((sStatsChangeTimers.playerMagic >= 0.0f) || 
+            (sStatsChangeTimers.unk14 >= 0.0f) || 
+            (((DLL_210_Player*)player->dll)->vtbl->func50(player) != -1)
+        ) {
+            goalOpacity = MAX_OPACITY_F;
+        } else {
+            goalOpacity = 0.0f;
+        }
+
+        //Animate magic bar's opacity towards goal opacity
+        if (sOpacityMagic < goalOpacity) {
+            sOpacityMagic += 8.5f * gUpdateRateF;
+            if (sOpacityMagic > MAX_OPACITY_F) {
+                sOpacityMagic = MAX_OPACITY_F;
+            }
+        } else if (goalOpacity < sOpacityMagic) {
+            sOpacityMagic -= 8.5f * gUpdateRateF;
+            if (sOpacityMagic < 0.0f) {
+                sOpacityMagic = 0.0f;
+            }
+        }
+
+        //Draw magic bar(s)
+        statsOpacity = sOpacityMagic;
+        if (statsOpacity) {
+            //Draw a magic bar for every 25 units of the player's max magic (just 1 bar initially)
+            for (i = 0; i < (sStats.playerMagicMax / MAGIC_UNITS_PER_BAR); i++) {
+                if (i < (sStats.playerMagic / MAGIC_UNITS_PER_BAR)) {
+                    //Full bar
+                    temp = MAGIC_BARS_WIDTH;
+                } else if ((sStats.playerMagic / MAGIC_UNITS_PER_BAR) < i) {
+                    //Empty bar
+                    temp = 0;
+                } else {
+                    //Partial bar
+                    temp = MAGIC_BARS_ZERO_POINT_X + ((sStats.playerMagic % MAGIC_UNITS_PER_BAR) * 2);
+                }
+
+                //Draw the filled part of the bar
+                rcp_tile_write_x(
+                    &dl,
+                    sTextureTiles[CMDMENU_TEX_36_MagicBar_Full],
+                    MAGIC_BARS_X,
+                    MAGIC_BARS_Y + (i * MAGIC_BARS_SPACING_Y),
+                    temp,
+                    MAGIC_BARS_HEIGHT,
+                    0, 0,
+                    1.0f, 1.0f,
+                    statsOpacity | ~0xFF,
+                    TILE_WRITE_TRANSLUCENT | TILE_WRITE_POINT_FILT
+                );
+
+                //Draw the empty part of the bar
+                rcp_tile_write_x(
+                    &dl, sTextureTiles[CMDMENU_TEX_35_MagicBar_Empty],
+                    MAGIC_BARS_X + temp,
+                    MAGIC_BARS_Y + (i * MAGIC_BARS_SPACING_Y),
+                    (MAGIC_BARS_WIDTH - temp), 
+                    MAGIC_BARS_HEIGHT,
+                    temp << 5, 0, 
+                    1.0f, 1.0f, 
+                    statsOpacity | ~0xFF, 
+                    TILE_WRITE_TRANSLUCENT | TILE_WRITE_POINT_FILT
+                );
+            }
+        }
+    }
+
+    //Draw character icon
+    {
+        statsOpacity = ((u8)sOpacityHealth < (u8)sOpacityMagic) ? (u8)sOpacityMagic : (u8)sOpacityHealth;
+        if (statsOpacity) {
+            if (player->id == OBJ_Krystal) {
+                offsetX = 0;
+                offsetY = 0;
+                texIdx = CMDMENU_TEX_53_Krystal;
+            } else {
+                offsetX = 2;
+                offsetY = -1;
+                texIdx = CMDMENU_TEX_40_Sabre;
+            }
+
+            dInventoryPageIcon = tex_load_deferred(dTextableIDs[texIdx]);
+
+            rcp_screen_full_write(
+                &dl,
+                dInventoryPageIcon,
+                CHARACTER_ICON_X + offsetX,
+                CHARACTER_ICON_Y + offsetY,
+                0,
+                0,
+                statsOpacity,
+                SCREEN_WRITE_TRANSLUCENT
+            );
+
+            tex_free(dInventoryPageIcon);
+        }
+    }
+
+    // @recomp: Align scarab counter to right
+    #ifndef DINOMOD_ROM_PATCH
+    gEXSetViewportAlign(dl++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
+    gEXSetRectAlign(dl++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0, -SCREEN_WIDTH * 4, 0);
+    #endif
+
+    //Draw Scarab counter
+    {
+        if ((sStatsChangeTimers.playerScarabCount >= 0.0f) || (sStatsChangeTimers.unk14 >= 0.0f)) {
+            goalOpacity = MAX_OPACITY_F;
+        } else {
+            goalOpacity = 0.0f;
+        }
+
+        //@recomp: hide Scarab counter if it overlaps with the Active Spell / Sidekick Command icons
+        switch (rConfigActiveIconOverlapFix) {
+        case ACTIVEICON_DEFAULT:
+        case ACTIVEICON_HIDE:
+            if (rsOpacityActiveSpell) {
+                goalOpacity = 0.0f;
+            }
+            break;
+        case ACTIVEICON_MOVE:
+            //Hide if the Sidekick Command icon is shifted down over the Scarab counter
+            if (sActiveSidekickCommandIcon && (rsLerpActiveSideCommand > 0)) {
+                goalOpacity = 0.0f;
+                break;
+            }
+
+            //Hide if the Spell icon is over the Scarab counter
+            if (sActiveSpellIcon && (rsLerpActiveSideCommand < 1)) {
+                goalOpacity = 0.0f;
+                break;
+            }
+            break;
+        }
+
+        if (sOpacityScarabs < goalOpacity) {
+            sOpacityScarabs += 8.5f * gUpdateRateF;
+            if (sOpacityScarabs > MAX_OPACITY_F) {
+                sOpacityScarabs = MAX_OPACITY_F;
+            }
+        } else if (goalOpacity < sOpacityScarabs) {
+            sOpacityScarabs -= 8.5f * gUpdateRateF;
+            if (sOpacityScarabs < 0.0f) {
+                sOpacityScarabs = 0.0f;
+            }
+        }
+
+        statsOpacity = sOpacityScarabs;
+        if (statsOpacity && main_get_bits(BIT_UI_Scarab_Counter_Enabled)) {
+            sAnimFrameScarab = 0;
+            if (statsOpacity == MAX_OPACITY) {
+                if (sAnimScarabSpin) {
+                    //Animate Scarab spinning (upon collecting Scarabs)
+                    sAnimFrameScarab = 11 - sAnimScarabSpin;
+
+                    //@recomp: fix framerate dependency
+                    if (sAnimScarabSpin >= gUpdateRate) {
+                        sAnimScarabSpin -= gUpdateRate;
+                    } else {
+                        sAnimScarabSpin = 0;
+                    }
+
+                    if (sAnimScarabSpin == 0) {
+                        sAnimScarabFlutterTimer = 80;
+                    }
+                } else {
+                    //Animate Scarab fluttering wings
+                    if (sAnimScarabFlutterTimer) {
+                       //@recomp: fix framerate dependency
+                        if (sAnimScarabFlutterTimer >= gUpdateRate) {
+                            sAnimScarabFlutterTimer -= gUpdateRate;
+                        } else {
+                            sAnimScarabFlutterTimer = 0;
+                        }
+
+                        //Change the Scarab's frame during last few ticks of the timer 
+                        if (sAnimScarabFlutterTimer < 6) {
+                            sAnimFrameScarab = 3 - (sAnimScarabFlutterTimer >> 1);
+                        }
+                    } else {
+                        sAnimScarabFlutterTimer = rand_next(20, 255);
+                    }
+                }
+            }
+
+            //@recomp: make sure Scarab frame offset is in range, just in case
+            if (sAnimFrameScarab > 10) {
+                sAnimFrameScarab = 0;
+            }
+
+            rcp_tile_write_x(
+                &dl, 
+                sTextureTiles[CMDMENU_TEX_18_Scarab + sAnimFrameScarab], 
+                SCARABS_ICON_X, 
+                SCARABS_ICON_Y, 
+                SCARABS_ICON_WIDTH, 
+                SCARABS_ICON_HEIGTH, 
+                0, 0, 
+                1.0f, 1.0f, 
+                statsOpacity | ~0xFF, 
+                TILE_WRITE_TRANSLUCENT | TILE_WRITE_POINT_FILT
+            );
+
+            sprintf(playerScarabCountText, "%d", (int)sStats.playerScarabCount);
+            font_window_set_coords(3, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            font_window_use_font(3, FONT_DINO_SUBTITLE_FONT_1);
+            font_window_set_bg_colour(3, 0, 0, 0, 0);
+            font_window_flush_strings(3);
+            font_window_set_text_colour(3, 0xFF, 0xFF, 0xFF, 0xFF, statsOpacity);
+            font_window_add_string_xy(3, SCARABS_NUMBER_X, SCARABS_NUMBER_Y, playerScarabCountText, 1, ALIGN_TOP_LEFT);
+            font_window_set_text_colour(3, 0x14, 0x14, 0x14, 0xFF, 0xFF);
+            font_window_use_font(3, FONT_DINO_SUBTITLE_FONT_1);
+            font_window_draw(&dl, mtxs, vtxs, 3);
+        }
+    }
+
+    // @recomp: Reset alignment
+    #ifndef DINOMOD_ROM_PATCH
+    gEXSetRectAlign(dl++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
+    gEXSetViewportAlign(dl++, G_EX_ORIGIN_NONE, 0, 0);
+    #endif
+
+    *gdl = dl;
 }
 
 #define SIDEKICK_FOOD_MAX 16
@@ -1579,8 +1902,20 @@ RECOMP_PATCH void cmdmenu_set_buttons_override(s32 buttonsOverride) {
     }
 }
 
-/** Add animation for scrolling up as well as down */
+#define ACTIVE_ICON_FADE_IN_SPEED 32
+#define ACTIVE_ICON_FADE_OUT_SPEED 8
+#define ACTIVE_ICON_FADE_OUT_SPEED_QUICK 32
+
+/** 
+  * - Add animation for scrolling up as well as down.
+  * - Optionally move/fade the Active Spell/Sidekick Command icons to avoid clashing with the inventory.
+  */
 RECOMP_PATCH void cmdmenu_inventory_animate(void) {
+    /* RECOMP */
+    u8 rMoveActiveIcons; 
+    u8 rConfigActiveIconOverlapFix = recomp_get_config_u32("cmdmenu_active_icon_overlap");
+    u8 rConfigActiveIconFade = recomp_get_config_u32("cmdmenu_active_icon_fade");
+
     //Animate moving to the next inventory item (@recomp: down or up, instead of just down)
     if (sInventoryScrollOffset > 0) {
         sInventoryScrollOffset -= gUpdateRate << dInventoryMoveSpeed;
@@ -1651,6 +1986,85 @@ RECOMP_PATCH void cmdmenu_inventory_animate(void) {
         while (dInventoryFrameBottom < 0) {
             dInventoryFrameBottom += 3;
         }
+    }
+
+    //@recomp: optionally animate moving the Active Spell/Sidekick Command icons
+    if (rConfigActiveIconOverlapFix == ACTIVEICON_MOVE) {
+        // Check if the Active Sidekick Command icon should move
+        if ((dInventoryShow || dNextPageCategory) && (dInventoryOpacity > 64)) {
+            rMoveActiveIcons = TRUE;
+        } else {
+            rMoveActiveIcons = FALSE;
+        }
+
+        //Move the Active Sidekick Command icon when the inventory's open
+        if (rMoveActiveIcons) {
+            rsLerpActiveSideCommand += gUpdateRateF * INVENTORY_LERP_SPEED;
+        } else {
+            rsLerpActiveSideCommand -= gUpdateRateF * INVENTORY_LERP_SPEED;
+        }
+
+        /* If the inventory is open and both the Sidekick/Spell icons are visible, 
+          scoot the Spell icon as well */
+        if (sActiveSidekickCommandIcon && rMoveActiveIcons) {
+            rsLerpActiveSpell += gUpdateRateF * INVENTORY_LERP_SPEED;
+        } else {
+            rsLerpActiveSpell -= gUpdateRateF * INVENTORY_LERP_SPEED;
+        }
+
+        LIMIT(rsLerpActiveSideCommand, 0, 1);
+        LIMIT(rsLerpActiveSpell, 0, 1);
+    }
+
+    //@recomp: optionally animate fading the Active Spell/Sidekick Command icons
+    if (rConfigActiveIconFade) {
+        //Spell icon
+        if (rsShowActiveSpell) {
+            if (rsOpacityActiveSpell < MAX_OPACITY) {
+                rsOpacityActiveSpell += gUpdateRate * ACTIVE_ICON_FADE_IN_SPEED;
+                if (rsOpacityActiveSpell > MAX_OPACITY) {
+                    rsOpacityActiveSpell = MAX_OPACITY;
+                }
+            }
+        } else {
+            if (rsOpacityActiveSpell > 0) {
+                rsOpacityActiveSpell -= gUpdateRate * ACTIVE_ICON_FADE_OUT_SPEED;
+                if (rsOpacityActiveSpell <= 0) {
+                    rsOpacityActiveSpell = 0;
+                }
+            }
+        }
+
+        //Sidekick icon       
+        if (rsShowActiveSideCommand && 
+            !((rConfigActiveIconOverlapFix == ACTIVEICON_HIDE) && 
+                (cmdmenu_is_inventory_closed() == FALSE)
+            )
+        ) {
+            if (rsOpacityActiveSideCommand < MAX_OPACITY) {
+                rsOpacityActiveSideCommand += gUpdateRate * ACTIVE_ICON_FADE_IN_SPEED;
+                if (rsOpacityActiveSideCommand > MAX_OPACITY) {
+                    rsOpacityActiveSideCommand = MAX_OPACITY;
+                }
+            }
+        } else {
+            if (rsOpacityActiveSideCommand > 0) {
+                //Fade quickly if the inventory's open and the sidekick icon should fade out to handle the inventory clash
+                if ((rConfigActiveIconOverlapFix == ACTIVEICON_HIDE) && (cmdmenu_is_inventory_closed() == FALSE)) {
+                    rsOpacityActiveSideCommand -= gUpdateRate * ACTIVE_ICON_FADE_OUT_SPEED_QUICK;
+                } else {
+                    rsOpacityActiveSideCommand -= gUpdateRate * ACTIVE_ICON_FADE_OUT_SPEED;
+                }
+
+                if (rsOpacityActiveSideCommand <= 0) {
+                    rsOpacityActiveSideCommand = 0;
+                }
+            }
+        }
+
+    } else {
+        rsOpacityActiveSpell = (sActiveSpellIcon != NULL) ? MAX_OPACITY : 0;
+        rsOpacityActiveSideCommand = (sActiveSidekickCommandIcon != NULL) ? MAX_OPACITY : 0;
     }
 }
 
@@ -2005,7 +2419,7 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
         #endif
     }
 
-    cmdmenu_draw_player_stats(gdl, mtxs, vtxs);
+    cmdmenu_draw_player_stats_custom(gdl, mtxs, vtxs);
 
     viSize = vi_get_current_size();
     gDPSetScissor((*gdl)++, G_SC_NON_INTERLACE, 
@@ -2039,7 +2453,10 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     #endif
 }
 
-/** Fix sidekick icon appearing half-way through fading out from exiting Items/Spells page */
+/** 
+  * - Fix sidekick icon appearing half-way through fading out from exiting Items/Spells page.
+  * - Optionally move/fade the Active Spell/Sidekick Command icons to avoid clashing with the inventory.
+  */
 static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     s16 commandTexTableID;
     Object* player;
@@ -2060,6 +2477,9 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     /* RECOMP */
     s32 rNumSlotsPaddedAtTop = 0;
     s32 rTotalOccupiedSlots = 0;
+    s32 rActiveIconCoord = 0;
+    u8 rConfigActiveIconOverlapFix = recomp_get_config_u32("cmdmenu_active_icon_overlap");
+    u8 rConfigActiveIconFade = recomp_get_config_u32("cmdmenu_active_icon_fade");
 
     player = get_player();
     offsetX = 0;
@@ -2085,57 +2505,121 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     {
         activeSpellGamebit = ((DLL_210_Player*)player->dll)->vtbl->func50(player);
 
+        //@recomp: handle initial value
+        if (sPrevActiveSpellGamebit == 0) {
+            sPrevActiveSpellGamebit = NO_GAMEBIT;
+        }
+
         //Clear the icon's data before any change
         if ((sActiveSpellIcon != NULL) && (activeSpellGamebit != sPrevActiveSpellGamebit)) {
-            tex_free(sActiveSpellRing);
-            tex_free(sActiveSpellIcon);
-            sPrevActiveSpellGamebit = NO_GAMEBIT;
-            sActiveSpellIcon = NULL;
+            //@recomp: handle optional icon fading
+            if (activeSpellGamebit == NO_GAMEBIT) {
+                rsShowActiveSpell = FALSE;
+            }
+
+            if (!rConfigActiveIconFade || (activeSpellGamebit != NO_GAMEBIT) || (rsOpacityActiveSpell == 0)) {
+                tex_free(sActiveSpellRing);
+                tex_free(sActiveSpellIcon);
+                sPrevActiveSpellGamebit = NO_GAMEBIT;
+                sActiveSpellIcon = NULL;
+            }
         }
 
         //Load the icon's textures when needed
         if ((sActiveSpellIcon == NULL) && (activeSpellGamebit != NO_GAMEBIT)) {
+            rsShowActiveSpell = TRUE; //@recomp: handle optional icon fading
+
+            //@recomp: optionally start at shifted position if inventory already open and active Sidekick Command visible
+            if ((dInventoryOpacity > 64) && sActiveSidekickCommandIcon) {
+                rsLerpActiveSpell = 1;
+            }
+
             spellTexTableID = cmdmenu_get_spell_textable(activeSpellGamebit);
             if (spellTexTableID != NO_TEXTURE) {
                 sActiveSpellIcon = tex_load_deferred(spellTexTableID);
                 sActiveSpellRing = tex_load_deferred(TEXTABLE_574_CMDMENU_Active_Spell_Ring);
             }
+
+            sPrevActiveSpellGamebit = activeSpellGamebit; //@recomp: only set this when icon is shown
         }
 
-        sPrevActiveSpellGamebit = activeSpellGamebit;
-
+        //@recomp: handle options for moving/fading icon
         if (sActiveSpellIcon != NULL) {
-            rcp_screen_full_write(gdl, sActiveSpellRing, ACTIVE_SPELL_X,      ACTIVE_SPELL_Y,      0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
-            rcp_screen_full_write(gdl, sActiveSpellIcon, ACTIVE_SPELL_ICON_X, ACTIVE_SPELL_ICON_Y, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
+            switch (rConfigActiveIconOverlapFix) {
+            case ACTIVEICON_MOVE:
+                rActiveIconCoord = lerp_float(ease_in_out_quad(rsLerpActiveSpell), ACTIVE_SPELL_X, ACTIVE_SPELL_X - 48);
+
+                rcp_screen_full_write(gdl, sActiveSpellRing, rActiveIconCoord,                                  ACTIVE_SPELL_Y,      0, 0, rsOpacityActiveSpell, SCREEN_WRITE_TRANSLUCENT);
+                rcp_screen_full_write(gdl, sActiveSpellIcon, (rActiveIconCoord + ACTIVE_SPELL_ICON_OFFSET_X),   ACTIVE_SPELL_ICON_Y, 0, 0, rsOpacityActiveSpell, SCREEN_WRITE_TRANSLUCENT);
+                break;
+            default:
+                rcp_screen_full_write(gdl, sActiveSpellRing, ACTIVE_SPELL_X,      ACTIVE_SPELL_Y,      0, 0, rsOpacityActiveSpell, SCREEN_WRITE_TRANSLUCENT);
+                rcp_screen_full_write(gdl, sActiveSpellIcon, ACTIVE_SPELL_ICON_X, ACTIVE_SPELL_ICON_Y, 0, 0, rsOpacityActiveSpell, SCREEN_WRITE_TRANSLUCENT);
+                break;
+            }
         }
     }
 
     //Draw active sidekick command icon
-    if (sidekick != NULL) {
-        ((DLL_ISidekick*)sidekick->dll)->vtbl->func26(sidekick, &sideCommandIndex);
+    {
+        if (sidekick != NULL) {
+            ((DLL_ISidekick*)sidekick->dll)->vtbl->func26(sidekick, &sideCommandIndex);
+        } else {
+            sideCommandIndex = NO_SIDEKICK_COMMAND;
+        }
 
         //Clear the icon's data before any change
         if ((sActiveSidekickCommandIcon != NULL) && (sideCommandIndex != sPrevSidekickCommandIndex)) {
-            tex_free(sActiveSidekickCommandRing);
-            tex_free(sActiveSidekickCommandIcon);
-            sPrevSidekickCommandIndex = NO_SIDEKICK_COMMAND;
-            sActiveSidekickCommandIcon = NULL;
+            //@recomp: handle optional icon fading
+            if (sideCommandIndex <= 0) {
+                rsShowActiveSideCommand = FALSE;
+            }
+
+            if (!rConfigActiveIconFade || (sideCommandIndex > 0) || (rsOpacityActiveSideCommand == 0)) {
+                tex_free(sActiveSidekickCommandRing);
+                tex_free(sActiveSidekickCommandIcon);
+                sPrevSidekickCommandIndex = NO_SIDEKICK_COMMAND;
+                sActiveSidekickCommandIcon = NULL;
+            }
         }
 
         //Load the icon's textures when needed
-        if (sActiveSidekickCommandIcon == NULL && sideCommandIndex > 0) {
+        if ((sActiveSidekickCommandIcon == NULL) && (sideCommandIndex > 0)) {
+            rsShowActiveSideCommand = TRUE; //@recomp: handle optional icon fading
+
+            //@recomp: optionally start at shifted position if inventory already open
+            if (dInventoryOpacity > 64) {
+                rsLerpActiveSideCommand = 1;
+            }
+
             commandTexTableID = dCommandTextableIDs[sideCommandIndex];
             if (commandTexTableID != NO_TEXTURE) {
                 sActiveSidekickCommandIcon = tex_load_deferred(commandTexTableID);
                 sActiveSidekickCommandRing = tex_load_deferred(TEXTABLE_584_CMDMENU_Active_Sidekick_Command_Ring);
             }
+
+            sPrevSidekickCommandIndex = sideCommandIndex; //@recomp: only set this when icon is shown
         }
 
-        sPrevSidekickCommandIndex = sideCommandIndex;
-
+        //@recomp: handle options for moving/fading icon
         if (sActiveSidekickCommandIcon != NULL) {
-            rcp_screen_full_write(gdl, sActiveSidekickCommandRing, ACTIVE_SIDECOMMAND_X,      ACTIVE_SIDECOMMAND_Y,      0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
-            rcp_screen_full_write(gdl, sActiveSidekickCommandIcon, ACTIVE_SIDECOMMAND_ICON_X, ACTIVE_SIDECOMMAND_ICON_Y, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
+            switch (rConfigActiveIconOverlapFix) {
+            case ACTIVEICON_MOVE:
+                rActiveIconCoord = lerp_float(ease_in_out_quad(rsLerpActiveSpell), ACTIVE_SIDECOMMAND_Y, ACTIVE_SPELL_Y);
+
+                rcp_screen_full_write(gdl, sActiveSidekickCommandRing, ACTIVE_SIDECOMMAND_X,      rActiveIconCoord,                                0, 0, rsOpacityActiveSideCommand, SCREEN_WRITE_TRANSLUCENT);
+                rcp_screen_full_write(gdl, sActiveSidekickCommandIcon, ACTIVE_SIDECOMMAND_ICON_X, (rActiveIconCoord + ACTIVE_SPELL_ICON_OFFSET_Y), 0, 0, rsOpacityActiveSideCommand, SCREEN_WRITE_TRANSLUCENT);
+                break;
+            case ACTIVEICON_HIDE:
+                //Hide Sidekick Command icon when inventory open
+                if (!rConfigActiveIconFade && (cmdmenu_is_inventory_closed() == FALSE)) {
+                    break;
+                }
+            default:
+                rcp_screen_full_write(gdl, sActiveSidekickCommandRing, ACTIVE_SIDECOMMAND_X,      ACTIVE_SIDECOMMAND_Y,      0, 0, rsOpacityActiveSideCommand, SCREEN_WRITE_TRANSLUCENT);
+                rcp_screen_full_write(gdl, sActiveSidekickCommandIcon, ACTIVE_SIDECOMMAND_ICON_X, ACTIVE_SIDECOMMAND_ICON_Y, 0, 0, rsOpacityActiveSideCommand, SCREEN_WRITE_TRANSLUCENT);
+                break;
+            }
         }
     }
 
@@ -2192,7 +2676,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             }
 
             #if DEBUG_INVENTORY_SCROLLING
-                diPrintf("Total items on page: %d\n", sDisplayedItemCount);
+            diPrintf("Total items on page: %d\n", sDisplayedItemCount);
             #endif
 
             //Change sDisplayedItemCount so it's at least the size of the tile strip (including empty slots)
@@ -2290,7 +2774,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                                 sTempIcon, 
                                 MENU_ITEM_QUANTITY_X, 
                                 stripY + ((i - rNumSlotsPaddedAtTop) * MENU_ITEM_HEIGHT) + sInventoryScrollOffset + MENU_ITEM_QUANTITY_OFFSET_Y, 
-                                0xFF, 0xFF, 0xFF, 0xFF
+                                0xFF, 0xFF, 0xFF, iconOpacity //@recomp: use opacity
                             );
                         }
                     }
@@ -2303,7 +2787,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                             sTextureTiles[CMDMENU_TEX_00_Scroll_BG], 
                             MENU_ITEM_X - 1, 
                             stripY + ((i - rNumSlotsPaddedAtTop) * MENU_ITEM_HEIGHT) + sInventoryScrollOffset, 
-                            0xFF, 0xFF, 0xFF, 0xFF
+                            0xFF, 0xFF, 0xFF, dInventoryOpacity //@recomp: use opacity
                         );
                     } else {
                         //Standard aspect
@@ -2312,7 +2796,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                             sTextureTiles[CMDMENU_TEX_00_Scroll_BG], 
                             MENU_ITEM_X, 
                             stripY + ((i - rNumSlotsPaddedAtTop) * MENU_ITEM_HEIGHT) + sInventoryScrollOffset, 
-                            0xFF, 0xFF, 0xFF, 0xFF
+                            0xFF, 0xFF, 0xFF, dInventoryOpacity //@recomp: use opacity
                         );
                     }
                 }
@@ -2470,7 +2954,11 @@ RECOMP_PATCH s32 cmdmenu_get_target_objects(Object **targetObjects, s32 maxObjec
             dz = objZ - camera->srt.transl.z;
             if ((SQ(dx) + SQ(dy) + SQ(dz)) < SQ(range)) {
                 yaw = camera->srt.yaw - (u16)(M_90_DEGREES - arctan2_f(dx, dz));
-                CIRCLE_WRAP(yaw);
+                {
+                    s32 angle = yaw;
+                    CIRCLE_WRAP(angle);
+                    yaw = angle;
+                }
                 if (yaw < -10000 && yaw > -22000) {
                     targetObjects[targetCount++] = obj;
                 }

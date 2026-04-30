@@ -18,9 +18,15 @@ typedef enum {
 } CmdmenuDPadModes;
 
 typedef enum {
-    POPUP_CONFIG_DEFAULT,
-    POPUP_CONFIG_EXPANDED,
-    POPUP_CONFIG_OVERRIDE_TUTORIAL_ON_REPEAT
+    POPUP_CONFIG_DEFAULT,                       //Unedited behaviour, only show pop-up when collecting Kyte's grubs
+    POPUP_CONFIG_EXPANDED,                      //Show pop-up when collecting other items
+    POPUP_CONFIG_OVERRIDE_TUTORIAL_ON_REPEAT    //Also show pop-up for Bridge Gears/Shiny Nuggets' tutorial box after the first time they're collected
 } InfoPopupModes;
+
+typedef enum {
+    ACTIVEICON_DEFAULT, //Unedited behaviour, Sidekick Command icon clashes with inventory when open
+    ACTIVEICON_HIDE,    //Sidekick Command icon hidden when inventory open
+    ACTIVEICON_MOVE     //Sidekick Command icon moves down when inventory opens (and Spell icon moves left if needed)
+} ActiveIconModes;
 
 #define INFO_POPUP_DURATION 300
