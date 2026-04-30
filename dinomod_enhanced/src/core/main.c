@@ -13,6 +13,7 @@
 #include "dlls/engine/29_gplay.h"
 
 #include "core/main.h"
+#include "core/map_render.h"
 #include "engine/78_credits.h"
 
 extern GameState *gGplayState;
@@ -196,7 +197,7 @@ RECOMP_PATCH void func_80013D80(void) {
         gDLL_4_Race->vtbl->func14();
 
         if (gPauseState == 0) {
-            func_8004225C(&gCurGfx, &gCurMtx, &gCurVtx, &gCurPol, &gCurVtx, &gCurPol);
+            func_8004225C_MODIFIED(&gCurGfx, &gCurMtx, &gCurVtx, &gCurPol, &gCurVtx, &gCurPol);
         }
 
         gDLL_20_Screens->vtbl->draw(&gCurGfx);
@@ -209,4 +210,3 @@ RECOMP_PATCH void func_80013D80(void) {
         }
     }
 }
-

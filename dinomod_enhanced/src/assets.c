@@ -18,6 +18,7 @@
 #include "sys/memory.h"
 #include "dlls/objects/common/collectable.h"
 
+INCBIN(block338, "0338 0152_discovery_falls_rockface_climb.bin");
 INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
 
 #define INCFST(fileID, filename, ext) \
@@ -456,7 +457,8 @@ static void music_actions_patch(void) {
     action140->seqID = 66;
 }
 
-static void df_patches(void) {
+PRAGMA_IGNORE_PUSH("-Wunused")
+static void df_patches_shinx(void) {
     ReAssetID df = reasset_base_id(MAP_DISCOVERY_FALLS);
     ReAssetID dfTrkblk = reasset_base_id(11);
     
@@ -473,6 +475,15 @@ static void df_patches(void) {
     reasset_blocks_set(dfTrkblk, blockID, REASSET_BASE_NAMESPACE, blockData, blockDataSize);
     recomp_free(blockData);
 }
+PRAGMA_IGNORE_POP()
+
+static void discovery_falls_modifications(void) {
+    ReAssetID discoveryFalls = reasset_base_id(MAP_DISCOVERY_FALLS);
+    ReAssetID dfTrkblk = reasset_base_id(11);
+
+    // Fix the main cliff's decal setup
+    reasset_blocks_set(dfTrkblk, reasset_base_id(338 - 319), REASSET_BASE_NAMESPACE, block338, block338_end - block338);
+}
 
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     walled_city_additions();
@@ -488,6 +499,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     warlock_mountain_platform_modifications();
     cc_lightfoot_patch();
     cc_shiny_nugget_patch();
+    discovery_falls_modifications();
     golden_plains_modifications();
     walled_city_modifications();
     dragon_rock_upper_modifications();
@@ -495,5 +507,5 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     // golden_plains_fuel_modifications();
     cc_lightfoot_patch();
     music_actions_patch();
-    df_patches();
+    // df_patches_shinx();
 }
