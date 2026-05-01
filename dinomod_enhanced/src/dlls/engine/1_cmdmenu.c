@@ -2577,7 +2577,14 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     //Draw active sidekick command icon
     {
         if (sidekick != NULL) {
+            // @bug: sideCommandIndex is undefined if this sidekick func returns 0
+#ifndef AVOID_UB
             ((DLL_ISidekick*)sidekick->dll)->vtbl->func26(sidekick, &sideCommandIndex);
+#else
+            if (!((DLL_ISidekick*)sidekick->dll)->vtbl->func26(sidekick, &sideCommandIndex)) {
+                sideCommandIndex = sPrevSidekickCommandIndex;
+            }
+#endif
         } else {
             sideCommandIndex = NO_SIDEKICK_COMMAND;
         }
