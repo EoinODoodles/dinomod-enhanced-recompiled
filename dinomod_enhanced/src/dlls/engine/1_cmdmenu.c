@@ -335,6 +335,11 @@ typedef enum {
     CIcon_FLAG_Have_Sidekick_Commands = 4
 } CmdMenuCIconFlags;
 
+typedef enum {
+    PlayerStats_FLAG_None = 0,
+    PlayerStats_FLAG_Update_Snapshot = 1
+} CmdMenuPlayerStatsFlags;
+
 extern s8 dInventoryShow;
 extern s8 sInventoryScrollOffset;
 extern s8 dInventoryMoveSpeed;
@@ -879,7 +884,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
             if (statsOpacity == MAX_OPACITY) {
                 if (sAnimScarabSpin) {
                     //Animate Scarab spinning (upon collecting Scarabs)
-                    sAnimFrameScarab = 11 - sAnimScarabSpin;
+                    sAnimFrameScarab = 11 - (sAnimScarabSpin/2); //@recomp: play scarab spin anim on 2s
 
                     //@recomp: fix framerate dependency
                     if (sAnimScarabSpin >= gUpdateRate) {
@@ -889,7 +894,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                     }
 
                     if (sAnimScarabSpin == 0) {
-                        sAnimScarabFlutterTimer = 80;
+                        sAnimScarabFlutterTimer = 80 * 2; //@recomp: doubled, assuming average gUpdateRate of 2 on N64
                     }
                 } else {
                     //Animate Scarab fluttering wings
@@ -902,8 +907,8 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                         }
 
                         //Change the Scarab's frame during last few ticks of the timer 
-                        if (sAnimScarabFlutterTimer < 6) {
-                            sAnimFrameScarab = 3 - (sAnimScarabFlutterTimer >> 1);
+                        if (sAnimScarabFlutterTimer < (6 * 2)) { //@recomp: doubled, for framerate dependency fix
+                            sAnimFrameScarab = 3 - (sAnimScarabFlutterTimer / 4); //@recomp: playing flutter on 4s
                         }
                     } else {
                         sAnimScarabFlutterTimer = rand_next(20, 255);
@@ -949,6 +954,127 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
     #endif
 
     *gdl = dl;
+}
+
+// Fix Scarab spin anim's framerate dependency, and play on 2s
+RECOMP_PATCH void cmdmenu_update_stats(void) {
+    Object* player;
+    Object* sidekick;
+    CmdmenuPlayerSidekickData stats;
+    f32 timer;
+    u8 scarabFrameOffset;
+    u8 i;
+
+    player = get_player();
+    sidekick = get_sidekick();
+    scarabFrameOffset = 0;
+
+    stats.playerHealth = ((DLL_210_Player*)player->dll)->vtbl->get_health(player);
+    stats.playerHealthMax = ((DLL_210_Player*)player->dll)->vtbl->get_health_max(player);
+
+    if (sidekick != NULL) {
+        stats.sidekickBlueFood = ((DLL_ISidekick*)sidekick->dll)->vtbl->get_blue_food_count(sidekick);
+        stats.sidekickRedFood = ((DLL_ISidekick*)sidekick->dll)->vtbl->get_red_food_count(sidekick);
+        stats.sidekickMaxFood = 8;
+    } else {
+        stats.sidekickBlueFood = 0;
+        stats.sidekickRedFood = 0;
+        stats.sidekickMaxFood = 0;
+    }
+
+    stats.playerMagic = ((DLL_210_Player*)player->dll)->vtbl->get_magic(player);
+    stats.playerMagicMax = ((DLL_210_Player*)player->dll)->vtbl->get_magic_max(player);
+    stats.playerScarabCount = ((DLL_210_Player*)player->dll)->vtbl->get_scarabs(player);
+
+    //Check if the player collected a Scarab
+    if (((DLL_210_Player*)player->dll)->vtbl->get_scarabs_largest_recently_collected(player) != 0) {
+        scarabFrameOffset = 7 * 2; //@recomp: doubled for playing Scarab anim on 2s when framerate independent
+    }
+    if (sAnimScarabSpin < scarabFrameOffset) {
+        sAnimScarabSpin = scarabFrameOffset;
+    }
+
+    //Play sound when pressing R to show HUD
+    if (sJoyPressedButtons & R_TRIG) {
+        gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_5EA_Cmdmenu_ShowHUD, MAX_VOLUME, NULL, NULL, 0, NULL);
+    }
+
+    //Increment stat.unk14 when holding R, or when there's a target Object, or when stats are auto-shown
+    //(Causes health/magic to fade in and stay on-screen a little while longer than C buttons)
+    if ((sJoyHeldButtons & R_TRIG) || 
+        (gDLL_2_Camera->vtbl->get_target_object() != NULL) || 
+        (sForceStatsDisplay && (camera_get_letterbox() == 0))
+    ) {
+        stats.unk14 = sPrevStats.unk14 + 1;
+    } else {
+        stats.unk14 = sPrevStats.unk14;
+    }
+
+    //Fade in C buttons when holding R
+    if (sJoyHeldButtons & R_TRIG) {
+        sOpacityR += 8.5f * gUpdateRateF;
+        if (sOpacityR > MAX_OPACITY_F) {
+            sOpacityR = MAX_OPACITY_F;
+        }
+    } else {
+        sOpacityR -= 8.5f * gUpdateRateF;
+        if (sOpacityR < 0.0f) {
+            sOpacityR = 0.0f;
+        }
+    }
+
+    //Right side's opacity shouldn't exceed health UI's opacity
+    sOpacityR = (sOpacityR < sOpacityHealth) ? sOpacityR : sOpacityHealth;
+
+    stats.unk18 = 0;
+
+    //Update the player stats snapshot when requested
+    if (sPlayerStatsFlags & PlayerStats_FLAG_Update_Snapshot) {
+        sPlayerStatsFlags &= ~PlayerStats_FLAG_Update_Snapshot;
+        for (i = 0; i < CMDMENU_TRACKED_PLAYER_STATS_COUNT; i++) {
+            sStats.items[i] = stats.items[i];
+            sPrevStats.items[i] = stats.items[i];
+            sStatsChangeTimers.items[i] = -30.0f;
+        }
+        sOpacityHealth = 0.0f;
+        return;
+    }
+
+    //Compare the current player stats and the stored player stats
+    for (i = 0; i < CMDMENU_TRACKED_PLAYER_STATS_COUNT; i++) {
+        //Decrease the stat's timer
+        timer = sStatsChangeTimers.items[i];
+        sStatsChangeTimers.items[i] = timer - gUpdateRateF;
+
+        if (timer > 60.0f) {
+            if (sStatsChangeTimers.items[i] <= 60.0f) {
+                //Optionally play a sound when the stat increases/decreases (unused)
+                if (sStats.items[i] < stats.items[i]) {
+                    if (dStatChangeSounds.items[i].increased != NO_SOUND) {
+                        gDLL_6_AMSFX->vtbl->play_sound(NULL, dStatChangeSounds.items[i].increased, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    }
+                } else {
+                    if (dStatChangeSounds.items[i].decreased != NO_SOUND) {
+                        gDLL_6_AMSFX->vtbl->play_sound(NULL, dStatChangeSounds.items[i].decreased, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    }
+                }
+
+                sStats.items[i] = stats.items[i];
+            }
+        }
+
+        //Check if the stat changed
+        if (stats.items[i] != sPrevStats.items[i]) {
+            sPrevStats.items[i] = stats.items[i];
+            if (sStatsChangeTimers.items[i] <= 60.0f) {
+                sStatsChangeTimers.items[i] = 90.0f - gUpdateRateF;
+            }
+        }
+
+        if (sStatsChangeTimers.items[i] < -30.0f) {
+            sStatsChangeTimers.items[i] = -30.0f;
+        }
+    }
 }
 
 #define SIDEKICK_FOOD_MAX 16
