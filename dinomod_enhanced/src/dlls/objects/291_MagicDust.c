@@ -97,16 +97,20 @@ RECOMP_PATCH void MagicDust_control(Object* self) {
     if (self->srt.flags & OBJFLAG_OWNS_SETUP) {
         //Do nothing when parented to MagicPlant
         if (self->unkC4 != NULL) {
-			#ifndef DINOMOD_MAGIC_REMOVE_SHADOW
-            self->shadow->flags |= OBJ_SHADOW_FLAG_FADE_OUT; //@recomp: remove shadow updating
+            //@rom-patch: remove shadow updating (shadows are used in recomp, though!)
+			#ifndef DINOMOD_ROM_PATCH
+            self->shadow->flags |= OBJ_SHADOW_FLAG_FADE_OUT; 
 			#endif
+
             gDLL_27->vtbl->reset(self, collision);
             return;
         }
 
-		#ifndef DINOMOD_MAGIC_REMOVE_SHADOW
-        self->shadow->flags &= ~OBJ_SHADOW_FLAG_FADE_OUT; //@recomp: remove shadow updating
+        //@rom-patch: remove shadow updating (shadows are used in recomp, though!)
+		#ifndef DINOMOD_ROM_PATCH
+        self->shadow->flags &= ~OBJ_SHADOW_FLAG_FADE_OUT;
 		#endif
+        
         collision->mode = 1;
 
         //Apply drag and gravity when falling
