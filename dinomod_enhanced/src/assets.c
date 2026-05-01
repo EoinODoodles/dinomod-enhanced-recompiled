@@ -1,3 +1,4 @@
+#include "custom_textable_ids.h"
 #include "recompconfig.h"
 #include "recomputils.h"
 #include "mod_common.h"
@@ -23,6 +24,7 @@ INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
 INCBIN(tex0_kiosk_gold_key, "tex0_kiosk_gold_key.bin");
 INCBIN(tex0_kiosk_silver_key, "tex0_kiosk_silver_key_custom.bin");
 INCBIN(tex0_kiosk_firefly, "tex0_kiosk_firefly_custom.bin");
+INCBIN(tex0_kiosk_fox, "tex0_kiosk_fox_icon_custom.bin");
 
 #define INCFST(fileID, filename, ext) \
     INCBIN(fst_assets_##filename##_##ext, "assets/" #filename "."#ext); \
@@ -486,18 +488,23 @@ REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
 
 /** 
   * Adds leftover kiosk icons for the Gold/Silver keys into TEX0/TEXTABLE
-  * (TODO: include this directly in tex0.xdelta, textable.xdelta)
+  * (TODO: include these edits directly in tex0.xdelta, textable.xdelta)
   */
 static void cmdmenu_icons_patch(void) {
-    //TEX0 (replace unused Shiny Nugget icon duplicates) (TODO: append to the folder's end instead to avoid replacing things)
+    //TEX0 (TODO: append to the folder's end instead to avoid replacing things)
+    //replace unused Shiny Nugget icon duplicates)
     reasset_textures_set(TEX_BANK_0, reasset_base_id(629), 1, tex0_kiosk_gold_key, tex0_kiosk_gold_key_end - tex0_kiosk_gold_key);
     reasset_textures_set(TEX_BANK_0, reasset_base_id(630), 1, tex0_kiosk_silver_key, tex0_kiosk_silver_key_end - tex0_kiosk_silver_key);
     reasset_textures_set(TEX_BANK_0, reasset_base_id(631), 1, tex0_kiosk_firefly, tex0_kiosk_firefly_end - tex0_kiosk_firefly);
+    
+    ReAssetID tex0_kiosk_fox_ID = reasset_auto_id(dinomodNs);
+    reasset_textures_set(TEX_BANK_0, tex0_kiosk_fox_ID, 1, tex0_kiosk_fox, tex0_kiosk_fox_end - tex0_kiosk_fox);
 
     //TEXTABLE (reference tex0 icons)
-    reasset_texture_table_set(reasset_base_id(0x25C), TEX_BANK_0, reasset_base_id(629));
-    reasset_texture_table_set(reasset_base_id(0x25D), TEX_BANK_0, reasset_base_id(630));
-    reasset_texture_table_set(reasset_base_id(0x25E), TEX_BANK_0, reasset_base_id(631));
+    reasset_texture_table_set(reasset_base_id(TEXTABLE_25C_Kiosk_Gold_Key_Icon),    TEX_BANK_0, reasset_base_id(629));
+    reasset_texture_table_set(reasset_base_id(TEXTABLE_25D_Kiosk_Silver_Key_Icon),  TEX_BANK_0, reasset_base_id(630));
+    reasset_texture_table_set(reasset_base_id(TEXTABLE_25E_Kiosk_Firefly_Icon),     TEX_BANK_0, reasset_base_id(631));
+    reasset_texture_table_set(reasset_base_id(TEXTABLE_266_Kiosk_Fox_Icon),         TEX_BANK_0, tex0_kiosk_fox_ID);
 }
 
 REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {

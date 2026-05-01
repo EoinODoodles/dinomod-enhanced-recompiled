@@ -1,4 +1,5 @@
 #include "configs.h"
+#include "custom_textable_ids.h"
 #include "dll_util.h"
 #include "math_util.h"
 #include "modding.h"
@@ -16,6 +17,7 @@
 #include "game/objects/inventory_items.h"
 #include "game/objects/object_id.h"
 #include "sys/fonts.h"
+#include "sys/gfx/model.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
 #include "sys/objects.h"
@@ -687,10 +689,18 @@ RECOMP_CALLBACK("*", recomp_on_game_tick_start) void update_extra_text_inventory
     }
 }
 
+typedef enum {
+    Illusion_Icon_Sabre,
+    Illusion_Icon_Fox
+} SabreIllusionSpellIcons;
+
+#define ILLUSION_ICON_SWAP_SPEED 16
+
 /**
   * - Duplicates Shinx's base recomp widescreen HUD patches, allowing more patches to be added on top.
   * - Fixes framerate dependent behaviour in the Scarab counter.
   * - Hides the Scarab counter while the Active Spell/Sidekick Command icons are overlapping it.
+  * - Option to show a Fox portrait icon while Sabre's using Illusion Spell (sourced from unused Kiosk files)
   */
 static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     f32 goalOpacity;
@@ -870,20 +880,105 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                 texIdx = CMDMENU_TEX_40_Sabre;
             }
 
-            dInventoryPageIcon = tex_load_deferred(dTextableIDs[texIdx]);
+            //@recomp: handle optional Sabre icon behaviour
+            if ((player->id == OBJ_Sabre) && recomp_get_config_u32("cmdmenu_icons_fox")) {
+                static s16 rsIllusionOpacity = MAX_OPACITY;
+                static u8 rsIllusionIcon = 0;
+                ModelInstance* modelInst;
+                u8 showFoxIcon;
+                u8 opacity;
 
-            rcp_screen_full_write(
-                &dl,
-                dInventoryPageIcon,
-                CHARACTER_ICON_X + offsetX,
-                CHARACTER_ICON_Y + offsetY,
-                0,
-                0,
-                statsOpacity,
-                SCREEN_WRITE_TRANSLUCENT
-            );
+                //Check if the Illusion Spell is showing the Fox model
+                if ((player->modelInstIdx == 2) && 
+                    (modelInst = player->modelInsts[player->modelInstIdx]) && 
+                    ((modelInst->model->modelId == 9) || (modelInst->model->modelId == 10)) //Check if it's either Fox model
+                ) {
+                    showFoxIcon = TRUE;
+                } else {
+                    showFoxIcon = FALSE;
+                }
 
-            tex_free(dInventoryPageIcon);
+                //Change to Fox icon when Sabre's using the Illusion Spell
+                if (showFoxIcon) {
+                    if (rsIllusionIcon == Illusion_Icon_Sabre) {
+                        //Fade out Sabre icon
+                        rsIllusionOpacity -= gUpdateRate * ILLUSION_ICON_SWAP_SPEED;
+                        if (rsIllusionOpacity < 0) {
+                            rsIllusionOpacity = 0;
+                            rsIllusionIcon = Illusion_Icon_Fox;
+                        }
+                        dInventoryPageIcon = tex_load_deferred(dTextableIDs[texIdx]);
+                    } else {
+                        //Fade in Fox icon
+                        if (rsIllusionOpacity < MAX_OPACITY) {
+                            rsIllusionOpacity += gUpdateRate * ILLUSION_ICON_SWAP_SPEED;
+                            if (rsIllusionOpacity > MAX_OPACITY) {
+                                rsIllusionOpacity = MAX_OPACITY;
+                            }
+                        }
+                        dInventoryPageIcon = tex_load_deferred(TEXTABLE_266_Kiosk_Fox_Icon);
+                    }
+                } else {
+                    if (rsIllusionIcon == Illusion_Icon_Fox) {
+                        //Fade out Fox icon
+                        rsIllusionOpacity -= gUpdateRate * ILLUSION_ICON_SWAP_SPEED;
+                        if (rsIllusionOpacity < 0) {
+                            rsIllusionOpacity = 0;
+                            rsIllusionIcon = Illusion_Icon_Sabre;
+                        }
+                        dInventoryPageIcon = tex_load_deferred(TEXTABLE_266_Kiosk_Fox_Icon);
+                    } else {
+                        //Fade in Sabre icon
+                        if (rsIllusionOpacity < MAX_OPACITY) {
+                            rsIllusionOpacity += gUpdateRate * ILLUSION_ICON_SWAP_SPEED;
+                            if (rsIllusionOpacity > MAX_OPACITY) {
+                                rsIllusionOpacity = MAX_OPACITY;
+                            }
+                        }
+                        dInventoryPageIcon = tex_load_deferred(dTextableIDs[texIdx]);
+                    }
+                }
+
+                //Compound opacity
+                if (rsIllusionOpacity >= MAX_OPACITY) {
+                    opacity = statsOpacity;
+                } else if (rsIllusionOpacity <= 0) {
+                    opacity = 0;
+                } else {
+                    opacity = statsOpacity * (((f32)rsIllusionOpacity)/MAX_OPACITY_F);
+                }
+
+                //Draw icon
+                rcp_screen_full_write(
+                    &dl,
+                    dInventoryPageIcon,
+                    CHARACTER_ICON_X + offsetX + (rsIllusionIcon == Illusion_Icon_Fox ? 1 : 0), //shift over by 1px when using Fox icon
+                    CHARACTER_ICON_Y + offsetY,
+                    0,
+                    0,
+                    opacity,
+                    SCREEN_WRITE_TRANSLUCENT
+                );
+
+                tex_free(dInventoryPageIcon);
+            } else {
+                //Unmodified behaviour
+                dInventoryPageIcon = tex_load_deferred(dTextableIDs[texIdx]);
+
+                rcp_screen_full_write(
+                    &dl,
+                    dInventoryPageIcon,
+                    CHARACTER_ICON_X + offsetX,
+                    CHARACTER_ICON_Y + offsetY,
+                    0,
+                    0,
+                    statsOpacity,
+                    SCREEN_WRITE_TRANSLUCENT
+                );
+
+                //TODO: for console, it might be a good idea to keep the character icon loaded until it changes?
+                tex_free(dInventoryPageIcon);
+            }
         }
     }
 
