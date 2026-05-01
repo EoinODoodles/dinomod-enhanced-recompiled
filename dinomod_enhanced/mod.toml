@@ -196,6 +196,20 @@ options = [ "Off", "On" ]
 default = "On"
 
 [[manifest.config_options]]
+id = "cmdmenu_icons_firefly"
+name = "Inventory: Firefly Icon"
+description = '''
+Star Fox Adventures' Kiosk build (2002) contains many leftover assets from earlier in development, for example a folder ("swapcircle") containing Dinosaur Planet inventory icons from around January 2001.
+
+A revised design for the Firefly Lantern's icon can be found among these files! It has the inventory background embedded, and has a 64x48px resolution (up from the N64 icons' usual 32x24px).
+
+This config option lets you use the redesigned icon, or you can switch it off to continue using the icon from December 2000! The image has been scaled down to suit the resolution expected by the N64 icons.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
 id = "cmdmenu_active_icon_overlap"
 name = "Active Spell/Command: Overlap Fix"
 description = '''

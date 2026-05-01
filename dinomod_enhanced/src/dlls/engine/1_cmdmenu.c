@@ -575,8 +575,33 @@ static void kiosk_icons_gold_silver_keys() {
     }
 }
 
+/** 
+  * Handles adding/removing a custom icon for the Firefly Lantern, sourced from SFA Kiosk leftovers. 
+  */
+static void kiosk_icons_firefly() {
+    static s8 rsKioskIconsStateFirefly = -1;
+    u8 enabled = recomp_get_config_u32("cmdmenu_icons_firefly");
+
+    //Check if the setting changed
+    if (rsKioskIconsStateFirefly != enabled) {
+        rsKioskIconsStateFirefly = enabled;
+    } else {
+        return;
+    }
+
+    //Toggle on/off
+    if (enabled) {
+        dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_30_FIREFLY_LANTERN].textureID = TEXTABLE_25E;
+        dPage1ItemsSabre[INVENTORY_ITEM_SABRE_24_FIREFLY_LANTERN].textureID = TEXTABLE_25E;
+    } else {
+        dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_30_FIREFLY_LANTERN].textureID = TEXTABLE_46D;
+        dPage1ItemsSabre[INVENTORY_ITEM_SABRE_24_FIREFLY_LANTERN].textureID = TEXTABLE_46D;
+    }
+}
+
 RECOMP_CALLBACK("*", recomp_on_game_tick_start) void cmdmenu_kiosk_icons_update() {
     kiosk_icons_gold_silver_keys();
+    kiosk_icons_firefly();
 }
 
 /** Adds new text for inventory items that didn't have any Gametext string (originally by LaminGaming)

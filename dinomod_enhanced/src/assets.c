@@ -22,6 +22,7 @@ INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
 
 INCBIN(tex0_kiosk_gold_key, "tex0_kiosk_gold_key.bin");
 INCBIN(tex0_kiosk_silver_key, "tex0_kiosk_silver_key_custom.bin");
+INCBIN(tex0_kiosk_firefly, "tex0_kiosk_firefly_custom.bin");
 
 #define INCFST(fileID, filename, ext) \
     INCBIN(fst_assets_##filename##_##ext, "assets/" #filename "."#ext); \
@@ -491,10 +492,12 @@ static void cmdmenu_icons_patch(void) {
     //TEX0 (replace unused Shiny Nugget icon duplicates) (TODO: append to the folder's end instead to avoid replacing things)
     reasset_textures_set(TEX_BANK_0, reasset_base_id(629), 1, tex0_kiosk_gold_key, tex0_kiosk_gold_key_end - tex0_kiosk_gold_key);
     reasset_textures_set(TEX_BANK_0, reasset_base_id(630), 1, tex0_kiosk_silver_key, tex0_kiosk_silver_key_end - tex0_kiosk_silver_key);
+    reasset_textures_set(TEX_BANK_0, reasset_base_id(631), 1, tex0_kiosk_firefly, tex0_kiosk_firefly_end - tex0_kiosk_firefly);
 
     //TEXTABLE (reference tex0 icons)
     reasset_texture_table_set(reasset_base_id(0x25C), TEX_BANK_0, reasset_base_id(629));
     reasset_texture_table_set(reasset_base_id(0x25D), TEX_BANK_0, reasset_base_id(630));
+    reasset_texture_table_set(reasset_base_id(0x25E), TEX_BANK_0, reasset_base_id(631));
 }
 
 REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
