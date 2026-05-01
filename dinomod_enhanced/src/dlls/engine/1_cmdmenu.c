@@ -342,6 +342,33 @@ typedef enum {
     PlayerStats_FLAG_Update_Snapshot = 1
 } CmdMenuPlayerStatsFlags;
 
+//TODO: add to decomp header and remove?
+typedef enum {
+    INVENTORY_FOOD_0_Green_Apple, 
+    INVENTORY_FOOD_1_Red_Apple,   
+    INVENTORY_FOOD_2_Brown_Apple, 
+    INVENTORY_FOOD_3_Fish,        
+    INVENTORY_FOOD_4_Smoked_Fish, 
+    INVENTORY_FOOD_5_Dino_Egg,    
+    INVENTORY_FOOD_6_Moldy_Meat,  
+    INVENTORY_FOOD_7_Green_Bean,  
+    INVENTORY_FOOD_8_Red_Bean,    
+    INVENTORY_FOOD_9_Brown_Bean,  
+    INVENTORY_FOOD_10_Blue_Bean,  
+    INVENTORY_FOOD_11_Foodbag_S,
+    INVENTORY_FOOD_12_Foodbag_M,
+    INVENTORY_FOOD_13_Foodbag_L
+}  PlayerFoodbagIndices;
+
+//TODO: add to decomp header and remove?
+typedef enum {
+    INVENTORY_FOOD_ACTION_Eat,              
+    INVENTORY_FOOD_ACTION_Place,            
+    INVENTORY_FOOD_ACTION_Give,             
+    INVENTORY_FOOD_ACTION_Setting_Eat_First,
+    INVENTORY_FOOD_ACTION_Setting_Eat_Later
+}  PlayerFoodbagActionIndices;
+
 extern s8 dInventoryShow;
 extern s8 sInventoryScrollOffset;
 extern s8 dInventoryMoveSpeed;
@@ -489,7 +516,7 @@ extern void cmdmenu_energy_bar_free(void);
 
 static u32 useExtraDescriptions;
 
-static void kiosk_icons_gold_silver_keys();
+static void cmdmenu_kiosk_icons_update(void);
 
 /**
   * Fixes a bug where the info scroll (the box that appears when holding R in the inventory, etc.)
@@ -550,7 +577,7 @@ RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits() {
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_26_WC_GOLD_TOOTH].textID = GAMETEXT_UI_5D_Gold_Trex_Tooth;
 
     //Icon patches
-    kiosk_icons_gold_silver_keys();
+    cmdmenu_kiosk_icons_update();
 }
 
 /** 
@@ -601,9 +628,43 @@ static void kiosk_icons_firefly() {
     }
 }
 
-RECOMP_CALLBACK("*", recomp_on_game_tick_start) void cmdmenu_kiosk_icons_update() {
+/** 
+  * Handles adding/removing custom icons for the Energy Eggs, replacing the icons Rare had yet to update. 
+  */
+static void custom_icons_energy_eggs() {
+    static s8 rsKioskIconsStateEnergyEggs = -1;
+    u8 enabled = recomp_get_config_u32("cmdmenu_icons_energy_eggs");
+
+    //Check if the setting changed
+    if (rsKioskIconsStateEnergyEggs != enabled) {
+        rsKioskIconsStateEnergyEggs = enabled;
+    } else {
+        return;
+    }
+
+    //Toggle on/off
+    if (enabled) {
+        dPage4FoodItemsKrystal[INVENTORY_FOOD_5_Dino_Egg].textureID     = TEXTABLE_260_Energy_Egg_Icon;
+        dPage4FoodItemsKrystal[INVENTORY_FOOD_6_Moldy_Meat].textureID   = TEXTABLE_261_Energy_Egg_Moldy_Icon;
+        dPage5FoodItemsSabre[INVENTORY_FOOD_5_Dino_Egg].textureID       = TEXTABLE_260_Energy_Egg_Icon;
+        dPage5FoodItemsSabre[INVENTORY_FOOD_6_Moldy_Meat].textureID     = TEXTABLE_261_Energy_Egg_Moldy_Icon;
+    } else {
+        dPage4FoodItemsKrystal[INVENTORY_FOOD_5_Dino_Egg].textureID     = TEXTABLE_2C4;
+        dPage4FoodItemsKrystal[INVENTORY_FOOD_6_Moldy_Meat].textureID   = TEXTABLE_2C5;
+        dPage5FoodItemsSabre[INVENTORY_FOOD_5_Dino_Egg].textureID       = TEXTABLE_2C4;
+        dPage5FoodItemsSabre[INVENTORY_FOOD_6_Moldy_Meat].textureID     = TEXTABLE_2C5;
+    }
+}
+
+/** Updates configurable Cmdmenu items */
+static void cmdmenu_kiosk_icons_update(void) {
     kiosk_icons_gold_silver_keys();
     kiosk_icons_firefly();
+    custom_icons_energy_eggs();
+}
+
+RECOMP_CALLBACK("*", recomp_on_game_tick_start) void cmdmenu_callback_kiosk_icons_update() {
+    cmdmenu_kiosk_icons_update();
 }
 
 /** Adds new text for inventory items that didn't have any Gametext string (originally by LaminGaming)

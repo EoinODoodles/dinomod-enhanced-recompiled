@@ -24,6 +24,9 @@ INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
 INCBIN(tex0_kiosk_gold_key, "tex0_kiosk_gold_key.bin");
 INCBIN(tex0_kiosk_silver_key, "tex0_kiosk_silver_key_custom.bin");
 INCBIN(tex0_kiosk_firefly, "tex0_kiosk_firefly_custom.bin");
+INCBIN(tex0_custom_energy_egg, "tex0_energy_egg_custom.bin");
+INCBIN(tex0_custom_energy_egg_moldy, "tex0_energy_egg_moldy_custom.bin");
+
 INCBIN(tex0_kiosk_fox, "tex0_kiosk_fox_icon_custom.bin");
 
 #define INCFST(fileID, filename, ext) \
@@ -487,23 +490,38 @@ REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
 }
 
 /** 
-  * Adds leftover kiosk icons for the Gold/Silver keys into TEX0/TEXTABLE
+  * Adds new HUD textures into tex0/textable:
+  * - Leftover kiosk icons for DIM's Gold Key (unedited) and Silver Key (adapted for N64) 
+  * - Leftover kiosk redesign of the Firefly Lantern icon (adapted for N64)
+  * - Leftover DP-style kiosk portrait of Fox (adapted for N64)
+  * - Custom icons for the Energy Egg (based on Nick Southam's PointBack minigame egg icons)
+  *
   * (TODO: include these edits directly in tex0.xdelta, textable.xdelta)
   */
 static void cmdmenu_icons_patch(void) {
-    //TEX0 (TODO: append to the folder's end instead to avoid replacing things)
-    //replace unused Shiny Nugget icon duplicates)
-    reasset_textures_set(TEX_BANK_0, reasset_base_id(629), 1, tex0_kiosk_gold_key, tex0_kiosk_gold_key_end - tex0_kiosk_gold_key);
-    reasset_textures_set(TEX_BANK_0, reasset_base_id(630), 1, tex0_kiosk_silver_key, tex0_kiosk_silver_key_end - tex0_kiosk_silver_key);
-    reasset_textures_set(TEX_BANK_0, reasset_base_id(631), 1, tex0_kiosk_firefly, tex0_kiosk_firefly_end - tex0_kiosk_firefly);
-    
+    //TEX0 (TODO: append to the folder's end)
     ReAssetID tex0_kiosk_fox_ID = reasset_auto_id(dinomodNs);
     reasset_textures_set(TEX_BANK_0, tex0_kiosk_fox_ID, 1, tex0_kiosk_fox, tex0_kiosk_fox_end - tex0_kiosk_fox);
 
-    //TEXTABLE (reference tex0 icons)
-    reasset_texture_table_set(reasset_base_id(TEXTABLE_25C_Kiosk_Gold_Key_Icon),    TEX_BANK_0, reasset_base_id(629));
-    reasset_texture_table_set(reasset_base_id(TEXTABLE_25D_Kiosk_Silver_Key_Icon),  TEX_BANK_0, reasset_base_id(630));
-    reasset_texture_table_set(reasset_base_id(TEXTABLE_25E_Kiosk_Firefly_Icon),     TEX_BANK_0, reasset_base_id(631));
+    ReAssetID tex0_kiosk_gold_key_ID    = reasset_auto_id(dinomodNs);
+    ReAssetID tex0_kiosk_silver_key_ID  = reasset_auto_id(dinomodNs);
+    ReAssetID tex0_kiosk_firefly_ID     = reasset_auto_id(dinomodNs);
+    reasset_textures_set(TEX_BANK_0, tex0_kiosk_gold_key_ID,    1, tex0_kiosk_gold_key,     tex0_kiosk_gold_key_end - tex0_kiosk_gold_key);
+    reasset_textures_set(TEX_BANK_0, tex0_kiosk_silver_key_ID,  1, tex0_kiosk_silver_key,   tex0_kiosk_silver_key_end - tex0_kiosk_silver_key);
+    reasset_textures_set(TEX_BANK_0, tex0_kiosk_firefly_ID,     1, tex0_kiosk_firefly,      tex0_kiosk_firefly_end - tex0_kiosk_firefly);
+    
+    ReAssetID tex0_energy_egg_ID = reasset_auto_id(dinomodNs);
+    ReAssetID tex0_energy_egg_moldy_ID = reasset_auto_id(dinomodNs);
+    reasset_textures_set(TEX_BANK_0, tex0_energy_egg_ID,       1, tex0_custom_energy_egg,       tex0_custom_energy_egg_end - tex0_custom_energy_egg);
+    reasset_textures_set(TEX_BANK_0, tex0_energy_egg_moldy_ID, 1, tex0_custom_energy_egg_moldy, tex0_custom_energy_egg_moldy_end - tex0_custom_energy_egg_moldy);
+
+    //TEXTABLE (reference new tex0 icons)
+    reasset_texture_table_set(reasset_base_id(TEXTABLE_25C_Kiosk_Gold_Key_Icon),    TEX_BANK_0, tex0_kiosk_gold_key_ID);
+    reasset_texture_table_set(reasset_base_id(TEXTABLE_25D_Kiosk_Silver_Key_Icon),  TEX_BANK_0, tex0_kiosk_silver_key_ID);
+    reasset_texture_table_set(reasset_base_id(TEXTABLE_25E_Kiosk_Firefly_Icon),     TEX_BANK_0, tex0_kiosk_firefly_ID);
+    reasset_texture_table_set(reasset_base_id(TEXTABLE_260_Energy_Egg_Icon),        TEX_BANK_0, tex0_energy_egg_ID);
+    reasset_texture_table_set(reasset_base_id(TEXTABLE_261_Energy_Egg_Moldy_Icon),  TEX_BANK_0, tex0_energy_egg_moldy_ID);
+
     reasset_texture_table_set(reasset_base_id(TEXTABLE_266_Kiosk_Fox_Icon),         TEX_BANK_0, tex0_kiosk_fox_ID);
 }
 

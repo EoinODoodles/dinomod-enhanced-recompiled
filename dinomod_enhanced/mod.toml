@@ -210,6 +210,22 @@ options = [ "Off", "On" ]
 default = "On"
 
 [[manifest.config_options]]
+id = "cmdmenu_icons_energy_eggs"
+name = "Inventory: Energy Egg Icons"
+description = '''
+After storing an Energy Egg in the player's Food Bag, you'll notice that it has a mismatched icon in the December 2000 Prototype: instead of an egg it shows a drumstick of meat.
+
+This is an older design for the health refill collectables that can be seen in the One Hour Footage. Rare had redesigned the food and updated its 3D model by December 2000, but they had yet to create a new inventory icon and description for it.
+
+If you enable this config option, the game will show a custom icon for the Energy Egg and its spoiled variant!
+
+The icons were drawn/painted-over by Banjeoin, based off Nick Southam's unused PointBack egg minigame icons from the Kiosk's leftover files.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
 id = "cmdmenu_icons_fox"
 name = "Illusion Spell: Fox Icon"
 description = '''
