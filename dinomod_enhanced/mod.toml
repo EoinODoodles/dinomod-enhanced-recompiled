@@ -180,6 +180,22 @@ options = [ "Off", "On", "On+" ]
 default = "On"
 
 [[manifest.config_options]]
+id = "cmdmenu_icons_gold_silver_keys"
+name = "Inventory: Gold/Silver Key Icons"
+description = '''
+In the unmodified December 2000 Prototype, all of DarkIce Mines' keys use the same image for their inventory icon.
+
+Star Fox Adventures' Kiosk build (2002) contains many leftover assets from earlier in development, for example a folder ("swapcircle") containing Dinosaur Planet inventory icons from around January 2001. Included among these is a unique N64-era texture for what looks like the Gold Key, which isn't found in December 2000's files!
+
+Another folder from slightly later in development ("Copy of swaphol") includes what looks like the Silver Key. This one doesn't have the inventory background embedded and has a 64x48px resolution (up from 32x24px on N64).
+
+This config option lets you use those icons for the Gold and Silver Keys! The Gold image is unmodified, and the Silver image has just been scaled down and composited with the background used by the N64 icons.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
 id = "cmdmenu_active_icon_overlap"
 name = "Active Spell/Command: Overlap Fix"
 description = '''

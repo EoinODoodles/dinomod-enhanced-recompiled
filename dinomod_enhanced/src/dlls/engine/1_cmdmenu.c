@@ -487,6 +487,8 @@ extern void cmdmenu_energy_bar_free(void);
 
 static u32 useExtraDescriptions;
 
+static void kiosk_icons_gold_silver_keys();
+
 /**
   * Fixes a bug where the info scroll (the box that appears when holding R in the inventory, etc.)
   * ended up accidentally drawing during the first few frames of gameplay due to an incorrectly initialised variable.
@@ -544,6 +546,37 @@ RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits() {
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_23_HORN_OF_TRUTH].textID = GAMETEXT_UI_1A_Horn_Of_Truth;
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_25_WC_SILVER_TOOTH].textID = GAMETEXT_UI_5C_Silver_Trex_Tooth;
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_26_WC_GOLD_TOOTH].textID = GAMETEXT_UI_5D_Gold_Trex_Tooth;
+
+    //Icon patches
+    kiosk_icons_gold_silver_keys();
+}
+
+/** 
+  * Handles adding/removing custom icons for DIM's Gold/Silver keys, sourced from SFA Kiosk leftovers. 
+  */
+static void kiosk_icons_gold_silver_keys() {
+    static s8 rsKioskIconsStateKeys = -1;
+    u8 enabled = recomp_get_config_u32("cmdmenu_icons_gold_silver_keys");
+
+    //Check if the setting changed
+    if (rsKioskIconsStateKeys != enabled) {
+        rsKioskIconsStateKeys = enabled;
+    } else {
+        return;
+    }
+
+    //Toggle on/off
+    if (enabled) {
+        dPage1ItemsSabre[INVENTORY_ITEM_SABRE_11_DIM_BELINA_TE_CELL_KEY].textureID = TEXTABLE_25C;
+        dPage1ItemsSabre[INVENTORY_ITEM_SABRE_12_DIM_TRICKY_CELL_KEY].textureID = TEXTABLE_25D;
+    } else {
+        dPage1ItemsSabre[INVENTORY_ITEM_SABRE_11_DIM_BELINA_TE_CELL_KEY].textureID = TEXTABLE_175;
+        dPage1ItemsSabre[INVENTORY_ITEM_SABRE_12_DIM_TRICKY_CELL_KEY].textureID = TEXTABLE_175;
+    }
+}
+
+RECOMP_CALLBACK("*", recomp_on_game_tick_start) void cmdmenu_kiosk_icons_update() {
+    kiosk_icons_gold_silver_keys();
 }
 
 /** Adds new text for inventory items that didn't have any Gametext string (originally by LaminGaming)
