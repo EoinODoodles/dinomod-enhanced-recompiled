@@ -5,7 +5,7 @@
 f32 lerp_float(f32 tValue, f32 start, f32 end){
     if (tValue == 0) {
         return start;
-    } else if (tValue == end) {
+    } else if (tValue == 1) {
         return end;
     }
     return start + (end - start)*tValue;
