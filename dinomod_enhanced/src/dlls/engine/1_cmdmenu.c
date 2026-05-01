@@ -2544,7 +2544,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             rsShowActiveSpell = TRUE; //@recomp: handle optional icon fading
 
             //@recomp: optionally start at shifted position if inventory already open and active Sidekick Command visible
-            if ((dInventoryOpacity > 64) && sActiveSidekickCommandIcon) {
+            if ((dInventoryOpacity > 64) && sActiveSidekickCommandIcon && (rsOpacityActiveSpell == 0)) {
                 rsLerpActiveSpell = 1;
             }
 
@@ -2609,7 +2609,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             rsShowActiveSideCommand = TRUE; //@recomp: handle optional icon fading
 
             //@recomp: optionally start at shifted position if inventory already open
-            if (dInventoryOpacity > 64) {
+            if ((dInventoryOpacity > 64) && (rsOpacityActiveSideCommand == 0)) {
                 rsLerpActiveSideCommand = 1;
             }
 
