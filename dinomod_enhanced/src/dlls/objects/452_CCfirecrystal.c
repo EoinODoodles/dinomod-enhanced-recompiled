@@ -18,7 +18,7 @@
 #define DEBUG_COLLECTABLE TRUE
 
 #define GAMEBIT_INVENTORY BIT_CC_Fire_Crystal
-#define GAMEBIT_TUTORIAL BIT_1EA
+#define GAMEBIT_TUTORIAL BIT_Tutorial_Fire_Crystal
 #define GAMEBIT_TUTORIAL_ANIMOBJ OBJ_CCgolden_nugget
 
 typedef struct {

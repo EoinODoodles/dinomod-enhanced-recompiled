@@ -154,7 +154,7 @@ RECOMP_PATCH void func_80013D80(void) {
 
         if (menu_get_current() == MENU_PAUSE) {
             if (credits_get_frame() > 0) {
-                menu_set(MENU_15);
+                menu_set(MENU_CREDITS);
             } else {
                 menu_set(MENU_GAMEPLAY);
             }

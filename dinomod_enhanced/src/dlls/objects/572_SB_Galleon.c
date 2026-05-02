@@ -147,11 +147,11 @@ static void skip_galleon_fight(Object* self) {
     gDLL_29_Gplay->vtbl->set_obj_group_status(SOME_MAP_ID, 2, 1);
     gDLL_29_Gplay->vtbl->set_obj_group_status(SOME_MAP_ID, 5, 1);
 
-    if (!gDLL_29_Gplay->vtbl->get_obj_group_status(self->unk34, 1)) {
-        gDLL_29_Gplay->vtbl->set_obj_group_status(self->unk34, 1, 1);
+    if (!gDLL_29_Gplay->vtbl->get_obj_group_status(self->mobileMapID, 1)) {
+        gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 1, 1);
     }
-    if (!gDLL_29_Gplay->vtbl->get_obj_group_status(self->unk34, 3)) {
-        gDLL_29_Gplay->vtbl->set_obj_group_status(self->unk34, 3, 1);
+    if (!gDLL_29_Gplay->vtbl->get_obj_group_status(self->mobileMapID, 3)) {
+        gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 3, 1);
     }
 
     gDLL_3_Animation->vtbl->func17(0, self, -1);

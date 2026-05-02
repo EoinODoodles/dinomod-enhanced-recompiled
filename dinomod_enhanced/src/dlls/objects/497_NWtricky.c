@@ -66,7 +66,7 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
     case STATE_0_Initial:
         if (main_get_bits(BIT_SnowHorn_Tutorial_Defeated_SharpClaw)) {
             main_set_bits(BIT_8, 1);
-            main_set_bits(BIT_4E4, 1);
+            main_set_bits(BIT_Tricky_Unlocked_Sidekick_Commands, 1);
             objdata->state = STATE_2_Learning_Sidekick_Commands;
         } else if (((DLL_ISidekick*)tricky->dll)->vtbl->func24(tricky) != 0) {
             objdata->state = STATE_1_Chased_by_SharpClaw;
@@ -93,7 +93,7 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
     case STATE_2_Learning_Sidekick_Commands:
         //@recomp: make sure Heel and Find are unlocked (allows skipping Tricky's sequence)
         if (!objdata->doneDemo && cmdmenu_is_button_override_active()) {
-            main_set_bits(BIT_4E4, TRUE);
+            main_set_bits(BIT_Tricky_Unlocked_Sidekick_Commands, TRUE);
 
             //Clear tutorial's cmdmenu button overrides
             gDLL_1_cmdmenu->vtbl->set_buttons_override(CMDMENU_CLEAR_BUTTONS_OVERRIDE);
@@ -107,7 +107,7 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
                 objdata->timer = 0.0f;
                 if (objdata->sidekickStats->blueFood < 4) {
                     main_set_bits(BIT_4E3, 1);
-                } else if (!main_get_bits(BIT_111) && main_get_bits(BIT_4E4)) {
+                } else if (!main_get_bits(BIT_SW_Tricky_Toy_Unearthed) && main_get_bits(BIT_Tricky_Unlocked_Sidekick_Commands)) {
                     player = get_player();
 
                     //Get GroundAnimator object for the hole containing Tricky's ball
@@ -136,8 +136,8 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
         }
 
         //Unlock Tricky's Ball
-        if (main_get_bits(BIT_25)) {
-            main_set_bits(BIT_3F8, 1);
+        if (main_get_bits(BIT_SW_Tricky_Ball_Collected)) {
+            main_set_bits(BIT_Tricky_Ball_Unlocked, 1);
         }
         break;
     }

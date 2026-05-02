@@ -405,7 +405,7 @@ static void WMPlatform_control_custom(Object* self){
     //Mute platform sounds if the player is in a sequence
     //(Makes sure it shooshes during important sequences like the crystal transformation)
     //TODO: make this check more specific, ignoring minor sequences like using the lantern
-    if (player && (player->unkB0 & 0x1000)){
+    if (player && (player->stateFlags & OBJSTATE_IN_SEQ)){
         objData->muteSounds = TRUE;
     } else {
         objData->muteSounds = FALSE;

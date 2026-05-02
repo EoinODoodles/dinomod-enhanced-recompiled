@@ -39,7 +39,7 @@ RECOMP_PATCH void GPSH_flybaddie_func_7F8(Object* self) {
     objsetup->x = self->srt.transl.x;
     objsetup->y = self->srt.transl.y;
     objsetup->z = self->srt.transl.z;
-    obj = obj_create(objsetup, OBJ_INIT_FLAG1, -1, -1, NULL);
+    obj = obj_create(objsetup, OBJINIT_STANDALONE, -1, -1, NULL);
     if (obj != NULL) {
         obj->srt.flags |= 0x2000;
         dirVec[0] = player->srt.transl.x - self->srt.transl.x;

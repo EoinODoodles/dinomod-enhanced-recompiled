@@ -70,7 +70,7 @@ RECOMP_PATCH void DFPLift_setup(Object *self, DFPLift_Setup *setup, s32 a2) {
 
     // @recomp: Get LIFT_DOWN depending on object ID
     self->srt.transl.y -= dinomod_get_lift_down(self);
-    self->unkB0 |= 0x2000;
+    self->stateFlags |= OBJSTATE_UPDATE_DISABLED;
 }
 
 RECOMP_PATCH void DFPLift_control(Object* self) {

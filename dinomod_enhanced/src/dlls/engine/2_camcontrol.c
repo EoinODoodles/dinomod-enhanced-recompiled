@@ -99,7 +99,7 @@ RECOMP_PATCH void CamControl_lock_icon_tick(void) {
     
     sCamData->targetFlags &= ~ARROW_FLAG_4_Highlighted;
     
-    if ((player == NULL) || (player->unkB0 & 0x1000)) {
+    if ((player == NULL) || (player->stateFlags & OBJSTATE_IN_SEQ)) {
         sIconState = LockIcon_STATE_Hidden;
         return;
     }

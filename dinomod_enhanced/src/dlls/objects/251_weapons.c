@@ -9,7 +9,7 @@
 #include "sys/main.h"
 #include "sys/objects.h"
 
-#include "recomp/dlls/_asm/251_recomp.h"
+#include "recomp/dlls/objects/251_weapons_recomp.h"
 
 /** 
   * Change collision bits for weapons, allowing them to phase through

@@ -1617,7 +1617,7 @@ RECOMP_PATCH void cmdmenu_update2(void) {
     sJoyPressedButtons = joy_get_pressed(0) | rRawDPad;
     sJoyHeldButtons = joy_get_buttons(0); //D-right holds not needed anyway
 
-    if (player->unkB0 & 0x1000) {
+    if (player->stateFlags & OBJSTATE_IN_SEQ) {
         joy_set_button_mask(0, rAllMenuOpenButtons);
         sJoyPressedButtons &= ~(R_TRIG | rAllMenuOpenButtons);
         sJoyHeldButtons &= ~(R_TRIG | rAllMenuOpenButtons);
@@ -1631,7 +1631,7 @@ RECOMP_PATCH void cmdmenu_update2(void) {
         sJoyPressedButtons = sJoyPressedButtonsOverride;
     } else {
         sJoyPressedButtons |= sJoyPressedButtonsOverride;
-        if ((player->unkB0 & 0x1000) || (rJoyButtonMaskExtended != 0)) {
+        if ((player->stateFlags & OBJSTATE_IN_SEQ) || (rJoyButtonMaskExtended != 0)) {
             sJoyPressedButtons |= B_BUTTON;
         }
     }
@@ -1890,7 +1890,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
     }
 
     //Lock/unlock accessing the C-button scroll menu
-    if (player->unkB0 & 0x1000) {
+    if (player->stateFlags & OBJSTATE_IN_SEQ) {
         joy_set_button_mask(0, (rCControls * (ALL_MENUOPEN_C_BUTTONS | U_CBUTTONS)) | (rDControls * (ALL_MENUOPEN_D_PAD | U_JPAD)));
     } else if (rJoyButtonMaskExtended != 0) {
         joy_set_button_mask(0, rJoyButtonMaskExtended);
@@ -1903,7 +1903,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
         sJoyPressedButtons = joy_get_pressed(0) | rRawDPad; //@recomp: optionally factor in D-pad
         rJoyHeldButtons = rNewControls ? gContPads[gVirtualContPortMap[0]].button : 0; //@recomp: get held buttons (for continuous scrolling)
 
-        if ((player->unkB0 & 0x1000) || (rJoyButtonMaskExtended != 0)) {
+        if ((player->stateFlags & OBJSTATE_IN_SEQ) || (rJoyButtonMaskExtended != 0)) {
             sJoyPressedButtons |= B_BUTTON;
         }
     }
@@ -3315,11 +3315,7 @@ RECOMP_PATCH s32 cmdmenu_get_target_objects(Object **targetObjects, s32 maxObjec
             dz = objZ - camera->srt.transl.z;
             if ((SQ(dx) + SQ(dy) + SQ(dz)) < SQ(range)) {
                 yaw = camera->srt.yaw - (u16)(M_90_DEGREES - arctan2_f(dx, dz));
-                {
-                    s32 angle = yaw;
-                    CIRCLE_WRAP(angle);
-                    yaw = angle;
-                }
+                CIRCLE_WRAP(yaw);
                 if (yaw < -10000 && yaw > -22000) {
                     targetObjects[targetCount++] = obj;
                 }

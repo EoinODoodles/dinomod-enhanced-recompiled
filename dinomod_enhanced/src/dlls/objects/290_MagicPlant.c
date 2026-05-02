@@ -44,7 +44,7 @@ RECOMP_PATCH void MagicPlant_print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex**
 
         {
             //@recomp: bail if the gem is deleted
-            if (objData->magic->unkB0 & 0x40){
+            if (objData->magic->stateFlags & OBJSTATE_DESTROYED){
                 objData->magic = NULL;
                 return;
             }

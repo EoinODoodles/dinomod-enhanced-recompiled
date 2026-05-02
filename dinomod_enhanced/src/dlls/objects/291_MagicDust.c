@@ -325,7 +325,7 @@ RECOMP_PATCH void MagicDust_free(Object *self, s32 a1) {
 	parent = self->unkC4;
 
 	//Do nothing if the gem's parent object is deleted
-	if (parent->unkB0 & 0x40){
+	if (parent->stateFlags & OBJSTATE_DESTROYED){
 		return;
 	}
 

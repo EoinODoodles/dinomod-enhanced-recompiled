@@ -158,7 +158,7 @@ RECOMP_PATCH void Tumbleweed_free(Object* self, s32 arg1) {
     //Find parent tree object
     for (objects = get_world_objects(&i, &count); i < count; i++) {
         object = objects[i];
-        if (id == object->id && !(object->unkB0 & 0x40)) { //@recomp: check Object isn't deleted
+        if (id == object->id && !(object->stateFlags & OBJSTATE_DESTROYED)) { //@recomp: check Object isn't deleted
             ((DLL_Unknown*)object->dll)->vtbl->func[7].withTwoArgs((s32)object, (s32)self);
         }
     }

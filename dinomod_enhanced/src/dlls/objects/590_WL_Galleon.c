@@ -56,28 +56,28 @@ RECOMP_PATCH void WLgalleon_control(Object* self) {
     state = self->data;
     
     if (main_get_bits(BIT_429)) {
-        if (gDLL_29_Gplay->vtbl->get_obj_group_status(self->unk34, 2)) {
-            gDLL_29_Gplay->vtbl->set_obj_group_status(self->unk34, 1, 0);
-            gDLL_29_Gplay->vtbl->set_obj_group_status(self->unk34, 2, 0);
+        if (gDLL_29_Gplay->vtbl->get_obj_group_status(self->mobileMapID, 2)) {
+            gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 1, 0);
+            gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 2, 0);
         }
     } else if (
             // !main_get_bits(BIT_WM_Played_Randorn_First_Meeting) && //@recomp: remove check
-            !gDLL_29_Gplay->vtbl->get_obj_group_status(self->unk34, 2)) {
-        gDLL_29_Gplay->vtbl->set_obj_group_status(self->unk34, 1, 1);
-        gDLL_29_Gplay->vtbl->set_obj_group_status(self->unk34, 2, 1);
+            !gDLL_29_Gplay->vtbl->get_obj_group_status(self->mobileMapID, 2)) {
+        gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 1, 1);
+        gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 2, 1);
     }
     
     if (1 
         // && !main_get_bits(BIT_WM_Played_Randorn_First_Meeting) //@recomp: remove check 
         ) {
         if (!state->unk10 && !main_get_bits(BIT_429)) {
-            gDLL_29_Gplay->vtbl->set_obj_group_status(self->unk34, 1, 1);
-            gDLL_29_Gplay->vtbl->set_obj_group_status(self->unk34, 2, 1);
+            gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 1, 1);
+            gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 2, 1);
             state->unk10 = TRUE;
         }
     } else {
-        if (!gDLL_29_Gplay->vtbl->get_obj_group_status(self->unk34, 4)) {
-            gDLL_29_Gplay->vtbl->set_obj_group_status(self->unk34, 4, 1);
+        if (!gDLL_29_Gplay->vtbl->get_obj_group_status(self->mobileMapID, 4)) {
+            gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 4, 1);
         }
         if (state->unk10) {
             state->unk10 = FALSE;
@@ -97,7 +97,7 @@ RECOMP_PATCH void WLgalleon_control(Object* self) {
 
         //@recomp: fix issue where Krystal starts slightly too high above Galleon, causing fall sound (Banjeoin)
         player->srt.transl.y = 100.0f; 
-        *((u16*)((u32)player + 0x0360)) = 0; //modanim
+        *((u16*)((u32)player + 0x0360)) = 0; //modanim (TODO: clean up)
         player->animProgress = 0.0f;
 
         //@recomp: synchronise the credits when skipping sequences to get here

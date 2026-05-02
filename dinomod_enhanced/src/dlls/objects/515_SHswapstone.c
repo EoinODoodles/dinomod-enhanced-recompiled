@@ -38,11 +38,11 @@ typedef enum {
 extern u16 sWarlockMountainWarps[2];
 extern u16 sSwapStoneWarps[2];
 
-extern s32 SHswapstone_func_448(Object* self, Object* a1, AnimObj_Data* a2, void* a3);
+extern s32 SHswapstone_anim_callback(Object* self, Object* a1, AnimObj_Data* a2, void* a3);
 extern s32 SHswapstone_get_held_spirit(void);
 extern s32 SHswapstone_has_spellstone(void);
-extern void SHswapstone_func_A8C(Object* self, s32 arg1, s32 arg2);
-extern s32 SHswapstone_func_AD4(Object* self, s32 arg1, s32 arg2);
+extern void SHswapstone_restore_gameplay_menu(Object* self, s32 arg1, s32 arg2);
+extern s32 SHswapstone_is_stick_direction_available(Object* self, s32 arg1, s32 arg2);
 
 /** Make sure Rubble loads in SwapStone Circle (rather than Rocky) */
 RECOMP_PATCH void SHswapstone_setup(Object* self, SHswapstone_Setup* setup, s32 arg2) {
@@ -50,7 +50,7 @@ RECOMP_PATCH void SHswapstone_setup(Object* self, SHswapstone_Setup* setup, s32 
 
     objdata = self->data;
     self->srt.yaw = setup->rotation << 8;
-    self->animCallback = (void*)SHswapstone_func_448;
+    self->animCallback = (void*)SHswapstone_anim_callback;
 
     //@recomp: change how we determine if this is Rubble or Rocky, avoiding incorrect outcome if local Block is unloaded
     if ((map_get_map_id_from_xz_ws(self->srt.transl.x, self->srt.transl.z) == MAP_SWAPSTONE_CIRCLE) 
@@ -96,18 +96,23 @@ RECOMP_PATCH u32 SHswapstone_get_model_flags(Object* self) {
     return MODFLAGS_MODEL_INDEX(modelno) | MODFLAGS_LOAD_SINGLE_MODEL;
 }
 
-RECOMP_PATCH s32 SHswapstone_func_448(Object* self, Object* a1, AnimObj_Data* a2, void* a3) {
+#define CMD_BASE_SELECTION 13
+#define SELECT_SCREEN(var) (CMD_BASE_SELECTION + var)
+
+RECOMP_PATCH s32 SHswapstone_anim_callback(Object* self, Object* overrideObj, AnimObj_Data* animData, void* a3) {
     SHswapstone_Data* objdata;
     s32 playerno;
     s32 i;
 
     objdata = self->data;
-    if (menu_get_current() != MENU_16) {
-        menu_set(MENU_16);
+    if (menu_get_current() != MENU_SELECTION) {
+        menu_set(MENU_SELECTION);
     }
-    a2->unkF8 = (AnimObj_DataF8Callback)SHswapstone_func_AD4;
-    a2->unkF4 = (AnimObj_DataF4Callback)SHswapstone_func_A8C;
-    if (a2->unk62 != 0) {
+
+    animData->unkF8 = (AnimObj_DataF8Callback)SHswapstone_is_stick_direction_available;
+    animData->unkF4 = (AnimObj_DataF4Callback)SHswapstone_restore_gameplay_menu;
+
+    if (animData->unk62 != 0) {
         objdata->flags &= ~(SWAPSTONE_PLAYER_HAS_SPIRIT | SWAPSTONE_PLAYER_HAS_SPELLSTONE);
         if (SHswapstone_get_held_spirit() != PLAYER_NO_SPIRIT) {
             objdata->flags |= SWAPSTONE_PLAYER_HAS_SPIRIT;
@@ -115,13 +120,14 @@ RECOMP_PATCH s32 SHswapstone_func_448(Object* self, Object* a1, AnimObj_Data* a2
         if (SHswapstone_has_spellstone() != 0) {
             objdata->flags |= SWAPSTONE_PLAYER_HAS_SPELLSTONE;
         }
-        a2->unk62 = 0;
+        animData->unk62 = 0;
         if (main_get_bits(objdata->bitSwapStoneSpokenTo) != 0) {
-            a2->unk9D |= 4;
+            animData->unk9D |= 4;
         }
     }
-    for (i = 0; i < a2->unk98; i++) {
-        switch (a2->unk8E[i]) {
+
+    for (i = 0; i < animData->unk98; i++) {
+        switch (animData->unk8E[i]) {
         case 3:
             objdata->attachIdx = 0;
             break;
@@ -192,20 +198,22 @@ RECOMP_PATCH s32 SHswapstone_func_448(Object* self, Object* a1, AnimObj_Data* a2
         case 12:
             warpPlayer(WARP_SWAPSTONE_SHOP_ENTRANCE, /*fadeToBlack=*/FALSE);
             break;
-        case 13:
-        case 14:
-        case 15:
-        case 16:
-            if (menu_get_current() == MENU_16) {
-                ((DLL_Menu16*)menu_get_active_dll())->vtbl->func3(a2->unk8E[i] - 0xD);
+        case (SELECT_SCREEN(SelectionMenu_STATE_0_Fade_Out)):
+        case (SELECT_SCREEN(SelectionMenu_STATE_1_SwapStone_Choices)):
+        case (SELECT_SCREEN(SelectionMenu_STATE_2_Confirm_Right)):
+        case (SELECT_SCREEN(SelectionMenu_STATE_3_Confirm_Left)):
+            if (menu_get_current() == MENU_SELECTION) {
+                ((DLL_Menu16*)menu_get_active_dll())->vtbl->set_selection_state(animData->unk8E[i] - CMD_BASE_SELECTION);
             }
             break;
         default:
             break;
         }
     }
+
     if (objdata->bShowScreen != 0) {
         gDLL_20_Screens->vtbl->show_screen(0);
     }
+
     return 0;
 }

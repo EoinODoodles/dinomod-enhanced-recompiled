@@ -15,7 +15,7 @@
 #include "types.h"
 #include "dlls/engine/21_gametext.h"
 
-#include "recomp/dlls/_asm/78_recomp.h"
+#include "recomp/dlls/engine/78_credits_recomp.h"
 
 #include "engine/20_screens.h"
 #include "engine/78_credits.h"
@@ -46,12 +46,12 @@ typedef enum {
     CREDITS_R
 } CreditsAlignments;
 
-/*0x0*/ extern CreditsGroup data_0[10];
+/*0x0*/ extern CreditsGroup dCredits[10];
 
-/*0x0*/ extern Texture* bss_0;                  //Shown at the beginning of the credits
-/*0x4*/ extern u8 bss_4;                        //The index of the current group of names
-/*0x8*/ extern GameTextChunk* bss_8;            //Gametext file 0x1FD
-/*0xC*/ extern f32 bss_C;                       //The current frame of the credits
+/*0x0*/ extern Texture* sDinosaurPlanetLogoTex; //Shown at the beginning of the credits
+/*0x4*/ extern u8 sGroupIdx;                    //The index of the current group of names
+/*0x8*/ extern GameTextChunk* sText;            //Gametext file 0x1FD
+/*0xC*/ extern f32 sTime;                       //The current frame of the credits
 
 #define MAX_OPACITY 0xFF
 
@@ -70,11 +70,11 @@ static char rsCreditsLeadVoices[3][64] = {
     "STEVE MALPASS",
 };
 
-RECOMP_HOOK_DLL(dll_78_ctor) void credits_ctor_hook(void* dll) {
+RECOMP_HOOK_DLL(credits_ctor) void credits_ctor_hook(void* dll) {
     //Insert credits for Krystal/Sabre's voice actors
     //Also retime things so names aren't fading in during a transition
     {
-        CreditsGroup* audio = &data_0[7];
+        CreditsGroup* audio = &dCredits[7];
         CreditsLine linesEdited[9] = {
             {5067, 5107, 5233, 5273, 29, 1, CREDITS_L, 0, 0},
             {5067, 5107, 5233, 5273, 30, 2, CREDITS_R, 0, 0},
@@ -96,7 +96,7 @@ RECOMP_HOOK_DLL(dll_78_ctor) void credits_ctor_hook(void* dll) {
 
     //Shift animator credits slightly so they don't get obscured by a shot transition
     {
-        CreditsGroup* animators = &data_0[5];
+        CreditsGroup* animators = &dCredits[5];
         animators->frameExpand += 60;
         animators->frameFinished += 60;
         for (int i = 0; i < animators->lineCount; i++) {
@@ -107,7 +107,7 @@ RECOMP_HOOK_DLL(dll_78_ctor) void credits_ctor_hook(void* dll) {
         }
 
         //Shift in-point of next group slightly so animator group doesn't overlap with it
-        CreditsGroup* design = &data_0[6];
+        CreditsGroup* design = &dCredits[6];
         for (int i = 0; i < design->lineCount; i++) {
             design->lines[i].frameIn += 60;
             design->lines[i].frameHold += 60;
@@ -116,19 +116,19 @@ RECOMP_HOOK_DLL(dll_78_ctor) void credits_ctor_hook(void* dll) {
 }
 
 /** 
-  * - Make sure gameplay menu is restored at end of credits .
+  * - Make sure gameplay menu is restored at end of credits.
   * - End credits when a Screens image is shown (Krystal's Adventure).
   * - Restore playback when unpausing.
   */
-RECOMP_PATCH s32 dll_78_func_D4(void) {
+RECOMP_PATCH s32 credits_update1(void) {
     CreditsLine* line;
     s32 i;
     f32 tValue;
     u8 opacity;
 
     //@recomp: restore playback position
-    if (rsCreditsRestoredFrame > bss_C) {
-        bss_C = rsCreditsRestoredFrame;
+    if (rsCreditsRestoredFrame > sTime) {
+        sTime = rsCreditsRestoredFrame;
     }
 
     //@recomp: stop drawing if a Screens image is being shown (Krystal's Adventure)
@@ -137,29 +137,29 @@ RECOMP_PATCH s32 dll_78_func_D4(void) {
         return 0;
     }
 
-    if (bss_4 < (s32)ARRAYCOUNT(data_0)) {
+    if (sGroupIdx < (s32)ARRAYCOUNT(dCredits)) {
         //Advance credits' time
-        bss_C += gUpdateRateF;
+        sTime += gUpdateRateF;
         
         //Advance to the next group of names
-        if (bss_C >= data_0[bss_4].frameFinished) {
-            bss_4++;
+        if (sTime >= dCredits[sGroupIdx].frameFinished) {
+            sGroupIdx++;
         }
         
         //Update the current text group's opacity and spacing animation
-        if (bss_4 < (s32)ARRAYCOUNT(data_0)) {
+        if (sGroupIdx < (s32)ARRAYCOUNT(dCredits)) {
             //Iterate over the group's lines
-            for (i = 0; i < data_0[bss_4].lineCount; i++) {
-                line = &data_0[bss_4].lines[i];
+            for (i = 0; i < dCredits[sGroupIdx].lineCount; i++) {
+                line = &dCredits[sGroupIdx].lines[i];
 
                 //Line hasn't shown up yet, not visible
-                if (bss_C < line->frameIn) {
+                if (sTime < line->frameIn) {
                     opacity = 0;
 
                 //Line fading in
-                } else if (bss_C < line->frameHold) {
+                } else if (sTime < line->frameHold) {
                     //Get opacity tValue for fade-in
-                    tValue = (bss_C - line->frameIn) / (line->frameHold - line->frameIn);
+                    tValue = (sTime - line->frameIn) / (line->frameHold - line->frameIn);
                     if (tValue < 0.0f) {
                         tValue = 0.0f;
                     } else if (tValue > 1.0f) {
@@ -169,12 +169,12 @@ RECOMP_PATCH s32 dll_78_func_D4(void) {
                     opacity = (u8)(tValue * MAX_OPACITY);
 
                 //Line holding at max opacity
-                } else if (bss_C < line->frameOut) {
+                } else if (sTime < line->frameOut) {
                     opacity = MAX_OPACITY;
 
                 //Line fading out
-                } else if (bss_C < line->frameFinished) {
-                    tValue = (bss_C - line->frameOut) / (line->frameFinished - line->frameOut);
+                } else if (sTime < line->frameFinished) {
+                    tValue = (sTime - line->frameOut) / (line->frameFinished - line->frameOut);
                     if (tValue < 0.0f) {
                         tValue = 0.0f;
                     } else if (tValue > 1.0f) {
@@ -191,29 +191,29 @@ RECOMP_PATCH s32 dll_78_func_D4(void) {
                 line->opacity = opacity;
                 
                 //Animate group's text spacing expanding outwards before it disappears
-                if ((bss_C >= line->frameIn) && 
-                    (bss_C <= line->frameFinished) && 
-                    (bss_C >= data_0[bss_4].frameExpand)
+                if ((sTime >= line->frameIn) && 
+                    (sTime <= line->frameFinished) && 
+                    (sTime >= dCredits[sGroupIdx].frameExpand)
                 ) {
                     // line->spacing += (gUpdateRateF / 60.0f) * 8.0f;
 
                     //@recomp: restore text tracking animation when unpausing
-                    line->spacing = (bss_C - data_0[bss_4].frameExpand) * 0.1333f;
+                    line->spacing = (sTime - dCredits[sGroupIdx].frameExpand) * 0.1333f;
                 }
             }
         }
     }
     
     //@recomp: make sure gameplay menu is restored at end
-    if (bss_C >= FRAME_END) {
+    if (sTime >= FRAME_END) {
         credits_finish();
-    } else if (bss_C == 0) {
+    } else if (sTime == 0) {
         rsCreditsRestoredFrame = 0;
     }
 
     //@recomp: keep track of playback position so it can be restored when unpausing
-    if (rsCreditsRestoredFrame < bss_C) {
-        rsCreditsRestoredFrame = bss_C;
+    if (rsCreditsRestoredFrame < sTime) {
+        rsCreditsRestoredFrame = sTime;
     }
 
     return 0;
@@ -227,7 +227,7 @@ RECOMP_PATCH s32 dll_78_func_D4(void) {
   * 
   * - Splices in static text for lead voice actors.
   */
-RECOMP_PATCH void dll_78_func_570(Gfx** gdl, s32 arg1, s32 arg2) {
+RECOMP_PATCH void credits_draw(Gfx** gdl, s32 arg1, s32 arg2) {
     CreditsLine* line;
     s32 align;
     s32 i;
@@ -235,7 +235,7 @@ RECOMP_PATCH void dll_78_func_570(Gfx** gdl, s32 arg1, s32 arg2) {
     s32 y;
     char* string;
 
-    if (bss_4 == ARRAYCOUNT(data_0)) {
+    if (sGroupIdx == ARRAYCOUNT(dCredits)) {
         return;
     }
 
@@ -253,9 +253,9 @@ RECOMP_PATCH void dll_78_func_570(Gfx** gdl, s32 arg1, s32 arg2) {
     font_window_flush_strings(1);
     font_window_use_font(1, FONT_DINO_SUBTITLE_FONT_1);
 
-    if (bss_4 == 0) {
+    if (sGroupIdx == 0) {
         //Draw the Dinosaur Planet logo
-        line = &data_0[bss_4].lines[0];
+        line = &dCredits[sGroupIdx].lines[0];
 
         //@rom-patch: centre logo in widescreen
         #ifdef DINOMOD_ROM_PATCH
@@ -267,12 +267,12 @@ RECOMP_PATCH void dll_78_func_570(Gfx** gdl, s32 arg1, s32 arg2) {
             rcp_screen_full_write(gdl, bss_0, 45, 76, 0, 0, line->opacity, 0);
         }
         #else
-        rcp_screen_full_write(gdl, bss_0, 45, 76, 0, 0, line->opacity, 0);
+        rcp_screen_full_write(gdl, sDinosaurPlanetLogoTex, 45, 76, 0, 0, line->opacity, 0);
         #endif
     } else {
         //Draw the developer credits
-        for (i = 0; i < data_0[bss_4].lineCount; i++) {
-            line = &data_0[bss_4].lines[i];
+        for (i = 0; i < dCredits[sGroupIdx].lineCount; i++) {
+            line = &dCredits[sGroupIdx].lines[i];
             
             if (line->opacity == 0) {
                 continue;
@@ -294,9 +294,9 @@ RECOMP_PATCH void dll_78_func_570(Gfx** gdl, s32 arg1, s32 arg2) {
             y = BASE_Y + ((line->lineIndex - 1) << 4);
 
             //@recomp: insert extra lines for Krystal/Sabre voice actors
-            string = bss_8->strings[line->textID];
+            string = sText->strings[line->textID];
 
-            if (bss_4 == 7) {
+            if (sGroupIdx == 7) {
                 switch (i) {
                 case 4:
                     string = rsCreditsLeadVoices[0];
@@ -328,16 +328,16 @@ RECOMP_CALLBACK("*", recomp_on_game_tick_start) void restoreCredits() {
     if (
         ((menu_get_previous() == MENU_PAUSE)) && 
         (rsCreditsRestoredFrame > 0) &&
-        (menu_get_current() != MENU_15) 
+        (menu_get_current() != MENU_CREDITS) 
     ) {
-        menu_set(MENU_15);
-        bss_C = rsCreditsRestoredFrame;
+        menu_set(MENU_CREDITS);
+        sTime = rsCreditsRestoredFrame;
     }
 }
 
 /** Returns the current frame of the credits */
 s32 credits_get_frame() {
-    return (s32)bss_C;
+    return (s32)sTime;
 }
 
 /** Allows the credits to be scrubbed to a particular frame */
@@ -353,14 +353,14 @@ void credits_sync_frame(s32 frame) {
     if (frame < 0) {
         return;
     }
-    if (bss_C < frame) {
+    if (sTime < frame) {
         rsCreditsRestoredFrame = frame;
     }
 }
 
 /** End the credits and restore gameplay menus */
 void credits_finish() {
-    bss_C = FRAME_END;
+    sTime = FRAME_END;
     rsCreditsRestoredFrame = 0;
     menu_set(MENU_GAMEPLAY);
 }

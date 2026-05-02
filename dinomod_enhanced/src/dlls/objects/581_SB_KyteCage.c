@@ -54,7 +54,7 @@ RECOMP_PATCH void kyteCage_print(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** v
     if (state != NULL) {
         if (state->kyte != NULL) {
             kyte = state->kyte;
-            if (kyte->unkB0 & 0x40) {
+            if (kyte->stateFlags & OBJSTATE_DESTROYED) {
                 state->kyte = NULL;
             }
             objDef = self->def;

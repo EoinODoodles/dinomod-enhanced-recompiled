@@ -206,7 +206,7 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
             recomp_printf("IN BOWL: destroyTumbleweed? %d\n", objData->destroyTumbleweed);
             #endif
 
-            if (objData->heldTumbleweed && !(objData->heldTumbleweed->unkB0 & 0x40)){
+            if (objData->heldTumbleweed && !(objData->heldTumbleweed->stateFlags & OBJSTATE_DESTROYED)){
                 #if DEBUG_BEACON
                 recomp_printf("IN BOWL: deleting Tumbleweed!\n");
                 #endif

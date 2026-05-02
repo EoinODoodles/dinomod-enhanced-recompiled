@@ -51,5 +51,5 @@ RECOMP_PATCH void DFP_LevelControl_setup(Object* self, ObjSetup *setup, s32 arg2
             main_set_bits(BIT_Spell_Grenade, 1);
             break;
     }
-    self->unkB0 |= 0x6000;
+    self->stateFlags |= OBJSTATE_PRINT_DISABLED | OBJSTATE_UPDATE_DISABLED;
 }

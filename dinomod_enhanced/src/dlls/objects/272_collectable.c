@@ -61,7 +61,7 @@ typedef enum {
     Collectable_FLAG_Interaction_Off = 1
 } Collectable_Flags;
 
-extern int collectable_func_B24(Object* self, Object* animObj, AnimObj_Data* animobjData);
+extern int collectable_anim_callback(Object* self, Object* animObj, AnimObj_Data* animobjData);
 extern void collectable_handle_animation_and_fx(Object* self);
 extern void collectable_handle_motion(Object* self);
 extern void collectable_collect(Object* self);
@@ -251,7 +251,7 @@ static int collectable_will_tutorial_be_shown(Object* self, Collectable_Setup* o
 
     //Special case: Energy Eggs
     if (self->id == OBJ_EnergyEgg) {
-        return (main_get_bits(BIT_90E) == FALSE);
+        return (main_get_bits(BIT_Tutorial_Collected_Energy_Egg) == FALSE);
     }
 
     tutorialGamebit = collectable_override_tutorial_gamebitID(self, objSetup);
@@ -359,9 +359,9 @@ RECOMP_PATCH void collectable_setup(Object* self, Collectable_Setup* objSetup, s
     self->srt.roll = objSetup->roll << 8;
     self->srt.scale = self->def->scale;
 
-    self->animCallback = (void*)&collectable_func_B24;
+    self->animCallback = (void*)&collectable_anim_callback;
     self->modelInstIdx = objSetup->modelIdx;
-    self->unkB0 |= 0x2000;
+    self->stateFlags |= OBJSTATE_UPDATE_DISABLED;
 
     objData->sidekickArgBase = objSetup->messageArgBase;
     objData->objHitsValue = objSetup->objHitsValue;
@@ -618,7 +618,7 @@ RECOMP_PATCH void collectable_control(Object* self) {
             gDLL_17_partfx->vtbl->spawn(self, 0x549, 0, 1, -1, 0);
         }
 
-        if (main_get_bits(BIT_90E) == 0) {
+        if (main_get_bits(BIT_Tutorial_Collected_Energy_Egg) == 0) {
             gDLL_3_Animation->vtbl->func30(collectableDef->seqObjectID, 0, 0);
             outMessage = 0;
             obj_send_mesg(
@@ -627,7 +627,7 @@ RECOMP_PATCH void collectable_control(Object* self) {
                 self, 
                 0
             );
-            main_set_bits(BIT_90E, 1);
+            main_set_bits(BIT_Tutorial_Collected_Energy_Egg, 1);
         } else {
             objData->timerDestroy = 180.0f;
             collectable_collect(self);

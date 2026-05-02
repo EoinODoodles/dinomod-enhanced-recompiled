@@ -84,7 +84,7 @@ RECOMP_PATCH void SeqObj_setup(Object* self, SeqObj_Setup* objSetup, s32 arg2) {
         self->modelInstIdx = 0;
     }
     
-    obj_add_object_type(self, 0x11);
+    obj_add_object_type(self, OBJTYPE_17);
     
     objData->flags = SEQOBJ_FLAG_None;
     if (objSetup->gamebitPlay != -1) {
@@ -97,5 +97,5 @@ RECOMP_PATCH void SeqObj_setup(Object* self, SeqObj_Setup* objSetup, s32 arg2) {
     }
 
     objData->finished = FALSE;
-    self->unkB0 |= 0x2000;
+    self->stateFlags |= OBJSTATE_UPDATE_DISABLED;
 }

@@ -45,7 +45,7 @@ RECOMP_PATCH void VFP_LevelControl_setup(Object* self, ObjSetup* setup, s32 a2) 
         func_80000450(self, self, 0x174, 0, 0, 0);
         break;
     }
-    self->unkB0 |= 0x6000;
+    self->stateFlags |= OBJSTATE_PRINT_DISABLED | OBJSTATE_UPDATE_DISABLED;
 }
 
 /*0x0*/ extern s16 _data_0;
