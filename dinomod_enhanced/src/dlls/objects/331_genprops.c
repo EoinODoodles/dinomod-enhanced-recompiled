@@ -3,6 +3,7 @@
 #include "object_util.h"
 
 #include "common.h"
+#include "sys/camera.h"
 #include "sys/map_enums.h"
 #include "sys/objmsg.h"
 #include "sys/segment_1050.h"
@@ -404,8 +405,7 @@ static void WMPlatform_control_custom(Object* self){
 
     //Mute platform sounds if the player is in a sequence
     //(Makes sure it shooshes during important sequences like the crystal transformation)
-    //TODO: make this check more specific, ignoring minor sequences like using the lantern
-    if (player && (player->stateFlags & OBJSTATE_IN_SEQ)){
+    if (player && (player->stateFlags & OBJSTATE_IN_SEQ) && camera_get_letterbox()){
         objData->muteSounds = TRUE;
     } else {
         objData->muteSounds = FALSE;
