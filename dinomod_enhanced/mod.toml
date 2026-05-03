@@ -89,6 +89,32 @@ options = [ "Old (variant A)", "Old (variant B)", "New" ]
 default = "Old (variant B)"
 
 [[manifest.config_options]]
+id = "button_tap_modes"
+name = "Accessibility: Button Tapping"
+description = '''
+There are two prominent sections of gameplay in Dinosaur Planet that involve rapid button tapping: the Test of Strength shrine, and the LightFoot Strength Trial.
+
+This config setting provides a number of options for adjusting these sections:
+
+- Off
+  The default gameplay (but with framerate dependency bugs fixed*).
+
+- On (Assist)
+  The sections can be completed with less frequent tapping.
+
+- On (Hold)
+  The player character will push while holding A, instead of tapping.
+
+- On (Auto)
+  The player character will push automatically.
+
+*In the unmodified game, a limitation in the handling of buffered button presses creates a 25% chance for a single button press to accidentally be treated as several consecutive button presses when playing at low framerates. While this bug doesn't affect most gameplay, it does cause the LightFoot Strength Trial in particular to become roughly 50% more difficult when playing at smooth framerates, like in emulators or Recomp! Dinomod Enhanced fixes this framerate dependency.
+'''
+type = "Enum"
+options = [ "Off", "On (Reduced)", "On (Hold)", "On (Auto)" ]
+default = "Off"
+
+[[manifest.config_options]]
 id = "cmdmenu_new_controls"
 name = "Inventory: New Controls"
 description = '''

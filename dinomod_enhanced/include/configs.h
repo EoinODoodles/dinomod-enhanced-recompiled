@@ -29,4 +29,15 @@ typedef enum {
     ACTIVEICON_MOVE     //Sidekick Command icon moves down when inventory opens (and Spell icon moves left if needed)
 } ActiveIconModes;
 
+/* 
+ * Accessibility options for gameplay involving rapid button tapping,
+ * like the Test of Strength Krazoa Shrine, or the LightFoot Strength Trial.
+ */
+typedef enum {
+    BUTTON_TAPPING_ASSIST_OFF,       //Default difficulty, but with FPS dependency fixes
+    BUTTON_TAPPING_ASSIST_ON,        //Don't need to tap as rapidly
+    BUTTON_TAPPING_ASSIST_HOLD,      //Character pushes while holding A
+    BUTTON_TAPPING_ASSIST_AUTO,      //Character pushes automatically
+} ButtonTappingAssistModes;
+
 #define INFO_POPUP_DURATION 300
