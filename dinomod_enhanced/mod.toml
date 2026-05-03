@@ -99,7 +99,7 @@ This config setting provides a number of options for adjusting these sections:
 - Off
   The default gameplay (but with framerate dependency bugs fixed*).
 
-- On (Assist)
+- On (Reduced)
   The sections can be completed with less frequent tapping.
 
 - On (Hold)
