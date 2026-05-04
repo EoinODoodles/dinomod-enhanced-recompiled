@@ -42,6 +42,6 @@ RECOMP_PATCH void VFP_lavastar_control(Object* self) {
     }
     // @recomp: Disable lavastar sound. It appears to be a blank sound and plays every frame. (originally by MusicalProgrammer)
     // if (objdata->soundHandle == 0) {
-    //     gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_AAE, MAX_VOLUME, &objdata->soundHandle, NULL, 0, NULL);
+    //     gDLL_6_AMSFX->vtbl->play(self, SOUND_AAE, MAX_VOLUME, &objdata->soundHandle, NULL, 0, NULL);
     // }
 }

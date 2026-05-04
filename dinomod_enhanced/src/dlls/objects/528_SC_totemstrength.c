@@ -168,8 +168,8 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
     
     //Start playing wood creaking loop
     if (objData->soundHandleCreak == 0) {
-        objData->soundHandleCreak = gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_776_Wooden_Creaking_Loop, MAX_VOLUME, 0, 0, 0, 0);
-        gDLL_6_AMSFX->vtbl->func_954(objData->soundHandleCreak, 0.8f);
+        objData->soundHandleCreak = gDLL_6_AMSFX->vtbl->play(self, SOUND_776_Wooden_Creaking_Loop, MAX_VOLUME, 0, 0, 0, 0);
+        gDLL_6_AMSFX->vtbl->set_pitch(objData->soundHandleCreak, 0.8f);
     }
 
     //@recomp: handle simulated button presses
@@ -334,7 +334,7 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
             //Less frequent when Krystal is winning
             objData->soundTimerKrystal = rand_next(120, 240);
         }
-        gDLL_6_AMSFX->vtbl->play_sound(self, dSoundsKrystal[rand_next(0, 2)], MAX_VOLUME, 0, 0, 0, 0);
+        gDLL_6_AMSFX->vtbl->play(self, dSoundsKrystal[rand_next(0, 2)], MAX_VOLUME, 0, 0, 0, 0);
     }
     
     //Play random LightFoot sounds
@@ -347,15 +347,15 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
             //Less frequent when LightFoot is winning
             objData->soundTimerLF = rand_next(120, 240);
         }
-        gDLL_6_AMSFX->vtbl->play_sound(self, dSoundsLightFoot[rand_next(0, 2)], MAX_VOLUME, &objData->soundHandleLightFoot, 0, 0, 0);
+        gDLL_6_AMSFX->vtbl->play(self, dSoundsLightFoot[rand_next(0, 2)], MAX_VOLUME, &objData->soundHandleLightFoot, 0, 0, 0);
     }
     
     //Adjust the pitch/volume of the wood creaking sound loop wrt. push progress magnitude
     if (pushProgress < 0/*.0f*/) {
         pushProgress = -pushProgress;
     }
-    gDLL_6_AMSFX->vtbl->func_954(objData->soundHandleCreak, (pushProgress * 0.3f) + 0.85f);
-    gDLL_6_AMSFX->vtbl->func_860(objData->soundHandleCreak, (u8)(pushProgress * 0x40) + 0x20);
+    gDLL_6_AMSFX->vtbl->set_pitch(objData->soundHandleCreak, (pushProgress * 0.3f) + 0.85f);
+    gDLL_6_AMSFX->vtbl->set_vol(objData->soundHandleCreak, (u8)(pushProgress * 0x40) + 0x20);
 
     return 0;
 }

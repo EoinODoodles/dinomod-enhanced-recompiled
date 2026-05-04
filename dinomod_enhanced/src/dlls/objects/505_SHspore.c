@@ -129,7 +129,7 @@ RECOMP_PATCH void SHspore_control(Object* self) {
             
             if (collidedObject->id != OBJ_SHrocketmushroo) {
                 //Other objects (ignoring SHrocketmushroom since the spores emerge out of it)
-                gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_B31_Item_Collection_Chime, MAX_VOLUME, NULL, 0, 0, 0);
+                gDLL_6_AMSFX->vtbl->play(self, SOUND_B31_Item_Collection_Chime, MAX_VOLUME, NULL, 0, 0, 0);
                 gDLL_13_Expgfx->vtbl->func4(self);
 
                 //Create collision particles
@@ -145,7 +145,7 @@ RECOMP_PATCH void SHspore_control(Object* self) {
             objData->lifetime -= gUpdateRateF;
             //Destroy the spore if its lifetime runs out or it collides with terrain
             if (objData->lifetime <= 0.0f || objData->terrainCollider.unk25C & 0x11) {
-                gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_8A2_Spore_Disintegrate, MAX_VOLUME, NULL, 0, 0, 0);
+                gDLL_6_AMSFX->vtbl->play(self, SOUND_8A2_Spore_Disintegrate, MAX_VOLUME, NULL, 0, 0, 0);
                 gDLL_13_Expgfx->vtbl->func4(self);
 
                 //Create collision particles

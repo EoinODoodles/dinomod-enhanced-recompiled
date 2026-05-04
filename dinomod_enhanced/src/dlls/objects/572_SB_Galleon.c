@@ -139,7 +139,7 @@ static void skip_galleon_fight(Object* self) {
     self->srt.transl.z = objSetup->z;
 
     if (objData->soundHandle != 0) {
-        gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandle);
+        gDLL_6_AMSFX->vtbl->stop(objData->soundHandle);
         objData->soundHandle = 0;
     }
 
@@ -207,7 +207,7 @@ RECOMP_HOOK_DLL(SB_Galleon_control) void galleon_control_hook(Object *self) {
 
     //Button sequence entered
     if (!galleonCheat.finished && button_code_entered(&galleonCheat)) {
-        gDLL_6_AMSFX->vtbl->play_sound(NULL, 
+        gDLL_6_AMSFX->vtbl->play(NULL, 
             soundIDs[rand_next(0, ARRAYCOUNT(soundIDs) - 1)], 
             MAX_VOLUME, 0, 0, 0, 0
         );

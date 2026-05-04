@@ -57,10 +57,10 @@ static void SCbeacon_flame_sounds_start(Object* self){
     }
 
     if (!objData->soundHandleBurn1) {
-        gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_50a_Fire_Burning_Low_Loop, MAX_VOLUME, &objData->soundHandleBurn1, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(self, SOUND_50a_Fire_Burning_Low_Loop, MAX_VOLUME, &objData->soundHandleBurn1, NULL, 0, NULL);
     }
     if (!objData->soundHandleBurn2) {
-        gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_50b_Fire_Burning_High_Loop, MAX_VOLUME, &objData->soundHandleBurn2, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(self, SOUND_50b_Fire_Burning_High_Loop, MAX_VOLUME, &objData->soundHandleBurn2, NULL, 0, NULL);
     }
 }
 
@@ -76,11 +76,11 @@ static void SCbeacon_flame_sounds_stop(Object* self){
     }
 
     if (objData->soundHandleBurn1) {
-        gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandleBurn1);
+        gDLL_6_AMSFX->vtbl->stop(objData->soundHandleBurn1);
         objData->soundHandleBurn1 = 0;
     }
     if (objData->soundHandleBurn2) {
-        gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandleBurn2);
+        gDLL_6_AMSFX->vtbl->stop(objData->soundHandleBurn2);
         objData->soundHandleBurn2 = 0;
     }
 }
@@ -259,10 +259,10 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
 
     //@recomp: Play refusal sound after trying to light beacon without adding kindling
     if ((objData->prevState == SCbeacon_STATE_Lighting) && (objData->state == SCbeacon_STATE_Bowl_Empty)){
-        gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_6E6_Interaction_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(player, SOUND_6E6_Interaction_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
     //Play success sound when lit
     } else if (objData->playSuccess && (objData->prevState == SCbeacon_STATE_Lit) && (objData->state == SCbeacon_STATE_Lit)){
-        gDLL_6_AMSFX->vtbl->play_sound(player, 0xB01, 0x60, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(player, 0xB01, 0x60, NULL, NULL, 0, NULL);
         objData->playSuccess = FALSE;
     }
 
@@ -316,7 +316,7 @@ RECOMP_PATCH int SCbeacon_handle_kyte_flame_seqs(Object* self, s32 finishLightin
                 main_set_bits(BIT_SC_All_Beacons_Lit, 1);
 
                 //@recomp: play success jingle
-                gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_B89_Puzzle_Solved, 0x60, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_B89_Puzzle_Solved, 0x60, NULL, NULL, 0, NULL);
 
                 gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_SWAPSTONE_CIRCLE, 0, TRUE);
                 warpPlayer(85, TRUE); //SC_warppoint auto-plays seq 0x77

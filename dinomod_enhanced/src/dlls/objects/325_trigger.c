@@ -16,6 +16,7 @@
 #include "sys/gfx/texture.h"
 #include "sys/main.h"
 #include "sys/math.h"
+#include "sys/map.h"
 #include "sys/objects.h"
 #include "sys/objmsg.h"
 #include "sys/objtype.h"
@@ -32,7 +33,7 @@
 #include "recomp/dlls/objects/325_trigger_recomp.h"
 
 extern s8 gMapLayer;
-extern u32 UINT_80092a98;
+extern u32 gTrackFlags;
 
 extern void trigger_process_commands(Object *self, Object *activator, s8 dir, s32 activatorDistSquared);
 extern void trigger_func_1754(u8 param1, u8 param2);
@@ -244,7 +245,7 @@ static void set_map_layer(s8 layer) {
     if (gMapLayer < -2) {
         gMapLayer = -2;
     }
-    UINT_80092a98 |= 0x4000;
+    gTrackFlags |= TRACKFLAG_LAYER_CHANGED;
 }
 
 RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 dir, s32 activatorDistSquared) {
@@ -369,10 +370,10 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
         case TRG_CMD_SOUND: 
             // "Trigger [%d], Sound FX,           Action Num [%d],Handle Num [%d]"
             if (dir >= 0) {
-                gDLL_6_AMSFX->vtbl->func_10D0(self, (cmd->param2 | (cmd->param1 << 8)), &objdata->soundHandles[i]);
+                gDLL_6_AMSFX->vtbl->play2(self, (cmd->param2 | (cmd->param1 << 8)), &objdata->soundHandles[i]);
             } else {
                 if (objdata->soundHandles[i] != 0) {
-                    gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandles[i]);
+                    gDLL_6_AMSFX->vtbl->stop(objdata->soundHandles[i]);
                     objdata->soundHandles[i] = 0;
                 }
             }
@@ -387,7 +388,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 if ((s32) cmd->param2 >= 2) {
                     cmd->param2 = 1;
                 }
-                func_80041C6C(cmd->param2);
+                track_set_sky_on(cmd->param2);
                 if (cmd->param2 != 0) {
                     // "Trigger [%d], Track Sky On"
                 } else {
@@ -398,7 +399,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 if ((s32) cmd->param2 >= 2) {
                     cmd->param2 = 1;
                 }
-                func_80041CA8((s32) cmd->param2);
+                track_set_anti_alias_on((s32) cmd->param2);
                 if (cmd->param2 != 0) {
                     // "Trigger [%d], Track AntiAlias On"
                 } else {
@@ -409,7 +410,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 if ((s32) cmd->param2 >= 2) {
                     cmd->param2 = 1;
                 }
-                func_80041CE4((s32) cmd->param2);
+                track_set_sky_objects_on((s32) cmd->param2);
                 if (cmd->param2 != 0) {
                     // "Trigger [%d], Track SkyObjects On"
                 } else {
@@ -450,10 +451,10 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 break;
             case 7:
                 if ((s32) cmd->param2 > 0) {
-                    func_80041E24(1);
+                    track_set_sun_glare_on(1);
                     // "Trigger [%d], trackSetSunGlareOn(1)" (default.dol)
                 } else {
-                    func_80041E24(0);
+                    track_set_sun_glare_on(0);
                     // "Trigger [%d], trackSetSunGlareOn(0)" (default.dol)
                 }
                 break;

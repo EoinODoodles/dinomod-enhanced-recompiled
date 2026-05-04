@@ -53,7 +53,7 @@ RECOMP_PATCH void SHswapstone_setup(Object* self, SHswapstone_Setup* setup, s32 
     self->animCallback = (void*)SHswapstone_anim_callback;
 
     //@recomp: change how we determine if this is Rubble or Rocky, avoiding incorrect outcome if local Block is unloaded
-    if ((map_get_map_id_from_xz_ws(self->srt.transl.x, self->srt.transl.z) == MAP_SWAPSTONE_CIRCLE) 
+    if ((map_world_xz_to_map_id(self->srt.transl.x, self->srt.transl.z) == MAP_SWAPSTONE_CIRCLE) 
         || (setup->base.uID == Rubble_uID) //@recomp: fallback check
     ) {
         // We are Rubble
@@ -84,7 +84,7 @@ RECOMP_PATCH u32 SHswapstone_get_model_flags(Object* self) {
     s32 modelno;
 
     //@recomp: change how we determine if this is Rubble or Rocky, avoiding incorrect outcome if local Block is unloaded
-    if (map_get_map_id_from_xz_ws(self->srt.transl.x, self->srt.transl.z) == MAP_SWAPSTONE_CIRCLE
+    if (map_world_xz_to_map_id(self->srt.transl.x, self->srt.transl.z) == MAP_SWAPSTONE_CIRCLE
         || (self->setup->uID == Rubble_uID) //@recomp: fallback check
     ) {
         // We are Rubble

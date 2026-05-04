@@ -273,7 +273,7 @@ RECOMP_PATCH int dll_466_func_C50(Object* self, Object *arg1, AnimObj_Data* arg2
                 case 10:
                     main_set_bits(BIT_DB_Triggered_In_Shrine_Spirit_Cutscene, 1);
                     if (_data_0 == NULL)
-                        _data_0 = func_8004A1E8(1);
+                        _data_0 = block_texanim_get_tex(1);
                     break;
                 case 9:
                     // @recomp: Beating ToF will set flag allowing 3rd Spirit be deposited when WM is reached. 
@@ -289,7 +289,7 @@ RECOMP_PATCH int dll_466_func_C50(Object* self, Object *arg1, AnimObj_Data* arg2
                 case 12:
                     func_80000860(self, self, 0xCE, 0);
                     main_set_bits(BIT_Test_of_Fear_Particles, 1);
-                    gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_342_Low_Whoosh, MAX_VOLUME, 0, 0, 0, 0);
+                    gDLL_6_AMSFX->vtbl->play(NULL, SOUND_342_Low_Whoosh, MAX_VOLUME, 0, 0, 0, 0);
                     break;
                 case 13:
                     if (D_80092A7C[0] == -1) {

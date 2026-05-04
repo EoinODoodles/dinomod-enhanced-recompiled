@@ -112,7 +112,7 @@ static void play_sound_freezing(Object* self){
     GP_ShrinePillar_Data *objData = self->data;
     if (objData->soundTimerCool == 0){
         objData->soundTimerCool = 120;
-        gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_80B_Crackling_Freezing, 0x50, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(self, SOUND_80B_Crackling_Freezing, 0x50, NULL, NULL, 0, NULL);
     }
 }
 
@@ -121,7 +121,7 @@ static void play_sound_thawing(Object* self){
     Object* player = get_player();
     if (player && objData->soundTimerHot == 0){
         objData->soundTimerHot = 120;
-        gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_80C_Steam_Hissing, 0x40, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(player, SOUND_80C_Steam_Hissing, 0x40, NULL, NULL, 0, NULL);
     }
 }
 
@@ -129,7 +129,7 @@ static void play_sound_deflect(Object* self){
     GP_ShrinePillar_Data *objData = self->data;
     if (objData->soundTimerDeflect == 0){
         objData->soundTimerDeflect = 20;
-        gDLL_6_AMSFX->vtbl->play_sound(self, rand_next(0, 5) ? SOUND_25B_Magic_Attack_Deflected : SOUND_25C_Melee_Attack_Deflected, 0x40, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(self, rand_next(0, 5) ? SOUND_25B_Magic_Attack_Deflected : SOUND_25C_Melee_Attack_Deflected, 0x40, NULL, NULL, 0, NULL);
     }
 }
 
@@ -188,7 +188,7 @@ RECOMP_PATCH void GP_ShrinePillar_control(Object* self) {
 
     //@recomp: don't do anything until local Block loaded (stops GP_ShrineDoors from blasting off into outer space due to sequence)
     //TODO: figure out a better fix for this bug?
-    block = func_80044BB0(func_8004454C(self->srt.transl.x, self->srt.transl.y + 200, self->srt.transl.z));
+    block = map_get_block_by_index(map_world_coords_to_block_index(self->srt.transl.x, self->srt.transl.y + 200, self->srt.transl.z));
     if (!block){
         return;
     }
@@ -258,8 +258,8 @@ RECOMP_PATCH int GP_ShrinePillar_anim_callback(Object* self, Object* animObj, An
 
             //@recomp: play sound when Kyte lands, to help indicate something's happened
             if (!objdata->kyteLandedPlayed){
-                gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_36E_Lever_Clunk, 0x50, &objdata->soundHandleSwitch, NULL, 0, NULL);
-                gDLL_6_AMSFX->vtbl->func_954(objdata->soundHandleSwitch, 0.75f);
+                gDLL_6_AMSFX->vtbl->play(self, SOUND_36E_Lever_Clunk, 0x50, &objdata->soundHandleSwitch, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->set_pitch(objdata->soundHandleSwitch, 0.75f);
 
                 objdata->kyteLandedPlayed = TRUE;
                 objdata->soundDelayStone = 50;
@@ -280,8 +280,8 @@ RECOMP_PATCH int GP_ShrinePillar_anim_callback(Object* self, Object* animObj, An
             if (objdata->soundDelayStone <= 0){
                 objdata->soundDelayStone = 0;
                 objdata->doorOpenPlayed = TRUE;
-                gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_43E_Stone_Block_Moving, MAX_VOLUME, &objdata->soundHandleDoor, NULL, 0, NULL);
-                gDLL_6_AMSFX->vtbl->func_954(objdata->soundHandleDoor, 1.05f);
+                gDLL_6_AMSFX->vtbl->play(self, SOUND_43E_Stone_Block_Moving, MAX_VOLUME, &objdata->soundHandleDoor, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->set_pitch(objdata->soundHandleDoor, 1.05f);
             }
         }
 
@@ -376,7 +376,7 @@ RECOMP_PATCH int GP_ShrinePillar_anim_callback(Object* self, Object* animObj, An
         objdata->playShrineRiseSound = FALSE;
         player = get_player();
         if (player){
-            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_15_Heavy_Stone_Moving, MAX_VOLUME, NULL, 0, 0, 0);
+            gDLL_6_AMSFX->vtbl->play(player, SOUND_15_Heavy_Stone_Moving, MAX_VOLUME, NULL, 0, 0, 0);
         }
     }
 
@@ -388,7 +388,7 @@ RECOMP_PATCH int GP_ShrinePillar_anim_callback(Object* self, Object* animObj, An
 
             player = get_player();
             if (player){
-                gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_B89_Puzzle_Solved, MAX_VOLUME, NULL, 0, 0, 0);
+                gDLL_6_AMSFX->vtbl->play(player, SOUND_B89_Puzzle_Solved, MAX_VOLUME, NULL, 0, 0, 0);
                 //Change player FSA state to remove aiming reticle (TODO: remove once player added to sequence)
                 gDLL_18_objfsa->vtbl->set_anim_state(player, player->data, 1);
             }
@@ -417,12 +417,12 @@ RECOMP_PATCH void GP_ShrinePillar_free(Object *self, s32 a1) {
 
     //@recomp: free soundHandles
     if (objData->soundHandleSwitch) {
-        gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandleSwitch);
+        gDLL_6_AMSFX->vtbl->stop(objData->soundHandleSwitch);
         objData->soundHandleSwitch = 0;
     }
 
     if (objData->soundHandleDoor) {
-        gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandleDoor);
+        gDLL_6_AMSFX->vtbl->stop(objData->soundHandleDoor);
         objData->soundHandleDoor = 0;
     }
 }

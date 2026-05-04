@@ -146,7 +146,7 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                     }
                 //If not in aiming state, and not in a state that's allowed to lead into the aiming state, reject spell selection
                 } else if (fsa->animState != 58){
-                    gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    gDLL_6_AMSFX->vtbl->play(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
                     break; //@recomp;
                 }
             }
@@ -208,7 +208,7 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
             player->velocity.y = 2.5f;
             player->velocity.x = -var_fs0 * 2.5f;
             player->velocity.z = -var_fs1 * 2.5f;
-            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_DA_Krystal_Hurt_Ough, MAX_VOLUME, NULL, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(player, SOUND_DA_Krystal_Hurt_Ough, MAX_VOLUME, NULL, NULL, 0, NULL);
             gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, PLAYER_ASTATE_Hurt_Knocked_Down);
             func_80023D30(player, 0x450, 0.0f, 0);
             dll_210_add_health(player, -messageArgument);
@@ -336,7 +336,7 @@ RECOMP_PATCH void dll_210_add_magic(Object* self, s32 magicDifference) {
             && magic < stats->magicMax //@recomp (MusicalProgrammer's patch)
             && !soundCooldown //@recomp (cooldown as well)
         ) {
-            mapID = map_get_map_id_from_xz_ws(self->srt.transl.x, self->srt.transl.z);
+            mapID = map_world_xz_to_map_id(self->srt.transl.x, self->srt.transl.z);
             if (mapID == MAP_BOSS_KAMERIAN_DRAGON){
                 return;
             } else if (mapID == MAP_DRAGON_ROCK_BOTTOM){
@@ -345,7 +345,7 @@ RECOMP_PATCH void dll_210_add_magic(Object* self, s32 magicDifference) {
                 soundCooldown = 30;
             }
 
-            gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_5EB_Magic_Refill_Chime, MAX_VOLUME, 0, 0, 0, 0);
+            gDLL_6_AMSFX->vtbl->play(NULL, SOUND_5EB_Magic_Refill_Chime, MAX_VOLUME, 0, 0, 0, 0);
         }
     }
 }
@@ -503,7 +503,7 @@ RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2
                 func_80024E50(self, 0x8A, 0.0f, 0);
             }
             if ((self->animProgressLayered > 0.2f) && !*temp) {
-                gDLL_6_AMSFX->vtbl->play_sound(self, objData->unk3B8[4], MAX_VOLUME, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(self, objData->unk3B8[4], MAX_VOLUME, NULL, NULL, 0, NULL);
                 _data_530 = new_var;
             }
             if (self->animProgressLayered > 0.4f) {
@@ -516,7 +516,7 @@ RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2
             break;
         case 13:
             if (!*temp) {
-                gDLL_6_AMSFX->vtbl->play_sound(self, objData->unk3B8[4], MAX_VOLUME, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(self, objData->unk3B8[4], MAX_VOLUME, NULL, NULL, 0, NULL);
                 _data_530 = new_var;
             }
             objData->unk8A8 = 2;
@@ -528,7 +528,7 @@ RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2
                 func_80024E50(self, 0x8A, 0.99f, 0);
             }
             if ((self->animProgressLayered < 0.8f) && !*temp) {
-                gDLL_6_AMSFX->vtbl->play_sound(self, objData->unk3B8[3], 0x7FU, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(self, objData->unk3B8[3], 0x7FU, NULL, NULL, 0, NULL);
                 _data_530 = new_var;
             }
             if (self->animProgressLayered < 0.4f) {
@@ -542,7 +542,7 @@ RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2
             break;
         case 14:
             if (!*temp) {
-                gDLL_6_AMSFX->vtbl->play_sound(self, objData->unk3B8[3], MAX_VOLUME, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(self, objData->unk3B8[3], MAX_VOLUME, NULL, NULL, 0, NULL);
                 _data_530 = new_var;
             }
             // objData->unk87C = -1; //@recomp: don't set value
@@ -841,12 +841,12 @@ RECOMP_PATCH s32 dll_210_func_B4E0(Object* player, ObjFSA_Data* fsa, f32 deltaTi
         //Carry start anim not yet playing
         func_80023D30(player, 5, 0.0f, 0U);
         if (player->id == PLAYER_SABRE) {
-            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_701_Sabre_Ugh_EMPTY, 0x25, NULL, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(player, SOUND_701_Sabre_Ugh_EMPTY, 0x25, NULL, NULL, 0, NULL);
         } else {
-            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_700_Krystal_Ugh, 0x25, NULL, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(player, SOUND_700_Krystal_Ugh, 0x25, NULL, NULL, 0, NULL);
         }
-        gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_633, 0x61, NULL, NULL, 0, NULL);
-        gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_6B4_Basket_Carry, 0x61, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(player, SOUND_633, 0x61, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(player, SOUND_6B4_Basket_Carry, 0x61, NULL, NULL, 0, NULL);
 
         //@recomp: override carry position offset value for specific objects 
         //(usually sent as message by carried object)
@@ -879,7 +879,7 @@ RECOMP_PATCH s32 dll_210_func_B73C(Object* player, ObjFSA_Data* fsa, f32 arg2) {
     //Play anim and sound effect
     if (fsa->enteredAnimState) {
         func_80023D30(player, 0x447, 0.0f, 0);
-        gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_6B4_Basket_Carry, 0x61, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(player, SOUND_6B4_Basket_Carry, 0x61, NULL, NULL, 0, NULL);
     }
 
     fsa->unk278 = 0.0f;
@@ -930,7 +930,7 @@ RECOMP_PATCH s32 dll_210_func_125BC(Object *self, ObjFSA_Data *fsa, f32 updateRa
     fsa->flags |= 0x200000;
     temp_s3 = &fsa->unk4;
     if (fsa->enteredAnimState != 0) {
-        gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_3D8_Water_Splash, MAX_VOLUME, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(self, SOUND_3D8_Water_Splash, MAX_VOLUME, NULL, NULL, 0, NULL);
         for (i = 0; i < 3; i++) {
             effectX = ((f32) rand_next(-50, 50) / 10.0f) + self->srt.transl.x;
             effectZ = ((f32) rand_next(-50, 50) / 10.0f) + self->srt.transl.z;
@@ -1218,12 +1218,12 @@ RECOMP_PATCH s32 dll_210_func_18630(Object* self, ObjFSA_Data* fsa, f32 arg2) {
         if (fsa->animTickDelta > 0.0f) {
             if (!(fsa->unk34A & 1)) {
                 if (objData->unk3B4[objData->unk8A1].unk24 < self->animProgress) {
-                    gDLL_6_AMSFX->vtbl->play_sound(self, objData->unk3B4[objData->unk8A1].unk2C, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    gDLL_6_AMSFX->vtbl->play(self, objData->unk3B4[objData->unk8A1].unk2C, MAX_VOLUME, NULL, NULL, 0, NULL);
                     fsa->unk34A |= 1;
                 }
             }
             if (!(fsa->unk34A & 2) && ((&objData->unk3B4[objData->unk8A1])->unk28 < self->animProgress)) {
-                gDLL_6_AMSFX->vtbl->play_sound(self, objData->unk3B8[rand_next(0, 2)], MAX_VOLUME, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(self, objData->unk3B8[rand_next(0, 2)], MAX_VOLUME, NULL, NULL, 0, NULL);
                 fsa->unk34A |= 2;
             }
         }
@@ -1829,7 +1829,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
 
     //@recomp: stop Ice Blast sounds when out of magic
     if (objdata->stats->magic == 0 && objdata->unk848) {
-        gDLL_6_AMSFX->vtbl->func_A1C(objdata->unk848);
+        gDLL_6_AMSFX->vtbl->stop(objdata->unk848);
         objdata->unk848 = 0;
     }
 
@@ -1838,7 +1838,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
         if (fsa->unk33A != 0) {
             func_80023D30(player, 0x43E, 0.0f, 0);
             dll_210_func_6DD8(player, objdata, *_bss_220); //@recomp: don't default to Projectile Spell
-            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_BA4_Spell_Aim_Hum_Loop, MAX_VOLUME, &objdata->unk848, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(player, SOUND_BA4_Spell_Aim_Hum_Loop, MAX_VOLUME, &objdata->unk848, NULL, 0, NULL);
             fsa->animTickDelta = 0.015f;
         }
         break;
@@ -1852,7 +1852,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
         break;
     case 0x448:
         if ((player->animProgress > 0.4f) && (objdata->unk8A8 == 0)) {
-            gDLL_6_AMSFX->vtbl->play_sound(player, objdata->unk3B8[4], MAX_VOLUME, NULL, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(player, objdata->unk3B8[4], MAX_VOLUME, NULL, NULL, 0, NULL);
             objdata->unk8A8 = 2U;
             objdata->unk8A9 = 2;
             weapon = player->linkedObject;
@@ -1861,7 +1861,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
         if (fsa->unk33A != 0) {
             func_80023D30(player, 0x43E, 0.0f, 0);
             dll_210_func_6DD8(player, objdata, *_bss_220); //@recomp: don't default to Projectile Spell
-            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_BA4_Spell_Aim_Hum_Loop, MAX_VOLUME, &objdata->unk848, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(player, SOUND_BA4_Spell_Aim_Hum_Loop, MAX_VOLUME, &objdata->unk848, NULL, 0, NULL);
             fsa->animTickDelta = 0.015f;
         }
         break;
@@ -1931,7 +1931,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
         weapon = player->linkedObject;
         fxTransform.scale = ((DLL_Unknown*)weapon->dll)->vtbl->func[16].withOneArgS32((s32)weapon);
         if ((objdata->unk766 & 0x8000) && (magic == 0)) {
-            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
         }
         if ((objdata->unk764 & 0x8000) && (magic != 0)) {
             // @fake
@@ -1951,18 +1951,18 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
             }
             if (*_bss_220 != BIT_Spell_Ice_Blast) {
                 if ((_bss_2C >= 10.0f) && (objdata->unk848 == 0)) {
-                    gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_6AB_Electric_Arcing_Loop, 1U, &objdata->unk848, NULL, 0, NULL);
-                    gDLL_6_AMSFX->vtbl->func_954(objdata->unk848, 0.5f);
+                    gDLL_6_AMSFX->vtbl->play(player, SOUND_6AB_Electric_Arcing_Loop, 1U, &objdata->unk848, NULL, 0, NULL);
+                    gDLL_6_AMSFX->vtbl->set_pitch(objdata->unk848, 0.5f);
                 } else if (_bss_2C < 10.0f) {
                     if (objdata->unk848 != 0) {
-                        gDLL_6_AMSFX->vtbl->func_A1C(objdata->unk848);
+                        gDLL_6_AMSFX->vtbl->stop(objdata->unk848);
                         objdata->unk848 = 0U;
                     }
                 }
                 if (_bss_2C >= 420.0f) {
                     _bss_30 -= deltaTime;
                     if (_bss_30 <= 0.0f) {
-                        gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_6AD_Electric_Crackle, rand_next(0x20, 0x60), NULL, NULL, 0, NULL);
+                        gDLL_6_AMSFX->vtbl->play(player, SOUND_6AD_Electric_Crackle, rand_next(0x20, 0x60), NULL, NULL, 0, NULL);
                         _bss_30 = rand_next(0x4B0, 0x708);
                     }
                 } else if (_bss_2C < 0.0f) {
@@ -1973,7 +1973,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
                         if (magic >= 3) {
                             weapon = player->linkedObject;
                             ((DLL_Unknown*)weapon->dll)->vtbl->func[14].withTwoArgs((s32)weapon, 1);
-                            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_6AC_Electric_Zap, 0x60U, NULL, NULL, 0, NULL);
+                            gDLL_6_AMSFX->vtbl->play(player, SOUND_6AC_Electric_Zap, 0x60U, NULL, NULL, 0, NULL);
                         } else {
                             _bss_2C = 120.0f;
                         }
@@ -1984,7 +1984,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
                         if (magic >= 9) {
                             weapon = player->linkedObject;
                             ((DLL_Unknown*)weapon->dll)->vtbl->func[14].withTwoArgs((s32)weapon, 2);
-                            gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_6AC_Electric_Zap, MAX_VOLUME, NULL, NULL, 0, NULL);
+                            gDLL_6_AMSFX->vtbl->play(player, SOUND_6AC_Electric_Zap, MAX_VOLUME, NULL, NULL, 0, NULL);
                         } else {
                             _bss_2C = 300.0f;
                         }
@@ -2003,8 +2003,8 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
                         weapon = player->linkedObject;
                         ((DLL_Unknown*)weapon->dll)->vtbl->func[14].withTwoArgs((s32)weapon, throwdist);
                     }
-                    gDLL_6_AMSFX->vtbl->func_954(objdata->unk848, sp80);
-                    gDLL_6_AMSFX->vtbl->func_860(objdata->unk848, 127.0f * sp80);
+                    gDLL_6_AMSFX->vtbl->set_pitch(objdata->unk848, sp80);
+                    gDLL_6_AMSFX->vtbl->set_vol(objdata->unk848, 127.0f * sp80);
                 }
                 _bss_20 -= deltaTime;
                 if (_bss_20 <= 0.0f) {
@@ -2021,7 +2021,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
                 if (*_bss_220 == BIT_Spell_Ice_Blast) {
                     //Using Ice Blast Spell
                     if (objdata->unk848 == 0) {
-                        gDLL_6_AMSFX->vtbl->play_sound(player->linkedObject, SOUND_95A_Frigid_Air_Loop, 1, &objdata->unk848, NULL, 0, NULL);
+                        gDLL_6_AMSFX->vtbl->play(player->linkedObject, SOUND_95A_Frigid_Air_Loop, 1, &objdata->unk848, NULL, 0, NULL);
                     }
                     if (*_bss_210 == 0) {
                         dll_210_func_1DC48(player);
@@ -2056,13 +2056,13 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
                         dx = (*_data_7C4 - player->linkedObject->srt.pitch);
                         dx /= 3000.0f;
                         sp80 = 0.7f + dx;
-                        gDLL_6_AMSFX->vtbl->func_860(objdata->unk848, (127.0f * sp80));
+                        gDLL_6_AMSFX->vtbl->set_vol(objdata->unk848, (127.0f * sp80));
                         if (sp80 > 0.775f) {
                             sp80 = 0.775f;
                         } else if (sp80 < 0.625f) {
                             sp80 = 0.625f;
                         }
-                        gDLL_6_AMSFX->vtbl->func_954(objdata->unk848, sp80);
+                        gDLL_6_AMSFX->vtbl->set_pitch(objdata->unk848, sp80);
                         *_data_7C4 = player->linkedObject->srt.pitch;
                     }
                     if (player->id == 0) {
@@ -2120,7 +2120,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
                 _bss_34 = 2;
             }
             if (objdata->unk848 != 0) {
-                gDLL_6_AMSFX->vtbl->func_A1C(objdata->unk848);
+                gDLL_6_AMSFX->vtbl->stop(objdata->unk848);
                 objdata->unk848 = 0U;
             }
             weapon = player->linkedObject;
@@ -2135,7 +2135,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
             }
             _data_7C0 = 0;
             if (objdata->unk848 != 0) {
-                gDLL_6_AMSFX->vtbl->func_A1C(objdata->unk848);
+                gDLL_6_AMSFX->vtbl->stop(objdata->unk848);
                 objdata->unk848 = 0U;
             }
             for (i = 0; i < 4; i++) {
@@ -2171,7 +2171,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
                     func_80025540(player, 0x440, -objdata->unk830 * 1023.0f);
                 }
                 fsa->animTickDelta = 0.015f;
-                gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_BA4_Spell_Aim_Hum_Loop, MAX_VOLUME, &objdata->unk848, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(player, SOUND_BA4_Spell_Aim_Hum_Loop, MAX_VOLUME, &objdata->unk848, NULL, 0, NULL);
             } else {
                 fxTransform.transl.x = player->linkedObject->srt.transl.x;
                 fxTransform.transl.y = player->linkedObject->srt.transl.y;

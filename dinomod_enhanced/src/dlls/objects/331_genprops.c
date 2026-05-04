@@ -242,14 +242,14 @@ static void playSoundHum(Object* self){
         return;
     }
     if (objData->soundHandleHum == 0) {
-        gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_6EC_Mechanical_Hum_Loop, 0x50, &objData->soundHandleHum, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(self, SOUND_6EC_Mechanical_Hum_Loop, 0x50, &objData->soundHandleHum, NULL, 0, NULL);
     }
 }
 
 static void stopSoundHum(Object* self){
     GenProps_Data_Extended* objData = self->data;
     if (objData->soundHandleHum != 0) {
-        gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandleHum);
+        gDLL_6_AMSFX->vtbl->stop(objData->soundHandleHum);
         objData->soundHandleHum = 0;
     }
 }
@@ -259,7 +259,7 @@ static void playSoundClunk(Object* self){
     if (objData->muteSounds){
         return;
     }
-    gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_B5C_Machinery_Clunk, 0x30, NULL, NULL, 0, NULL);
+    gDLL_6_AMSFX->vtbl->play(self, SOUND_B5C_Machinery_Clunk, 0x30, NULL, NULL, 0, NULL);
 }
 
 /** Applies a y-axis vibration to the lift (and the player if they're on it) */
@@ -908,7 +908,7 @@ RECOMP_PATCH void dll_331_control(Object* self) {
             self->objhitInfo->unk58 &= 0xFFFE;
         }
         if (objData->unk3E == 2) {
-            gDLL_6_AMSFX->vtbl->play_sound(self, 0x35A, 0x43, NULL, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(self, 0x35A, 0x43, NULL, NULL, 0, NULL);
             objData->unk3E--;
         }
         if ((objData->unk3E != 0) && ((self->srt.transl.f[1] + self->velocity.f[1]) <= player->srt.transl.f[1])) {
@@ -919,7 +919,7 @@ RECOMP_PATCH void dll_331_control(Object* self) {
             self->srt.scale *= 0.5f;
             objData->roll *= 2;
             objData->pitch *= 2;
-            gDLL_6_AMSFX->vtbl->play_sound(NULL, 0x35B, 0x43, NULL, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(NULL, 0x35B, 0x43, NULL, NULL, 0, NULL);
             camera_set_shake_offset(0.5f);
         }
         if (objData->unk3E == 0) {
@@ -1010,7 +1010,7 @@ RECOMP_PATCH void dll_331_control(Object* self) {
                     self->unkE0 = 100;
                 }
             } else if ((distance <= 10.0f) && (_data_0 == NULL) && (self->unkE0 == 0)) {
-                gDLL_6_AMSFX->vtbl->play_sound(self, 0x1D2, 0x7F, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(self, 0x1D2, 0x7F, NULL, NULL, 0, NULL);
                 _data_0 = self;
                 self->unkDC = 0x46;
             } else if ((distance < 40.0f) && (self->unkE0 == 0) && (self->unkDC == 0)) {
@@ -1024,7 +1024,7 @@ RECOMP_PATCH void dll_331_control(Object* self) {
     case OBJ_DIM2IceFloe2: //10d
         objData->timer -= gUpdateRate;
         if (objData->timer < 0) {
-            gDLL_6_AMSFX->vtbl->play_sound(self, objData->soundIDs[rand_next(0, objData->lastSoundIndex)], 0x7F, NULL, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(self, objData->soundIDs[rand_next(0, objData->lastSoundIndex)], 0x7F, NULL, NULL, 0, NULL);
             objData->timer = objData->minCooldown;
             objData->timer += rand_next(0, objData->minCooldown);
         }
@@ -1058,7 +1058,7 @@ RECOMP_PATCH void dll_331_free(Object* self, s32 arg1) {
 
     //@recomp: free soundHandle
     if (objData->soundHandleHum) {
-        gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandleHum);
+        gDLL_6_AMSFX->vtbl->stop(objData->soundHandleHum);
         objData->soundHandleHum = 0;
     }
 }

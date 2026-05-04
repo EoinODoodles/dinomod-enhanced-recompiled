@@ -329,7 +329,7 @@ RECOMP_PATCH void SCcollectables_control(Object* self) {
         for (index = 20; index > 0; index--){
             gDLL_17_partfx->vtbl->spawn(self, 0x424, 0, 2, -1, 0);
         }
-        gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_613_Gold_Bounce, MAX_VOLUME, 0, 0, 0, 0);
+        gDLL_6_AMSFX->vtbl->play(self, SOUND_613_Gold_Bounce, MAX_VOLUME, 0, 0, 0, 0);
     }
 
     //@recomp: grey out the arrow if it can't be collected yet

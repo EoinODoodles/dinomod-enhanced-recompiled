@@ -132,7 +132,7 @@ RECOMP_PATCH void dll_461_func_5E0(Object* arg0, DLL461_Data* arg1) {
                 arg1->unk0 = 0xC;
                 arg1->unk14 = 0.005f;
                 func_80023D30(arg0, 8, 0, 0);
-                gDLL_6_AMSFX->vtbl->play_sound(arg0, (u16)_data_C[rand_next(0, 3)], 0x7FU, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(arg0, (u16)_data_C[rand_next(0, 3)], 0x7FU, NULL, NULL, 0, NULL);
                 arg1->unk2 = 0;
                 arg1->unk1 = 3;
             } else {

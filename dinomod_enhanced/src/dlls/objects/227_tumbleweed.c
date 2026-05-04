@@ -102,7 +102,7 @@ void tumbleweed_create_disintegrate_effects(Object* self, int createLeaves, int 
     }
 
     if (playSound){
-        gDLL_6_AMSFX->vtbl->play_sound(player, SOUND_5F7_Tumbleweed_Disintegrate, MAX_VOLUME, 0, 0, 0, 0);
+        gDLL_6_AMSFX->vtbl->play(player, SOUND_5F7_Tumbleweed_Disintegrate, MAX_VOLUME, 0, 0, 0, 0);
     }
 }
 
@@ -204,7 +204,7 @@ RECOMP_PATCH int Tumbleweed_handle_carry_behaviour(Object* self) {
             objData->twigSqueakTimer = rand_next(120, 240);
             soundID = rand_next(SOUND_614_Tumbleweed_Squeak_1, SOUND_615_Tumbleweed_Squeak_2);
             soundVol = rand_next(90, 100);
-            gDLL_6_AMSFX->vtbl->play_sound(self, soundID, soundVol, 0, 0, 0, 0);
+            gDLL_6_AMSFX->vtbl->play(self, soundID, soundVol, 0, 0, 0, 0);
             self->srt.scale = 0.2f;
         } else {
             self->srt.scale = 0.15f;

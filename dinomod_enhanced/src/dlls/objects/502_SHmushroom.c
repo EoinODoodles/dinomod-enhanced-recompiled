@@ -366,7 +366,7 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 
 	//React to attacks
 	if (func_80025F40(self, &hitBy, NULL, NULL) != 0) {
-		gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_744_Mushroom_Hit, MAX_VOLUME, NULL, NULL, 0, NULL);
+		gDLL_6_AMSFX->vtbl->play(self, SOUND_744_Mushroom_Hit, MAX_VOLUME, NULL, NULL, 0, NULL);
 
 		//Get eaten when attacked by an EarthWalker
 		if (hitBy->id == OBJ_DR_EarthWarrior) {
@@ -494,7 +494,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 				}
 
 				objData->state = SHmushroom_STATE_1_Jump;
-				gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
+				gDLL_6_AMSFX->vtbl->play(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
 				self->srt.yaw = objData->fleeAngle - M_90_DEGREES;
 
 			//Enter alert state if the player/sidekick are close
@@ -556,7 +556,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 						}
 
 						objData->state = SHmushroom_STATE_1_Jump;
-						gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
+						gDLL_6_AMSFX->vtbl->play(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
 						self->srt.yaw = objData->fleeAngle - M_90_DEGREES;
 
 					//Hop in surprise (if the player/sidekick are sneaking up)
@@ -568,7 +568,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 						}
 
 						objData->state = SHmushroom_STATE_5_Surprised_Hop;
-						gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
+						gDLL_6_AMSFX->vtbl->play(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
 						self->srt.yaw = objData->fleeAngle;
 					}
 				}
@@ -597,7 +597,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 			}
 
 			objData->state = SHmushroom_STATE_1_Jump;
-			gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
+			gDLL_6_AMSFX->vtbl->play(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
 			self->srt.yaw = objData->fleeAngle - M_90_DEGREES;
 		}
 		break;
@@ -614,7 +614,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 	case SHmushroom_STATE_9_Stunned:
 		//Start stunned sound loop
 		if (objData->stunnedTimer <= 0) {
-			gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_745_Mushroom_Stunned_Loop, MAX_VOLUME, &objData->soundHandleStun, NULL, 0, NULL);
+			gDLL_6_AMSFX->vtbl->play(self, SOUND_745_Mushroom_Stunned_Loop, MAX_VOLUME, &objData->soundHandleStun, NULL, 0, NULL);
 			objData->stunnedTimer = rand_next(240, 300);
 		}
 
@@ -629,7 +629,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 
 			//Stop sound loop
 			if (objData->soundHandleStun != 0) {
-				gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandleStun);
+				gDLL_6_AMSFX->vtbl->stop(objData->soundHandleStun);
 				objData->soundHandleStun = 0;
 			}
 
@@ -688,7 +688,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 				}
 
 				objData->state = SHmushroom_STATE_1_Jump;
-				gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
+				gDLL_6_AMSFX->vtbl->play(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
 				self->srt.yaw = objData->fleeAngle - M_90_DEGREES;
 
 			//Enter alert state if the player/sidekick are close
@@ -729,7 +729,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 
 		//Stop sound loop
 		if (objData->soundHandleStun != 0) {
-			gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandleStun);
+			gDLL_6_AMSFX->vtbl->stop(objData->soundHandleStun);
 			objData->soundHandleStun = 0;
 		}
 	}

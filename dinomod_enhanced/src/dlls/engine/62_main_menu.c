@@ -136,8 +136,8 @@ RECOMP_PATCH s32 mainmenu_update1(void) {
             //Change resolution for game select
             vi_init(14, get_ossched(), FALSE);
             mainmenu_clean_up();
-            func_80041D20(0);
-            func_80041C6C(0);
+            track_set_z_buffer_on(0);
+            track_set_sky_on(0);
             if (nextMenuID == MENU_GAME_SELECT) {
                 gDLL_29_Gplay->vtbl->save_game_options();
             }

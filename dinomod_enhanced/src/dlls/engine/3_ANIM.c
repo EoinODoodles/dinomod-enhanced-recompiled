@@ -213,7 +213,7 @@ RECOMP_PATCH s32 dll_3_func_6620(Object *arg0, Object *arg1, AnimObj_Data *arg2,
         func_8000F6CC();
         break;
     case 13:                                    /* switch 2 */
-        gDLL_6_AMSFX->vtbl->func_A6C(arg1);
+        gDLL_6_AMSFX->vtbl->stop_object(arg1);
         break;
     case 16:                                    /* switch 2 */
         arg2->unk89 = sp54;
