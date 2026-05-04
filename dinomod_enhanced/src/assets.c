@@ -21,13 +21,17 @@
 
 INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
 
-INCBIN(tex0_kiosk_gold_key, "tex0_kiosk_gold_key.bin");
-INCBIN(tex0_kiosk_silver_key, "tex0_kiosk_silver_key_custom.bin");
-INCBIN(tex0_kiosk_firefly, "tex0_kiosk_firefly_custom.bin");
-INCBIN(tex0_custom_energy_egg, "tex0_energy_egg_custom.bin");
-INCBIN(tex0_custom_energy_egg_moldy, "tex0_energy_egg_moldy_custom.bin");
+INCBIN(tex0_kiosk_gold_key,             "tex0_kiosk_gold_key.bin");
+INCBIN(tex0_kiosk_silver_key,           "tex0_kiosk_silver_key_custom.bin");
+INCBIN(tex0_kiosk_firefly,              "tex0_kiosk_firefly_custom.bin");
+INCBIN(tex0_kiosk_replay_disk,          "tex0_kiosk_replay_disk_custom.bin");
+INCBIN(tex0_custom_energy_egg,          "tex0_energy_egg_custom.bin");
+INCBIN(tex0_custom_energy_egg_moldy,    "tex0_energy_egg_moldy_custom.bin");
+INCBIN(tex0_kiosk_fox,                  "tex0_kiosk_fox_icon_custom.bin");
 
-INCBIN(tex0_kiosk_fox, "tex0_kiosk_fox_icon_custom.bin");
+INCBIN(models_dimtent_burnt, "models_0886_DIMtent_burnt_opacity.bin");
+
+INCBIN(objects_dimtent, "objects_0320 0140 DIMTent.bin");
 
 #define INCFST(fileID, filename, ext) \
     INCBIN(fst_assets_##filename##_##ext, "assets/" #filename "."#ext); \
@@ -351,7 +355,7 @@ static void collectables_animobj_patch(void) {
 
         collectable = (CollectableDef*)((u32)objDef + (u32)objDef->collectableDef);
         collectable->seqObjectID = collectables[i].animObjID;
-        recomp_printf("Patched %s!\n", objDef->name);
+        // recomp_printf("Patched %s!\n", objDef->name);
     } 
 }
 
@@ -483,6 +487,20 @@ static void df_patches(void) {
     recomp_free(blockData);
 }
 
+static void darkice_mines_modifications(void) {
+    //Edit DIMTent's burnt model, adding draw modes for handling opacity
+    {
+        ReAssetID models_dimtent_burnt_ID = reasset_base_id(886);
+        reasset_models_set(models_dimtent_burnt_ID, REASSET_BASE_NAMESPACE, models_dimtent_burnt, models_dimtent_burnt_end - models_dimtent_burnt);
+    }
+
+    //Reference DIMTent's unused burnt tent model in its Objects file
+    {
+        ReAssetID objects_dimtent_ID = reasset_base_id(320); //OBJ_DIMTent
+        reasset_objects_set(objects_dimtent_ID, REASSET_BASE_NAMESPACE, objects_dimtent, objects_dimtent_end - objects_dimtent);
+    }
+}
+
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     walled_city_additions();
     warlock_mountain_platform_additions();
@@ -534,6 +552,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     warlock_mountain_platform_modifications();
     cc_lightfoot_patch();
     cc_shiny_nugget_patch();
+    darkice_mines_modifications();
     golden_plains_modifications();
     walled_city_modifications();
     dragon_rock_upper_modifications();

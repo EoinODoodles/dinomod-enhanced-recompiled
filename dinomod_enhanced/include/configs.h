@@ -40,4 +40,11 @@ typedef enum {
     BUTTON_TAPPING_ASSIST_AUTO,      //Character pushes automatically
 } ButtonTappingAssistModes;
 
+// Configs for the DIMTents' unused burnt model
+typedef enum {
+    DIM_TENT_CINDERS_OFF,           //DIMTents just disappear as usual
+    DIM_TENT_CINDERS_ON_FADEOUT,    //DIMTents leave behind a charred frame, which eventually fades away
+    DIM_TENT_CINDERS_ON_PERSIST     //DIMTents leave behind a charred frame, which stays around
+} DIMTentModes;
+
 #define INFO_POPUP_DURATION 300

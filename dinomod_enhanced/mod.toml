@@ -444,6 +444,28 @@ percent = true
 default = 10
 
 [[manifest.config_options]]
+id = "dim_tent_cinders"
+name = "DIM Tents: Show Cinders"
+description = '''
+In DarkIce Mines, one of the Bridge Cogs can be found inside burnable tents. These tents have an unreferenced model indexed just after their regular model, which seems intended to be left behind after they're burnt.
+
+This config lets you see the model, with a few different options:
+
+- Off
+  The default behaviour: the tents disappear when burnt.
+
+- On (Fade-Out)
+  The tents leave behind their charred frame, which then gradually fades away.
+
+- On (Persist)
+  The tents leave behind their charred frame, which can still be seen when revisiting the area.
+-
+'''
+type = "Enum"
+options = [ "Off", "On (Fade-Out)", "On (Persist)" ]
+default = "On (Fade-Out)"
+
+[[manifest.config_options]]
 id = "rolling_demo"
 name = "Rolling Demo"
 description = '''
