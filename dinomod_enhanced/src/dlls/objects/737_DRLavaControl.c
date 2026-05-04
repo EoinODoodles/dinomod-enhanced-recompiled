@@ -81,7 +81,7 @@ RECOMP_PATCH void DRLavaControl_freeze(Object* self) {
 
     if (objData->freezeTimer > 0) {
         if (!objData->soundHandleHiss){ //@recomp: use soundHandle
-            gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_80C_Steam_Hissing, MAX_VOLUME, &objData->soundHandleHiss, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(self, SOUND_80C_Steam_Hissing, MAX_VOLUME, &objData->soundHandleHiss, NULL, 0, NULL);
         }
         gDLL_17_partfx->vtbl->spawn(self, 0x5A, NULL, 2, -1, NULL);
         gDLL_17_partfx->vtbl->spawn(self, 0x5B, NULL, 2, -1, NULL);
@@ -90,7 +90,7 @@ RECOMP_PATCH void DRLavaControl_freeze(Object* self) {
         if (objData->freezeTimer <= 0) {
             objData->freezeTimer = 0;
             if (!objData->soundHandleCrackle){ //@recomp: use soundHandle
-                gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_80B_Crackling_Freezing, MAX_VOLUME, &objData->soundHandleCrackle, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(self, SOUND_80B_Crackling_Freezing, MAX_VOLUME, &objData->soundHandleCrackle, NULL, 0, NULL);
             }
             objData->flags |= 1;
             main_set_bits(objSetup->gameBitFrozen, TRUE);
@@ -142,11 +142,11 @@ RECOMP_PATCH void DRLavaControl_free(Object* self, s32 arg1) {
 
     //@recomp: sound handles
     if (objData->soundHandleHiss) {
-        gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandleHiss);
+        gDLL_6_AMSFX->vtbl->stop(objData->soundHandleHiss);
         objData->soundHandleHiss = 0;
     }
     if (objData->soundHandleCrackle) {
-        gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandleCrackle);
+        gDLL_6_AMSFX->vtbl->stop(objData->soundHandleCrackle);
         objData->soundHandleCrackle = 0;
     }
 }

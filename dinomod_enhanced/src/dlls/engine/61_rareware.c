@@ -79,8 +79,8 @@ static void recomp_main_menu(void) {
     main_load_frontend();
 
     vi_init(1, get_ossched(), FALSE);
-    func_80041D20(1);
-    func_80041C6C(1);
+    track_set_z_buffer_on(1);
+    track_set_sky_on(1);
 
     //Load game options (makes sure languageID is initialised/remembered)
     gDLL_29_Gplay->vtbl->load_game_options();

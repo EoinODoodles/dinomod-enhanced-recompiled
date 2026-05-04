@@ -63,7 +63,7 @@ RECOMP_PATCH void DRbullet_recycle(Object* self, SRT* pFired, SRT* pTarget, f32 
     
     //Set bullet to "fired" state and play sound
     objData->state = BULLET_STATE_FIRED;
-    gDLL_6_AMSFX->vtbl->play_sound(self, 0x927, 0x7F, &objData->whooshSoundHandle, NULL, 0, NULL);
+    gDLL_6_AMSFX->vtbl->play(self, 0x927, 0x7F, &objData->whooshSoundHandle, NULL, 0, NULL);
 
     //Set bullet's expiry timer based on 10 second trajectory after being fired
     futurePosition.x = self->velocity.x * 600.0f;

@@ -93,7 +93,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
             // go up with sound
             if (self->srt.transl.y < (setup->base.y + LIFT_UP)) {
                 if (objdata->soundHandle == 0) {
-                    gDLL_6_AMSFX->vtbl->play_sound(self, 0x6EC, 0x75, &objdata->soundHandle, NULL, 0, NULL);
+                    gDLL_6_AMSFX->vtbl->play(self, 0x6EC, 0x75, &objdata->soundHandle, NULL, 0, NULL);
                     objdata->unk11 = 1;
                 }
                 self->srt.transl.y += gUpdateRateF;
@@ -101,7 +101,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                     self->srt.transl.y = (setup->base.y + LIFT_UP);
                     objdata->state = LIFT_STATE_INIT_DONE;
                     if (objdata->soundHandle != 0) {
-                        gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandle);
+                        gDLL_6_AMSFX->vtbl->stop(objdata->soundHandle);
                         objdata->soundHandle = 0;
                     }
                 }
@@ -138,7 +138,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                     // at top, start going down
                     objdata->state = LIFT_STATE_GO_DOWN;
                     if (objdata->soundHandle == 0) {
-                        gDLL_6_AMSFX->vtbl->play_sound(self, 0x6EC, 0x6B, &objdata->soundHandle, NULL, 0, NULL);
+                        gDLL_6_AMSFX->vtbl->play(self, 0x6EC, 0x6B, &objdata->soundHandle, NULL, 0, NULL);
                         objdata->unk11 = 1;
                     }
                 // @recomp: Get LIFT_DOWN depending on object ID
@@ -146,7 +146,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                     // at bottom, start going up
                     objdata->state = LIFT_STATE_GO_UP;
                     if (objdata->soundHandle == 0) {
-                        gDLL_6_AMSFX->vtbl->play_sound(self, 0x6EC, 0x43, &objdata->soundHandle, NULL, 0, NULL);
+                        gDLL_6_AMSFX->vtbl->play(self, 0x6EC, 0x43, &objdata->soundHandle, NULL, 0, NULL);
                         objdata->unk11 = 1;
                     }
                 }
@@ -176,7 +176,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                 self->srt.transl.y = (setup->base.y - dinomod_get_lift_down(self));
                 objdata->state = LIFT_STATE_STOPPED;
                 if (objdata->soundHandle != 0) {
-                    gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandle);
+                    gDLL_6_AMSFX->vtbl->stop(objdata->soundHandle);
                     objdata->soundHandle = 0;
                 }
                 objdata->cooldown = LIFT_COOLDOWN;
@@ -187,7 +187,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
         } else {
             // already at bottom
             if (objdata->soundHandle != 0) {
-                gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandle);
+                gDLL_6_AMSFX->vtbl->stop(objdata->soundHandle);
                 objdata->soundHandle = 0;
             }
             vec3_distance_xz(&self->globalPosition, &player->globalPosition);
@@ -205,7 +205,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                 objdata->state = LIFT_STATE_STOPPED;
                 objdata->cooldown = LIFT_COOLDOWN;
                 if (objdata->soundHandle != 0) {
-                    gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandle);
+                    gDLL_6_AMSFX->vtbl->stop(objdata->soundHandle);
                     objdata->soundHandle = 0;
                 }
             }
@@ -217,7 +217,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
             objdata->state = LIFT_STATE_STOPPED;
             objdata->cooldown = LIFT_COOLDOWN;
             if (objdata->soundHandle != 0) {
-                gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandle);
+                gDLL_6_AMSFX->vtbl->stop(objdata->soundHandle);
                 objdata->soundHandle = 0;
             }
             if ((vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_ACTIVATE_RANGE) && (objdata->unk11 == 1)) {

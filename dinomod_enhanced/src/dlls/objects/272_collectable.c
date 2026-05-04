@@ -402,7 +402,7 @@ RECOMP_PATCH void collectable_setup(Object* self, Collectable_Setup* objSetup, s
     collectableDef = self->def->collectableDef;
     if (collectableDef && collectableDef->type == Collectable_Type_Magic) {
         if (arg2 == 0) {
-            gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_8E_Magic_Chime, MAX_VOLUME, 0, 0, 0, 0);
+            gDLL_6_AMSFX->vtbl->play(self, SOUND_8E_Magic_Chime, MAX_VOLUME, 0, 0, 0, 0);
         }
 
         for (index = 10; index > 0; index--){
@@ -738,7 +738,7 @@ RECOMP_PATCH void collectable_handle_animation_and_fx(Object* self) {
         if (objData->soundTimer <= 0) {
             objData->pitchAnimate = rand_next(600, 800);
             objData->soundTimer = rand_next(180, 240);
-            gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_8FC_Egg_Rattle, MAX_VOLUME, 0, 0, 0, 0);
+            gDLL_6_AMSFX->vtbl->play(self, SOUND_8FC_Egg_Rattle, MAX_VOLUME, 0, 0, 0, 0);
         }
 
         //Rapidly oscillate rotational pitch for a basic rattle animation
@@ -827,7 +827,7 @@ RECOMP_PATCH void collectable_collect(Object* self) {
         default:
             break;
         case OBJ_DIMAlpineRoot2: 
-            gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_506_Chomping_Food, MAX_VOLUME, 0, 0, 0, 0);
+            gDLL_6_AMSFX->vtbl->play(self, SOUND_506_Chomping_Food, MAX_VOLUME, 0, 0, 0, 0);
             main_set_bits(BIT_3E9, 1);
             self->unkDC = 1;
             objData->rootTimer = 1200;
@@ -866,7 +866,7 @@ RECOMP_PATCH void collectable_collect(Object* self) {
     case Collectable_Type_Magic:
         ((DLL_210_Player*)player->dll)->vtbl->add_magic(player, collectableDef->amountRestored);
         gDLL_13_Expgfx->vtbl->func5(self);
-        gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_8E_Magic_Chime, MAX_VOLUME, 0, 0, 0, 0);
+        gDLL_6_AMSFX->vtbl->play(self, SOUND_8E_Magic_Chime, MAX_VOLUME, 0, 0, 0, 0);
         break;
     case Collectable_Type_Upgrade:
         obj_send_mesg(sidekick, 0x70008, self, (void*)(collectableDef->amountRestored + objData->sidekickArgBase));

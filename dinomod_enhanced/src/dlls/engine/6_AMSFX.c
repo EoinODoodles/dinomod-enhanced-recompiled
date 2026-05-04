@@ -35,51 +35,70 @@ static u32 dinomod_pickup_jingle(void) {
 #define IS_MP3 0x8000
 #define PITCH_DEFAULT 100
 
-typedef struct UnkBss4 {
+#define MAX_SOUND_SLOTS 64
+
+enum SoundSlotFlags {
+    SOUNDSLOT_IN_USE = 0x40,
+    SOUNDSLOT_PLAYING = 0x80
+};
+
+typedef struct SoundSlot {
     SoundDef def;
     s16 soundID;
     u16 pad10;
-    u8 unk12;
+    u8 flags; // SoundSlotFlags
     u8 unk13;
     s8 unk14;
     s8 unk15;
-    s8 unk16;
-    s8 unk17; //volume?
-    Object *source; //object playing the sound
-    sndstate *unk1C;
-} UnkBss4;
+    s8 volume; // effective volume
+    s8 distVolume; // volume with only distance-based falloff considered
+    Object *source; // object playing the sound
+    sndstate *sndpHandle;
+} SoundSlot;
 
-typedef struct UnkBss28 {
+typedef struct WaterFallSpray {
     Vec3f pos;
     u16 unkC;
     u16 unkE;
-} UnkBss28;
+} WaterFallSpray;
 
-extern ALBankFile *_bss_0;
-extern UnkBss4 *_bss_4;
-extern s32 _bss_8;
+#define MAX_WATER_FALL_SPRAY 16
+
+enum AMSFXWaterFallsFlags {
+    // The follow flags cut the volume of the high or low waterfall sfx in half for each flag set.
+    AMSFX_WATERFALLS_LOWER_HIGH = 0x1,
+    AMSFX_WATERFALLS_LOWER_LOW = 0x2,
+    AMSFX_WATERFALLS_LOWER_HIGH2 = 0x4,
+    AMSFX_WATERFALLS_LOWER_LOW2 = 0x8,
+    // Clear the list of waterfall sprays and re-search the map for an updated list.
+    AMSFX_WATERFALLS_REFRESH = 0x10
+};
+
+extern ALBankFile *_bss_0; //SFX.bin buffer
+extern SoundSlot *sSndSlots; //active sounds
+extern s32 sSndSlotsLen; //active sound count?
 extern u32 _bss_C;
 extern u32 _bss_10;
-extern u32 _bss_14;
-extern u32 _bss_18;
-extern u8 _bss_1C;
-extern u8 _bss_1D;
-extern u8 _bss_1E;
-extern u8 _bss_1F; // sound volume
-extern u8 _bss_20[0x8]; // sound volume(s?)
-extern UnkBss28 _bss_28[0x10];
-extern ACache *_bss_128;
+extern u32 sWaterfallHighHandle;
+extern u32 sWaterfallLowHandle;
+extern u8 sWaterfallsLastMap; //mapID?
+extern u8 sWaterFallSprayCount;
+extern u8 sWaterfallFlags;
+extern u8 sWaterfallLowVolume; // sound volume
+extern u8 sWaterfallHighVolume; // sound volume
+extern WaterFallSpray sWaterFallSprays[MAX_WATER_FALL_SPRAY];
+extern ACache *sSoundDefCache;
 
-extern void dll_6_func_860(u32, u8);
-extern void dll_6_func_A1C(u32);
-extern s32 dll_6_func_DE8(u16, SoundDef *);
-extern s32 dll_6_func_1C38(void);
-extern s32 dll_6_func_1D58(s32, char *, s32);
-extern s32 dll_6_func_1E64(u32);
-extern void dll_6_func_1F78(void);
-extern void dll_6_func_2240(Object*, f32*, f32*, f32*, u16*);
-extern void dll_6_func_22FC(f32, f32, f32, SoundDef*, s8*);
-extern void dll_6_func_2438(f32 arg0, f32 arg1, s32 arg2, u8* arg3, u8* arg4);
+extern void amsfx_set_vol(u32 soundHandle, u8 volume);
+extern void amsfx_stop(u32 arg0);
+extern s32 amsfx_get_default(u16 arg0, SoundDef* arg1);
+extern s32 amsfx_water_falls_find_sprays(void);
+extern s32 amsfx_make_handle(s32 handle, char *filename, s32 lineNo);
+extern s32 amsfx_free_handle(u32);
+extern void amsfx_func_1F78(void);
+extern void amsfx_func_2240(Object* obj, f32* xo, f32* yo, f32* zo, u16* yawOut);
+extern void amsfx_func_22FC(f32 arg0, f32 arg1, f32 arg2, SoundDef* arg3, s8* outVolume);
+extern void amsfx_func_2438(f32 arg0, f32 arg1, s32 arg2, s8* outPan, s8* outFx);
 
 enum RecompSoundIDs {
     SOUND_B8A_FirstTimeItemPickup = 0xB8A,
@@ -128,17 +147,17 @@ static void recomp_intercept_soundIDs(u16 soundID, SoundDef* soundEntry, ALBank 
     }
 }
 
-RECOMP_PATCH u32 dll_6_play_sound(Object* obj, u16 soundID, u8 volume, u32* soundHandle, char *arg4, s32 arg5, char *arg6) {
+RECOMP_PATCH u32 amsfx_play(Object* obj, u16 soundID, u8 volume, u32* soundHandle, char *filename, s32 lineNo, char *code) {
     SoundDef soundDef;
     f32 x;
     f32 y;
     f32 z;
-    u32 activeSoundIndex;
+    u32 handle;
     u16 yaw;
     s8 volumeCalc;
 
-    _bss_4->unk12 = 0;
-    _bss_4->unk1C = NULL;
+    sSndSlots->flags = 0;
+    sSndSlots->sndpHandle = NULL;
     
     //Bail if soundID is 0
     if (!soundID) {
@@ -146,7 +165,7 @@ RECOMP_PATCH u32 dll_6_play_sound(Object* obj, u16 soundID, u8 volume, u32* soun
     }
 
     //Get sound definition from AUDIO.bin subfile 0
-    dll_6_func_DE8(soundID, &soundDef);
+    amsfx_get_default(soundID, &soundDef);
 
     // @recomp: Support multiple banks
     ALBank *bank = _bss_0->bankArray[0];
@@ -161,46 +180,54 @@ RECOMP_PATCH u32 dll_6_play_sound(Object* obj, u16 soundID, u8 volume, u32* soun
     }
 
     if (soundHandle != NULL) {
-        activeSoundIndex = soundHandle[0];
+        handle = *soundHandle;
     } else {
-        activeSoundIndex = 0;
+        handle = 0;
     }
 
-    activeSoundIndex = dll_6_func_1D58(activeSoundIndex, arg4, arg5);
-    _bss_4[activeSoundIndex].soundID = soundID;
-    _bss_4[activeSoundIndex].source = obj;
-    _bss_4[activeSoundIndex].unk17 = MAX_VOLUME;
+    handle = amsfx_make_handle(handle, filename, lineNo);
+    sSndSlots[handle].soundID = soundID;
+    sSndSlots[handle].source = obj;
+    sSndSlots[handle].distVolume = MAX_VOLUME;
 
     if ((obj != NULL) && (soundDef.volumeFalloff & 3)) {
-        dll_6_func_2240(obj, &x, &y, &z, &yaw);
-        dll_6_func_22FC(x, y, z, &soundDef, &volumeCalc);
-        _bss_4[activeSoundIndex].unk17 = volumeCalc;
+        amsfx_func_2240(obj, &x, &y, &z, &yaw);
+        amsfx_func_22FC(x, y, z, &soundDef, &volumeCalc);
+        sSndSlots[handle].distVolume = volumeCalc;
     }
 
-    _bss_4[activeSoundIndex].unk16 = (volume * soundDef.volume) >> 7;
-    volumeCalc = (_bss_4[activeSoundIndex].unk16 * _bss_4[activeSoundIndex].unk17) >> 7;
-    _bss_4[activeSoundIndex].unk13 = volumeCalc;
+    sSndSlots[handle].volume = (volume * soundDef.volume) >> 7;
+    volumeCalc = (sSndSlots[handle].volume * sSndSlots[handle].distVolume) >> 7;
+    sSndSlots[handle].unk13 = volumeCalc;
 
     if (soundDef.bankAndClipID & IS_MP3) {
-        _bss_4[activeSoundIndex].unk1C = (sndstate* )-2;
+        sSndSlots[handle].sndpHandle = (sndstate* )-2;
         // @fake
-        if (_bss_4[activeSoundIndex].def.bankAndClipID) {}
+        if (sSndSlots[handle].def.bankAndClipID) {}
         mpeg_play((soundDef.bankAndClipID & 0x7FFF) - 1);
         mp3_set_volume(volumeCalc << 8, 0);
         // @fake
-        if (_bss_4) {}
+        if (sSndSlots) {}
     } else {
         // @recomp: Support multiple banks
-        some_sound_func(bank, soundDef.bankAndClipID, (volumeCalc << 8), PAN_CENTRE, soundDef.pitch / 100.0f, (s32)(f32)soundDef.unk6, 1U, &_bss_4[activeSoundIndex].unk1C);
+        some_sound_func(
+            bank, 
+            soundDef.bankAndClipID, 
+            (volumeCalc << 8), 
+            PAN_CENTRE, 
+            soundDef.pitch / 100.0f, 
+            (s32)(f32)soundDef.unk6, 
+            1, 
+            &sSndSlots[handle].sndpHandle);
     }
 
-    bcopy(&soundDef, &_bss_4[activeSoundIndex], sizeof(SoundDef));
-    bcopy(&_bss_4[activeSoundIndex], _bss_4, sizeof(UnkBss4));
+    bcopy(&soundDef, &sSndSlots[handle], sizeof(SoundDef));
+    bcopy(&sSndSlots[handle], sSndSlots, sizeof(SoundSlot));
 
     if (soundHandle != NULL) {
-        soundHandle[0] = activeSoundIndex;
+        *soundHandle = handle;
     } else {
-        _bss_4[activeSoundIndex].unk12 |= 0x80;
+        sSndSlots[handle].flags |= SOUNDSLOT_PLAYING;
     }
-    return activeSoundIndex;
+    return handle;
 }

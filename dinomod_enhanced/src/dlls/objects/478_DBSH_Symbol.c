@@ -94,8 +94,8 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
     
     //Play magic humming loop
     if (objData->soundHandle == 0) {
-        gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_357_Magic_Hum_Loop, MAX_VOLUME, &objData->soundHandle, NULL, 0, NULL);
-        gDLL_6_AMSFX->vtbl->func_954(objData->soundHandle, 0.8f);
+        gDLL_6_AMSFX->vtbl->play(self, SOUND_357_Magic_Hum_Loop, MAX_VOLUME, &objData->soundHandle, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->set_pitch(objData->soundHandle, 0.8f);
     }
 
     //Find phantom Krystal
@@ -171,7 +171,7 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
             
             //5% chance of playing random Sabre effort sound
             if (rand_next(0, 20) == 0) {
-                gDLL_6_AMSFX->vtbl->play_sound(
+                gDLL_6_AMSFX->vtbl->play(
                     NULL, 
                     SOUND_710_Sabre_Test_of_Strength_1 + rand_next(0, 2), 
                     0x1E, 
@@ -276,7 +276,7 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
     }
 
     //Adjust magic hum sound loop's pitch wrt. yaw
-    gDLL_6_AMSFX->vtbl->func_954(objData->soundHandle, ((f32) objData->yaw / 97500.0f) + 0.8f);
+    gDLL_6_AMSFX->vtbl->set_pitch(objData->soundHandle, ((f32) objData->yaw / 97500.0f) + 0.8f);
 
     return 0;
 }

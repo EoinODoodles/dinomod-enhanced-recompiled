@@ -1210,7 +1210,7 @@ RECOMP_PATCH void cmdmenu_update_stats(void) {
 
     //Play sound when pressing R to show HUD
     if (sJoyPressedButtons & R_TRIG) {
-        gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_5EA_Cmdmenu_ShowHUD, MAX_VOLUME, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(NULL, SOUND_5EA_Cmdmenu_ShowHUD, MAX_VOLUME, NULL, NULL, 0, NULL);
     }
 
     //Increment stat.unk14 when holding R, or when there's a target Object, or when stats are auto-shown
@@ -1265,11 +1265,11 @@ RECOMP_PATCH void cmdmenu_update_stats(void) {
                 //Optionally play a sound when the stat increases/decreases (unused)
                 if (sStats.items[i] < stats.items[i]) {
                     if (dStatChangeSounds.items[i].increased != NO_SOUND) {
-                        gDLL_6_AMSFX->vtbl->play_sound(NULL, dStatChangeSounds.items[i].increased, MAX_VOLUME, NULL, NULL, 0, NULL);
+                        gDLL_6_AMSFX->vtbl->play(NULL, dStatChangeSounds.items[i].increased, MAX_VOLUME, NULL, NULL, 0, NULL);
                     }
                 } else {
                     if (dStatChangeSounds.items[i].decreased != NO_SOUND) {
-                        gDLL_6_AMSFX->vtbl->play_sound(NULL, dStatChangeSounds.items[i].decreased, MAX_VOLUME, NULL, NULL, 0, NULL);
+                        gDLL_6_AMSFX->vtbl->play(NULL, dStatChangeSounds.items[i].decreased, MAX_VOLUME, NULL, NULL, 0, NULL);
                     }
                 }
 
@@ -1339,7 +1339,7 @@ static int sidekick_meter_handle_full(int isBlueEnergy, s8 energyAdded) {
             *statToIncrease = SIDEKICK_FOOD_MAX;
 
             //Bark
-            gDLL_6_AMSFX->vtbl->play_sound(sidekick, 0x4B8, MAX_VOLUME, NULL, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(sidekick, 0x4B8, MAX_VOLUME, NULL, NULL, 0, NULL);
             
             returnValue = 1;
         }
@@ -1353,7 +1353,7 @@ static int sidekick_meter_handle_full(int isBlueEnergy, s8 energyAdded) {
 
             //Refuse food if the meter's already fully filled with that colour
             if (*statToIncrease >= SIDEKICK_FOOD_MAX) {
-                gDLL_6_AMSFX->vtbl->play_sound(sidekick, 0x4B8, MAX_VOLUME, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(sidekick, 0x4B8, MAX_VOLUME, NULL, NULL, 0, NULL);
                 returnValue = 1;
             } else {
             //Otherwise: discard enough of the opposite-colour food icon to make space
@@ -1743,16 +1743,16 @@ RECOMP_PATCH void cmdmenu_update2(void) {
         if (cmdmenu_is_inventory_closed()) {
             switch (dNextPageCategory) {
             case CMDMENU_CATEGORY_3_Items:
-                gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_5EC_Cmdmenu_OpenBag, MAX_VOLUME, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_5EC_Cmdmenu_OpenBag, MAX_VOLUME, NULL, NULL, 0, NULL);
                 break;
             case CMDMENU_CATEGORY_2_Sidekick:
-                gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_5F0_Cmdmenu_OpenSidekickMenu, MAX_VOLUME, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_5F0_Cmdmenu_OpenSidekickMenu, MAX_VOLUME, NULL, NULL, 0, NULL);
                 break;
             case CMDMENU_CATEGORY_4_Spells:
-                gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_5ED_Cmdmenu_OpenSpellBook, MAX_VOLUME, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_5ED_Cmdmenu_OpenSpellBook, MAX_VOLUME, NULL, NULL, 0, NULL);
                 break;
             default:
-                gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_28D_Cmdmenu_OpenBag_HighPitch, MAX_VOLUME, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_28D_Cmdmenu_OpenBag_HighPitch, MAX_VOLUME, NULL, NULL, 0, NULL);
                 break;
             }
 
@@ -1958,10 +1958,10 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
     case CMDMENU_SOUND_NONE:
         break;
     case CMDMENU_SOUND_ITEM:
-        gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_79C_Cmdmenu_CantUse, MAX_VOLUME, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(NULL, SOUND_79C_Cmdmenu_CantUse, MAX_VOLUME, NULL, NULL, 0, NULL);
         break;
     case CMDMENU_SOUND_PAGE:
-        gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_814_Cmdmenu_OpenSubMenu, MAX_VOLUME, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(NULL, SOUND_814_Cmdmenu_OpenSubMenu, MAX_VOLUME, NULL, NULL, 0, NULL);
         break;
     }
 
@@ -2033,7 +2033,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
                 (sInventoryScrollOffset < 8) && 
                 (dInventoryIsScrolling == FALSE)
             ) {
-                gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_28A_Cmdmenu_MoveSelection, MAX_VOLUME, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_28A_Cmdmenu_MoveSelection, MAX_VOLUME, NULL, NULL, 0, NULL);
                 dInventoryMovesQueued++;
 
                 if (sInventoryScrollOffset != 0) {
@@ -2047,7 +2047,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
                 (SQ(sInventoryScrollOffset) < SQ(8)) &&
                 (dInventoryIsScrolling == FALSE)
             ) {
-                gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_28A_Cmdmenu_MoveSelection, MAX_VOLUME, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_28A_Cmdmenu_MoveSelection, MAX_VOLUME, NULL, NULL, 0, NULL);
                 dInventoryMovesQueued++;
 
                 if (sInventoryScrollOffset != 0) {
@@ -2057,7 +2057,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
                 (SQ(sInventoryScrollOffset) < SQ(8)) && 
                 (dInventoryIsScrolling == FALSE)
             ) {
-                gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_28A_Cmdmenu_MoveSelection, MAX_VOLUME, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_28A_Cmdmenu_MoveSelection, MAX_VOLUME, NULL, NULL, 0, NULL);
                 dInventoryMovesQueued--;
 
                 if (sInventoryScrollOffset != 0) {
@@ -2136,7 +2136,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
             }
         //Close the inventory with the B button
         } else if (sJoyPressedButtons & B_BUTTON) {
-            gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_28C_Cmdmenu_Close, MAX_VOLUME, NULL, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(NULL, SOUND_28C_Cmdmenu_Close, MAX_VOLUME, NULL, NULL, 0, NULL);
             cmdmenu_close_inventory();
 
         //Use an inventory item with the A button
@@ -2150,13 +2150,13 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
                 sUsedItemGamebitID = usedGamebit;
                 sUsedItemSoundType = sMenuItemUseSounds[sMenuSelectedItemIdx];
                 sUsedItemPageID = sMenuItemOpenPageIDs[sMenuSelectedItemIdx];
-                gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_28B_Cmdmenu_Use, MAX_VOLUME, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_28B_Cmdmenu_Use, MAX_VOLUME, NULL, NULL, 0, NULL);
                 cmdmenu_close_inventory();
                 
             //Sidekick commands
             } else {
                 if (sMenuItemVisibilities[sMenuSelectedItemIdx]) {
-                    gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_28B_Cmdmenu_Use, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    gDLL_6_AMSFX->vtbl->play(NULL, SOUND_28B_Cmdmenu_Use, MAX_VOLUME, NULL, NULL, 0, NULL);
                     cmdmenu_close_inventory();
                     sUsedItemGamebitID = usedGamebit;
                     sUsedItemSoundType = CMDMENU_SOUND_NONE;
@@ -2169,7 +2169,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
                         Possibly intended for Spells instead, since they're the only kind of 
                         inventory item that can have their sMenuItemVisibilities set to FALSE?
                     */
-                    gDLL_6_AMSFX->vtbl->play_sound(NULL, SOUND_A0_Cmdmenu_Item_Locked, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    gDLL_6_AMSFX->vtbl->play(NULL, SOUND_A0_Cmdmenu_Item_Locked, MAX_VOLUME, NULL, NULL, 0, NULL);
                     sUsedItemGamebitID = NO_GAMEBIT;
                     sUsedItemSoundType = CMDMENU_SOUND_NONE;
                 }
@@ -3106,7 +3106,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                         sTempIcon->tex = sMenuItemTextures[itemIdx];
 
                         //Draw icon
-                        if (func_80041E08()) {
+                        if (track_func_80041E08()) {
                             //Widescreen aspect
                             rcp_tile_write(
                                 gdl, 
@@ -3141,7 +3141,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                     }
                 } else {
                     //Draw empty tile
-                    if (func_80041E08()) {
+                    if (track_func_80041E08()) {
                         //Widescreen aspect
                         rcp_tile_write(
                             gdl, 

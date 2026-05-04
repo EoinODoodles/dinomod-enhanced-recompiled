@@ -222,12 +222,12 @@ RECOMP_PATCH s32 pausemenu_update(void) {
         
         if (action == PICMENU_ACTION_SELECT) {
             if (!selectedItem){
-                gDLL_6_AMSFX->vtbl->play_sound(0, 2931, 0x7F, 0, 0, 0, 0);
+                gDLL_6_AMSFX->vtbl->play(0, 2931, 0x7F, 0, 0, 0, 0);
                 menu_set(MENU_GAMEPLAY);
                 unpause();
                 joy_set_button_mask(0, A_BUTTON | B_BUTTON);
             } else {
-                gDLL_6_AMSFX->vtbl->play_sound(0, 2930, 0x7F, 0, 0, 0, 0);
+                gDLL_6_AMSFX->vtbl->play(0, 2930, 0x7F, 0, 0, 0, 0);
                 gameSavedMessageTimer = 0;
                 pauseScreenState = 1;
                 

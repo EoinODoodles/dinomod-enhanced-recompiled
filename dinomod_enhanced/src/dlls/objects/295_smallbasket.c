@@ -47,7 +47,7 @@ RECOMP_PATCH void smallbasket_free(Object* self, s32 arg1) {
     obj_free_object_type(self, 0x12); //@recomp: remove self from type category 0x12
     dll_unload((void*)dModGfxDLL[0]);
     if (objdata->soundHandle) {
-        gDLL_6_AMSFX->vtbl->func_A1C(objdata->soundHandle);
+        gDLL_6_AMSFX->vtbl->stop(objdata->soundHandle);
         objdata->soundHandle = 0;
     }
 }
