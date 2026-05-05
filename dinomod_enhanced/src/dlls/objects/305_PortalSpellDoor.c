@@ -39,7 +39,7 @@ RECOMP_PATCH void PortalSpellDoor_control(Object* self) {
     
     //Check if the door transformation sequence has played, otherwise wait for player to use spell
     if (objData->sequencePlayed) {
-        self->srt.flags |= 0x4000;
+        self->srt.flags |= OBJFLAG_INVISIBLE;
         
         //Destroy secondary door object
         if (objData->portalDoorAnim != NULL) {

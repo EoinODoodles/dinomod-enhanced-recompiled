@@ -82,7 +82,7 @@ static _Bool getFrostWeedTwigsConfigs() {
 }
 
 // Adds config options for Garunda Te's FrostWeed quest
-RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHorn_Setup* objsetup) {
+RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHorn_Setup* setup) {
     Object* frostWeed;
     s32 weeds;
     s8 FROSTWEED_MAX_OVERRIDE = getFrostWeedMaxOverride(); //@recomp
@@ -106,7 +106,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
             if (func_80032538(self)) {
                 gDLL_3_Animation->vtbl->func17(0, self, -1);
                 objdata->flags = 2;
-                main_set_bits(0x115, objdata->flags);
+                main_set_bits(BIT_Garunda_Te_Quest_Progress, objdata->flags);
             }
             break;
         case 2:
@@ -115,11 +115,11 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
                 gDLL_3_Animation->vtbl->func17(1, self, -1);
             }
             
-            frostWeed = obj_get_nearest_type_to(4, self, 0);
-            objsetup = (SnowHorn_Setup*)self->setup;
+            frostWeed = obj_get_nearest_type_to(OBJTYPE_4, self, 0);
+            setup = (SnowHorn_Setup*)self->setup;
             if (frostWeed && (frostWeed->id == OBJ_Tumbleweed2 || 
                 (FROSTWEED_TWIGS_ACCEPTED && frostWeed->id == OBJ_Tumbleweed2twig)) &&  //@recomp: option of accepting FrostWeed twigs as well
-                vec3_distance_xz_squared(&self->globalPosition, &frostWeed->globalPosition) < objsetup->unkRadius * objsetup->unkRadius) {
+                vec3_distance_xz_squared(&self->globalPosition, &frostWeed->globalPosition) < setup->unkRadius * setup->unkRadius) {
                 if (!((DLL_227_Tumbleweed*)frostWeed->dll)->vtbl->is_gravitating(frostWeed)) {
                     ((DLL_227_Tumbleweed*)(frostWeed->dll))->vtbl->gravitate_towards_point(frostWeed, &objdata->playerPositionCopy);
                     objdata->frostWeed = frostWeed;
@@ -130,7 +130,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
                     if (objdata->garundaTe_weedsEaten > FROSTWEED_MAX_OVERRIDE) {
                         objdata->garundaTe_weedsEaten = FROSTWEED_MAX_OVERRIDE;
                     }
-                    main_set_bits(0x48B, objdata->garundaTe_weedsEaten);
+                    main_set_bits(BIT_Garunda_Te_Weeds_Eaten, objdata->garundaTe_weedsEaten);
                     objdata->flags = 3;
                 }
             }
@@ -144,9 +144,9 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
             if (objdata->unk424 & 8) {
                 weeds = objdata->garundaTe_weedsEaten;
                 if (weeds >= FROSTWEED_MAX_OVERRIDE) {
-                    main_set_bits(0x102, 1);
+                    main_set_bits(BIT_Garunda_Te_Fed, 1);
                     objdata->flags = 5;
-                    main_set_bits(0x115, objdata->flags);
+                    main_set_bits(BIT_Garunda_Te_Quest_Progress, objdata->flags);
                     break;
                 }
                 if (weeds % 3 == 0) {
@@ -171,9 +171,9 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
             if (func_80032538(self)) {
                 gDLL_3_Animation->vtbl->func17(4, self, -1);
             } else if (gDLL_1_cmdmenu->vtbl->was_this_item_used(BIT_SpellStone_DIM)) {
-                main_set_bits(0x22B, 1);
+                main_set_bits(BIT_SpellStone_DIM_Activated, 1);
                 objdata->flags = 7;
-                main_set_bits(0x115, objdata->flags);
+                main_set_bits(BIT_Garunda_Te_Quest_Progress, objdata->flags);
             }
             break;
         case 7:

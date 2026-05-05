@@ -227,7 +227,7 @@ RECOMP_PATCH s32 credits_update1(void) {
   * 
   * - Splices in static text for lead voice actors.
   */
-RECOMP_PATCH void credits_draw(Gfx** gdl, s32 arg1, s32 arg2) {
+RECOMP_PATCH void credits_draw(Gfx** gdl, Mtx** mtx, Vertex** vtx) {
     CreditsLine* line;
     s32 align;
     s32 i;

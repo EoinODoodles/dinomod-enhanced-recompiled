@@ -761,7 +761,7 @@ RECOMP_PATCH void dll_331_control(Object* self) {
     Object* player;
     ObjectPolyhits* temp_v0;
     s16 id;
-    Object** new_var;
+    Object** collidedObject;
     GenProps_Setup *objSetup;
     s32 temp_t3;
     GenProps_Data_Extended* objData;
@@ -825,14 +825,12 @@ RECOMP_PATCH void dll_331_control(Object* self) {
         gDLL_3_Animation->vtbl->func17(0, self, -1);
         break;
     case OBJ_DFturbinelever: //0xae
-        
-        new_var = &self->polyhits->unk100[0];
-        if ((self->unkDC == 0) && (new_var != NULL) && (*(s16*)(((s32)self->polyhits) + 0x146) == 0x2B)) {
+        collidedObject = &self->polyhits->unk100[0];
+        if ((self->unkDC == 0) && (collidedObject != NULL) && (*(s16*)(((s32)self->polyhits) + 0x146) == 0x2B)) {
             gDLL_3_Animation->vtbl->func17(0, self, -1);
             self->unkDC = 1;
         }
         break;
-        
     case OBJ_DFdebris1: //0xab
         objData->roll -= gUpdateRate;
         if (objData->roll < 0) {
@@ -905,10 +903,10 @@ RECOMP_PATCH void dll_331_control(Object* self) {
         self->objhitInfo->unk50 = 30;
         self->objhitInfo->unk58 |= 1;
         if (main_get_bits(BIT_Player_Immune_to_Rainbow_Scarabs) != 0) {
-            self->objhitInfo->unk58 &= 0xFFFE;
+            self->objhitInfo->unk58 &= ~1;
         }
         if (objData->unk3E == 2) {
-            gDLL_6_AMSFX->vtbl->play(self, 0x35A, 0x43, NULL, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(self, SOUND_35A_Low_Whoosh, 0x43, NULL, NULL, 0, NULL);
             objData->unk3E--;
         }
         if ((objData->unk3E != 0) && ((self->srt.transl.f[1] + self->velocity.f[1]) <= player->srt.transl.f[1])) {
@@ -919,7 +917,7 @@ RECOMP_PATCH void dll_331_control(Object* self) {
             self->srt.scale *= 0.5f;
             objData->roll *= 2;
             objData->pitch *= 2;
-            gDLL_6_AMSFX->vtbl->play(NULL, 0x35B, 0x43, NULL, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(NULL, SOUND_35B_Rock_Slide, 0x43, NULL, NULL, 0, NULL);
             camera_set_shake_offset(0.5f);
         }
         if (objData->unk3E == 0) {
@@ -1010,7 +1008,7 @@ RECOMP_PATCH void dll_331_control(Object* self) {
                     self->unkE0 = 100;
                 }
             } else if ((distance <= 10.0f) && (_data_0 == NULL) && (self->unkE0 == 0)) {
-                gDLL_6_AMSFX->vtbl->play(self, 0x1D2, 0x7F, NULL, NULL, 0, NULL);
+                gDLL_6_AMSFX->vtbl->play(self, SOUND_1D2_Roar, 0x7F, NULL, NULL, 0, NULL);
                 _data_0 = self;
                 self->unkDC = 0x46;
             } else if ((distance < 40.0f) && (self->unkE0 == 0) && (self->unkDC == 0)) {

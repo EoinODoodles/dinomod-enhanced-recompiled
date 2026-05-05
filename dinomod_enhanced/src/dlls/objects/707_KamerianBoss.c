@@ -322,7 +322,7 @@ RECOMP_PATCH void KamerianBoss_control(Object *self) {
                             objdata->unk10[j] = KamerianBoss_create_fx_emit(self, self->globalPosition.x - 163.0f, self->globalPosition.y + 175.0f, self->globalPosition.z + 145.0f, 0x693);
                         }
                         gDLL_6_AMSFX->vtbl->play(self, SOUND_9AA, MAX_VOLUME, NULL, NULL, 0, NULL);
-                    } else if ((collisionType == 0xF) && (objdata->rightPipeTimer > 50)) {
+                    } else if ((collisionType == Damage_Type_Projectile) && (objdata->rightPipeTimer > 50)) {
                         // @recomp: Fix hit sphere indices
                         KamerianBoss_disable_hit_sphere(7);
                         KamerianBoss_disable_hit_sphere(8);
@@ -350,7 +350,7 @@ RECOMP_PATCH void KamerianBoss_control(Object *self) {
                             objdata->unk10[j] = KamerianBoss_create_fx_emit(self, self->globalPosition.x + 163.0f, self->globalPosition.y + 175.0f, self->globalPosition.z + 145.0f, 0x693);
                         }
                         gDLL_6_AMSFX->vtbl->play(self, SOUND_9AA, MAX_VOLUME, NULL, NULL, 0, NULL);
-                    } else if ((collisionType == 0xF) && (objdata->leftPipeTimer > 50)) {
+                    } else if ((collisionType == Damage_Type_Projectile) && (objdata->leftPipeTimer > 50)) {
                         // @recomp: Fix hit sphere indices
                         KamerianBoss_disable_hit_sphere(2);
                         KamerianBoss_disable_hit_sphere(3);
@@ -368,7 +368,7 @@ RECOMP_PATCH void KamerianBoss_control(Object *self) {
                     }
                     break;
                 case 0:
-                    if (collisionType == 0xF) {
+                    if (collisionType == Damage_Type_Projectile) {
                         if ((objdata->leftPipeDetached) && (objdata->rightPipeDetached)) {
                             KamerianBoss_disable_hit_sphere(0);
                             func_80023D30(self, 
@@ -381,7 +381,7 @@ RECOMP_PATCH void KamerianBoss_control(Object *self) {
                     }
                     break;
                 case 1:
-                    if (collisionType == 0xF) {
+                    if (collisionType == Damage_Type_Projectile) {
                         if ((objdata->leftPipeDetached) && (objdata->rightPipeDetached)) {
                             KamerianBoss_disable_hit_sphere(1);
                             func_80023D30(self, 
@@ -469,7 +469,7 @@ RECOMP_PATCH void KamerianBoss_print(Object *self, Gfx **gdl, Mtx **mtxs, Vertex
                 /*xScale*/(128.0f / (sHealthBarTextures[0]->width - 18)), 
                 /*yScale*/1.0f, 
                 /*color*/0xFF000000 | (sHealthBarAlpha & 0xFF), 
-                /*flags*/0x4002);
+                /*flags*/TILE_WRITE_TRANSLUCENT | TILE_WRITE_POINT_FILT);
 
             rcp_tile_write_x(gdl, _bss_8[0], 
                 /*x*/96.0f + ((hpBarWidth) * (128.0f / (sHealthBarTextures[0]->width - 18))), 
@@ -481,7 +481,7 @@ RECOMP_PATCH void KamerianBoss_print(Object *self, Gfx **gdl, Mtx **mtxs, Vertex
                 /*xScale*/(128.0f / (sHealthBarTextures[0]->width - 18)), 
                 /*yScale*/1.0f, 
                 /*color*/0x330000FF, 
-                /*flags*/0x4002);
+                /*flags*/TILE_WRITE_TRANSLUCENT | TILE_WRITE_POINT_FILT);
         }
         // Get attachment positions
         i = 15;

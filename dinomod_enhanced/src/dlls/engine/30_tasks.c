@@ -100,7 +100,7 @@ RECOMP_CALLBACK("*", recomp_on_game_tick_start) void printTaskHistory() {
 }
 
 /** Patches the "Previously on Dinosaur Planet" screen to show your 3 most recent tasks (instead of the oldest 3 of the 5 in the task history) */
-RECOMP_PATCH void task_load_recently_completed() {
+RECOMP_PATCH void task_load_recently_completed(void) {
     u8 val;
 
     cleanup_task_history();

@@ -141,7 +141,7 @@ RECOMP_PATCH void dll_22_func_578(Gfx **gdl) {
     }
 
     temp_v0 = vi_get_current_size();
-    _bss_7A0 = temp_v0 & 0xFFFF;
+    _bss_7A0 = GET_VIDEO_WIDTH(temp_v0);
     _bss_79C = _bss_7A0 - (_bss_7A2 * 2);
     _bss_798 = (_bss_7A0 - _bss_79C) / 2;
     if (_data_4C <= 0.0f) {

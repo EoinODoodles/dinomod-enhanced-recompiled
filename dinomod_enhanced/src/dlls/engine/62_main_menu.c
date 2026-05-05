@@ -5,6 +5,7 @@
 #include "PR/gbi.h"
 #include "PR/ultratypes.h"
 #include "PR/os.h"
+#include "sys/gfx/textable.h"
 #include "types.h"
 #include "game/objects/object.h"
 #include "game/gamebits.h"
@@ -18,6 +19,7 @@
 #include "sys/memory.h"
 #include "sys/menu.h"
 #include "sys/rcp.h"
+#include "sys/map_enums.h"
 #include "dll.h"
 #include "dlls/engine/74_picmenu.h"
 
@@ -36,6 +38,19 @@ typedef enum {
     MainMenu_ITEM_7_Language = 7 //Gets overridden with items 0-4
 } MainMenuItemIndices;
 
+typedef enum {
+    MMTextIdx_0_English = 0,
+    MMTextIdx_1_Francais = 1,
+    MMTextIdx_2_Deutsch = 2,
+    MMTextIdx_3_Espanol = 3,
+    MMTextIdx_4_Italiano = 4,
+    MMTextIdx_5_Japanese = 5,
+    MMTextIdx_6_Press_Start = 6,
+    MMTextIdx_7_Start = 7,
+    MMTextIdx_8_Options = 8
+} MainMenuTextStrings;
+
+#define MENU_TOTAL_PICMENU_ITEMS 8
 #define MENU_TRANSITION_THRESHOLD 12
 #define MENU_TRANSITION_DURATION 35
 
@@ -64,7 +79,7 @@ RECOMP_PATCH void mainmenu_ctor(void *dll) {
 
     total_strings = 8;
     
-    logoDinosaurPlanet = tex_load_deferred(0xC5);
+    logoDinosaurPlanet = tex_load_deferred(TEXTABLE_C5_DinosaurPlanetLogo);
     rcp_set_border_color(0, 0, 0);
 
     //Set language and get text
@@ -73,7 +88,7 @@ RECOMP_PATCH void mainmenu_ctor(void *dll) {
     gametext = gDLL_21_Gametext->vtbl->get_chunk(GAMETEXT_0EE_Menu_Title_Screen);
 
     //Set "Press Start" text
-    pressStartItem->text = gametext->strings[6];
+    pressStartItem->text = gametext->strings[MMTextIdx_6_Press_Start];
 
     for (index = 0; index < total_strings; index++){
         mainMenuItems[index].text = gametext->strings[gametextLineIndices[index]];
@@ -136,14 +151,14 @@ RECOMP_PATCH s32 mainmenu_update1(void) {
             //Change resolution for game select
             vi_init(14, get_ossched(), FALSE);
             mainmenu_clean_up();
-            track_set_z_buffer_on(0);
-            track_set_sky_on(0);
+            track_set_z_buffer_on(FALSE);
+            track_set_sky_on(FALSE);
             if (nextMenuID == MENU_GAME_SELECT) {
                 gDLL_29_Gplay->vtbl->save_game_options();
             }
         } else if (sExitTransitionTimer < 1) {
             gDLL_29_Gplay->vtbl->save_game_options(); //@recomp: save options
-            main_change_map(1, 0, PLAYER_KRYSTAL, nextMenuID);
+            main_change_map(MAP_FRONT_END2, 0, PLAYER_KRYSTAL, nextMenuID);
         }
 
         if (sExitTransitionTimer <= MENU_TRANSITION_THRESHOLD) {
@@ -167,12 +182,12 @@ RECOMP_PATCH s32 mainmenu_update1(void) {
     
                 temp = 1;
                 switch (gDLL_74_Picmenu->vtbl->get_selected_item()) {
-                    case 5:
+                    case MainMenu_ITEM_5_Start:
                         gDLL_28_ScreenFade->vtbl->fade(20, temp);
                         nextMenuID = MENU_GAME_SELECT;
                         sExitTransitionTimer = MENU_TRANSITION_DURATION;
                         return 0;
-                    case 6:
+                    case MainMenu_ITEM_6_Options:
                         gDLL_28_ScreenFade->vtbl->fade(20, temp);
                         nextMenuID = MENU_OPTIONS;
                         sExitTransitionTimer = MENU_TRANSITION_DURATION;
@@ -193,13 +208,13 @@ RECOMP_PATCH s32 mainmenu_update1(void) {
             }
     
             //Changing language
-            options->languageID = gDLL_74_Picmenu->vtbl->get_item_override(7);
+            options->languageID = gDLL_74_Picmenu->vtbl->get_item_override(MainMenu_ITEM_7_Language);
             if (gDLL_21_Gametext->vtbl->curr_bank() != options->languageID) {
                 gDLL_21_Gametext->vtbl->set_bank(options->languageID);
                 mmFree(gametext);
                 gametext = gDLL_21_Gametext->vtbl->get_chunk(GAMETEXT_0EE_Menu_Title_Screen);
     
-                temp = 8;
+                temp = MENU_TOTAL_PICMENU_ITEMS;
                 for (index = 0; index < temp; index++){
                     mainMenuItems[index].text = gametext->strings[gametextLineIndices[index]];
                 }
@@ -227,13 +242,13 @@ RECOMP_PATCH void mainmenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
             #ifdef DINOMOD_ROM_PATCH
                 if (D_8008C890) { 
                     //Widescreen aspect
-                    rcp_screen_full_write(gfx, logoDinosaurPlanet, 71, 50, 0, 0, 0xFF, 0);
+                    rcp_screen_full_write(gfx, logoDinosaurPlanet, 71, 50, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
                 } else { 
                     //Standard aspect
-                    rcp_screen_full_write(gfx, logoDinosaurPlanet, 50, 50, 0, 0, 0xFF, 0);
+                    rcp_screen_full_write(gfx, logoDinosaurPlanet, 50, 50, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
                 }
             #else
-            rcp_screen_full_write(gfx, logoDinosaurPlanet, 50, 50, 0, 0, 0xFF, 0);
+            rcp_screen_full_write(gfx, logoDinosaurPlanet, 50, 50, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
             #endif
         }
 

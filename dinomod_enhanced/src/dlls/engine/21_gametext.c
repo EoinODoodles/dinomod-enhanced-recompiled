@@ -234,6 +234,12 @@ RECOMP_PATCH GameTextChunk *gametext_get_chunk(u16 chunk) {
     s32 i;
     s32 k;
 
+    // mem map
+    // 0x0  GameTextChunk
+    // 0xC  string pointer array
+    //      alignment padding
+    //      string chunk
+
     // Size for struct and string pointers
     headerSize = sCurrentBank_StrCounts[chunk] * 4 + sizeof(GameTextChunk);
     // Room for alignment
@@ -241,7 +247,7 @@ RECOMP_PATCH GameTextChunk *gametext_get_chunk(u16 chunk) {
 
     headerSize += alignmentPad + sCurrentBank_Sizes[chunk];
 
-    chunkPtr = (GameTextChunk*)mmAlloc(headerSize, ALLOC_TAG_GAME_COL, NULL);
+    chunkPtr = (GameTextChunk*)mmAlloc(headerSize, ALLOC_TAG_GAME_COL, ALLOC_NAME("gametext:textGroup"));
 
     chunkPtr->strings = (char**)((u32)chunkPtr + sizeof(GameTextChunk));
 
@@ -283,7 +289,7 @@ RECOMP_PATCH char *gametext_get_text(u16 chunk, u16 strIndex) {
     s32 i;     
     s32 k;
 
-    text = mmAlloc(sCurrentBank_Sizes[chunk], ALLOC_TAG_GAME_COL, NULL);
+    text = mmAlloc(sCurrentBank_Sizes[chunk], ALLOC_TAG_GAME_COL, ALLOC_NAME("gametext:textGroup"));
 
     queue_load_file_region_to_ptr(
         (void**)text, 
@@ -303,7 +309,7 @@ RECOMP_PATCH char *gametext_get_text(u16 chunk, u16 strIndex) {
 
     len = strlen(str) + 1;
 
-    copy = mmAlloc(len, ALLOC_TAG_GAME_COL, NULL);
+    copy = mmAlloc(len, ALLOC_TAG_GAME_COL, ALLOC_NAME("gametext:textGroup"));
     bcopy(str, copy, len);
 
     mmFree(text);

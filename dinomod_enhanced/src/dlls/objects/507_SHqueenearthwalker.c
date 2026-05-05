@@ -96,7 +96,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
     if (self->curModAnimId != 1) {
         func_80023D30(self, 1, 0.0f, 0);
     }
-    func_80024108(self, 0.005f, gUpdateRate, 0);
+    func_80024108(self, 0.005f, gUpdateRate, NULL);
     switch (objdata->questProgress) {
 
     case 1:
@@ -104,7 +104,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
         break;
     case 2:
         if (self->unkAF & 1) {
-            joy_set_button_mask(0, 0x8000);
+            joy_set_button_mask(0, A_BUTTON);
             gDLL_3_Animation->vtbl->func17(1, self, -1);
             main_set_bits(BIT_SH_Move_Thorntail_Blocking_Hollow_Log, 1);
             objdata->questProgress = 3;
@@ -125,7 +125,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
             }
 
             if (gDLL_1_cmdmenu->vtbl->was_this_item_used(BIT_Inventory_White_Mushrooms) != 0) {
-                joy_set_button_mask(0, 0x8000);
+                joy_set_button_mask(0, A_BUTTON);
                 objdata->eatenWhiteMushrooms += main_get_bits(BIT_Inventory_White_Mushrooms);
                 // @recomp: Require all ten white mushrooms instead of just one. (originally by MusicalProgrammer)
                 if (objdata->eatenWhiteMushrooms < 10) {
@@ -138,7 +138,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
                 main_set_bits(BIT_Inventory_White_Mushrooms, 0);
                 main_set_bits(BIT_SH_Queen_EW_White_Mushrooms_Eaten, objdata->eatenWhiteMushrooms);
             } else if (self->unkAF & 1) {
-                joy_set_button_mask(0, 0x8000);
+                joy_set_button_mask(0, A_BUTTON);
                 gDLL_3_Animation->vtbl->func17(4, self, -1);
             }
         }

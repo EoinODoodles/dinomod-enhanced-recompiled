@@ -19,6 +19,7 @@
 
 #include "dlls/objects/common/vehicle.h"
 #include "dlls/objects/common/group48.h"
+#include "dlls/objects/common/foodbag.h"
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/214_animobj.h"
 #include "dlls/objects/277_iceblast.h"
@@ -78,17 +79,6 @@ extern f32 _bss_1AC;
 extern Object *_bss_210[4];
 extern s16 _bss_220[2];
 extern ObjFSA_StateCallback _bss_224[1];
-
-// TODO: take from decomp headers
-DLL_INTERFACE(DLL_IFoodbag) {
-    /*:*/ struct DLL_IObject_Vtbl base;
-	/*7*/ UnknownDLLFunc func7;
-	/*8*/ UnknownDLLFunc func8;
-	/*9*/ UnknownDLLFunc func9;
-	/*10*/ UnknownDLLFunc func10;
-	/*11*/ UnknownDLLFunc func11;
-	/*12*/ void (*func12)(Object *self, s16 a1);
-};
 
 typedef void (*func_1D04C)(Object *obj, s32);
 static func_1D04C player_func_1D04C; 
@@ -311,42 +301,42 @@ static u32 soundCooldown;
 /** - Fix magic sound spamming issue, especially in Kamerian Heart room (originally by MusicalProgrammer)
   * - Also apply debounce cooldown to magic refill sound
  */
-RECOMP_PATCH void dll_210_add_magic(Object* self, s32 magicDifference) {
+RECOMP_PATCH void dll_210_add_magic(Object* self, s32 amount) {
     Player_Data* objdata = self->data;
     PlayerStats* stats;
     s32 magic;
     s8 mapID;
 
-    if (objdata->unk8BB != 0) {
-        stats = objdata->stats;
-        magic = stats->magic;
-        magic += magicDifference;
+    if (objdata->unk8BB == 0) {
+        return;
+    }
 
-        if (magic < 0) {
-            magic = 0;
+    stats = objdata->stats;
+    magic = stats->magic;
+    magic += amount;
+
+    if (magic < 0) {
+        magic = 0;
+    } else if (stats->magicMax < magic) {
+        magic = stats->magicMax;
+    }
+    stats->magic = magic;
+
+    //@recomp: debounce sound
+    if (amount > 0 
+        && magic < stats->magicMax //@recomp (MusicalProgrammer's patch)
+        && !soundCooldown //@recomp (cooldown as well)
+    ) {
+        mapID = map_world_xz_to_map_id(self->srt.transl.x, self->srt.transl.z);
+        if (mapID == MAP_BOSS_KAMERIAN_DRAGON){
+            return;
+        } else if (mapID == MAP_DRAGON_ROCK_BOTTOM){
+            soundCooldown = 180;
         } else {
-            if (stats->magicMax < magic) {
-                magic = stats->magicMax;
-            }
+            soundCooldown = 30;
         }
-        stats->magic = magic;
 
-        //@recomp: debounce sound
-        if (magicDifference > 0 
-            && magic < stats->magicMax //@recomp (MusicalProgrammer's patch)
-            && !soundCooldown //@recomp (cooldown as well)
-        ) {
-            mapID = map_world_xz_to_map_id(self->srt.transl.x, self->srt.transl.z);
-            if (mapID == MAP_BOSS_KAMERIAN_DRAGON){
-                return;
-            } else if (mapID == MAP_DRAGON_ROCK_BOTTOM){
-                soundCooldown = 180;
-            } else {
-                soundCooldown = 30;
-            }
-
-            gDLL_6_AMSFX->vtbl->play(NULL, SOUND_5EB_Magic_Refill_Chime, MAX_VOLUME, 0, 0, 0, 0);
-        }
+        gDLL_6_AMSFX->vtbl->play(NULL, SOUND_5EB_Magic_Refill_Chime, MAX_VOLUME, 0, 0, 0, 0);
     }
 }
 
@@ -666,7 +656,7 @@ RECOMP_PATCH s32 dll_210_func_AE34(Object* player, ObjFSA_Data* fsa, f32 arg2) {
     }
     
     if (fsa->enteredAnimState){
-        if ((fsa->prevAnimState != 0xB) && (fsa->prevAnimState != 0xD)){
+        if ((fsa->prevAnimState != PLAYER_ASTATE_Jump) && (fsa->prevAnimState != PLAYER_ASTATE_Falling)){
             player->srt.yaw += fsa->unk32A * 0xB6;
             fsa->unk328 = 0;
             fsa->unk32A = 0;
@@ -1078,12 +1068,11 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
 
     temp_s1->unk834 = 0; //@recomp
     func_800267A4(player);
-
     player->velocity.f[1] = 0.0f;
     if (fsa->enteredAnimState != 0) {
         ((DLL_IVehicle*)temp_s2->dll)->vtbl->func9(temp_s2, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z);
-        if ((temp_s2->id == 0x72) || (temp_s2->id == 0x38C)) {
-            gDLL_2_Camera->vtbl->change_camera_module(0x54, 0, 1, 0, NULL, 0x64, 0xFF);
+        if ((temp_s2->id == OBJ_IMSnowBike) || (temp_s2->id == OBJ_CRSnowBike)) {
+            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, 0, 1, 0, NULL, 100, 0xFF);
         } else {
             gDLL_2_Camera->vtbl->change_mode(0, 1);
         }
@@ -1118,7 +1107,7 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
         temp_s1->unk738.z = sp80.f[2];
         temp_s1->unk744.y = player->srt.transl.f[1] - temp_s1->unk738.y;
         temp_s1->unk750 = spA0;
-        player->srt.flags &= ~8;
+        player->srt.flags &= ~OBJFLAG_MANUAL_PREV_POSITIONS;
         player->curModAnimIdLayered = -1;
         fsa->animTickDelta = 0.016f;
     }
@@ -1332,7 +1321,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
     s16* temp_s0_2;
     s32 temp_t1;
     s32 temp_v1_8;
-    Object* var_s0; // sp8C
+    Object* vehicle; // sp8C
     s32 var_s1;
     Player_Data* objdata;
     Vec3f* temp_s0;
@@ -1356,7 +1345,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
     }
     if (objdata->flags & 0x8000) {
         if (objdata->stats->health > 0) {
-            gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, 1);
+            gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, PLAYER_ASTATE_Standing);
             objdata->flags &= ~0x8000;
             return 0;
         }
@@ -1376,9 +1365,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
             arg2->unk7A = arg2->unk7C;
             if (arg2->unk62 != 2) {
                 arg2->unk58 = 1.0f;
-                arg2->unk4C.x = arg0->srt.transl.x - arg1->srt.transl.x;
-                arg2->unk4C.y = arg0->srt.transl.y - arg1->srt.transl.y;
-                arg2->unk4C.z = arg0->srt.transl.z - arg1->srt.transl.z;
+                VECTOR_SUBTRACT(arg0->srt.transl, arg1->srt.transl, arg2->unk4C);
                 arg2->yawDiff = arg0->srt.yaw - (arg1->srt.yaw & 0xFFFF);
                 // @recomp: CIRCLE_WRAP with s32 instead of s16
                 {
@@ -1433,8 +1420,8 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
             arg2->unk24 = 0.083333336f;
             arg2->unk62 = 5;
             objdata->unk354.headStartAngle = func_80034804(arg0, 0)[1];
-            objdata->unk354.headGoalAngle = arg2->yawDiff;
             objdata->unk378.headStartAngle = 0;
+            objdata->unk354.headGoalAngle = arg2->yawDiff;
             objdata->unk378.headGoalAngle = arg2->pitchDiff;
             _bss_0 = 0;
             sp6C[0] = temp_s0->x;
@@ -1456,10 +1443,10 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                         arg2->unk62 = 6;
                     }
                     if (objdata->vehicle != NULL) {
-                        gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, 0x24);
+                        gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, PLAYER_ASTATE_Vehicle_Riding);
                         return 1;
                     }
-                    gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, 1);
+                    gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, PLAYER_ASTATE_Standing);
                     return 1;
                 }
                 temp_fv0_2 = arg2->unk58;
@@ -1554,7 +1541,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
             _data_528 = sp9C;
         }
         if (arg2->unk62 == 0) {
-            gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, 1);
+            gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, PLAYER_ASTATE_Standing);
         }
     } else {
         arg2->unk7A |= arg2->unk7C & ~0x400;
@@ -1572,34 +1559,34 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                 // @recomp: Choose closest vehicle when multiple are in the scene
                 f32 closestDist = SQ(1000000.0f);
                 for (var_s1 = 0; var_s1 < spC0; var_s1++) {
-                    var_s0 = objects[var_s1];
+                    vehicle = objects[var_s1];
                     if (
-                        var_s0->id == OBJ_IMSnowBike
-                        || var_s0->id == OBJ_CRSnowBike
-                        || var_s0->id == OBJ_BWLog
-                        || var_s0->id == OBJ_DIMSnowHorn1
-                        || var_s0->id == OBJ_DR_EarthWarrior
-                        || var_s0->id == OBJ_DR_CloudRunner
+                        vehicle->id == OBJ_IMSnowBike
+                        || vehicle->id == OBJ_CRSnowBike
+                        || vehicle->id == OBJ_BWLog
+                        || vehicle->id == OBJ_DIMSnowHorn1
+                        || vehicle->id == OBJ_DR_EarthWarrior
+                        || vehicle->id == OBJ_DR_CloudRunner
                     ) {
-                        f32 dist = vec3_distance_squared(&arg0->globalPosition, &var_s0->globalPosition);
+                        f32 dist = vec3_distance_squared(&arg0->globalPosition, &vehicle->globalPosition);
                         if (dist < closestDist) {
                             closestDist = dist;
-                            objdata->vehicle = var_s0;
+                            objdata->vehicle = vehicle;
                         }
                     }
                 }
                 if (objdata->vehicle != NULL) {
-                    var_s0 = objdata->vehicle;
+                    vehicle = objdata->vehicle;
                     objdata->unk728 = 1.0f;
                     objdata->unk72C.x = objdata->unk7EC.x;
                     objdata->unk72C.y = objdata->unk7EC.y;
                     objdata->unk72C.z = objdata->unk7EC.z;
-                    ((DLL_IVehicle*)var_s0->dll)->vtbl->func14(var_s0, 2);
-                    arg0->srt.flags |= 8;
+                    ((DLL_IVehicle*)vehicle->dll)->vtbl->func14(vehicle, 2);
+                    arg0->srt.flags |= OBJFLAG_MANUAL_PREV_POSITIONS;
                     arg0->shadow->flags |= OBJ_SHADOW_FLAG_FADE_OUT;
                     arg2->unk7A &= ~0x4;
                     //temp_v1_8 = var_s0->id;
-                    switch (var_s0->id) {
+                    switch (vehicle->id) {
                         case OBJ_IMSnowBike:
                         case OBJ_CRSnowBike:
                             objdata->unk76C = _data_158;
@@ -1616,40 +1603,40 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                             func_80023D30(arg0, 0xF5, 0.0f, 1);
                             break;
                     }
-                    gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, 0x24);
+                    gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, PLAYER_ASTATE_Vehicle_Riding);
                 }
                 break;
             case 2:
                 gDLL_2_Camera->vtbl->change_mode(0, 1);
                 gDLL_3_Animation->vtbl->func19(0x54, 4, 0, 0);
-                var_s0 = objdata->vehicle;
-                if (var_s0 != NULL) {
-                    ((DLL_IVehicle*)var_s0->dll)->vtbl->func14(var_s0, 0);
-                    arg0->srt.flags &= ~0x8;
+                vehicle = objdata->vehicle;
+                if (vehicle != NULL) {
+                    ((DLL_IVehicle*)vehicle->dll)->vtbl->func14(vehicle, 0);
+                    arg0->srt.flags &= ~OBJFLAG_MANUAL_PREV_POSITIONS;
                     arg0->shadow->flags &= ~OBJ_SHADOW_FLAG_FADE_OUT;
-                    var_s0 = NULL;
+                    vehicle = NULL;
                     arg2->unk7A |= 4;
                     objdata->vehicle = NULL;
                     arg0->curModAnimIdLayered = -1;
-                    gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, 1);
+                    gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, PLAYER_ASTATE_Standing);
                 }
                 break;
             case 4:
-                var_s0 = objdata->vehicle;
+                vehicle = objdata->vehicle;
                 gDLL_3_Animation->vtbl->func19(0x57, 0, 0, 0);
                 objdata->unk76C = NULL;
-                if ((var_s0 != NULL) && (var_s0->id == 0x22)) {
-                    gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, 0x22);
+                if ((vehicle != NULL) && (vehicle->id == OBJ_BWLog)) {
+                    gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, PLAYER_ASTATE_Vehicle_Getting_On);
                 } else {
-                    gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, 0x24);
+                    gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, PLAYER_ASTATE_Vehicle_Riding);
                 }
                 break;
             case 11:
-                var_s0 = objdata->vehicle;
-                if ((var_s0 != NULL) && (var_s0->id == 0x416)) {
+                vehicle = objdata->vehicle;
+                if ((vehicle != NULL) && (vehicle->id == OBJ_DR_EarthWarrior)) {
                     gDLL_2_Camera->vtbl->change_mode(0, 0x69);
                     gDLL_3_Animation->vtbl->func19(0x54, 4, 0, 0);
-                } else if ((var_s0 != NULL) && (var_s0->id == 0x419)) {
+                } else if ((vehicle != NULL) && (vehicle->id == OBJ_DR_CloudRunner)) {
                     gDLL_3_Animation->vtbl->func19(0x65, 0, 0, 0);
                 } else {
                     gDLL_2_Camera->vtbl->change_mode(0, 0x1D);
@@ -1658,17 +1645,17 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                 break;
             case 6:
                 gDLL_3_Animation->vtbl->func19(0x56, 0, 0, 0);
-                gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, 0x23);
+                gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, PLAYER_ASTATE_35);
                 break;
             case 7:
                 arg2->unk7A &= ~0x3;
                 dll_210_func_1D4E0(arg0, 1);
-                arg0->srt.flags |= 8;
+                arg0->srt.flags |= OBJFLAG_MANUAL_PREV_POSITIONS;
                 break;
             case 8:
                 arg2->unk7A = arg2->unk7C;
                 dll_210_func_1D4E0(arg0, 0);
-                arg0->srt.flags &= ~8;
+                arg0->srt.flags &= ~OBJFLAG_MANUAL_PREV_POSITIONS;
                 break;
             case 10:
                 objdata->unk878 = 2;
@@ -1676,9 +1663,9 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                 objdata->unk8A8 = 1;
                 break;
             case 12:
-                sp6A = gDLL_22_Subtitles->vtbl->func_214C((s32) arg0->unkC4->id);
-                gDLL_22_Subtitles->vtbl->func_2248(1U);
-                gDLL_22_Subtitles->vtbl->func_368((u16) sp6A);
+                sp6A = gDLL_22_Subtitles->vtbl->func_214C(arg0->unkC4->id);
+                gDLL_22_Subtitles->vtbl->func_2248(1);
+                gDLL_22_Subtitles->vtbl->func_368(sp6A);
                 arg0->unkC4 = NULL;
                 break;
             case 13:
@@ -1689,12 +1676,13 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
             case 14:
                 if (*_data_14 == 1) {
                     *_data_18 = -1;
-                    ((DLL_IFoodbag*)objdata->foodbag->dll)->vtbl->func12(objdata->foodbag, arg0->unkE0);
+                    tempObj = objdata->foodbag;
+                    ((DLL_IFoodbag*)tempObj->dll)->vtbl->delete_food_by_gamebit(tempObj, arg0->unkE0);
                     arg2->unk9D |= 4;
                     arg0->unkC4 = NULL;
                     return 4;
                 }
-                if ((*_data_14 != 0) || (arg0->unkDC < 0)) {
+                if (*_data_14 != 0 || arg0->unkDC < 0) {
                     arg2->unk9D |= 4;
                     arg0->unkC4 = NULL;
                 } else {
@@ -1791,7 +1779,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
     SRT fxTransform;
     f32 dx;
     f32 dz;
-    s32 temp_v0;
+    s32 camDLLID;
     s8 temp_v0_4;
     s16 throwdist;
     u32 temp_a0_4;
@@ -2192,9 +2180,9 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
     if (fsa->target == NULL && ((objdata->flags & 0x400000 && objdata->unk766 & 0x4000) || !(objdata->flags & 0x401000)) && player->curModAnimId != 0x449) {
         func_80023D30(player, 0x449, 0.0f, 0);
         fsa->animTickDelta = 0.04f;
-        temp_v0 = gDLL_2_Camera->vtbl->get_dll_ID();
-        if ((temp_v0 != 0x54) && (temp_v0 != 0x5E)) {
-            gDLL_2_Camera->vtbl->change_camera_module(0x54, 0, 1, 0, NULL, 0x3C, 0xFE);
+        camDLLID = gDLL_2_Camera->vtbl->get_dll_ID();
+        if ((camDLLID != DLL_ID_CAMNORMAL) && (camDLLID != DLL_ID_CAMTALK1)) {
+            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, 0, 1, 0, NULL, 60, 0xFE);
         }
     }
     if (fsa->target != NULL) {

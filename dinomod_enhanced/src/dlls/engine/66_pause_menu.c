@@ -136,19 +136,19 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
             #ifdef DINOMOD_ROM_PATCH
             if (D_8008C890) {
                 //Widescreen aspect
-                rcp_screen_full_write(gfx, textureSpellStone, 52, 136, 0, 0, opacity_main, 0);
-                rcp_screen_full_write(gfx, textureDuster, 134, 162, 0, 0, opacity_main, 0);
-                rcp_screen_full_write(gfx, textureSpirit, 219, 137, 0, 0, opacity_main, 0);
+                rcp_screen_full_write(gfx, textureSpellStone, 52, 136, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
+                rcp_screen_full_write(gfx, textureDuster, 134, 162, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
+                rcp_screen_full_write(gfx, textureSpirit, 219, 137, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
             } else {
                 //Standard aspect
-                rcp_screen_full_write(gfx, textureSpellStone, 44, 136, 0, 0, opacity_main, 0);
-                rcp_screen_full_write(gfx, textureDuster, 127, 162, 0, 0, opacity_main, 0);
-                rcp_screen_full_write(gfx, textureSpirit, 216, 137, 0, 0, opacity_main, 0);
+                rcp_screen_full_write(gfx, textureSpellStone, 44, 136, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
+                rcp_screen_full_write(gfx, textureDuster, 127, 162, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
+                rcp_screen_full_write(gfx, textureSpirit, 216, 137, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
             }
             #else
-            rcp_screen_full_write(gfx, textureSpellStone, 44, 136, 0, 0, opacity_main, 0);
-            rcp_screen_full_write(gfx, textureDuster, 127, 162, 0, 0, opacity_main, 0);
-            rcp_screen_full_write(gfx, textureSpirit, 216, 137, 0, 0, opacity_main, 0);
+            rcp_screen_full_write(gfx, textureSpellStone, 44, 136, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
+            rcp_screen_full_write(gfx, textureDuster, 127, 162, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
+            rcp_screen_full_write(gfx, textureSpirit, 216, 137, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
             #endif
             
             //Draw completion percentage
@@ -210,7 +210,7 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
     font_window_draw(gfx, 0, 0, 1);
 }
 
-RECOMP_PATCH s32 pausemenu_update(void) {
+RECOMP_PATCH s32 pausemenu_update1(void) {
     s32 action;
     s32 index;
     s32 selectedItem;

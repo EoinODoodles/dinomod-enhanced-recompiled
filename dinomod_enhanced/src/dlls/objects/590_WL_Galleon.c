@@ -40,7 +40,7 @@ typedef struct {
 RECOMP_PATCH void WLgalleon_control(Object* self) {
     u32 arrivedAtWM;
     Object* player;
-    WLGalleonObjdata* state;
+    WLGalleonObjdata* objData;
     u8 colourRGBA[4] = {0xe4, 0x9c, 0x44, 0xff}; //unused orange colour?
     
     if (main_get_bits(BIT_Play_Seq_00EF_Scales_Escapes_With_Kyte)) {
@@ -53,7 +53,7 @@ RECOMP_PATCH void WLgalleon_control(Object* self) {
     }
     
     player = get_player();
-    state = self->data;
+    objData = self->data;
     
     if (main_get_bits(BIT_429)) {
         if (gDLL_29_Gplay->vtbl->get_obj_group_status(self->mobileMapID, 2)) {
@@ -70,17 +70,17 @@ RECOMP_PATCH void WLgalleon_control(Object* self) {
     if (1 
         // && !main_get_bits(BIT_WM_Played_Randorn_First_Meeting) //@recomp: remove check 
         ) {
-        if (!state->unk10 && !main_get_bits(BIT_429)) {
+        if (!objData->unk10 && !main_get_bits(BIT_429)) {
             gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 1, 1);
             gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 2, 1);
-            state->unk10 = TRUE;
+            objData->unk10 = TRUE;
         }
     } else {
         if (!gDLL_29_Gplay->vtbl->get_obj_group_status(self->mobileMapID, 4)) {
             gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 4, 1);
         }
-        if (state->unk10) {
-            state->unk10 = FALSE;
+        if (objData->unk10) {
+            objData->unk10 = FALSE;
         }
     }
     
@@ -114,10 +114,10 @@ RECOMP_PATCH void WLgalleon_control(Object* self) {
     }
     
     if (self->unkE0 == 1) {
-        self->srt.transl.x = state->translate.x;
-        self->srt.transl.y = state->translate.y;
-        self->srt.transl.z = state->translate.z;
-        self->srt.yaw = state->yaw;
+        self->srt.transl.x = objData->translate.x;
+        self->srt.transl.y = objData->translate.y;
+        self->srt.transl.z = objData->translate.z;
+        self->srt.yaw = objData->yaw;
         gDLL_3_Animation->vtbl->func17(0, self, -1);
         self->unkE0 = 2;
     }

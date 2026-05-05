@@ -12,6 +12,7 @@
 #include "sys/objmsg.h"
 #include "sys/objtype.h"
 #include "dlls/objects/210_player.h"
+#include "dlls/objects/226_tumbleweedbush.h"
 #include "dlls/objects/227_tumbleweed.h"
 
 #include "recomp/dlls/objects/227_tumbleweed_recomp.h"
@@ -159,7 +160,7 @@ RECOMP_PATCH void Tumbleweed_free(Object* self, s32 arg1) {
     for (objects = get_world_objects(&i, &count); i < count; i++) {
         object = objects[i];
         if (id == object->id && !(object->stateFlags & OBJSTATE_DESTROYED)) { //@recomp: check Object isn't deleted
-            ((DLL_Unknown*)object->dll)->vtbl->func[7].withTwoArgs((s32)object, (s32)self);
+            ((DLL_226_TumbleweedBush*)object->dll)->vtbl->remove_tumbleweed(object, self);
         }
     }
     

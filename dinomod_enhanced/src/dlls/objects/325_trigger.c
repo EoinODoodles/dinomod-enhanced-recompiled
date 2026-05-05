@@ -305,7 +305,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             }
         }
         
-        switch (cmd->id) {                  /* switch 1 */
+        switch (cmd->id) {
         case TRG_CMD_HAZARD: 
             // "Trigger [%d], Gamplay Vulnerable"
             switch (cmd->param1) {

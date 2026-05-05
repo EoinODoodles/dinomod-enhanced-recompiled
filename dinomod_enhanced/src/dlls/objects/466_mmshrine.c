@@ -13,6 +13,7 @@
 #include "sys/dll.h"
 #include "sys/main.h"
 #include "sys/map.h"
+#include "sys/map_enums.h"
 #include "sys/math.h"
 #include "sys/objects.h"
 #include "sys/objtype.h"
@@ -50,7 +51,7 @@ typedef struct {
 
 extern void MMshrine_func_1140(Object *arg0);
 
-RECOMP_PATCH void MMshrine_control(Object* self) {
+RECOMP_PATCH void MMshrine_control(Object *self) {
     MMShrine_Data *objdata;
     Object *player;
     DLL_IModgfx *temp_v0_5;
@@ -181,18 +182,18 @@ RECOMP_PATCH void MMshrine_control(Object* self) {
             }
             break;
         case 5:
-            if (main_get_bits(0xFD) == 0) {
-                main_set_bits(0xFD, 1);
+            if (main_get_bits(BIT_Shrine_Do_Exit_Warp) == 0) {
+                main_set_bits(BIT_Shrine_Do_Exit_Warp, 1);
             }
-            main_set_bits(0x12B, 0);
-            main_set_bits(0x127, 0);
-            main_set_bits(0x129, 1);
+            main_set_bits(BIT_MMP_GP_Shrine_Spirit_Light_Beams, 0);
+            main_set_bits(BIT_DB_Entered_Shrine_2, 0);
+            main_set_bits(BIT_DB_Entered_Shrine_3, 1);
             objdata->unkF = 6;
-            main_set_bits(0x126, 1);
+            main_set_bits(BIT_DB_Entered_Shrine_1, 1);
             // @recomp: Prevent Test of Fear from unnecessarily setting bit 0x12A (MMP Spirit Deposited) early
             //          (original patch by jeebs2kx)
-            //main_set_bits(0x12A, 1);
-            gDLL_29_Gplay->vtbl->set_map_setup(0xB, 4);
+            //main_set_bits(BIT_SP_Map_MMP, 1);
+            gDLL_29_Gplay->vtbl->set_map_setup(MAP_WARLOCK_MOUNTAIN, 4);
             break;
         case 9:
             objdata->unkF = 0;

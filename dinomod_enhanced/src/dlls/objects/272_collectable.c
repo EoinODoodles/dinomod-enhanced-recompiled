@@ -462,7 +462,7 @@ RECOMP_PATCH void collectable_setup(Object* self, Collectable_Setup* objSetup, s
     }
 
     //Setup vertex colour multiplier
-    if ((self->def->flags & 0x10000) && objData->useColourMultiplier) {
+    if ((self->def->flags & OBJDEF_SKY_LIT) && objData->useColourMultiplier) {
         objData->multiplyR = objSetup->multiplyR;
         objData->multiplyG = objSetup->multiplyG;
         objData->multiplyB = objSetup->multiplyB;

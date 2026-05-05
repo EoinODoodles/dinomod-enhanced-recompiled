@@ -24,10 +24,10 @@ typedef struct {
     u8 bShowScreen;
     u8 flags;
     u8 unk3;
-    u8 unk4;
-    s16 bitSwapStoneSpokenTo; // game bits ID
-    s16 bitIntroSeq; // game bits ID
-    s16 bitSwappedToSeq; // game bits ID
+    u8 awake;
+    s16 bitSwapStoneSpokenTo;   // game bits ID
+    s16 bitIntroSeq;            // game bits ID
+    s16 bitSwappedToSeq;        // game bits ID
 } SHswapstone_Data;
 
 typedef enum {
@@ -38,7 +38,7 @@ typedef enum {
 extern u16 sWarlockMountainWarps[2];
 extern u16 sSwapStoneWarps[2];
 
-extern s32 SHswapstone_anim_callback(Object* self, Object* a1, AnimObj_Data* a2, void* a3);
+extern int SHswapstone_anim_callback(Object* self, Object* overrideObj, AnimObj_Data* animData, s8 a3);
 extern s32 SHswapstone_get_held_spirit(void);
 extern s32 SHswapstone_has_spellstone(void);
 extern void SHswapstone_restore_gameplay_menu(Object* self, s32 arg1, s32 arg2);
@@ -70,10 +70,10 @@ RECOMP_PATCH void SHswapstone_setup(Object* self, SHswapstone_Setup* setup, s32 
         self->modelInstIdx = 0;
     }
 
-    if ((main_get_bits(BIT_Talking_to_Rocky) != 0) && (main_get_bits(BIT_Talked_to_Rocky) != 0)) {
-        objdata->unk4 = 1;
+    if (main_get_bits(BIT_Talking_to_Rocky) && main_get_bits(BIT_Talked_to_Rocky)) {
+        objdata->awake = TRUE;
     } else {
-        objdata->unk4 = 0;
+        objdata->awake = FALSE;
     }
 
     main_set_bits(objdata->bitIntroSeq, 0);
@@ -99,7 +99,7 @@ RECOMP_PATCH u32 SHswapstone_get_model_flags(Object* self) {
 #define CMD_BASE_SELECTION 13
 #define SELECT_SCREEN(var) (CMD_BASE_SELECTION + var)
 
-RECOMP_PATCH s32 SHswapstone_anim_callback(Object* self, Object* overrideObj, AnimObj_Data* animData, void* a3) {
+RECOMP_PATCH int SHswapstone_anim_callback(Object* self, Object* overrideObj, AnimObj_Data* animData, s8 a3) {
     SHswapstone_Data* objdata;
     s32 playerno;
     s32 i;

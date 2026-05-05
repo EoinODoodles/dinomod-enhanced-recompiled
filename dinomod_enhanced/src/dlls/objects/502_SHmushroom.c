@@ -198,12 +198,13 @@ RECOMP_PATCH void SHmushroom_setup(Object* self, SHmushroom_Setup* setup, s32 ar
 	objData = self->data;
 	curveEndpoint = 25; //Matches unk18 on the initial curve node for SwapStone Hollow's lily pond mushroom (uID 0x3081c)
 	player = get_player();
-	self->stateFlags |= OBJSTATE_PRINT_DISABLED | OBJSTATE_UPDATE_DISABLED;
+	self->stateFlags |= (OBJSTATE_UPDATE_DISABLED | OBJSTATE_PRINT_DISABLED);
 
 	if (main_get_bits(setup->gamebitCollected)) {
 		objData->state = SHmushroom_STATE_8_Hidden;
 		self->objhitInfo->unk58 &= ~1;
 		self->srt.flags |= OBJFLAG_INVISIBLE;
+		// @recomp:
 		objData->flags |= SHmushroom_FLAG_Delete_after_Setup;
 	}
 

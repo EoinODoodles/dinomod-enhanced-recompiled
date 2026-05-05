@@ -17,7 +17,8 @@ typedef struct {
                                 //2) projgfx DLLs
 /*0A*/ s16 indexInBank;         //index of the effect within its bank
 /*0C*/ s16 defaultFXIndex;      //only used if fxCount <= 0, always set to 0
-/*0E*/ s16 fxCount;             //how many times to spawn the effect
+/*0E*/ s16 fxRate;              //when positive: how many times the emitter runs per tick
+                                //when negative: number of frames to waits between single emit
 /*10*/ u16 _unk10;              //unused
 /*12*/ s16 randomDelay;
 /*14*/ s16 toggleGamebit;
@@ -132,11 +133,9 @@ RECOMP_PATCH void FXEmit_control(Object* self) {
             return;
         }
 
-        if ((objdata->fxCount >= 0) || ((objdata->fxCount < 0) && (self->unkDC <= 0))) {
-            vectorToPlayer.f[0] = self->globalPosition.x - player->globalPosition.x;
-            vectorToPlayer.f[1] = self->globalPosition.y - player->globalPosition.y;
-            vectorToPlayer.f[2] = self->globalPosition.z - player->globalPosition.z;
-            if (objdata->fxCount == 0) {
+        if ((objdata->fxRate >= 0) || ((objdata->fxRate < 0) && (self->unkDC <= 0))) {
+            VECTOR_SUBTRACT(self->globalPosition, player->globalPosition, vectorToPlayer);
+            if (objdata->fxRate == 0) {
                 objdata->disabled = TRUE;
             }
 
@@ -149,10 +148,10 @@ RECOMP_PATCH void FXEmit_control(Object* self) {
                 FXEmit_emit(self);
             }
 
-            self->unkDC = -objdata->fxCount;
+            self->unkDC = -objdata->fxRate;
             return;
         }
-        if (objdata->fxCount < 0) {
+        if (objdata->fxRate < 0) {
             if (self->unkDC > 0) {
                 self->unkDC -= gUpdateRate;
             }

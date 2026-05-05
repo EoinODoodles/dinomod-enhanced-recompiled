@@ -221,17 +221,17 @@ RECOMP_PATCH void dll_63_draw_save_game_box(Gfx **gdl, s32 x, s32 y, GameSelectS
             x2 = x;
             y2 += 32;
         } else {
-            rcp_screen_full_write(gdl, sSaveGameBgTextures[sSaveGameBgIndices[i]], x2, y2, 0, 0, 0xFF, 0);
+            rcp_screen_full_write(gdl, sSaveGameBgTextures[sSaveGameBgIndices[i]], x2, y2, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
             x2 += 64;
         }
     }
 
     // Draw player icon
-    rcp_screen_full_write(gdl, sSaveGameTextures[saveInfo->playerno], x + 14, y + 8, 0, 0, 0xFF, 0);
+    rcp_screen_full_write(gdl, sSaveGameTextures[saveInfo->playerno], x + 14, y + 8, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
     // Draw spirit icon
-    rcp_screen_full_write(gdl, sSaveGameTextures[2], x + 241, y + 71, 0, 0, 0xFF, 0);
+    rcp_screen_full_write(gdl, sSaveGameTextures[2], x + 241, y + 71, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
     // Draw spell stone icon
-    rcp_screen_full_write(gdl, sSaveGameTextures[3], x2 + 14, y + 71, 0, 0, 0xFF, 0);
+    rcp_screen_full_write(gdl, sSaveGameTextures[3], x2 + 14, y + 71, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
 
     // Draw text
     font_window_use_font(1, FONT_DINO_MEDIUM_FONT_IN);

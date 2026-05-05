@@ -212,8 +212,8 @@ RECOMP_PATCH void rareware_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
         }
 
         //@recomp: reposition logo
-        rcp_screen_full_write(gdl, sTexRareLogoGlow, 42, 175, 0, 0, (s16)(255.0f * A), 0);
-        rcp_screen_full_write(gdl, sTexRarewareGlow, 130, 208, 0, 0, (s16)(255.0f * A), 0);
+        rcp_screen_full_write(gdl, sTexRareLogoGlow, 42, 175, 0, 0, (s16)(255.0f * A), SCREEN_WRITE_TRANSLUCENT);
+        rcp_screen_full_write(gdl, sTexRarewareGlow, 130, 208, 0, 0, (s16)(255.0f * A), SCREEN_WRITE_TRANSLUCENT);
     }
 
     //Draw Rare logo and Rareware text (fade in, hold for a while, then fade out)
@@ -233,7 +233,7 @@ RECOMP_PATCH void rareware_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
         }
 
         //@recomp: reposition logo
-        rcp_screen_full_write(gdl, sTexRareLogo, 42, 175, 0, 0, (u8)(255.0f * A), 0);
-        rcp_screen_full_write(gdl, sTexRareware, 130, 208, 0, 0, (u8)(255.0f * A), 0);
+        rcp_screen_full_write(gdl, sTexRareLogo, 42, 175, 0, 0, (u8)(255.0f * A), SCREEN_WRITE_TRANSLUCENT);
+        rcp_screen_full_write(gdl, sTexRareware, 130, 208, 0, 0, (u8)(255.0f * A), SCREEN_WRITE_TRANSLUCENT);
     }
 }

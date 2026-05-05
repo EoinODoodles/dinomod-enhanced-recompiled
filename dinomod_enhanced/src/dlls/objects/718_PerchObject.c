@@ -22,7 +22,7 @@ typedef struct {
 } PerchObject_Data;
 
 /** Fixes a crash in Cape Claw's perches for Kyte (originally by MusicalProgrammer) */
-RECOMP_PATCH int perchObject_anim_callback(Object* self, Object* animObj, AnimObj_Data* animObjData, s8 arg3) {
+RECOMP_PATCH int perchobject_anim_callback(Object* self, Object* animObj, AnimObj_Data* animObjData, s8 arg3) {
     Object* kyte;
     Object* player;
     PerchObject_Data* objData;

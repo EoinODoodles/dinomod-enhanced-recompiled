@@ -98,7 +98,7 @@ RECOMP_PATCH ObjDef *obj_load_objdef(s32 tabIdx) {
     fileOffset = gFile_OBJECTS_TAB[tabIdx];
     fileSize = gFile_OBJECTS_TAB[tabIdx + 1] - fileOffset;
 
-    def = (ObjDef*)mmAlloc(fileSize, ALLOC_TAG_OBJECTS_COL, NULL);
+    def = (ObjDef*)mmAlloc(fileSize, ALLOC_TAG_OBJECTS_COL, ALLOC_NAME("obj:def"));
     if (def != NULL) {
         read_file_region(OBJECTS_BIN, (void*)def, fileOffset, fileSize);
 

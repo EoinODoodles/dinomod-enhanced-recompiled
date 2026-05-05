@@ -243,7 +243,7 @@ RECOMP_PATCH void SCcollectables_setup(Object* self, Collectable_Setup* objsetup
 }
 
 RECOMP_PATCH void SCcollectables_control(Object* self) {
-    SCCollectables_Data* objData;
+    SCCollectables_Data* objdata;
     s32 hitSphereID;
     s32 hitDamage;
     Object* messageSender;
@@ -256,7 +256,7 @@ RECOMP_PATCH void SCcollectables_control(Object* self) {
     /* RECOMP */
     Collectable_Setup* objSetup;
 
-    objData = self->data;
+    objdata = self->data;
     
     self->unkAF |= ARROW_FLAG_8_No_Targetting;
 
@@ -270,18 +270,18 @@ RECOMP_PATCH void SCcollectables_control(Object* self) {
     }
 
     //Check if should fall from tree
-    if (objData->gamebitFall != NO_GAMEBIT && main_get_bits(objData->gamebitFall)) {
-        objData->fallFlags |= FLAG_Fall_Start;
+    if (objdata->gamebitFall != NO_GAMEBIT && main_get_bits(objdata->gamebitFall)) {
+        objdata->fallFlags |= FLAG_Fall_Start;
     }
     
     //Decrement interaction delay
-    objData->delayInteractionTimer -= gUpdateRate;
-    if (objData->delayInteractionTimer < 0) {
-        objData->delayInteractionTimer = 0;
+    objdata->delayInteractionTimer -= gUpdateRate;
+    if (objdata->delayInteractionTimer < 0) {
+        objdata->delayInteractionTimer = 0;
     }
     
     //Check for collection message (set gamebits and hide self)
-    if (objData->fallFlags & FLAG_Collected) {
+    if (objdata->fallFlags & FLAG_Collected) {
         while (obj_recv_mesg(self, &messageArg, &messageSender, 0)){
             if (messageArg == 0x7000B) {
                 SCcollectables_collect(self);
@@ -304,8 +304,8 @@ RECOMP_PATCH void SCcollectables_control(Object* self) {
         }
 
         //Check if collection gamebit was reset
-        if ((objData->gamebitCollected != NO_GAMEBIT) && 
-            (main_get_bits(objData->gamebitCollected) == FALSE)
+        if ((objdata->gamebitCollected != NO_GAMEBIT) && 
+            (main_get_bits(objdata->gamebitCollected) == FALSE)
         ) {
             self->unkDC = 0;
         }
@@ -313,14 +313,14 @@ RECOMP_PATCH void SCcollectables_control(Object* self) {
     }
     
     //Disable interaction until fall completed
-    if (objData->fallFlags & FLAG_Fall_Finished) {
+    if (objdata->fallFlags & FLAG_Fall_Finished) {
         self->unkAF &= ~ARROW_FLAG_8_No_Targetting;
     } else {
         self->unkAF |= ARROW_FLAG_8_No_Targetting;
     }
 
     //Handle falling/bouncing behaviour (Gold Nugget falling from tree)
-    if ((objData->fallFlags & FLAG_Fall_Start) && !(objData->fallFlags & FLAG_Fall_Finished)) {
+    if ((objdata->fallFlags & FLAG_Fall_Start) && !(objdata->fallFlags & FLAG_Fall_Finished)) {
         SCcollectables_handle_motion(self, 0);
     }
     
@@ -333,7 +333,7 @@ RECOMP_PATCH void SCcollectables_control(Object* self) {
     }
 
     //@recomp: grey out the arrow if it can't be collected yet
-    if (objData->delayInteractionTimer > 0) {
+    if (objdata->delayInteractionTimer > 0) {
         self->unkAF |= ARROW_FLAG_10_Greyed_Out;
     } else {
         self->unkAF &= ~ARROW_FLAG_10_Greyed_Out;
@@ -358,8 +358,8 @@ RECOMP_PATCH void SCcollectables_control(Object* self) {
         
         //Make sure the player is nearby
         distance = vec3_distance(&self->globalPosition, &player->globalPosition);
-        objData->distanceToPlayer = distance;
-        if (distance >= objData->interactionRadius) {
+        objdata->distanceToPlayer = distance;
+        if (distance >= objdata->interactionRadius) {
             return;
         }
 
@@ -378,30 +378,30 @@ RECOMP_PATCH void SCcollectables_control(Object* self) {
         );
 
         //@recomp: optionally show pop-up
-        SCcollectables_handle_popup(self, objSetup, objData);
+        SCcollectables_handle_popup(self, objSetup, objdata);
         
         //@recomp: track having been collected
-        objData->fallFlags |= FLAG_Collected;
+        objdata->fallFlags |= FLAG_Collected;
     }
 }
 
 RECOMP_PATCH void SCcollectables_collect(Object* self) {
-    SCCollectables_Data* objData = self->data;
-    Collectable_Setup* objSetup;
+    SCCollectables_Data* objdata = self->data;
+    Collectable_Setup* objsetup;
 
-    objSetup = (Collectable_Setup*)self->setup;
+    objsetup = (Collectable_Setup*)self->setup;
     if (!self->def->collectableDef) {
         return;
     }
     
     //Set collection gamebit (if it's in use)
-    if (objData->gamebitCollected != NO_GAMEBIT) {
-        main_set_bits(objData->gamebitCollected, 1);
+    if (objdata->gamebitCollected != NO_GAMEBIT) {
+        main_set_bits(objdata->gamebitCollected, 1);
     }
 
     //Increment counter gamebit (if it's in use)
-    if (objSetup->gamebitCount > 0) {
-        main_increment_bits(objSetup->gamebitCount);
+    if (objsetup->gamebitCount > 0) {
+        main_increment_bits(objsetup->gamebitCount);
     }
     
     //Hide self

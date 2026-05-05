@@ -28,7 +28,7 @@ typedef struct {
 // Removes a flag check which could prevent the "Scales Escapes with Kyte" sequence from playing 
 // just before you teleport away to SwapStone Circle (originally by MusicalProgrammer)
 RECOMP_PATCH void kyteCage_print(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** vtxs, Triangle** pols, s8 visibility) {
-    KyteCageState* state;
+    KyteCageState* objData;
     Object* kyte;
     u32 dYaw;
     ModelInstance* model;
@@ -50,12 +50,12 @@ RECOMP_PATCH void kyteCage_print(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** v
     draw_object(self, gfx, mtxs, vtxs, pols, 1.0f);
 
     //Using the end of the cage's joint chain to update Kyte's transformation based on the cage's animation?
-    state = self->data;
-    if (state != NULL) {
-        if (state->kyte != NULL) {
-            kyte = state->kyte;
+    objData = self->data;
+    if (objData != NULL) {
+        if (objData->kyte != NULL) {
+            kyte = objData->kyte;
             if (kyte->stateFlags & OBJSTATE_DESTROYED) {
-                state->kyte = NULL;
+                objData->kyte = NULL;
             }
             objDef = self->def;
             model = self->modelInsts[self->modelInstIdx];
@@ -82,7 +82,7 @@ RECOMP_PATCH void kyteCage_print(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** v
             }
 
             //Create a lightning strike from above (at a random angle)
-            if (state->createLightningU == 1) {
+            if (objData->createLightningU == 1) {
                 galleonTransform.roll = 0;
                 galleonTransform.pitch = 0;
                 galleonTransform.yaw = 0;
@@ -103,7 +103,7 @@ RECOMP_PATCH void kyteCage_print(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** v
                 vec3_transform(boneMatrix, boneTransform.transl.x, boneTransform.transl.y, boneTransform.transl.z, &boneTransform.transl.x, &boneTransform.transl.y, &boneTransform.transl.z);
                 if (self->parent) {
                     galleonTransform.yaw = self->parent->srt.yaw;
-                    rotate_vec3((SRT* ) &galleonTransform, (f32* ) &boneTransform.transl);
+                    rotate_vec3(&galleonTransform, boneTransform.transl.f);
                     boneTransform.transl.x += self->parent->srt.transl.x;
                     boneTransform.transl.y += self->parent->srt.transl.y;
                     boneTransform.transl.z += self->parent->srt.transl.z;
@@ -111,13 +111,13 @@ RECOMP_PATCH void kyteCage_print(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** v
                     boneTransform.transl.x += gWorldX;
                     boneTransform.transl.z += gWorldZ;
                 }
-                state->createLightning = 0;
+                objData->createLightning = 0;
                 dll = dll_load_deferred(0x200D, 1);
                 ((DLL_Unknown*)dll)->vtbl->func[0].withSevenArgs((s32)self, 0, (s32)&boneTransform, 1, -1, 0xD, 0);
                 dll_unload(dll);
 
             //Create a lightning trails across deck (at a random angle)
-            } else if (state->createLightningU == 2) {
+            } else if (objData->createLightningU == 2) {
                 galleonTransform.roll = 0;
                 galleonTransform.pitch = 0;
                 galleonTransform.yaw = 0;
@@ -139,7 +139,7 @@ RECOMP_PATCH void kyteCage_print(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** v
                 vec3_transform(boneMatrix, boneTransform.transl.x, boneTransform.transl.y, boneTransform.transl.z, &boneTransform.transl.x, &boneTransform.transl.y, &boneTransform.transl.z);
                 if (self->parent) {
                     galleonTransform.yaw = self->parent->srt.yaw;
-                    rotate_vec3((SRT* ) &galleonTransform, (f32* ) &boneTransform.transl);
+                    rotate_vec3(&galleonTransform, boneTransform.transl.f);
                     boneTransform.transl.x += self->parent->srt.transl.x;
                     boneTransform.transl.y += self->parent->srt.transl.y;
                     boneTransform.transl.z += self->parent->srt.transl.z;
@@ -147,7 +147,7 @@ RECOMP_PATCH void kyteCage_print(Object* self, Gfx** gfx, Mtx** mtxs, Vertex** v
                     boneTransform.transl.x += gWorldX;
                     boneTransform.transl.z += gWorldZ;
                 }
-                state->createLightning = 0;
+                objData->createLightning = 0;
                 dll = dll_load_deferred(0x200F, 1);
                 ((DLL_Unknown*)dll)->vtbl->func[0].withSevenArgs((s32)self, 0, (s32)&boneTransform, 1, -1, 0xF, 0);
                 dll_unload(dll);
