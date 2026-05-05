@@ -305,10 +305,17 @@ RECOMP_PATCH void DIMTent_print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** vt
                 self->srt.scale = 1;
             }
 
-            //Set opacity and draw
-            self->opacity = objData->outerOpacity;
+            //Set opacity
+            if (objData->outerOpacity && (objData->outerOpacity < OBJECT_OPACITY_MAX)) {
+                self->opacityWithFade = prevOpacity * (((f32)objData->outerOpacity) / 255.0f);
+            }
+
             draw_object(self, gdl, mtxs, vtxs, pols, 1.0f);
-            self->opacity = prevOpacity;
+
+            //Restore opacity after draw
+            if (self->opacityWithFade != prevOpacityWithFade) {
+                self->opacityWithFade = prevOpacityWithFade;
+            }
         }
     }
 }
