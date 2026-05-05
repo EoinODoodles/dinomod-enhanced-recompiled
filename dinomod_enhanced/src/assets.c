@@ -20,11 +20,12 @@
 #include "dlls/objects/common/collectable.h"
 
 INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
+// INCBIN(block338, "0338 0152.bin");
 
 INCBIN(tex0_kiosk_gold_key,             "tex0_kiosk_gold_key.bin");
 INCBIN(tex0_kiosk_silver_key,           "tex0_kiosk_silver_key_custom.bin");
 INCBIN(tex0_kiosk_firefly,              "tex0_kiosk_firefly_custom.bin");
-INCBIN(tex0_kiosk_replay_disk,          "tex0_kiosk_replay_disk_custom.bin");
+// INCBIN(tex0_kiosk_replay_disk,          "tex0_kiosk_replay_disk_custom.bin");
 INCBIN(tex0_custom_energy_egg,          "tex0_energy_egg_custom.bin");
 INCBIN(tex0_custom_energy_egg_moldy,    "tex0_energy_egg_moldy_custom.bin");
 INCBIN(tex0_kiosk_fox,                  "tex0_kiosk_fox_icon_custom.bin");
@@ -469,7 +470,8 @@ static void music_actions_patch(void) {
     action140->seqID = 66;
 }
 
-static void df_patches(void) {
+PRAGMA_IGNORE_PUSH("-Wunused")
+static void df_patches_shinx(void) {
     ReAssetID df = reasset_base_id(MAP_DISCOVERY_FALLS);
     ReAssetID dfTrkblk = reasset_base_id(11);
     
@@ -486,6 +488,16 @@ static void df_patches(void) {
     reasset_blocks_set(dfTrkblk, blockID, REASSET_BASE_NAMESPACE, blockData, blockDataSize);
     recomp_free(blockData);
 }
+PRAGMA_IGNORE_POP()
+
+PRAGMA_IGNORE_PUSH("-Wunused")
+static void df_modifications(void) {
+    ReAssetID discoveryFalls = reasset_base_id(MAP_DISCOVERY_FALLS);
+    ReAssetID dfTrkblk = reasset_base_id(11);
+
+    // reasset_blocks_set(dfTrkblk, reasset_base_id(338 - 319), REASSET_BASE_NAMESPACE, block338, block338_end - block338);
+}
+PRAGMA_IGNORE_POP()
 
 static void darkice_mines_modifications(void) {
     //Edit DIMTent's burnt model, adding draw modes for handling opacity
@@ -524,9 +536,11 @@ static void cmdmenu_icons_patch(void) {
     ReAssetID tex0_kiosk_gold_key_ID    = reasset_auto_id(dinomodNs);
     ReAssetID tex0_kiosk_silver_key_ID  = reasset_auto_id(dinomodNs);
     ReAssetID tex0_kiosk_firefly_ID     = reasset_auto_id(dinomodNs);
+    // ReAssetID tex0_kiosk_replay_disk_ID = reasset_auto_id(dinomodNs);
     reasset_textures_set(TEX_BANK_0, tex0_kiosk_gold_key_ID,    1, tex0_kiosk_gold_key,     tex0_kiosk_gold_key_end - tex0_kiosk_gold_key);
     reasset_textures_set(TEX_BANK_0, tex0_kiosk_silver_key_ID,  1, tex0_kiosk_silver_key,   tex0_kiosk_silver_key_end - tex0_kiosk_silver_key);
     reasset_textures_set(TEX_BANK_0, tex0_kiosk_firefly_ID,     1, tex0_kiosk_firefly,      tex0_kiosk_firefly_end - tex0_kiosk_firefly);
+    // reasset_textures_set(TEX_BANK_0, tex0_kiosk_replay_disk_ID, 1, tex0_kiosk_replay_disk,  tex0_kiosk_replay_disk_end - tex0_kiosk_replay_disk);
     
     ReAssetID tex0_energy_egg_ID = reasset_auto_id(dinomodNs);
     ReAssetID tex0_energy_egg_moldy_ID = reasset_auto_id(dinomodNs);
@@ -537,6 +551,7 @@ static void cmdmenu_icons_patch(void) {
     reasset_texture_table_set(reasset_base_id(TEXTABLE_25C_Kiosk_Gold_Key_Icon),    TEX_BANK_0, tex0_kiosk_gold_key_ID);
     reasset_texture_table_set(reasset_base_id(TEXTABLE_25D_Kiosk_Silver_Key_Icon),  TEX_BANK_0, tex0_kiosk_silver_key_ID);
     reasset_texture_table_set(reasset_base_id(TEXTABLE_25E_Kiosk_Firefly_Icon),     TEX_BANK_0, tex0_kiosk_firefly_ID);
+    // reasset_texture_table_set(reasset_base_id(TEXTABLE_25F_Kiosk_Replay_Disk_Icon), TEX_BANK_0, tex0_kiosk_replay_disk_ID);
     reasset_texture_table_set(reasset_base_id(TEXTABLE_260_Energy_Egg_Icon),        TEX_BANK_0, tex0_energy_egg_ID);
     reasset_texture_table_set(reasset_base_id(TEXTABLE_261_Energy_Egg_Moldy_Icon),  TEX_BANK_0, tex0_energy_egg_moldy_ID);
 
@@ -560,5 +575,6 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     // golden_plains_fuel_modifications();
     cc_lightfoot_patch();
     music_actions_patch();
-    df_patches();
+    // df_patches_shinx();
+    // df_modifications();
 }
