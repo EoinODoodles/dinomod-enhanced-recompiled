@@ -154,11 +154,11 @@ RECOMP_PATCH void DIMTent_control(Object* self) {
     if (objData->outerOpacity == 0) {
         //@recomp: stop sound loop
         if (objData->soundHandle != 0) {
-            gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandle);
+            gDLL_6_AMSFX->vtbl->stop(objData->soundHandle);
             objData->soundHandle = 0;
 
             //Play "whoosh" sound as snow evaporates
-            gDLL_6_AMSFX->vtbl->play_sound(self, 0x95B, 0x40, NULL, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(self, 0x95B, 0x40, NULL, NULL, 0, NULL);
         }
 
         //Fade out the inner tent
@@ -239,7 +239,7 @@ RECOMP_PATCH void DIMTent_control(Object* self) {
 
         //@recomp: Start burning sound loop
         if (objData->soundHandle == 0) {
-            gDLL_6_AMSFX->vtbl->play_sound(self, SOUND_50b_Fire_Burning_High_Loop, 0x60, &objData->soundHandle, NULL, 0, NULL);
+            gDLL_6_AMSFX->vtbl->play(self, SOUND_50b_Fire_Burning_High_Loop, 0x60, &objData->soundHandle, NULL, 0, NULL);
         }
 
         //Drop the bridge cog if this tent's index matches the random one picked by DIMLevelControl
@@ -427,7 +427,7 @@ RECOMP_PATCH void DIMTent_free(Object* self, s32 arg1) {
 
     //@recomp: stop sound loop
     if (objData->soundHandle != 0) {
-        gDLL_6_AMSFX->vtbl->func_A1C(objData->soundHandle);
+        gDLL_6_AMSFX->vtbl->stop(objData->soundHandle);
         objData->soundHandle = 0;
     }
 }
