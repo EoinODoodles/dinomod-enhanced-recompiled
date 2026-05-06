@@ -924,8 +924,8 @@ RECOMP_PATCH s32 dll_210_func_125BC(Object *self, ObjFSA_Data *fsa, f32 updateRa
         for (i = 0; i < 3; i++) {
             effectX = ((f32) rand_next(-50, 50) / 10.0f) + self->srt.transl.x;
             effectZ = ((f32) rand_next(-50, 50) / 10.0f) + self->srt.transl.z;
-            gDLL_24_Waterfx->vtbl->func_174C(effectX, temp_s3->waterY, effectZ, 4.0f);
-            gDLL_24_Waterfx->vtbl->func_1CC8(effectX, temp_s3->waterY, effectZ, 0, 0.0f, 3);
+            gDLL_24_Waterfx->vtbl->spawn_splash(effectX, temp_s3->waterY, effectZ, 4.0f);
+            gDLL_24_Waterfx->vtbl->spawn_circular_ripple(effectX, temp_s3->waterY, effectZ, 0, 0.0f, 3);
         }
     }
 
