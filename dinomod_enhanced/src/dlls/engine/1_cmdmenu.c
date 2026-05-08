@@ -56,6 +56,9 @@ static u8 rsShowActiveSideCommand = FALSE;      //Whether to show/hide the Activ
 
 #define INVENTORY_LERP_SPEED (1.0f/((f32)(MENU_HEIGHT_OPEN >> 2)))
 
+//Fixes a bug where the inventory strip doesn't draw the item/command icons in the top row of pixels (noticeable when scrolling)
+#define FIX_ICON_STRIP_PIXEL_ROW_ONE
+
 /* DECOMP CMDMENU MACROS */
 
 #define MAX_LOADED_ITEMS 64
@@ -2999,6 +3002,13 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0, -SCREEN_WIDTH * 4, 0);
     #endif
 
+    //@recomp: draw top of the scroll here instead (so icons draw on top of it)
+    #ifdef FIX_ICON_STRIP_PIXEL_ROW_ONE
+    if (dInventoryOpacity != 0) {
+        rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
+    }
+    #endif
+
     //Draw the inventory's vertical icon strip
     //(i.e. every part of the scroll except its top/bottom rolls)
     if (sDisplayedItemCount != 0) {
@@ -3023,7 +3033,11 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             sTempIcon->y = 0;
 
             //Calculate the screen Y-coord of the top of the tile strip
+            #ifdef FIX_ICON_STRIP_PIXEL_ROW_ONE
+            stripY = MENU_SCROLL_CENTRE_Y - (tileCount * (MENU_ITEM_HEIGHT/2)) - 1; //@recomp: move up by 1 pixel
+            #else
             stripY = MENU_SCROLL_CENTRE_Y - (tileCount * (MENU_ITEM_HEIGHT/2));
+            #endif
 
             sTempIcon[1].tex = NULL;
 
@@ -3179,11 +3193,21 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             cmdmenu_gfx_set_screen_scissor(gdl);
         }
 
-        //@recomp: draw top/bottom of the scroll here instead
+        #ifdef FIX_ICON_STRIP_PIXEL_ROW_ONE
+        //@recomp: draw bottom of the scroll here instead
+        if (dInventoryOpacity != 0) {
+            rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], 
+                MENU_SCROLL_X, 
+                MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY - 1, //@recomp: 1px higher
+                255, 255, 255, dInventoryOpacity);
+        }
+        #else
+        //@recomp: Draw top & bottom of the scroll here instead
         if (dInventoryOpacity != 0) {
             rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
             rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], MENU_SCROLL_X, MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY, 255, 255, 255, dInventoryOpacity);
         }
+        #endif
 
         //Get page icon (Bag/SpellBook/Kyte/Tricky)
         if (dInventoryShow || 
@@ -3270,6 +3294,28 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_NONE, 0, 0);
     #endif
 }
+
+#ifdef FIX_ICON_STRIP_PIXEL_ROW_ONE
+RECOMP_PATCH void cmdmenu_gfx_set_scroll_scissor(Gfx **gdl) {
+    if (track_func_80041E08()) {
+        //Widescreen aspect
+        gDPSetScissorFrac((*gdl)++, G_SC_NON_INTERLACE, 
+            qu102(314.75), 
+            qu102(48.25), //TODO: N64 widescreen fix
+            qu102(366.75), 
+            ((sInventoryUnrollY * 0.82f) + 48.38f + 2.0f) * 4.0f  //TODO: N64 widescreen fix
+        );
+    } else {
+        //Standard aspect
+        gDPSetScissor((*gdl)++, G_SC_NON_INTERLACE, 
+            MENU_ITEM_X, 
+            MENU_ITEM_Y - 1, //@recomp: move up by 1 pixel, to fix 1px row at top of strip where icons disappear
+            MENU_ITEM_X + MENU_ITEM_WIDTH, 
+            sInventoryUnrollY + MENU_ITEM_Y + 1 //@recomp: move up by 1 pixel
+        );
+    }
+}
+#endif
 
 /**
   * Let LockIcon appear over low-opacity Objects; allows CCFirecrystal to be collected. 
