@@ -186,7 +186,7 @@ name = "Item Pop-Up: More Uses"
 description = '''
 The game's UI has a feature where it can display an info pop-up in the bottom-left of screen upon collecting an item.
 
-In the unpatched December 2000 Prototype this pop-up only appears when collecting Kyte's Grubs. This mod option expands the pool of items to include the following items:
+In the unpatched December 2000 Prototype this pop-up only appears when collecting Kyte's Grubs. This mod option expands the pool to include the following items:
 
 - Energy Eggs
 - Alpine Roots
