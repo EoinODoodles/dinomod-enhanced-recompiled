@@ -1,6 +1,7 @@
 /* Helper functions for animations */
 
 #include "anim_util.h"
+#include "macros.h"
 #include "recomputils.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
@@ -46,7 +47,9 @@ int object_modanim_debugger(Object* obj) {
     //Get button presses/holds/releases 
     //(TODO: move to a controller util function, or use core funcs if there's a quick way to get unmasked releases/holds?)
     u16 pressedButtons = 0;
+    PRAGMA_IGNORE_PUSH("-Wunused")
     u16 releasedButtons = 0;
+    PRAGMA_IGNORE_POP()
     u16 heldButtons = 0;
     {
         static u16 prevButtons;
