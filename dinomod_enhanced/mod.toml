@@ -444,6 +444,49 @@ percent = true
 default = 10
 
 [[manifest.config_options]]
+id = "shkillermushroom_show_hidden_states"
+name = "Red Mushroom: Use Hidden States"
+description = '''
+Red Mushrooms (the spore-spraying kind found underneath SwapStone Hollow) have a number of inaccessible behaviour states:
+
+- Dying Intro (spraying spores)
+- Dying Outro (toppling over and eventually regrowing)
+- Angry 1 (recoiling and hopping in place)
+- Angry 2 (faster version of Angry 1)
+
+This mod option connects up the unused states, allowing them to be seen! Mushrooms will enter their angry state when recovering from being stunned, and they will die after being struck 3 times.
+
+The exact way these states might have been accessed is unknown, so the way they've been connected up is somewhat speculative. The dying states are essentially unedited, though!
+
+(NOTE: Modders can make use of the mushrooms' hidden states regardless of this config option by giving the mushroom's "SHkillermushroom_Setup_Modified" a nonzero health value.)
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "shrocketmushroom_purple"
+name = "Purple Mushroom: Replace Plants"
+description = '''
+SwapStone Hollow is home to many spore-launching plants that explode at the slightest provocation. A curious thing about these plants is there's a lot of evidence they used to be Purple Mushrooms earlier in development:
+
+- The inventory icon for the spores is a purple mushroom, just like the item description and Queen EarthWalker's dialogue.
+
+- They're called "SHrocketmushroom" internally, and their DLL is indexed just after "SHkillermushroom" (the Red Mushrooms).
+
+- When they explode, their debris is called "SHmushroombit" internally. Piecing the debris' model fragments back together, they form the cap of a Purple Mushroom!
+
+- All the textures for a Purple Mushroom are still in the game, stored amidst the rest of the mushroom textures.
+
+- Red Mushrooms' animation list contains two animations that aren't referenced by its State Machine but seem like they might be intended for a different kind of mushroom. They animate a mushroom squashing into the ground and rocketing away upwards!
+
+Making use of all those details, this config option adds a recreation of what the Purple Mushrooms might've looked like. When enabling it, the plants will be replaced by Purple Mushrooms! Their model could be recreated with a high degree of accuracy, since the textures were still there and nearly all of the original vertex colours could be recovered from the "SHmushroombit" fragments.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "Off"
+
+[[manifest.config_options]]
 id = "dim_tent_cinders"
 name = "DIM Tents: Show Cinders"
 description = '''
@@ -459,7 +502,6 @@ This config lets you see the model, with a few different options:
 
 - On (Persist)
   The tents leave behind their charred frame, which can still be seen when revisiting the area.
--
 '''
 type = "Enum"
 options = [ "Off", "On (Fade-Out)", "On (Persist)" ]

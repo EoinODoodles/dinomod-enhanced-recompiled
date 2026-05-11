@@ -31,8 +31,12 @@ INCBIN(tex0_custom_energy_egg_moldy,    "tex0_energy_egg_moldy_custom.bin");
 INCBIN(tex0_kiosk_fox,                  "tex0_kiosk_fox_icon_custom.bin");
 
 INCBIN(models_dimtent_burnt, "models_0886_DIMtent_burnt_opacity.bin");
-
 INCBIN(objects_dimtent, "objects_0320 0140 DIMTent.bin");
+
+INCBIN(models_purple_mushroom,  "models_purple_mushroom_recreation.bin");
+INCBIN(modanim_purple_mushroom, "modanim_purple_mushroom_recreation.bin");
+INCBIN(amap_purple_mushroom,    "amap_purple_mushroom_recreation.bin");
+INCBIN(objects_purple_mushroom, "objects_0571 023B SHrocketmushroo.bin");
 
 #define INCFST(fileID, filename, ext) \
     INCBIN(fst_assets_##filename##_##ext, "assets/" #filename "."#ext); \
@@ -513,12 +517,6 @@ static void darkice_mines_modifications(void) {
     }
 }
 
-REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
-    walled_city_additions();
-    warlock_mountain_platform_additions();
-    //golden_plains_fuel_additions();
-}
-
 /** 
   * Adds new HUD textures into tex0/textable:
   * - Leftover kiosk icons for DIM's Gold Key (unedited) and Silver Key (adapted for N64) 
@@ -558,10 +556,34 @@ static void cmdmenu_icons_patch(void) {
     reasset_texture_table_set(reasset_base_id(TEXTABLE_266_Kiosk_Fox_Icon),         TEX_BANK_0, tex0_kiosk_fox_ID);
 }
 
+/* Adds a reconstructed Purple Mushroom model, and appends it to the `SHrocketmushroom` Object's model list. */
+static void purple_mushroom_patch(void) {
+    //Add new model for Purple Mushroom (recreated by using the leftover Purple Mushroom textures, and copying the vertex colours from "SHmushroombit"'s model pieces)
+    {
+        ReAssetID models_purple_mushroom_ID = reasset_base_id(0x24B); //TODO: append to Models instead of replacing this
+        reasset_models_set(models_purple_mushroom_ID, REASSET_BASE_NAMESPACE, models_purple_mushroom, models_purple_mushroom_end - models_purple_mushroom);
+        reasset_models_set_modanims(models_purple_mushroom_ID, modanim_purple_mushroom, modanim_purple_mushroom_end - modanim_purple_mushroom);
+        reasset_models_set_amap(models_purple_mushroom_ID, amap_purple_mushroom, amap_purple_mushroom_end - amap_purple_mushroom);
+    }
+
+    //Reference the Purple Mushroom model in the `SHrocketmushroom` Object, so it can optionally be shown
+    {
+        ReAssetID objects_purple_mushroom_ID = reasset_base_id(571); //OBJ_SHrocketmushroom
+        reasset_objects_set(objects_purple_mushroom_ID, REASSET_BASE_NAMESPACE, objects_purple_mushroom, objects_purple_mushroom_end - objects_purple_mushroom);
+    }
+}
+
+REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
+    walled_city_additions();
+    warlock_mountain_platform_additions();
+    //golden_plains_fuel_additions();
+}
+
 REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     music_actions_patch();
     collectables_animobj_patch();
     cmdmenu_icons_patch();
+    purple_mushroom_patch();
 
     shrine_fxemit_modifications();
     warlock_mountain_platform_modifications();
