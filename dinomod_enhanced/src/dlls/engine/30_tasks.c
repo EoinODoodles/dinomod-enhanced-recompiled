@@ -19,7 +19,8 @@ extern s8 sRecentlyCompletedNextIdx;
 static s8 firstZero = -1;
 static s8 nextNonzero = -1;
 static s8 taskHistory[5] = {0,0,0,0,0};
-static s8 DEBUG = FALSE;
+
+// #define DEBUG_TASK_HISTORY
 
 /** Finds the index of the first zero in the task history (or -1 if none found), and the index of the first nonzero item after that zero (or -1 if none found) */
 static void get_first_zero_and_next_nonzero(s8 taskHistory[], s8* firstZero, s8 *nextNonzero){
@@ -82,11 +83,8 @@ static void cleanup_task_history(){
 }
 
 /** Prints the task history throughout gameplay */
-// TODO: ifdef DEBUG
+#ifdef DEBUG_TASK_HISTORY
 RECOMP_CALLBACK("*", recomp_on_game_tick_start) void printTaskHistory() {
-    if (!DEBUG)
-        return;
-
     diPrintf("Task history: [%-3d, %-3d, %-3d, %-3d, %-3d] (%d)\n", 
         main_get_bits(BIT_Recent_Task_1 + 0), 
         main_get_bits(BIT_Recent_Task_1 + 1), 
@@ -98,6 +96,7 @@ RECOMP_CALLBACK("*", recomp_on_game_tick_start) void printTaskHistory() {
     diPrintf("First zero: %d\nNext nonzero: %d\n", firstZero, nextNonzero);
     diPrintf("Last occupied index: %d\n", sRecentlyCompletedNextIdx);
 }
+#endif
 
 /** Patches the "Previously on Dinosaur Planet" screen to show your 3 most recent tasks (instead of the oldest 3 of the 5 in the task history) */
 RECOMP_PATCH void task_load_recently_completed(void) {
