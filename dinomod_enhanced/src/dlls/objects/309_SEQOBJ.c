@@ -9,6 +9,7 @@
 #include "dll_util.h"
 
 #include "game/objects/object_id.h"
+#include "sys/gfx/animseq.h"
 #include "sys/dll.h"
 #include "sys/main.h"
 #include "sys/map.h"
@@ -16,8 +17,6 @@
 #include "sys/objects.h"
 #include "sys/objtype.h"
 #include "sys/print.h"
-
-#include "dlls/objects/214_animobj.h"
 
 #include "recomp/dlls/objects/309_SEQOBJ_recomp.h"
 
@@ -69,7 +68,7 @@ RECOMP_PATCH void SeqObj_setup(Object* self, SeqObj_Setup* objSetup, s32 arg2) {
 
         originalSeqID = self->def->pSeq[0];
         self->def->pSeq[0] = 0x44A;
-        gDLL_3_Animation->vtbl->func17(0, self, -1);
+        gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
 
         self->def->pSeq[0] = originalSeqID;
         return;

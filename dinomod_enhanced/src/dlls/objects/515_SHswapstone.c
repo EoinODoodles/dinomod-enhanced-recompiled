@@ -41,8 +41,8 @@ extern u16 sSwapStoneWarps[2];
 extern int SHswapstone_anim_callback(Object* self, Object* overrideObj, AnimObj_Data* animData, s8 a3);
 extern s32 SHswapstone_get_held_spirit(void);
 extern s32 SHswapstone_has_spellstone(void);
-extern void SHswapstone_restore_gameplay_menu(Object* self, s32 arg1, s32 arg2);
-extern s32 SHswapstone_is_stick_direction_available(Object* self, s32 arg1, s32 arg2);
+extern void SHswapstone_restore_gameplay_menu(Object* self, Object *override, AnimObj_Data* animData);
+extern s32 SHswapstone_is_stick_direction_available(Object* self, Object *override, s32 cond);
 
 /** Make sure Rubble loads in SwapStone Circle (rather than Rocky) */
 RECOMP_PATCH void SHswapstone_setup(Object* self, SHswapstone_Setup* setup, s32 arg2) {
@@ -109,8 +109,8 @@ RECOMP_PATCH int SHswapstone_anim_callback(Object* self, Object* overrideObj, An
         menu_set(MENU_SELECTION);
     }
 
-    animData->unkF8 = (AnimObj_DataF8Callback)SHswapstone_is_stick_direction_available;
-    animData->unkF4 = (AnimObj_DataF4Callback)SHswapstone_restore_gameplay_menu;
+    animData->decisionCallback = SHswapstone_is_stick_direction_available;
+    animData->unkF4 = SHswapstone_restore_gameplay_menu;
 
     if (animData->unk62 != 0) {
         objdata->flags &= ~(SWAPSTONE_PLAYER_HAS_SPIRIT | SWAPSTONE_PLAYER_HAS_SPELLSTONE);
@@ -126,8 +126,8 @@ RECOMP_PATCH int SHswapstone_anim_callback(Object* self, Object* overrideObj, An
         }
     }
 
-    for (i = 0; i < animData->unk98; i++) {
-        switch (animData->unk8E[i]) {
+    for (i = 0; i < animData->messageCount; i++) {
+        switch (animData->messages[i]) {
         case 3:
             objdata->attachIdx = 0;
             break;
@@ -203,7 +203,7 @@ RECOMP_PATCH int SHswapstone_anim_callback(Object* self, Object* overrideObj, An
         case (SELECT_SCREEN(SelectionMenu_STATE_2_Confirm_Right)):
         case (SELECT_SCREEN(SelectionMenu_STATE_3_Confirm_Left)):
             if (menu_get_current() == MENU_SELECTION) {
-                ((DLL_Menu16*)menu_get_active_dll())->vtbl->set_selection_state(animData->unk8E[i] - CMD_BASE_SELECTION);
+                ((DLL_Menu16*)menu_get_active_dll())->vtbl->set_selection_state(animData->messages[i] - CMD_BASE_SELECTION);
             }
             break;
         default:

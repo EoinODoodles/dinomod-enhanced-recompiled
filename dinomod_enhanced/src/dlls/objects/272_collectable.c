@@ -619,7 +619,7 @@ RECOMP_PATCH void collectable_control(Object* self) {
         }
 
         if (main_get_bits(BIT_Tutorial_Collected_Energy_Egg) == 0) {
-            gDLL_3_Animation->vtbl->func30(collectableDef->seqObjectID, 0, 0);
+            gDLL_3_Animation->vtbl->set_variable_obj(collectableDef->seqObjectID, 0, 0);
             outMessage = 0;
             obj_send_mesg(
                 player, 
@@ -652,7 +652,7 @@ RECOMP_PATCH void collectable_control(Object* self) {
         //@recomp: Set an animObjID if the item collection sequence should play
         if (collectable_will_tutorial_be_shown(self, objSetup) && (collectableDef->seqObjectID > 0)) {
             //TODO: make sure all relevant items have an appropriate animObjectID
-            gDLL_3_Animation->vtbl->func30(collectableDef->seqObjectID, 0, 0);
+            gDLL_3_Animation->vtbl->set_variable_obj(collectableDef->seqObjectID, 0, 0);
         }
 
         //Have the player scoop up the item, and play a tutorial cutscene if needed

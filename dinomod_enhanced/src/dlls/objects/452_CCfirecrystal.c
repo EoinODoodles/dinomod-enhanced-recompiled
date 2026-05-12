@@ -6,10 +6,10 @@
 #include "game/objects/interaction_arrow.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
+#include "sys/gfx/animseq.h"
 #include "sys/main.h"
 #include "sys/objlib.h"
 #include "sys/objmsg.h"
-#include "dlls/objects/214_animobj.h"
 #include "dlls/objects/338_LFXEmitter.h"
 #include "dlls/objects/453_CCfirecrystalin.h"
 
@@ -148,7 +148,7 @@ RECOMP_PATCH void CCfirecrystal_control(Object* self) {
 
         // @recomp: Render Fire Crystal approximation (Golden nugget) when picking it up (original patch by MusicalProgrammer)
         if (fire_crystal_will_tutorial_be_shown()) {
-            gDLL_3_Animation->vtbl->func30(GAMEBIT_TUTORIAL_ANIMOBJ, NULL, 0);
+            gDLL_3_Animation->vtbl->set_variable_obj(GAMEBIT_TUTORIAL_ANIMOBJ, NULL, 0);
         }
 
         //Have the player scoop up the item, and play a tutorial cutscene if needed

@@ -76,15 +76,15 @@ RECOMP_PATCH void CCkrazoabright_handle_lever_puzzle_2(Object* self, CCkrazoabri
             
             //Check if all points of the Krazoa symbol are lit
             if (index == 6) {
-                // gDLL_3_Animation->vtbl->func17(5, self, -1);
-                gDLL_3_Animation->vtbl->func17(4, self, -1); //@recomp: change sequence index
+                // gDLL_3_Animation->vtbl->start_obj_sequence(5, self, -1);
+                gDLL_3_Animation->vtbl->start_obj_sequence(4, self, -1); //@recomp: change sequence index
                 objData->state = STATE_Finished;
                 objData->timer = 0.0f;
                 for (index = 0; index < 6; index++) { objData->pointsLit[index] = 0; }
                 return;
             }
 
-            gDLL_3_Animation->vtbl->func17(2, self, -1);
+            gDLL_3_Animation->vtbl->start_obj_sequence(2, self, -1);
             objData->timer = 0.0f;
         }
     }

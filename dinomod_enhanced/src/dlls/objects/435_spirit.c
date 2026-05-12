@@ -8,10 +8,6 @@
 #include "recomp/dlls/objects/435_KrazoaSpirit_recomp.h"
 
 typedef struct {
-    AnimObj_Setup base;
-} Spirit_Setup;
-
-typedef struct {
     AnimObj_Data base;
     /** RECOMP EXTENDED */
     TextureAnimator* animTexture;
@@ -21,29 +17,29 @@ typedef struct {
 extern DLL_Unknown* data_modGfx;
 
 /** Getting the texture animator so it can be used in the control function */
-RECOMP_PATCH void Spirit_setup(Object* self, Spirit_Setup* objSetup, s32 arg2) {
+RECOMP_PATCH void Spirit_setup(Object* self, AnimObj_Setup* objSetup, s32 arg2) {
     Spirit_Data* objData;
     s32 temp_v0;
     s16 id;
 
     objData = self->data;
     
-    objData->base.unk76 = objSetup->base.unk1A;
+    objData->base.eventGamebit = objSetup->unk1A;
     objData->base.unk7A = -1;
-    objData->base.unk24 = 1.0f / ((u8)objSetup->base.unk24 + 1.0f);
+    objData->base.unk24 = 1.0f / ((u8)objSetup->unk24 + 1.0f);
     objData->base.unk28 = -1;
     
     temp_v0 = self->unkDC;
     
-    if ((temp_v0 == 0) && (objSetup->base.sequenceIdBitfield != 1)) {
-        gDLL_3_Animation->vtbl->func6(objData, objSetup);
-        self->unkDC = objSetup->base.sequenceIdBitfield + 1;
-    } else if (temp_v0 && (temp_v0 != objSetup->base.sequenceIdBitfield + 1)) {
-        gDLL_3_Animation->vtbl->func8(objData);
-        if (objSetup->base.sequenceIdBitfield != -1) {
-            gDLL_3_Animation->vtbl->func6(objData, objSetup);
+    if ((temp_v0 == 0) && (objSetup->sequenceIdBitfield != 1)) {
+        gDLL_3_Animation->vtbl->func6(&objData->base, objSetup);
+        self->unkDC = objSetup->sequenceIdBitfield + 1;
+    } else if (temp_v0 && (temp_v0 != objSetup->sequenceIdBitfield + 1)) {
+        gDLL_3_Animation->vtbl->func8(&objData->base);
+        if (objSetup->sequenceIdBitfield != -1) {
+            gDLL_3_Animation->vtbl->func6(&objData->base, objSetup);
         }
-        self->unkDC = objSetup->base.sequenceIdBitfield + 1;
+        self->unkDC = objSetup->sequenceIdBitfield + 1;
     }
     
     id = self->id;

@@ -76,8 +76,8 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
     animData->unk7A = -1;
     animData->unk62 = 0;
 
-    for (i = 0; i < animData->unk98; i++) {
-        if (animData->unk8E[i] == 1U) {
+    for (i = 0; i < animData->messageCount; i++) {
+        if (animData->messages[i] == 1U) {
             objData->testActive = TRUE;
         }
     }
@@ -131,7 +131,7 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
         
         //Handle losing (time running out)
         if (objData->timeLeft <= 0) {
-            gDLL_3_Animation->vtbl->func18(objData->pushSeq);
+            gDLL_3_Animation->vtbl->end_obj_sequence(objData->pushSeq);
             func_8000FA2C();
 
             //@recomp: fix a bug where it doesn't reset the test properly
@@ -201,7 +201,7 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
         //Handle winning
         if (objData->yaw > YAW_WIN) {
             objData->yaw = YAW_WIN;
-            gDLL_3_Animation->vtbl->func18(objData->pushSeq);
+            gDLL_3_Animation->vtbl->end_obj_sequence(objData->pushSeq);
             func_8000FA2C();
             objData->magicFxTimer = 10;
             objData->delayTimer = 20;

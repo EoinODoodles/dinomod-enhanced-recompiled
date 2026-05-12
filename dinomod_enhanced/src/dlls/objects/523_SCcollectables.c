@@ -365,7 +365,7 @@ RECOMP_PATCH void SCcollectables_control(Object* self) {
 
         //@recomp: Set an animObjID if the item collection sequence should play
         if (SCcollectables_will_tutorial_be_shown(self, objSetup) && (collectableDef->seqObjectID > 0)) {
-            gDLL_3_Animation->vtbl->func30(collectableDef->seqObjectID, 0, 0);
+            gDLL_3_Animation->vtbl->set_variable_obj(collectableDef->seqObjectID, 0, 0);
         }
 
         //Have the player scoop up the item, and play a tutorial cutscene if needed

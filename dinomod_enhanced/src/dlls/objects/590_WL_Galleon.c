@@ -118,7 +118,7 @@ RECOMP_PATCH void WLgalleon_control(Object* self) {
         self->srt.transl.y = objData->translate.y;
         self->srt.transl.z = objData->translate.z;
         self->srt.yaw = objData->yaw;
-        gDLL_3_Animation->vtbl->func17(0, self, -1);
+        gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
         self->unkE0 = 2;
     }
 }

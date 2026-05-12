@@ -15,13 +15,13 @@
 #include "sys/objlib.h"
 #include "sys/segment_53F00.h"
 #include "sys/gfx/model.h"
+#include "sys/gfx/animseq.h"
 #include "dll.h"
 
 #include "dlls/objects/common/vehicle.h"
 #include "dlls/objects/common/group48.h"
 #include "dlls/objects/common/foodbag.h"
 #include "dlls/objects/210_player.h"
-#include "dlls/objects/214_animobj.h"
 #include "dlls/objects/277_iceblast.h"
 
 #include "recomp/dlls/objects/210_player_recomp.h"
@@ -1507,7 +1507,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                 if ((var_v0 < 0x100) && (var_v0 >= -0xFF)) {
                     arg2->unk7A = arg2->unk7C;
                     arg2->unk62 = 0;
-                    arg2->animCurvesCurrentFrameB = arg2->animCurvesCurrentFrameA - 1;
+                    arg2->prevTime = arg2->time - 1;
                     arg0->curModAnimIdLayered = -1;
                     spC8 = 0;
                 } else {
@@ -1552,8 +1552,8 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
         objdata->unk0.unk4.mode = 0;
         objdata->unk0.xAnalogInput = 0.0f;
         objdata->unk0.yAnalogInput = 0.0f;
-        for (var_s1 = 0; var_s1 < arg2->unk98; var_s1++) {
-            switch (arg2->unk8E[var_s1]) {
+        for (var_s1 = 0; var_s1 < arg2->messageCount; var_s1++) {
+            switch (arg2->messages[var_s1]) {
             case 3:
                 objects = obj_get_all_of_type(0xB, &spC0);
                 // @recomp: Choose closest vehicle when multiple are in the scene
@@ -1608,7 +1608,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                 break;
             case 2:
                 gDLL_2_Camera->vtbl->change_mode(0, 1);
-                gDLL_3_Animation->vtbl->func19(0x54, 4, 0, 0);
+                gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAMNORMAL, 4, 0, 0);
                 vehicle = objdata->vehicle;
                 if (vehicle != NULL) {
                     ((DLL_IVehicle*)vehicle->dll)->vtbl->func14(vehicle, 0);
@@ -1623,7 +1623,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                 break;
             case 4:
                 vehicle = objdata->vehicle;
-                gDLL_3_Animation->vtbl->func19(0x57, 0, 0, 0);
+                gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAMSLIDE, 0, 0, 0);
                 objdata->unk76C = NULL;
                 if ((vehicle != NULL) && (vehicle->id == OBJ_BWLog)) {
                     gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, PLAYER_ASTATE_Vehicle_Getting_On);
@@ -1635,16 +1635,16 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                 vehicle = objdata->vehicle;
                 if ((vehicle != NULL) && (vehicle->id == OBJ_DR_EarthWarrior)) {
                     gDLL_2_Camera->vtbl->change_mode(0, 0x69);
-                    gDLL_3_Animation->vtbl->func19(0x54, 4, 0, 0);
+                    gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAMNORMAL, 4, 0, 0);
                 } else if ((vehicle != NULL) && (vehicle->id == OBJ_DR_CloudRunner)) {
-                    gDLL_3_Animation->vtbl->func19(0x65, 0, 0, 0);
+                    gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAMDRAKOR, 0, 0, 0);
                 } else {
                     gDLL_2_Camera->vtbl->change_mode(0, 0x1D);
-                    gDLL_3_Animation->vtbl->func19(0x54, 4, 0, 0);
+                    gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAMNORMAL, 4, 0, 0);
                 }
                 break;
             case 6:
-                gDLL_3_Animation->vtbl->func19(0x56, 0, 0, 0);
+                gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAM1STPERSON, 0, 0, 0);
                 gDLL_18_objfsa->vtbl->set_anim_state(arg0, &objdata->unk0, PLAYER_ASTATE_35);
                 break;
             case 7:
@@ -1669,9 +1669,9 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                 arg0->unkC4 = NULL;
                 break;
             case 13:
-                gDLL_3_Animation->vtbl->func30(arg0->unkC4->id, arg0->unkC4, 0);
+                gDLL_3_Animation->vtbl->set_variable_obj(arg0->unkC4->id, arg0->unkC4, 0);
                 dll_210_func_1DB6C(arg0->unkC4, 29.0f);
-                gDLL_3_Animation->vtbl->func17(arg0->unkDC, arg0, -1);
+                gDLL_3_Animation->vtbl->start_obj_sequence(arg0->unkDC, arg0, -1);
                 break;
             case 14:
                 if (*_data_14 == 1) {
@@ -1733,14 +1733,14 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
 
         if (objdata->unk708 != NULL) {
             if (objdata->unk708->def->unkAA >= 0) {
-                if (arg2->unk8D == 0x1A) {
+                if (arg2->lastMessage == 0x1A) {
                     gDLL_1_cmdmenu->vtbl->open_tutorial_textbox(objdata->unk708->def->unkAA, 160, 140);
                 }
             } else {
                 gDLL_1_cmdmenu->vtbl->auto_show_info_scroll(objdata->unk708->def->gametextIndex[0], 160, 140);
             }
-            if (arg2->unk8D == 1) {
-                gDLL_3_Animation->vtbl->func19(0x54, 3, 0, 0);
+            if (arg2->lastMessage == 1) {
+                gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAMNORMAL, 3, 0, 0);
                 obj_send_mesg(objdata->unk708, 0x7000B, arg0, NULL);
                 objdata->unk708 = NULL;
             }

@@ -154,7 +154,7 @@ static void skip_galleon_fight(Object* self) {
         gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 3, 1);
     }
 
-    gDLL_3_Animation->vtbl->func17(0, self, -1);
+    gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
     gDLL_30_Task->vtbl->mark_task_completed(1);
 
     galleon_delete_cannons();

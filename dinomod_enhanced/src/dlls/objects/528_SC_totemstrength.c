@@ -112,8 +112,8 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
     main_set_bits(BIT_SCTotemStrength_Inactive, 0);
     
     //Handle sequence commands
-    for (i = 0; i < animData->unk98; i++) {
-        switch (animData->unk8E[i]) {
+    for (i = 0; i < animData->messageCount; i++) {
+        switch (animData->messages[i]) {
         case SCTotemStrength_SEQCMD_1_Enable_Pushing:
             objData->flags |= SCTotemStrength_FLAG_Pushing_Enabled;
             break;
@@ -131,7 +131,7 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
             
             func_80023D30(player, 0x401, 0.0f, 0);
             func_80023D30(objData->lightFoot, 0, 1.0f, 0);
-            gDLL_3_Animation->vtbl->func19(0x5A, 3, 0, 0);
+            gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAMLOCKON, 3, 0, 0);
             break;
         case SCTotemStrength_SEQCMD_3_Set_Level_State_3:
             STUBBED_PRINTF("Enable music change\n");
@@ -261,7 +261,7 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
             sPrevYaw = YAW_NEUTRAL;
             objData->state = SCTotemStrength_STATE_Won;
             func_80023D30(player, 0, 0.0f, 0);
-            gDLL_3_Animation->vtbl->func18(objData->pushSeq);
+            gDLL_3_Animation->vtbl->end_obj_sequence(objData->pushSeq);
             return 4;
         }
     
@@ -273,7 +273,7 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
             sPrevYaw = YAW_NEUTRAL;
             objData->state = SCTotemStrength_STATE_Lost;
             func_80023D30(player, 0, 0.0f, 0);
-            gDLL_3_Animation->vtbl->func18(objData->pushSeq);
+            gDLL_3_Animation->vtbl->end_obj_sequence(objData->pushSeq);
             return 4;
         }
         

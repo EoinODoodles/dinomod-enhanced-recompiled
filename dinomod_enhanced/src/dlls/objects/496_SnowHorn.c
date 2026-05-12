@@ -3,8 +3,8 @@
 #include "recompconfig.h"
 
 #include "common.h"
+#include "sys/gfx/animseq.h"
 #include "sys/objtype.h"
-#include "dlls/objects/214_animobj.h"
 #include "dlls/objects/227_tumbleweed.h"
 
 #include "recomp/dlls/objects/496_snowhorn_recomp.h"
@@ -104,7 +104,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
             break;
         case 1:
             if (func_80032538(self)) {
-                gDLL_3_Animation->vtbl->func17(0, self, -1);
+                gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
                 objdata->flags = 2;
                 main_set_bits(BIT_Garunda_Te_Quest_Progress, objdata->flags);
             }
@@ -112,7 +112,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
         case 2:
             //Eating FrostWeeds
             if (func_80032538(self)) {
-                gDLL_3_Animation->vtbl->func17(1, self, -1);
+                gDLL_3_Animation->vtbl->start_obj_sequence(1, self, -1);
             }
             
             frostWeed = obj_get_nearest_type_to(OBJTYPE_4, self, 0);
@@ -159,9 +159,9 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
         case 5:
             if (func_80032538(self)) {
                 if (objdata->unk425 % 2) {
-                    gDLL_3_Animation->vtbl->func17(3, self, -1);
+                    gDLL_3_Animation->vtbl->start_obj_sequence(3, self, -1);
                 } else {
-                    gDLL_3_Animation->vtbl->func17(2, self, -1);
+                    gDLL_3_Animation->vtbl->start_obj_sequence(2, self, -1);
                 }
                 objdata->unk425 += 1;
             }
@@ -169,7 +169,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
         case 6:
             //SpellStone activation
             if (func_80032538(self)) {
-                gDLL_3_Animation->vtbl->func17(4, self, -1);
+                gDLL_3_Animation->vtbl->start_obj_sequence(4, self, -1);
             } else if (gDLL_1_cmdmenu->vtbl->was_this_item_used(BIT_SpellStone_DIM)) {
                 main_set_bits(BIT_SpellStone_DIM_Activated, 1);
                 objdata->flags = 7;

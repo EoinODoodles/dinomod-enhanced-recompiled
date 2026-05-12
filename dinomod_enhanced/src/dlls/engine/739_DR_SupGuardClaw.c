@@ -70,8 +70,8 @@ RECOMP_PATCH int dll_739_func_7B4(Object* self, Object*arg1, AnimObj_Data* animD
     func_80028D2C(self);
 
     //GuardClaw sequence subevents
-    for (i = 0; i < animData->unk98; i++) {
-        if ((animData->unk8E[i] == 1) && (objSetup->characterType != DR_NPC_SharpClaw)) {
+    for (i = 0; i < animData->messageCount; i++) {
+        if ((animData->messages[i] == 1) && (objSetup->characterType != DR_NPC_SharpClaw)) {
             obj_free_tick(self);
             func_800267A4(self);
             self->srt.flags |= OBJFLAG_INVISIBLE;
@@ -95,7 +95,7 @@ RECOMP_PATCH int dll_739_func_7B4(Object* self, Object*arg1, AnimObj_Data* animD
             // main_set_bits(objSetup->gamebitFinished, 1);
             // STUBBED_PRINTF(" \n Have Set Bit %i \n", objSetup->gamebitFinished);
 
-            gDLL_3_Animation->vtbl->func18(self->unkB4);
+            gDLL_3_Animation->vtbl->end_obj_sequence(self->seqSlot);
             return 0;
         } else {
             STUBBED_PRINTF(" FoodType %i ", foodGamebit);

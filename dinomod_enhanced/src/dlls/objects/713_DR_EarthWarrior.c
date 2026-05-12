@@ -2,9 +2,9 @@
 
 #include "common.h"
 #include "game/gametexts.h"
+#include "sys/gfx/animseq.h"
 #include "sys/objanim.h"
 #include "sys/segment_1050.h"
-#include "dlls/objects/214_animobj.h"
 
 #include "recomp/dlls/objects/713_DR_EarthWarrior_recomp.h"
 

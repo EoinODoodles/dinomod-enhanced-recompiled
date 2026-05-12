@@ -711,7 +711,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 
 		//Set item collection sequence animObjID (@recomp: ensures White Mushroom sets animObjID)
 		if ((tutorialSeen == FALSE) && (objData->tutorialObjectID >= 0)) {
-			gDLL_3_Animation->vtbl->func30(objData->tutorialObjectID, NULL, 0);
+			gDLL_3_Animation->vtbl->set_variable_obj(objData->tutorialObjectID, NULL, 0);
 		}
 
 		//Send message to player, collecting and displaying Blue Mushroom's tutorial box

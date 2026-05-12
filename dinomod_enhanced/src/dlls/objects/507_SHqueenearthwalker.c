@@ -105,7 +105,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
     case 2:
         if (self->unkAF & 1) {
             joy_set_button_mask(0, A_BUTTON);
-            gDLL_3_Animation->vtbl->func17(1, self, -1);
+            gDLL_3_Animation->vtbl->start_obj_sequence(1, self, -1);
             main_set_bits(BIT_SH_Move_Thorntail_Blocking_Hollow_Log, 1);
             objdata->questProgress = 3;
         }
@@ -129,7 +129,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
                 objdata->eatenWhiteMushrooms += main_get_bits(BIT_Inventory_White_Mushrooms);
                 // @recomp: Require all ten white mushrooms instead of just one. (originally by MusicalProgrammer)
                 if (objdata->eatenWhiteMushrooms < 10) {
-                    gDLL_3_Animation->vtbl->func17(3, self, -1);
+                    gDLL_3_Animation->vtbl->start_obj_sequence(3, self, -1);
                 } else {
                     objdata->questProgress = 4U;
                     gDLL_30_Task->vtbl->mark_task_completed(0xB);
@@ -139,18 +139,18 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
                 main_set_bits(BIT_SH_Queen_EW_White_Mushrooms_Eaten, objdata->eatenWhiteMushrooms);
             } else if (self->unkAF & 1) {
                 joy_set_button_mask(0, A_BUTTON);
-                gDLL_3_Animation->vtbl->func17(4, self, -1);
+                gDLL_3_Animation->vtbl->start_obj_sequence(4, self, -1);
             }
         }
         break;
     case 4:
-        gDLL_3_Animation->vtbl->func17(2, self, -1);
+        gDLL_3_Animation->vtbl->start_obj_sequence(2, self, -1);
         break;
     case 5:
-        gDLL_3_Animation->vtbl->func17(6, self, -1);
+        gDLL_3_Animation->vtbl->start_obj_sequence(6, self, -1);
         break;
     case 6:
-        gDLL_3_Animation->vtbl->func17(7, self, -1);
+        gDLL_3_Animation->vtbl->start_obj_sequence(7, self, -1);
         objdata->questProgress = 7;
         break;
     case 7:

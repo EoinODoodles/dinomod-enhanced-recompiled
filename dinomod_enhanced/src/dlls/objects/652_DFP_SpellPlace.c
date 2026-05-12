@@ -1,7 +1,7 @@
 #include "modding.h"
 
 #include "common.h"
-#include "dlls/objects/214_animobj.h"
+#include "sys/gfx/animseq.h"
 #include "sys/objanim.h"
 
 #include "recomp/dlls/objects/652_DFP_SpellPlace_recomp.h"
@@ -24,7 +24,7 @@ RECOMP_PATCH void dll_652_func_364(Object* self) {
         self->unkAF &= ~8;
         // @recomp: Accept the correct spellstone (original patch by jeebs2kx)
         if ((bit2Val != 0) && (gDLL_1_cmdmenu->vtbl->was_this_item_used(BIT_SpellStone_BWC) != 0)) {
-            gDLL_3_Animation->vtbl->func17(1, self, -1);
+            gDLL_3_Animation->vtbl->start_obj_sequence(1, self, -1);
             objdata->unk4 = 1;
             self->unkAF |= 8;
         }

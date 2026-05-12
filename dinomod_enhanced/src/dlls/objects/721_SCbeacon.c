@@ -195,7 +195,7 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
                 #endif
 
                 //Play deposit sequence
-                gDLL_3_Animation->vtbl->func17(objData->seqIdxPlaceTwigs, self, -1);
+                gDLL_3_Animation->vtbl->start_obj_sequence(objData->seqIdxPlaceTwigs, self, -1);
             }
         }
         break;
@@ -290,7 +290,7 @@ RECOMP_PATCH int SCbeacon_handle_kyte_flame_seqs(Object* self, s32 finishLightin
     
     if (finishLighting == FALSE) {
         //Play the sequence where Kyte lights the beacon, and advance to "lighting" state (embers/smoke)
-        gDLL_3_Animation->vtbl->func17(objData->seqIdxLightTwigs, self, -1);
+        gDLL_3_Animation->vtbl->start_obj_sequence(objData->seqIdxLightTwigs, self, -1);
         objData->state = SCbeacon_STATE_Lighting;
         isBeingLit = TRUE;
 

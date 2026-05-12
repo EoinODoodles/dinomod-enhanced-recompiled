@@ -822,12 +822,12 @@ RECOMP_PATCH void dll_331_control(Object* self) {
         }
         break;
     case OBJ_GPSHswapstone: //0x409
-        gDLL_3_Animation->vtbl->func17(0, self, -1);
+        gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
         break;
     case OBJ_DFturbinelever: //0xae
         collidedObject = &self->polyhits->unk100[0];
         if ((self->unkDC == 0) && (collidedObject != NULL) && (*(s16*)(((s32)self->polyhits) + 0x146) == 0x2B)) {
-            gDLL_3_Animation->vtbl->func17(0, self, -1);
+            gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
             self->unkDC = 1;
         }
         break;
@@ -843,7 +843,7 @@ RECOMP_PATCH void dll_331_control(Object* self) {
         break;
     case OBJ_WMlargerock: //0x2b7
         if (main_get_bits(objData->gamebitA) == 0) {
-            gDLL_3_Animation->vtbl->func17(0, self, -1);
+            gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
         }
         break;
     case OBJ_WM_MoonSeedMoun: //0x271
@@ -1012,7 +1012,7 @@ RECOMP_PATCH void dll_331_control(Object* self) {
                 _data_0 = self;
                 self->unkDC = 0x46;
             } else if ((distance < 40.0f) && (self->unkE0 == 0) && (self->unkDC == 0)) {
-                gDLL_3_Animation->vtbl->func17(0, self, -1);
+                gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
             }
             if (--self->unkE0 <= 0) {
                 self->unkE0 = 0;

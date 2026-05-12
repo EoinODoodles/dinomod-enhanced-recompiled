@@ -1,6 +1,6 @@
 #include "modding.h"
 
-#include "dlls/objects/214_animobj.h"
+#include "sys/gfx/animseq.h"
 #include "sys/main.h"
 #include "sys/objects.h"
 #include "dll.h"

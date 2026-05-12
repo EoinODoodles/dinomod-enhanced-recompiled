@@ -1,11 +1,11 @@
-#include "dlls/objects/214_animobj.h"
 #include "modding.h"
 
 #include "common.h"
 #include "game/gamebits.h"
+#include "sys/gfx/animseq.h"
+#include "sys/objtype.h"
 
 #include "recomp/dlls/objects/722_MMP_mseedrecept_recomp.h"
-#include "sys/objtype.h"
 
 typedef struct {
     u8 unk0;

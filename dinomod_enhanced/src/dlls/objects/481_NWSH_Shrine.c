@@ -3,6 +3,7 @@
 #include "PR/ultratypes.h"
 #include "PR/gbi.h"
 #include "game/gamebits.h"
+#include "sys/gfx/animseq.h"
 #include "sys/dll.h"
 #include "sys/gfx/modgfx.h"
 #include "sys/main.h"
@@ -11,7 +12,6 @@
 #include "sys/objtype.h"
 #include "sys/rand.h"
 #include "dll.h"
-#include "dlls/objects/214_animobj.h"
 
 #include "recomp/dlls/objects/481_NWSH_Shrine_recomp.h"
 
@@ -188,14 +188,14 @@ RECOMP_PATCH void dll_481_control(Object *self) {
             }
             break;
         case 2:
-            gDLL_3_Animation->vtbl->func17(3, self, -1);
+            gDLL_3_Animation->vtbl->start_obj_sequence(3, self, -1);
             objdata->unk12 = 3;
             return;
         case 7:
-            gDLL_3_Animation->vtbl->func17(4, self, -1);
+            gDLL_3_Animation->vtbl->start_obj_sequence(4, self, -1);
             break;
         case 8:
-            gDLL_3_Animation->vtbl->func17(5, self, -1);
+            gDLL_3_Animation->vtbl->start_obj_sequence(5, self, -1);
             gDLL_5_AMSEQ->vtbl->play_ex(3, 0x35, 0x50, (s16) (u8) objdata->unk8, 0);
             main_set_bits(BIT_15F, 0);
             main_set_bits(BIT_DB_Entered_Shrine_2, 0);
@@ -217,7 +217,7 @@ RECOMP_PATCH void dll_481_control(Object *self) {
             main_set_bits(BIT_DB_Entered_Shrine_1, 0);
             gDLL_5_AMSEQ->vtbl->play_ex(3, 0x34, 0x50, (s16) (u8) objdata->unk8, 0);
             objdata->unkA = 1;
-            gDLL_3_Animation->vtbl->func17(1, self, -1);
+            gDLL_3_Animation->vtbl->start_obj_sequence(1, self, -1);
             objdata->unk12 = 5;
             return;
         case 5:
