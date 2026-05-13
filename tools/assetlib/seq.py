@@ -15,19 +15,13 @@ class Keyframe(TypedDict):
     channel: int
     time: int
 
-class Event(TypedDict):
-    type: int
-    delay: int
-    params: int
-
 class Curve(TypedDict):
-    events: list[Event]
+    events: list[bytes]
     keyframes: list[Keyframe]
 
 class Actor(TypedDict):
     uid: int
     settings: int
-    unk5: int
     objectID: int
 
 class ObjSeq(TypedDict):
@@ -38,6 +32,165 @@ class Sequences(TypedDict):
     pre_animseqs: list[Curve | None]
     post_animseqs: list[Curve | None]
     objseqs: list[ObjSeq | None]
+
+event_names = {
+    -1: "SETDURATION",
+    0: "SETTIME",
+    1: "MOVEMODE",
+    2: "ANIM",
+    3: "OVERRIDE",
+    4: "VTXANIM",
+    5: "SOFTWARE",
+    6: "SFX",
+    7: "GROUND_MODE",
+    8: "TUNE",
+    9: "ANGLE_MODE",
+    10: "LOOK_AT",
+    11: "CODE",
+    12: "SPEECH",
+    13: "ENVFX",
+    14: "STORYBOARD",
+    15: "SFX_WITH_DURATION",
+    127: "PARAM"
+}
+
+code_event_names = {
+    1: "JUMPTOTIME",
+    2: "SET",
+    3: "COUNTER_ADD",
+    4: "PAUSE",
+    5: "CONTINUE",
+    6: "6",
+    7: "MESSAGE",
+    8: "DECISION",
+    9: "JUMPTARGET",
+    10: "JUMPTOLABEL"
+}
+
+channel_names = {
+    0: "HEAD_ROTATE_Z",
+    1: "HEAD_ROTATE_X",
+    2: "HEAD_ROTATE_Y",
+    3: "OPACITY",
+    4: "DAY_TIME",
+    5: "SCALE",
+    6: "ROTATE_Z",
+    7: "ROTATE_Y",
+    8: "ROTATE_X",
+    9: "ANIM_SPEED",
+    10: "ANIM_BLEND_SPEED",
+    11: "TRANSLATE_Z",
+    12: "TRANSLATE_Y",
+    13: "TRANSLATE_X",
+    14: "FIELD_OF_VIEW",
+    15: "EYE_X",
+    16: "EYE_Y",
+    17: "JAW",
+    18: "SOUND_VOLUME"
+}
+
+envfx_names = {
+    0: "SET_MUSIC",
+    2: "APPLY",
+    3: "PARTFX",
+    4: "4",
+    5: "PROJGFX",
+    6: "WARP",
+    7: "SFX",
+    8: "BLINK",
+    9: "SCREEN_FX",
+    10: "SUBTITLES",
+    11: "SET_BIT",
+    12: "CLEAR_BIT",
+    13: "CMDMENU_BUTTON_OVERRIDE",
+    14: "EYELID_R",
+    15: "EYELID_L",
+}
+
+code_event_6_names = {
+    0: "0",
+    2: "2",
+    5: "5",
+    6: "6",
+    7: "CAMERA_SHAKE",
+    9: "9",
+    10: "COUNTUP_TIMER",
+    11: "COUNTDOWN_TIMER",
+    12: "COUNTDOWN_TIMER_SFX",
+    13: "SFX_STOP",
+    14: "14",
+    15: "15",
+    16: "16",
+    18: "TOGGLE_LETTERBOX",
+    19: "ENABLE_LETTERBOX",
+    20: "STATIC_CAMERA",
+    23: "SET_MODEL",
+    24: "24",
+    25: "25",
+    26: "NORMAL_CAMERA",
+    27: "ENABLE_OBJ_GROUP",
+    28: "DISABLE_OBJ_GROUP",
+    29: "SET_ACT",
+    30: "DISABLE_LETTERBOX",
+    31: "RESTART_CLEAR",
+    32: "RESTART_GOTO",
+    33: "33",
+    34: "34",
+    35: "CHECKPOINT",
+    36: "CHECKPOINT_NO_LOCATION",
+    37: "TOGGLE_PLAYER_CONTROL"
+}
+
+code_set_types = {
+    0: "MESSAGE",
+    1: "COUNTER",
+    3: "ANIMCOUNT1",
+    4: "ANIMCOUNT2",
+    5: "FLAGS",
+    6: "BIT"
+}
+
+def signed16(x: int):
+    if x > 0x8000:
+        return x - 0x10000
+    else:
+        return x
+
+def unsigned16(x: int):
+    if x < 0:
+        return x + 0x10000
+    else:
+        return x
+
+def signed8(x: int):
+    if x >= 0x80:
+        return x - 0x100
+    else:
+        return x
+
+def unsigned8(x: int):
+    if x < 0:
+        return x + 0x100
+    else:
+        return x
+
+def __parse_event(event: bytes):
+    evt_type, delay, params = struct.unpack(">bBh", event)
+    return evt_type, delay, params
+
+def __pack_event(evt_type: int, delay: int, params: int):
+    return struct.pack(">bBH", signed8(evt_type), unsigned8(delay), unsigned16(params))
+
+def __parse_code_event(event: bytes):
+    raw = struct.unpack(">i", event)[0]
+    evt_type = raw & 0x3F
+    val1 = (raw >> 6) & 0x3FF
+    val2 = (raw >> 0x10) & 0xFFFF
+    return evt_type, val1, val2
+
+def __pack_code_event(evt_type: int, val1: int, val2: int):
+    raw = ((val2 & 0xFFFF) << 0x10) | ((val1 & 0x3FF) << 6) | (evt_type & 0x3F)
+    return struct.pack(">I", raw)
 
 def seqs_apply_patch(base: Sequences, patch: Sequences):
     __apply_patch(base["pre_animseqs"], patch["pre_animseqs"])
@@ -80,7 +233,7 @@ def seqs_write_bin(
             objseq_tab.write(struct.pack(">H", objseq_bin.tell() // 8))
             if seq != None:
                 for actor in seq["actors"]:
-                    objseq_bin.write(struct.pack(">IBBh", actor["uid"], actor["settings"], actor["unk5"], actor["objectID"]))
+                    objseq_bin.write(struct.pack(">IHH", actor["uid"], actor["settings"], unsigned16(actor["objectID"])))
 
         objseq2curve_tab.write(struct.pack(">H", animcurve_idx))
         if seq != None:
@@ -109,10 +262,11 @@ def __write_anim_curve(curve: Curve | None, animcurves_tab: BufferedWriter, anim
     animcurves_tab.write(struct.pack(">HHI", file_size, len(curve["events"]), bin_offset))
 
     for event in curve["events"]:
-        animcurves_bin.write(struct.pack(">BBH", event["type"], event["delay"], event["params"]))
+        assert len(event) == 4
+        animcurves_bin.write(event)
     for kf in curve["keyframes"]:
         interp = ((kf["weight"] & 0b111111) << 2) | (kf["interp_type"] & 0b11)
-        animcurves_bin.write(struct.pack(">fBBH", kf["value"], interp, kf["channel"], kf["time"]))
+        animcurves_bin.write(struct.pack(">fbbh", kf["value"], signed8(interp), kf["channel"], signed16(kf["time"])))
 
 def seqs_from_bin(
         objseq_tab: BufferedReader,
@@ -158,9 +312,9 @@ def seqs_from_bin(
             objseq_bin.seek(start_offset)
 
             for _ in range(num_actors):
-                uid, settings, unk5, objectID = struct.unpack(">IBBh", objseq_bin.read(8))
+                uid, settings, objectID = struct.unpack(">IHH", objseq_bin.read(8))
 
-                actors.append({ "uid": uid, "settings": settings, "unk5": unk5, "objectID": objectID })
+                actors.append({ "uid": uid, "settings": settings, "objectID": objectID })
 
         curves_start_idx, curves_end_idx = struct.unpack(">HH", objseq2curve_tab.read(4))
         objseq2curve_tab.seek(-2, os.SEEK_CUR)
@@ -186,30 +340,81 @@ def __read_next_anim_curve(animcurves_tab: BufferedReader, animcurves_bin: Buffe
 
     animcurves_bin.seek(bin_offset)
 
-    events: list[Event] = []
+    events: list[bytes] = []
     for _ in range(event_count):
-        evt_type, delay, params = struct.unpack(">BBH", animcurves_bin.read(4))
-        events.append({ "type": evt_type, "delay": delay, "params": params })
+        evt = animcurves_bin.read(4)
+        events.append(evt)
     
     keyframes: list[Keyframe] = []
     keyframe_count = (file_size - (event_count * 4)) // 8
     for _ in range(keyframe_count):
-        value, interp, channel, time = struct.unpack(">fBBH", animcurves_bin.read(8))
+        value, interp, channel, time = struct.unpack(">fbbh", animcurves_bin.read(8))
         interp_type = interp & 0b11
         weight = (interp >> 2) & 0b111111
         keyframes.append({ "value": value, "interp_type": interp_type, "weight": weight, "channel": channel, "time": time })
 
     return { "events": events, "keyframes": keyframes }
 
-def obj_seq_write_yaml(seq: ObjSeq, output: TextIO):
+def __write_events_yaml(events: list[bytes], output: TextIO, indent: str):
+    time_offset = 0
+    k = 0
+    num_events = len(events)
+    while k < num_events:
+        event = events[k]
+        evt_type, delay, params = __parse_event(event)
+        evt_name = event_names.get(evt_type, "<unknown>")
+        comment = f"{evt_name} @ {time_offset}"
+        if evt_type == 13: # ENVFX
+            envfx_type = (params >> 0xC) & 0xF
+            envfx_val = params & 0xFFF
+            comment += f" ({envfx_names.get(envfx_type, '<unknown>')}, 0x{envfx_val:X})"
+
+        if evt_type == -1 or evt_type == 0 or evt_type == 11:
+            output.write(f"{indent}- {{ type: {evt_type}, delay: {delay}, params: {params} }} # {comment}\n")
+        else:
+            output.write(f"{indent}- {{ type: {evt_type}, delay: {delay}, params: 0x{unsigned16(params):X} }} # {comment}\n")
+        k += 1
+
+        if evt_type == 0: # settime event
+            time_offset = params
+        elif evt_type != 15: # sfx_with_duration event
+            time_offset += delay
+
+        if evt_type == 11: # code event
+            j = 0
+            while j < params and k < num_events:
+                code_evt = events[k]
+                code_evt_type, val1, val2 = __parse_code_event(code_evt)
+                
+                code_evt_name = code_event_names.get(code_evt_type, "<unknown>")
+                comment = code_evt_name
+                if code_evt_type == 2:
+                    comment += f" ({code_set_types.get(val1, 'unknown')})"
+                elif code_evt_type == 6:
+                    evt_6_type = val1 & 0xFF
+                    comment += f" ({code_event_6_names.get(evt_6_type, '<unknown>')})"
+                output.write(f"{indent}- {{ code_type: {code_evt_type}, val1: 0x{val1:X}, val2: 0x{val2:X} }} # {comment}\n")
+
+                k += 1
+                j += 1
+
+def obj_seq_write_yaml(seq: ObjSeq, output: TextIO, obj_id2name: dict[int, str]):
     output.write("actors:\n")
     for i, actor in enumerate(seq["actors"]):
         output.write(f"# Actor {i}\n")
         output.write(f"- uid: 0x{actor['uid']:X}\n")
         output.write(f"  settings: 0x{actor['settings']:X}\n")
-        output.write(f"  unk5: 0x{actor['unk5']:X}\n")
-        if actor['objectID'] < 0:
-            output.write(f"  objectID: {actor['objectID']}\n")
+        comment: str | None = None
+        if actor["objectID"] == 0xFFFF:
+            comment = "Self"
+        elif actor["objectID"] == 0xFFFE:
+            comment = "Camera"
+        else:
+            obj_name = obj_id2name.get(actor["objectID"])
+            if obj_name != None:
+                comment = obj_name
+        if comment != None:
+            output.write(f"  objectID: 0x{actor['objectID']:X} # {comment}\n")
         else:
             output.write(f"  objectID: 0x{actor['objectID']:X}\n")
     
@@ -217,30 +422,40 @@ def obj_seq_write_yaml(seq: ObjSeq, output: TextIO):
     for i, curve in enumerate(seq["curves"]):
         output.write(f"# Curve {i}\n")
         output.write("- events:\n")
-        for event in curve["events"]:
-            output.write(f"  - {{ type: 0x{event['type']:X}, delay: {event['delay']}, params: 0x{event['params']:X} }}\n")
+        __write_events_yaml(curve["events"], output, "  ")
+
         output.write("  keyframes:\n")
+        last_channel = -1
         for kf in curve["keyframes"]:
-            output.write(f"  - {{ channel: 0x{kf['channel']:X}, time: {kf['time']}, value: {kf['value']}, interp: {kf['interp_type']}, weight: {kf['weight']} }}\n")
+            if kf['channel'] != last_channel:
+                last_channel = kf['channel']
+                output.write(f"    # {channel_names.get(kf['channel'], '<unknown>')}\n")
+            output.write(f"  - {{ channel: {kf['channel']}, time: {kf['time']}, value: {kf['value']}, interp: {kf['interp_type']}, weight: {kf['weight']} }}\n")
 
 def anim_curve_write_yaml(curve: Curve, output: TextIO):
     output.write("events:\n")
-    for event in curve["events"]:
-        output.write(f"- {{ type: 0x{event['type']:X}, delay: {event['delay']}, params: 0x{event['params']:X} }}\n")
+    __write_events_yaml(curve["events"], output, "")
     output.write("keyframes:\n")
     for kf in curve["keyframes"]:
-        output.write(f"- {{ channel: 0x{kf['channel']:X}, time: {kf['time']}, value: {kf['value']}, interp: {kf['interp_type']}, weight: {kf['weight']} }}\n")
+        output.write(f"- {{ channel: {kf['channel']}, time: {kf['time']}, value: {kf['value']}, interp: {kf['interp_type']}, weight: {kf['weight']} }}\n")
 
 def obj_seq_from_yaml(seq_yaml: Any) -> ObjSeq:
     actors: list[Actor] = []
     if seq_yaml["actors"] != None:
         for actor_yaml in seq_yaml["actors"]:
-            actors.append({
-                "uid": int(actor_yaml["uid"]),
-                "settings": int(actor_yaml["settings"]),
-                "unk5": int(actor_yaml["unk5"]),
-                "objectID": int(actor_yaml["objectID"])
-            })
+            if "unk5" in actor_yaml:
+                # Old format
+                actors.append({
+                    "uid": int(actor_yaml["uid"]),
+                    "settings": (int(actor_yaml["settings"]) << 8) | int(actor_yaml["unk5"]),
+                    "objectID": int(actor_yaml["objectID"])
+                })
+            else:
+                actors.append({
+                    "uid": int(actor_yaml["uid"]),
+                    "settings": int(actor_yaml["settings"]),
+                    "objectID": int(actor_yaml["objectID"])
+                })
 
     curves: list[Curve] = []
     if seq_yaml["curves"] != None:
@@ -250,14 +465,21 @@ def obj_seq_from_yaml(seq_yaml: Any) -> ObjSeq:
     return { "actors": actors, "curves": curves }
 
 def anim_curve_from_yaml(curve_yaml: Any) -> Curve:
-    events: list[Event] = []
+    events: list[bytes] = []
     if curve_yaml["events"] != None:
         for event_yaml in curve_yaml["events"]:
-            events.append({
-                "type": int(event_yaml["type"]),
-                "delay": int(event_yaml["delay"]),
-                "params": int(event_yaml["params"])
-            })
+            if "code_type" in event_yaml:
+                events.append(__pack_code_event(
+                    int(event_yaml["code_type"]),
+                    int(event_yaml["val1"]),
+                    int(event_yaml["val2"])
+                ))
+            else:
+                events.append(__pack_event(
+                    int(event_yaml["type"]),
+                    int(event_yaml["delay"]),
+                    int(event_yaml["params"])
+                ))
         
     keyframes: list[Keyframe] = []
     if curve_yaml["keyframes"] != None:
@@ -272,7 +494,7 @@ def anim_curve_from_yaml(curve_yaml: Any) -> Curve:
     
     return { "events": events, "keyframes": keyframes }
 
-def seqs_dump_to_dir(dir: Path, seqs: Sequences):
+def seqs_dump_to_dir(dir: Path, seqs: Sequences, obj_id2name: dict[int, str]):
     animseqs_dir = dir.joinpath("animseqs")
     
     if len(seqs["pre_animseqs"]) > 0:
@@ -296,7 +518,7 @@ def seqs_dump_to_dir(dir: Path, seqs: Sequences):
                 continue
             filename = f"{i:04} {i:04X}.yaml"
             with open(objseqs_dir.joinpath(filename), "w", encoding="utf-8") as seq_file:
-                obj_seq_write_yaml(seq, seq_file)
+                obj_seq_write_yaml(seq, seq_file, obj_id2name)
     
     if len(seqs["post_animseqs"]) > 0:
         animseqs_dir.mkdir(exist_ok=True)

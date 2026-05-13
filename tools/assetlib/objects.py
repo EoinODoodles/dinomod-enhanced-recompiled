@@ -82,3 +82,43 @@ class ObjectList:
             objects.append(obj_map.get(i))
 
         return ObjectList(objects)
+
+def obj_load_id_name_map_from_bin(objects_bin: BufferedReader,
+        objects_tab: BufferedReader,
+        objects_idx: BufferedReader):
+    tab_to_id: dict[int, int] = {}
+
+    id = 0
+    while True:
+        data = objects_idx.read(2)
+        if len(data) < 2:
+            break
+
+        tabidx = struct.unpack_from(">h", data)[0]
+        if tabidx != -1:
+            tab_to_id[tabidx] = id
+        id += 1
+    
+    id_to_name: dict[int, str] = {}
+    tabidx = 0
+    while True:
+        data = objects_tab.read(4)
+        if len(data) < 4:
+            break
+
+        offset = struct.unpack_from(">I", data)[0]
+
+        objects_bin.seek(offset + 0x5f, os.SEEK_SET)
+        str_bytes = objects_bin.read(16)
+
+        if len(str_bytes) == 0:
+            break
+        id = tab_to_id.get(tabidx)
+
+        if id != None:
+            name = str_bytes[:str_bytes.index(0)].decode("utf-8")
+            id_to_name[id] = name
+        
+        tabidx += 1
+    
+    return id_to_name
