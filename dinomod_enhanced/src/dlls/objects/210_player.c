@@ -2217,3 +2217,26 @@ RECOMP_HOOK_DLL(dll_210_control) void stopIceBlastOnDeplete(Object* self) {
         }
     }
 }
+
+/** After leaving a sequence, reset the player's head/body expression since some seqs fail to reset it. */
+RECOMP_HOOK_DLL(dll_210_func_60A8) void dll_210_func_60A8_hook(Object *self, Object *animObj, AnimObj_Data* st) {
+    // Reset head tilt
+    s16* temp_v0 = func_80034804(self, 0);
+    if (temp_v0 != NULL) {
+        temp_v0[0] = 0;
+        temp_v0[1] = 0;
+        temp_v0[2] = 0;
+    }
+
+    // Reset fullbody tilt
+    // Note: This mimics the anim DLL logic that sets these bones in the first place
+    s32 *boneList = func_800349B0();
+    for (s32 i = 1; i < 9; i++){
+        temp_v0 = func_80034804(self, boneList[i]);
+        if (temp_v0 != NULL){
+            temp_v0[0] = 0;
+            temp_v0[1] = 0;
+            temp_v0[2] = 0;
+        }
+    }
+}
