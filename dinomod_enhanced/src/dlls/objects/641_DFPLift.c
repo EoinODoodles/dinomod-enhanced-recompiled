@@ -1,8 +1,10 @@
 #include "modding.h"
+#include "recomputils.h"
 
 #include "custom_object_ids.h"
 
 #include "game/objects/object.h"
+#include "game/objects/object_id.h"
 #include "sys/main.h"
 #include "sys/objects.h"
 #include "dll.h"
@@ -34,6 +36,14 @@ typedef enum {
     LIFT_STATE_GO_DOWN = 3,
     LIFT_STATE_GO_UP = 4
 } LiftStateType;
+
+enum LiftSeq {
+    LIFTSEQ_LookAtTop = 0, // 0x2DD
+    LIFTSEQ_GoUp_WithKrystal = 1, // 0x436
+    LIFTSEQ_GoDown_WithKrystal = 2, // 0x437
+    LIFTSEQ_GoUp = 3, // 0x438
+    LIFTSEQ_GoDown = 4 // 0x439
+};
 
 #define LIFT_UP 60.0f // how far up from spawn the lift goes
 #define LIFT_DOWN 1228.0f // how far down from spawn the lift goes
@@ -71,12 +81,103 @@ RECOMP_PATCH void DFPLift_setup(Object *self, DFPLift_Setup *setup, s32 a2) {
     // @recomp: Get LIFT_DOWN depending on object ID
     self->srt.transl.y -= dinomod_get_lift_down(self);
     self->stateFlags |= OBJSTATE_UPDATE_DISABLED;
+
+    if (self->id == OBJ_DFPLift1) {
+        // @recomp: Hijack field for use in custom control func
+        objdata->alreadyEnabled = main_get_bits(objdata->gamebitActivated);
+        // @recomp: Shift DFP lift down a little
+        self->srt.transl.y -= 8.0f;
+    }
+}
+
+// @recomp: Custom DFP lift implementation that uses seqs to move
+static void custom_dfplift_control(Object *self) {
+    DFPLift_Setup* setup;
+    DFPLift_Data* objdata;
+    Object* player;
+    f32 playerDist;
+
+    setup = (DFPLift_Setup*)self->setup;
+    objdata = (DFPLift_Data*)self->data;
+    
+    player = get_player();
+    if (player == NULL) {
+        return;
+    }
+
+    if (self->seqSlot != SEQSLOT_NONE) {
+        return;
+    }
+
+    switch (objdata->state) {
+    case LIFT_STATE_INIT:
+        if ((main_get_bits(objdata->gamebitActivated) != 0) && (objdata->alreadyEnabled != TRUE) && 
+                (vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_INIT_ACTIVATE_RANGE)) {
+            // activated for the first time
+            objdata->state = LIFT_STATE_INIT_DONE;
+            gDLL_3_Animation->vtbl->start_obj_sequence(LIFTSEQ_GoUp, self, -1);
+        } else if (objdata->alreadyEnabled == TRUE) {
+            if (vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_INIT_ACTIVATE_RANGE) {
+                // already activated
+                objdata->state = LIFT_STATE_INIT_DONE;
+                if (setup->base.y < player->srt.transl.y) {
+                    gDLL_3_Animation->vtbl->start_obj_sequence(LIFTSEQ_GoUp, self, 1); // only include self
+                }
+            }
+        }
+        break;
+    case LIFT_STATE_INIT_DONE:
+        objdata->state = LIFT_STATE_STOPPED;
+        break;
+    case LIFT_STATE_STOPPED:
+        playerDist = vec3_distance_xz(&self->globalPosition, &player->globalPosition);
+        if (objdata->playerOnLift) {
+            // wait for player to be off the lift
+            if (playerDist >= PLAYER_ACTIVATE_RANGE) {
+                objdata->playerOnLift = FALSE;
+            }
+        } else {
+            if (self->srt.transl.y > (setup->base.y - dinomod_get_lift_down(self))) {
+                // at top
+                if (playerDist < 58.0f) {
+                    // player entered lift, go down
+                    objdata->playerOnLift = TRUE;
+                    gDLL_3_Animation->vtbl->start_obj_sequence(LIFTSEQ_GoDown_WithKrystal, self, -1);
+                } else if (playerDist < PLAYER_INIT_ACTIVATE_RANGE && player->srt.transl.y < setup->base.y) {
+                    // at wrong height, go down
+                    gDLL_3_Animation->vtbl->start_obj_sequence(LIFTSEQ_GoDown, self, -1);
+                }
+            } else {
+                // at bottom
+                if (playerDist < 40.0f) {
+                    // player near center of lift, go up
+                    objdata->playerOnLift = TRUE;
+                    gDLL_3_Animation->vtbl->start_obj_sequence(LIFTSEQ_GoUp_WithKrystal, self, -1);
+                } else if (playerDist < PLAYER_INIT_ACTIVATE_RANGE && setup->base.y < player->srt.transl.y) {
+                    // at wrong height, go up
+                    gDLL_3_Animation->vtbl->start_obj_sequence(LIFTSEQ_GoUp, self, 1); // only include self
+                }
+            }
+        }
+        break;
+    case LIFT_STATE_GO_DOWN:
+    case LIFT_STATE_GO_UP:
+    default:
+        objdata->state = LIFT_STATE_STOPPED;
+        break;
+    }
 }
 
 RECOMP_PATCH void DFPLift_control(Object* self) {
     DFPLift_Setup* setup;
     DFPLift_Data* objdata;
     Object* player;
+
+    // @recomp: Use custom control func for DFP lift
+    if (self->id == OBJ_DFPLift1) {
+        custom_dfplift_control(self);
+        return;
+    }
 
     setup = (DFPLift_Setup*)self->setup;
     objdata = (DFPLift_Data*)self->data;
@@ -229,4 +330,29 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
     default:
         break;
     }
+}
+
+// @recomp: Custom anim callback to toggle lift SFX via seq
+RECOMP_PATCH int DFPLift_func_91C(Object *self, Object *animObj, AnimObj_Data *st, s8 a3) {
+    DFPLift_Data* objdata = (DFPLift_Data*)self->data;
+
+    for (s32 i = 0; i < st->messageCount; i++) {
+        switch (st->messages[i]) {
+            case 1:
+                if (objdata->soundHandle == 0) {
+                    gDLL_6_AMSFX->vtbl->play(self, SOUND_6EC_Mechanical_Hum_Loop, 107, &objdata->soundHandle, NULL, 0, NULL);
+                }
+                break;
+            case 2:
+                if (objdata->soundHandle != 0) {
+                    gDLL_6_AMSFX->vtbl->stop(objdata->soundHandle);
+                    objdata->soundHandle = 0;
+                }
+                break;
+        }
+
+        st->messages[i] = 0;
+    }
+
+    return 0;
 }

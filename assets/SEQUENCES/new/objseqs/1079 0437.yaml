@@ -1,0 +1,229 @@
+# DFPLift (going down)
+# Added messages to toggle lift hum SFX, use Krystal's cutscene model, fix janky camera transition
+
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x0
+  objectID: 0xFFFF # Self
+# Actor 1
+- uid: 0x0
+  settings: 0xD000
+  objectID: 0x1F # Krystal
+# Actor 2
+- uid: 0x0
+  settings: 0x9000
+  objectID: 0xFFFE # Camera
+
+curves:
+# Curve 0
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 575 } # SETDURATION @ 0
+  - { type: 3, delay: 156, params: 0x0 } # OVERRIDE @ 0
+  # Edit delay
+  - { type: 6, delay: 1, params: 0xEB5D } # SFX @ 156
+
+  # Start lift SFX
+  - { type: 11, delay: 0, params: 1 } # CODE @ 156
+  - { code_type: 2, val1: 0x0, val2: 1 } # SET (MESSAGE)
+
+  - { type: 0, delay: 0, params: 509 } # SETTIME @ 156
+  # Edit delay
+  - { type: 6, delay: 0, params: 0xEB5D } # SFX @ 509
+
+  # End lift SFX
+  - { type: 11, delay: 66, params: 1 } # CODE @ 509
+  - { code_type: 2, val1: 0x0, val2: 2 } # SET (MESSAGE)
+
+  - { type: 11, delay: 0, params: 1 } # CODE @ 575
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # TRANSLATE_Y
+  - { channel: 12, time: 157, value: 0.0, interp: 0, weight: 56 }
+  - { channel: 12, time: 530, value: -1290.050048828125, interp: 0, weight: 60 }
+# Curve 1
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 585 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+
+  # Use cutscene model
+  - { type: 11, delay: 0, params: 1 } # CODE @ 0
+  - { code_type: 6, val1: 0x17, val2: 0x1 } # 6 (SET_MODEL)
+
+  - { type: 2, delay: 6, params: 0x0 } # ANIM @ 0
+  - { type: 1, delay: 0, params: 0x0 } # MOVEMODE @ 6
+  - { type: 2, delay: 154, params: 0x1 } # ANIM @ 6
+  - { type: 1, delay: 1, params: 0x0 } # MOVEMODE @ 160
+  - { type: 2, delay: 48, params: 0x204 } # ANIM @ 161
+  - { type: 2, delay: 7, params: 0x37D } # ANIM @ 209
+  - { type: 15, delay: 1, params: 0xEB5C } # SFX_WITH_DURATION @ 216
+  - { type: 127, delay: 0, params: 0x9C } # PARAM @ 216
+  - { type: 0, delay: 0, params: 544 } # SETTIME @ 216
+  - { type: 2, delay: 41, params: 0xA013 } # ANIM @ 544
+  - { type: 11, delay: 0, params: 1 } # CODE @ 585
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # HEAD_ROTATE_Z
+  - { channel: 0, time: 218, value: -5.646857738494873, interp: 0, weight: 8 }
+  - { channel: 0, time: 253, value: 6.197754859924316, interp: 0, weight: 0 }
+  - { channel: 0, time: 306, value: -6.7642741203308105, interp: 0, weight: 60 }
+    # HEAD_ROTATE_X
+  - { channel: 1, time: 216, value: -6.609169960021973, interp: 0, weight: 8 }
+  - { channel: 1, time: 246, value: 13.554037094116211, interp: 0, weight: 0 }
+  - { channel: 1, time: 279, value: 13.401941299438477, interp: 0, weight: 56 }
+  - { channel: 1, time: 314, value: -6.022524833679199, interp: 0, weight: 0 }
+  - { channel: 1, time: 551, value: 0.0, interp: 0, weight: 4 }
+    # HEAD_ROTATE_Y
+  - { channel: 2, time: 1, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 2, time: 45, value: -8.897974014282227, interp: 0, weight: 0 }
+  - { channel: 2, time: 129, value: 44.529945373535156, interp: 0, weight: 0 }
+  - { channel: 2, time: 217, value: -12.46310043334961, interp: 0, weight: 0 }
+  - { channel: 2, time: 246, value: 29.626148223876953, interp: 0, weight: 0 }
+  - { channel: 2, time: 286, value: 29.62616729736328, interp: 0, weight: 0 }
+  - { channel: 2, time: 313, value: 14.23067855834961, interp: 0, weight: 0 }
+  - { channel: 2, time: 365, value: 14.476051330566406, interp: 0, weight: 0 }
+  - { channel: 2, time: 527, value: 0.0, interp: 0, weight: 60 }
+    # ROTATE_Y
+  - { channel: 7, time: 11, value: 87.99520874023438, interp: 0, weight: 8 }
+  - { channel: 7, time: 157, value: 95.99327087402344, interp: 0, weight: 4 }
+    # ROTATE_X
+  - { channel: 8, time: 11, value: 0.0, interp: 0, weight: 8 }
+  - { channel: 8, time: 157, value: 0.0, interp: 0, weight: 4 }
+    # ANIM_SPEED
+  - { channel: 9, time: 1, value: 45.47093200683594, interp: 0, weight: 56 }
+  - { channel: 9, time: 155, value: 40.9246826171875, interp: 0, weight: 0 }
+  - { channel: 9, time: 164, value: 121.00653839111328, interp: 0, weight: 0 }
+  - { channel: 9, time: 523, value: 121.78042602539062, interp: 0, weight: 0 }
+  - { channel: 9, time: 528, value: 29.624000549316406, interp: 0, weight: 60 }
+    # ANIM_BLEND_SPEED
+  - { channel: 10, time: 30, value: 11.375969886779785, interp: 0, weight: 8 }
+  - { channel: 10, time: 508, value: 11.409040451049805, interp: 0, weight: 0 }
+  - { channel: 10, time: 512, value: 0.0, interp: 0, weight: 60 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 11, value: -4.344940185546875, interp: 0, weight: 56 }
+  - { channel: 11, time: 157, value: -6.717926025390625, interp: 0, weight: 60 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 11, value: 26.441879272460938, interp: 1, weight: 8 }
+  - { channel: 12, time: 157, value: 26.441879272460938, interp: 0, weight: 48 }
+  - { channel: 12, time: 530, value: -1264.406982421875, interp: 0, weight: 60 }
+    # TRANSLATE_X
+  - { channel: 13, time: 11, value: 70.47654724121094, interp: 0, weight: 56 }
+  - { channel: 13, time: 157, value: 16.849716186523438, interp: 0, weight: 60 }
+    # EYE_X
+  - { channel: 15, time: 7, value: -4.4549560546875, interp: 0, weight: 8 }
+  - { channel: 15, time: 38, value: 52.4920654296875, interp: 0, weight: 0 }
+  - { channel: 15, time: 102, value: -142.07679748535156, interp: 0, weight: 0 }
+  - { channel: 15, time: 162, value: -118.6606674194336, interp: 0, weight: 8 }
+  - { channel: 15, time: 217, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 15, time: 251, value: 3.5533018112182617, interp: 0, weight: 0 }
+  - { channel: 15, time: 381, value: 3.5104827880859375, interp: 0, weight: 56 }
+  - { channel: 15, time: 553, value: 0.0, interp: 0, weight: 60 }
+    # EYE_Y
+  - { channel: 16, time: 17, value: -161.0592041015625, interp: 0, weight: 8 }
+  - { channel: 16, time: 160, value: -156.3135986328125, interp: 0, weight: 8 }
+  - { channel: 16, time: 173, value: 266.0431823730469, interp: 0, weight: 0 }
+  - { channel: 16, time: 217, value: 138.8082733154297, interp: 0, weight: 56 }
+  - { channel: 16, time: 253, value: -113.89990234375, interp: 0, weight: 56 }
+  - { channel: 16, time: 297, value: -220.675537109375, interp: 0, weight: 0 }
+  - { channel: 16, time: 440, value: -219.82662963867188, interp: 0, weight: 8 }
+  - { channel: 16, time: 567, value: 0.0, interp: 0, weight: 4 }
+# Curve 2
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 575 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 1, delay: 0, params: 0x0 } # MOVEMODE @ 0
+
+  # Reverse fade start of cutscene
+  - { type: 11, delay: 0, params: 1 } # CODE @ 0
+  - { code_type: 6, val1: 0xF, val2: 0xC } # 6 (15)
+
+  - { type: 0, delay: 0, params: 533 } # SETTIME @ 0
+  - { type: 6, delay: 42, params: 0xEB5B } # SFX @ 533
+  - { type: 11, delay: 0, params: 1 } # CODE @ 575
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ROTATE_Y
+  - { channel: 7, time: 0, value: 314.9669189453125, interp: 0, weight: 8 }
+  - { channel: 7, time: 157, value: 385.54876708984375, interp: 0, weight: 0 }
+  - { channel: 7, time: 175, value: 385.54327392578125, interp: 0, weight: 56 }
+  - { channel: 7, time: 191, value: 385.53228759765625, interp: 0, weight: 56 }
+  - { channel: 7, time: 216, value: 385.52679443359375, interp: 0, weight: 56 }
+  - { channel: 7, time: 217, value: 367.83514404296875, interp: 0, weight: 56 }
+  # Fix jank camera transition
+  #- { channel: 7, time: 312, value: 367.82965087890625, interp: 2, weight: 0 }
+  - { channel: 7, time: 317, value: 367.81866455078125, interp: 0, weight: 0 }
+  - { channel: 7, time: 318, value: 389.99822998046875, interp: 0, weight: 8 }
+  - { channel: 7, time: 472, value: 390.34429931640625, interp: 1, weight: 8 }
+  - { channel: 7, time: 481, value: 390.34979248046875, interp: 0, weight: 0 }
+  - { channel: 7, time: 482, value: 328.38128662109375, interp: 0, weight: 0 }
+  - { channel: 7, time: 538, value: 328.37579345703125, interp: 0, weight: 60 }
+    # ROTATE_X
+  - { channel: 8, time: 0, value: 12.035551071166992, interp: 0, weight: 56 }
+  - { channel: 8, time: 157, value: 11.14016342163086, interp: 0, weight: 0 }
+  - { channel: 8, time: 175, value: 11.14016342163086, interp: 0, weight: 0 }
+  - { channel: 8, time: 191, value: -9.624046325683594, interp: 0, weight: 0 }
+  - { channel: 8, time: 216, value: -9.624046325683594, interp: 0, weight: 8 }
+  - { channel: 8, time: 217, value: 10.173364639282227, interp: 0, weight: 0 }
+  - { channel: 8, time: 244, value: 6.747867584228516, interp: 0, weight: 0 }
+  - { channel: 8, time: 290, value: 12.293118476867676, interp: 0, weight: 0 }
+  # Fix jank camera transition
+  #- { channel: 8, time: 312, value: 10.173364639282227, interp: 2, weight: 0 }
+  - { channel: 8, time: 317, value: 10.173364639282227, interp: 0, weight: 0 }
+  - { channel: 8, time: 318, value: -14.024081230163574, interp: 0, weight: 48 }
+  - { channel: 8, time: 472, value: -54.66260528564453, interp: 1, weight: 56 }
+  - { channel: 8, time: 481, value: -54.666934967041016, interp: 0, weight: 0 }
+  - { channel: 8, time: 482, value: 17.979169845581055, interp: 0, weight: 0 }
+  - { channel: 8, time: 538, value: 13.249543190002441, interp: 0, weight: 60 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 0, value: 35.340667724609375, interp: 0, weight: 8 }
+  - { channel: 11, time: 157, value: 35.340667724609375, interp: 0, weight: 8 }
+  - { channel: 11, time: 175, value: 35.340667724609375, interp: 0, weight: 8 }
+  - { channel: 11, time: 191, value: 35.340667724609375, interp: 0, weight: 8 }
+  - { channel: 11, time: 216, value: 35.340667724609375, interp: 0, weight: 8 }
+  - { channel: 11, time: 217, value: 17.350908279418945, interp: 0, weight: 0 }
+  # Fix jank camera transition
+  #- { channel: 11, time: 312, value: 17.350908279418945, interp: 2, weight: 0 }
+  - { channel: 11, time: 317, value: 17.350908279418945, interp: 0, weight: 0 }
+  - { channel: 11, time: 318, value: 245.5743408203125, interp: 0, weight: 0 }
+  - { channel: 11, time: 472, value: 201.890380859375, interp: 1, weight: 56 }
+  - { channel: 11, time: 481, value: 201.88497924804688, interp: 0, weight: 56 }
+  - { channel: 11, time: 482, value: 127.94154357910156, interp: 0, weight: 0 }
+  - { channel: 11, time: 538, value: 127.94154357910156, interp: 0, weight: 4 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 0, value: 35.0, interp: 0, weight: 8 }
+  - { channel: 12, time: 157, value: 35.0, interp: 0, weight: 8 }
+  - { channel: 12, time: 175, value: 35.0, interp: 0, weight: 8 }
+  - { channel: 12, time: 191, value: 35.0, interp: 0, weight: 8 }
+  - { channel: 12, time: 216, value: 35.0, interp: 0, weight: 0 }
+  - { channel: 12, time: 217, value: -179.58489990234375, interp: 0, weight: 55 }
+  # Fix jank camera transition
+  - { channel: 12, time: 317, value: -578, interp: 2, weight: 49 }
+  #- { channel: 12, time: 317, value: -558.5848999023438, interp: 0, weight: 51 }
+  - { channel: 12, time: 318, value: -578.0, interp: 0, weight: 0 }
+  - { channel: 12, time: 472, value: -578.0, interp: 1, weight: 8 }
+  - { channel: 12, time: 481, value: -578.0, interp: 0, weight: 0 }
+  - { channel: 12, time: 482, value: -1255.0, interp: 1, weight: 56 }
+  - { channel: 12, time: 526, value: -1257.25, interp: 0, weight: 0 }
+  - { channel: 12, time: 528, value: -1245.984130859375, interp: 0, weight: 0 }
+  - { channel: 12, time: 530, value: -1259.44140625, interp: 0, weight: 0 }
+  - { channel: 12, time: 534, value: -1253.0885009765625, interp: 0, weight: 0 }
+  - { channel: 12, time: 538, value: -1262.3177490234375, interp: 0, weight: 0 }
+  - { channel: 12, time: 544, value: -1255.0, interp: 0, weight: 4 }
+    # TRANSLATE_X
+  - { channel: 13, time: 0, value: 32.75205993652344, interp: 0, weight: 8 }
+  - { channel: 13, time: 157, value: 32.75205993652344, interp: 0, weight: 8 }
+  - { channel: 13, time: 175, value: 32.75205993652344, interp: 0, weight: 8 }
+  - { channel: 13, time: 191, value: 32.75205993652344, interp: 0, weight: 8 }
+  - { channel: 13, time: 216, value: 32.75205993652344, interp: 0, weight: 0 }
+  - { channel: 13, time: 217, value: 15.780556678771973, interp: 0, weight: 0 }
+  # Fix jank camera transition
+  #- { channel: 13, time: 312, value: 15.780556678771973, interp: 2, weight: 0 }
+  - { channel: 13, time: 317, value: 15.780556678771973, interp: 0, weight: 0 }
+  - { channel: 13, time: 318, value: 132.65013122558594, interp: 0, weight: 0 }
+  - { channel: 13, time: 472, value: 112.98070526123047, interp: 1, weight: 56 }
+  - { channel: 13, time: 481, value: 112.97824096679688, interp: 0, weight: 56 }
+  - { channel: 13, time: 482, value: -49.26191711425781, interp: 0, weight: 0 }
+  - { channel: 13, time: 538, value: -49.26191711425781, interp: 0, weight: 4 }

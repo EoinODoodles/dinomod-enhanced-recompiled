@@ -1,0 +1,28 @@
+# DFPLift (going up, without krystal)
+# Added missing command to release the lift obj from the seq
+
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x1000
+  objectID: 0xFFFF # Self
+
+curves:
+# Curve 0
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 150 } # SETDURATION @ 0
+  - { type: 3, delay: 150, params: 0x0 } # OVERRIDE @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 150
+  # Add missing command to release obj from seq
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # TRANSLATE_Y
+  - { channel: 12, time: 1, value: 0.0, interp: 0, weight: 56 }
+  - { channel: 12, time: 72, value: -959.2872314453125, interp: 0, weight: 56 }
+  - { channel: 12, time: 149, value: -1290.050048828125, interp: 0, weight: 60 }
+# Curve 1
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: -60 } # SETDURATION @ 0
+  keyframes:

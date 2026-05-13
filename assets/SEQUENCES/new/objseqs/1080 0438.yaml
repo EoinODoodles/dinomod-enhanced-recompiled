@@ -1,0 +1,94 @@
+# DFPLift (going up, initial reveal)
+# Added messages to toggle lift hum SFX and a missing command to release the lift obj from the seq
+
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x1000
+  objectID: 0xFFFF # Self
+# Actor 1
+- uid: 0x0
+  settings: 0x9000
+  objectID: 0xFFFE # Camera
+# Actor 2
+- uid: 0x0
+  settings: 0xD700
+  objectID: 0x1F # Krystal
+
+curves:
+# Curve 0
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 350 } # SETDURATION @ 0
+  # Edit delay
+  - { type: 3, delay: 30, params: 0x0 } # OVERRIDE @ 0
+
+  # Start/end lift SFX
+  - { type: 11, delay: 0, params: 1 } # CODE @ 30
+  - { code_type: 2, val1: 0x0, val2: 1 } # SET (MESSAGE)
+  - { type: 0, delay: 0, params: 301 } # SETTIME @ 30
+  - { type: 11, delay: 0, params: 1 } # CODE @ 301
+  - { code_type: 2, val1: 0x0, val2: 2 } # SET (MESSAGE)
+
+  - { type: 0, delay: 0, params: 350 } # SETTIME @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 350
+  # Add missing command to release obj from seq
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # TRANSLATE_Y
+  - { channel: 12, time: 30, value: -0.1976776123046875, interp: 0, weight: 8 }
+  - { channel: 12, time: 321, value: 1290.050048828125, interp: 0, weight: 4 }
+# Curve 1
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 350 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 1, delay: 0, params: 0x0 } # MOVEMODE @ 0
+  - { type: 0, delay: 0, params: 350 } # SETTIME @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 350
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ROTATE_Y
+  - { channel: 7, time: 27, value: 23.23064613342285, interp: 0, weight: 8 }
+  - { channel: 7, time: 130, value: 23.829402923583984, interp: 0, weight: 8 }
+  - { channel: 7, time: 141, value: 23.829402923583984, interp: 0, weight: 0 }
+  - { channel: 7, time: 142, value: 18.632858276367188, interp: 0, weight: 0 }
+  - { channel: 7, time: 251, value: 18.63241958618164, interp: 0, weight: 0 }
+  - { channel: 7, time: 323, value: 7.2735090255737305, interp: 0, weight: 60 }
+    # ROTATE_X
+  - { channel: 8, time: 27, value: -17.363933563232422, interp: 0, weight: 8 }
+  - { channel: 8, time: 67, value: 53.22969055175781, interp: 0, weight: 7 }
+  - { channel: 8, time: 130, value: 68.93388366699219, interp: 1, weight: 8 }
+  - { channel: 8, time: 141, value: 68.93388366699219, interp: 0, weight: 0 }
+  - { channel: 8, time: 142, value: -57.96400833129883, interp: 0, weight: 0 }
+  - { channel: 8, time: 251, value: -57.964447021484375, interp: 0, weight: 0 }
+  - { channel: 8, time: 323, value: -27.17536735534668, interp: 0, weight: 4 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 27, value: 96.85533142089844, interp: 0, weight: 8 }
+  - { channel: 11, time: 130, value: 96.85533142089844, interp: 0, weight: 8 }
+  - { channel: 11, time: 141, value: 96.85533142089844, interp: 0, weight: 0 }
+  - { channel: 11, time: 142, value: 40.88090515136719, interp: 0, weight: 0 }
+  - { channel: 11, time: 257, value: 40.88046646118164, interp: 0, weight: 0 }
+  - { channel: 11, time: 321, value: 139.37326049804688, interp: 0, weight: 4 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 27, value: 65.0, interp: 0, weight: 8 }
+  - { channel: 12, time: 130, value: 65.0, interp: 1, weight: 8 }
+  - { channel: 12, time: 141, value: 65.0, interp: 0, weight: 8 }
+  - { channel: 12, time: 142, value: 935.0, interp: 0, weight: 8 }
+  - { channel: 12, time: 290, value: 1423.0, interp: 0, weight: 0 }
+    # TRANSLATE_X
+  - { channel: 13, time: 27, value: 30.367645263671875, interp: 0, weight: 8 }
+  - { channel: 13, time: 130, value: 30.367645263671875, interp: 0, weight: 8 }
+  - { channel: 13, time: 141, value: 30.367645263671875, interp: 0, weight: 0 }
+  - { channel: 13, time: 142, value: 8.769439697265625, interp: 0, weight: 0 }
+  - { channel: 13, time: 258, value: 8.769000053405762, interp: 0, weight: 0 }
+  - { channel: 13, time: 322, value: 52.07115173339844, interp: 0, weight: 4 }
+# Curve 2
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 350 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 0, delay: 0, params: 350 } # SETTIME @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 350
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:

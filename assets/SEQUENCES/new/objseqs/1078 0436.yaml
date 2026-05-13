@@ -1,0 +1,125 @@
+# DFPLift (going up)
+# Added messages to toggle lift hum SFX, use Krystal's cutscene model
+
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x0
+  objectID: 0xFFFF # Self
+# Actor 1
+- uid: 0x0
+  settings: 0xD000
+  objectID: 0x1F # Krystal
+# Actor 2
+- uid: 0x0
+  settings: 0x9000
+  objectID: 0xFFFE # Camera
+
+curves:
+# Curve 0
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 600 } # SETDURATION @ 0
+  - { type: 3, delay: 100, params: 0x0 } # OVERRIDE @ 0
+
+  # Start/end lift SFX
+  - { type: 11, delay: 0, params: 1 } # CODE @ 100
+  - { code_type: 2, val1: 0x0, val2: 1 } # SET (MESSAGE)
+  - { type: 0, delay: 0, params: 418 } # SETTIME @ 100
+  - { type: 11, delay: 0, params: 1 } # CODE @ 418
+  - { code_type: 2, val1: 0x0, val2: 2 } # SET (MESSAGE)
+
+  - { type: 0, delay: 0, params: 600 } # SETTIME @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 600
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # TRANSLATE_Y
+  - { channel: 12, time: 100, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 12, time: 271, value: 776.2801513671875, interp: 0, weight: 21 }
+  - { channel: 12, time: 360, value: 1194.7969970703125, interp: 0, weight: 3 }
+  - { channel: 12, time: 438, value: 1290.050048828125, interp: 0, weight: 4 }
+# Curve 1
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 600 } # SETDURATION @ 0
+  # Edit delay
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+
+  # Use cutscene model
+  - { type: 11, delay: 1, params: 1 } # CODE @ 0
+  - { code_type: 6, val1: 0x17, val2: 0x1 } # 6 (SET_MODEL)
+
+  - { type: 2, delay: 0, params: 0x31B } # ANIM @ 1
+  - { type: 0, delay: 0, params: 279 } # SETTIME @ 1
+  - { type: 2, delay: 164, params: 0x0 } # ANIM @ 279
+  - { type: 1, delay: 5, params: 0x0 } # MOVEMODE @ 443
+  - { type: 2, delay: 126, params: 0x2001 } # ANIM @ 448
+  - { type: 1, delay: 1, params: 0x0 } # MOVEMODE @ 574
+  - { type: 2, delay: 25, params: 0x0 } # ANIM @ 575
+  - { type: 11, delay: 0, params: 1 } # CODE @ 600
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ROTATE_Y
+  - { channel: 7, time: 228, value: 195.72103881835938, interp: 0, weight: 8 }
+  - { channel: 7, time: 267, value: 268.77001953125, interp: 0, weight: 0 }
+  - { channel: 7, time: 450, value: 268.7638244628906, interp: 0, weight: 56 }
+  - { channel: 7, time: 574, value: 268.7583312988281, interp: 0, weight: 60 }
+    # ROTATE_X
+  - { channel: 8, time: 0, value: 0.0, interp: 0, weight: 8 }
+  - { channel: 8, time: 450, value: 0.0, interp: 0, weight: 8 }
+  - { channel: 8, time: 574, value: 0.0, interp: 0, weight: 4 }
+    # ANIM_SPEED
+  - { channel: 9, time: 98, value: 40.52508544921875, interp: 0, weight: 0 }
+    # ANIM_BLEND_SPEED
+  - { channel: 10, time: 529, value: 20.674999237060547, interp: 0, weight: 0 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 0, value: 0.0, interp: 0, weight: 8 }
+  - { channel: 11, time: 450, value: 0.0, interp: 0, weight: 8 }
+  - { channel: 11, time: 574, value: 1.94183349609375, interp: 0, weight: 4 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 0, value: 27.0, interp: 1, weight: 8 }
+  - { channel: 12, time: 100, value: 27.0, interp: 0, weight: 0 }
+  - { channel: 12, time: 271, value: 803.280029296875, interp: 0, weight: 23 }
+  - { channel: 12, time: 360, value: 1221.7969970703125, interp: 0, weight: 2 }
+  - { channel: 12, time: 438, value: 1317.050048828125, interp: 1, weight: 8 }
+  - { channel: 12, time: 450, value: 1317.050048828125, interp: 0, weight: 8 }
+  - { channel: 12, time: 574, value: 1317.050048828125, interp: 0, weight: 4 }
+    # TRANSLATE_X
+  - { channel: 13, time: 0, value: 0.016666840761899948, interp: 0, weight: 8 }
+  - { channel: 13, time: 450, value: 0.016666840761899948, interp: 0, weight: 0 }
+  - { channel: 13, time: 574, value: 74.92469024658203, interp: 0, weight: 4 }
+# Curve 2
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 600 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 1, delay: 0, params: 0x0 } # MOVEMODE @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 0
+  - { code_type: 6, val1: 0xF, val2: 0xC } # 6 (15)
+  - { type: 0, delay: 0, params: 560 } # SETTIME @ 0
+  - { type: 11, delay: 40, params: 1 } # CODE @ 560
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  - { type: 11, delay: 0, params: 1 } # CODE @ 600
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ROTATE_Y
+  - { channel: 7, time: 108, value: 25.13128662109375, interp: 1, weight: 8 }
+  - { channel: 7, time: 283, value: 25.13128662109375, interp: 2, weight: 8 }
+  - { channel: 7, time: 284, value: 61.96303939819336, interp: 0, weight: 4 }
+    # ROTATE_X
+  - { channel: 8, time: 102, value: -6.163344860076904, interp: 0, weight: 3 }
+  - { channel: 8, time: 182, value: 47.27707290649414, interp: 0, weight: 13 }
+  - { channel: 8, time: 283, value: 66.22756958007812, interp: 2, weight: 0 }
+  - { channel: 8, time: 284, value: -31.03645133972168, interp: 0, weight: 60 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 108, value: 111.9989013671875, interp: 1, weight: 8 }
+  - { channel: 11, time: 283, value: 111.9989013671875, interp: 2, weight: 0 }
+  - { channel: 11, time: 284, value: 45.703033447265625, interp: 0, weight: 60 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 108, value: 53.0, interp: 1, weight: 8 }
+  - { channel: 12, time: 283, value: 53.0, interp: 2, weight: 8 }
+  - { channel: 12, time: 284, value: 1387.0, interp: 0, weight: 4 }
+    # TRANSLATE_X
+  - { channel: 13, time: 108, value: 45.04875183105469, interp: 1, weight: 8 }
+  - { channel: 13, time: 283, value: 45.04875183105469, interp: 2, weight: 8 }
+  - { channel: 13, time: 284, value: 150.0068817138672, interp: 0, weight: 4 }
