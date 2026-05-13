@@ -149,7 +149,6 @@ void matrix_multiply(MtxF* mA, MtxF* mB, MtxF* mO) {
   * (TODO: can anything affect the rotation order, like SRT flags?)
   */
 void rotation_from_matrix(MtxF* mtx, s16* yaw, s16* pitch, s16* roll, f32 normalisingScale) {
-    f32 f = 0.0f;
     s32 outYaw;
     s32 outPitch;
     s32 outRoll;
