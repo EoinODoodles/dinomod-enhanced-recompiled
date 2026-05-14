@@ -1,4 +1,5 @@
 #include "custom_textable_ids.h"
+#include "math_util.h"
 #include "recompconfig.h"
 #include "recomputils.h"
 #include "mod_common.h"
@@ -6,6 +7,8 @@
 #include "compression_util.h"
 #include "object_util.h"
 #include "configs.h"
+
+#include "objects/511_SHboulder.h"
 
 #include "PR/ultratypes.h"
 #include "macros.h"
@@ -20,6 +23,8 @@
 #include "dlls/objects/common/collectable.h"
 
 INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
+INCBIN(block351, "blocks_0351_SHriver_rocky_waterfall.bin");
+INCBIN(block581, "blocks_0581_SHwell_entrance.bin");
 // INCBIN(block338, "0338 0152.bin");
 
 INCBIN(tex0_kiosk_gold_key,             "tex0_kiosk_gold_key.bin");
@@ -37,6 +42,8 @@ INCBIN(models_purple_mushroom,  "models_purple_mushroom_recreation.bin");
 INCBIN(modanim_purple_mushroom, "modanim_purple_mushroom_recreation.bin");
 INCBIN(amap_purple_mushroom,    "amap_purple_mushroom_recreation.bin");
 INCBIN(objects_purple_mushroom, "objects_0571 023B SHrocketmushroo.bin");
+
+INCBIN(objects_shboulder, "objects_0583 0247 SHboulder.bin");
 
 #define INCFST(fileID, filename, ext) \
     INCBIN(fst_assets_##filename##_##ext, "assets/" #filename "."#ext); \
@@ -438,6 +445,152 @@ static void golden_plains_fuel_additions(void) {
 }
 PRAGMA_IGNORE_POP()
 
+static void swapstone_hollow_additions(void) {
+    ReAssetID mapID = reasset_base_id(MAP_SWAPSTONE_HOLLOW);
+
+    //Add SHBoulders blocking the waterfall near Rocky 
+    //(One for each side of the opening, to give the illusion that you're seeing the back of the boulder)
+    {
+        typedef struct {
+            Vec3f coords;
+            u16 scale;
+            s16 yaw;
+            s16 pitch;
+            s16 roll;
+        } SHBoulders;
+
+        SHBoulders boulderData[2] = {
+            {VEC3F(2410.9, -653.4, 956.3), 141, DEGREES_TO_ANGLE8(36.6f), DEGREES_TO_ANGLE8(0.9f), 0},
+            {VEC3F(2383.0, -642.7, 922.0), 141, DEGREES_TO_ANGLE8(21.0f), 0, 0},
+        };
+        u8 count = ARRAYCOUNT(boulderData);
+
+        //Insert the new objects
+        for (s32 i = 0; i < count; i++) {
+            SHboulder_Setup boulder = {0};
+            boulder.base.objId = OBJ_SHboulder;
+            boulder.base.actExclusions1 = ~MAP_ACT(1);
+            boulder.base.loadFlags = OBJSETUP_LOAD_MAIN;
+            boulder.base.fadeFlags = OBJSETUP_FADE_CAMERA;
+            boulder.base.loadDistance = 140;
+            boulder.base.fadeDistance = 140;
+            boulder.base.x = boulderData[i].coords.x;
+            boulder.base.y = boulderData[i].coords.y;
+            boulder.base.z = boulderData[i].coords.z;
+            boulder.scale = boulderData[i].scale;
+            boulder.yaw = boulderData[i].yaw;
+            boulder.pitch = boulderData[i].pitch;
+            boulder.roll = boulderData[i].roll;
+            boulder.gamebitGone = 0x123; //TODO: give this a custom gamebitID - this one's just for testing and needs to be changed!
+
+            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &boulder, sizeof(boulder));
+        }
+    }
+
+    //Add CFbarrel for blowing up the boulder after Tricky learns Flame
+    {
+        typedef struct {
+            ObjSetup base;
+            s8 unk18;
+            s8 unk19;
+            s32 unk1C;
+            s32 unk20;
+        } CFBarrel_Setup;
+
+        CFBarrel_Setup barrel = {0};
+        barrel.base.objId = OBJ_CFbarrel;
+        barrel.base.actExclusions1 = ~MAP_ACT(1);
+        barrel.base.loadFlags = OBJSETUP_LOAD_MAIN;
+        barrel.base.fadeFlags = OBJSETUP_FADE_CAMERA;
+        barrel.base.loadDistance = 140;
+        barrel.base.fadeDistance = 140;
+        barrel.base.x = 2244.0f;
+        barrel.base.y = -676.0f;
+        barrel.base.z = 2299.0f;
+        reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &barrel, sizeof(barrel));
+    }
+
+    //Add HitAnimators for removing the water
+    {
+        typedef struct {
+            Vec3f coords;
+            s16 gamebit;
+            u8 animatorID;
+            u8 removeWhenSet;
+            u8 isBlocksAnimator;
+            u8 blocksFade;
+        } HitAnimators;
+
+        HitAnimators hitAnimatorData[] = {
+            {VEC3F(2369.237, -620, 737.118),    BIT_SpellStone_DIM_Activated, 1, FALSE, TRUE, FALSE},
+            {VEC3F(2119.723, -620, 477.954),    BIT_SpellStone_DIM_Activated, 1, FALSE, TRUE, FALSE},
+            {VEC3F(1588.987, -620, 436.598),    BIT_SpellStone_DIM_Activated, 1, FALSE, TRUE, FALSE},
+            {VEC3F(1158.884, -620, 538.609),    BIT_SpellStone_DIM_Activated, 1, FALSE, TRUE, FALSE},
+            {VEC3F(903.856,  -620, 789.503),     BIT_SpellStone_DIM_Activated, 1, FALSE, TRUE, FALSE},
+            {VEC3F(590.928,  -620, 965.955),     BIT_SpellStone_DIM_Activated, 1, FALSE, TRUE, FALSE},
+        };
+        u8 count = ARRAYCOUNT(hitAnimatorData);
+
+        //Insert the new objects
+        for (s32 i = 0; i < count; i++) {
+            HitAnimators* data = &hitAnimatorData[i];
+            HitAnimator_Setup hitA = {0};
+            hitA.base.objId = OBJ_HitAnimator;
+            hitA.base.actExclusions1 = ~MAP_ACT(1);
+            hitA.base.loadFlags = OBJSETUP_LOAD_LEVEL;
+            hitA.base.fadeFlags = OBJSETUP_FADE_CAMERA;
+            hitA.base.loadDistance = 140;
+            hitA.base.fadeDistance = 140;
+            hitA.base.x = data->coords.x;
+            hitA.base.y = data->coords.y;
+            hitA.base.z = data->coords.z;
+            hitA.gamebitActivate = data->gamebit;
+            if (data->removeWhenSet) {
+                hitA.mode |= HitAnimator_Mode_Invert;
+            }
+            if (data->isBlocksAnimator) {
+                hitA.blocksAnimatorID = data->animatorID;
+                hitA.mode |= HitAnimator_Mode_BLOCKS;
+                if (!data->blocksFade) {
+                    hitA.mode |= HitAnimator_Mode_No_Fade;
+                }
+            } else {
+                hitA.hitsAnimatorID = data->animatorID;
+                hitA.mode |= HitAnimator_Mode_HITS;
+            }
+
+            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+        }
+    }
+}
+
+static void swapstone_hollow_modifications(void) {
+    ReAssetID sHollow = reasset_base_id(MAP_SWAPSTONE_HOLLOW);
+    ReAssetID shTrkblk = reasset_base_id(12);
+    ReAssetID shWellTrkblk = reasset_base_id(19);
+
+    //Tag Blocks shapes with animatorIDs, so they can be removed with HitAnimators
+    reasset_blocks_set(shTrkblk, reasset_base_id(351 - 345), REASSET_BASE_NAMESPACE, block351, block351_end - block351);
+    
+    //SwapStone Hollow Well: Fix mesh holes, fog issues (on dig spot decals), stalactite animatorIDs, UVs
+    reasset_blocks_set(shWellTrkblk, reasset_base_id(581 - 579), REASSET_BASE_NAMESPACE, block581, block581_end - block581);
+
+    //Revert changes to SHboulder's DLL usage
+    {
+        ReAssetID objects_shboulder_id = reasset_base_id(583); //OBJ_SHboulder
+        reasset_objects_set(objects_shboulder_id, REASSET_BASE_NAMESPACE, objects_shboulder, objects_shboulder_end - objects_shboulder);
+    }
+
+    //Edit the SHboulder blocking Willow Grove, so it can't be destroyed
+    {
+        SHboulder_Setup *boulder = (SHboulder_Setup*)reasset_map_objects_get(sHollow, 
+            reasset_base_id(0x307F3), NULL);
+        boulder->scale = 177;
+        boulder->invincible = TRUE;
+    }
+
+}
+
 static void cc_lightfoot_patch(void) {
     // Change CClightfoot model from chief to normal red-colored LightFoot
     ObjDef *ccLightfootObjDef = reasset_objects_get(reasset_base_id(430), NULL);
@@ -576,6 +729,7 @@ static void purple_mushroom_patch(void) {
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     walled_city_additions();
     warlock_mountain_platform_additions();
+    swapstone_hollow_additions();
     //golden_plains_fuel_additions();
 }
 
@@ -587,6 +741,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
 
     shrine_fxemit_modifications();
     warlock_mountain_platform_modifications();
+    swapstone_hollow_modifications();
     cc_lightfoot_patch();
     cc_shiny_nugget_patch();
     darkice_mines_modifications();

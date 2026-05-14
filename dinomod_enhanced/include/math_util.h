@@ -11,6 +11,9 @@
     }\
 }
 
+//Convert degrees into the 8-bit angle format Dinosaur Planet commonly uses for its objSetups
+#define DEGREES_TO_ANGLE8(degrees) ((s16)(degrees*((f32)M_180_DEGREES/180.0f)) >> 8)
+
 extern f32 sqrtf(f32 num);
 
 f32 lerp_float(f32 tValue, f32 start, f32 end);
