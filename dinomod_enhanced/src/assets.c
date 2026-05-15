@@ -1,18 +1,21 @@
-#include "custom_textable_ids.h"
-#include "math_util.h"
+#include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
-#include "mod_common.h"
 #include "reasset.h"
-#include "compression_util.h"
-#include "object_util.h"
-#include "configs.h"
 
+#include "compression_util.h"
+#include "common_objsetups.h"
+#include "configs.h"
+#include "custom_textable_ids.h"
+#include "math_util.h"
+#include "mod_common.h"
+#include "object_util.h"
 #include "objects/511_SHboulder.h"
 
 #include "PR/ultratypes.h"
-#include "macros.h"
-#include "common_objsetups.h"
+#include "dlls/objects/common/collectable.h"
+#include "dlls/objects/325_trigger.h"
+#include "dlls/objects/418_DFriverflow.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
 #include "game/gamebits.h"
@@ -20,7 +23,7 @@
 #include "sys/map.h"
 #include "sys/map_enums.h"
 #include "sys/memory.h"
-#include "dlls/objects/common/collectable.h"
+#include "macros.h"
 
 INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
 INCBIN(block351, "blocks_0351_SHriver_rocky_waterfall.bin");
@@ -521,13 +524,14 @@ static void swapstone_hollow_additions(void) {
             u8 blocksFade;
         } HitAnimators;
 
+        // TODO: use custom bit
         HitAnimators hitAnimatorData[] = {
-            {VEC3F(2369.237, -620, 737.118),    BIT_SpellStone_DIM_Activated, 1, FALSE, TRUE, FALSE},
-            {VEC3F(2119.723, -620, 477.954),    BIT_SpellStone_DIM_Activated, 1, FALSE, TRUE, FALSE},
-            {VEC3F(1588.987, -620, 436.598),    BIT_SpellStone_DIM_Activated, 1, FALSE, TRUE, FALSE},
-            {VEC3F(1158.884, -620, 538.609),    BIT_SpellStone_DIM_Activated, 1, FALSE, TRUE, FALSE},
-            {VEC3F(903.856,  -620, 789.503),     BIT_SpellStone_DIM_Activated, 1, FALSE, TRUE, FALSE},
-            {VEC3F(590.928,  -620, 965.955),     BIT_SpellStone_DIM_Activated, 1, FALSE, TRUE, FALSE},
+            {VEC3F(2369.237, -620, 737.118),    0x123, 1, FALSE, TRUE, FALSE},
+            {VEC3F(2119.723, -620, 477.954),    0x123, 1, FALSE, TRUE, FALSE},
+            {VEC3F(1588.987, -620, 436.598),    0x123, 1, FALSE, TRUE, FALSE},
+            {VEC3F(1158.884, -620, 538.609),    0x123, 1, FALSE, TRUE, FALSE},
+            {VEC3F(903.856,  -620, 789.503),    0x123, 1, FALSE, TRUE, FALSE},
+            {VEC3F(590.928,  -620, 965.955),    0x123, 1, FALSE, TRUE, FALSE},
         };
         u8 count = ARRAYCOUNT(hitAnimatorData);
 
@@ -562,6 +566,35 @@ static void swapstone_hollow_additions(void) {
             reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
         }
     }
+
+    {
+        // Add a distract node next to the sleeping log trader thorntail so that tricky
+        // can correctly use distract to wake them up. The distract option is vanilla but
+        // tricky won't actually use distract without a node like this present.
+        // Note: Not sure what a lot of these fields do, this was copied from warlock mountain.
+        CurveSetup distractNode = {
+            .objId = OBJ_curve,
+            .unk3 = 9,
+            .pos = {
+                .x = 2705.53f,
+                .y = -622.83f,
+                .z = 1807.94f
+            },
+            .unk18 = 0,
+            .curveType = 0x24,
+            .unk1A = 0x3,
+            .unk1B = 0,
+            .links = {-1, -1, -1, -1},
+            .unk2C = 0,
+            .unk2D = 0,
+            .unk2E = 0x40,
+            .unk2F = -1,
+            .type24.unk30 = -1,
+            .type24.unk32 = BIT_14 // disable after woken up
+        };
+
+        reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &distractNode, sizeof(distractNode));
+    }
 }
 
 static void swapstone_hollow_modifications(void) {
@@ -589,6 +622,39 @@ static void swapstone_hollow_modifications(void) {
         boulder->invincible = TRUE;
     }
 
+    // Move river sfx TriggerPoints into obj group 11
+    {
+        ObjSetup *triggerPoint;
+        
+        triggerPoint = reasset_map_objects_get(sHollow, reasset_base_id(0x31CDD), NULL);
+        triggerPoint->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+        triggerPoint->mapObjGroup = 11;
+        
+        triggerPoint = reasset_map_objects_get(sHollow, reasset_base_id(0x31CCA), NULL);
+        triggerPoint->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+        triggerPoint->mapObjGroup = 11;
+    }
+
+    // Move dockpoint into obj group 12
+    {
+        ObjSetup *dockpoint = reasset_map_objects_get(sHollow, reasset_base_id(0x42BAA), NULL);
+        dockpoint->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+        dockpoint->mapObjGroup = 12;
+    }
+
+    // Edit trigger plane at the start of the DB side of the river to enable the DB
+    // river object group that contains river flows etc.
+    {
+        Trigger_Setup *trigger = reasset_map_objects_get(sHollow, reasset_base_id(0x18EB), NULL);
+        trigger->commands[1].id = TRG_CMD_WORLD_ENABLE_OBJ_GROUP;
+        trigger->commands[1].condition = CMD_COND_IN | CMD_COND_RE_ENTER;
+        trigger->commands[1].param1 = 0;
+        trigger->commands[1].param2 = MAP_DIAMOND_BAY;
+        trigger->commands[2].id = TRG_CMD_WORLD_DISABLE_OBJ_GROUP;
+        trigger->commands[2].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;
+        trigger->commands[2].param1 = 0;
+        trigger->commands[2].param2 = MAP_DIAMOND_BAY;
+    }
 }
 
 static void cc_lightfoot_patch(void) {
@@ -726,11 +792,245 @@ static void purple_mushroom_patch(void) {
     }
 }
 
+static void diamond_bay_additions(void) {
+    ReAssetID db = reasset_base_id(MAP_DIAMOND_BAY);
+
+    // Add fall reset EffectBox to the start of the DB river to prevent players from accessing
+    // DB and VFP earlier than intended. Disables itself after the SH river is unblocked.
+    {
+        EffectBox_Setup riverFallResetBox = {
+            .base = {
+                .objId = OBJ_EffectBox,
+                .loadFlags = OBJSETUP_LOAD_LEVEL,
+                .fadeFlags = OBJSETUP_FADE_MANUAL,
+                .loadDistance = 0xFF,
+                .fadeDistance = 0xFF,
+                .x = 1141.85f,
+                .y = -956.03f,
+                .z = -1551.03f
+            },
+            .unk18 = (19832 / 256), // yaw
+            .unk19 = 0, // pitch
+            .unk1A = 200, // x radius
+            .unk1B = 30, // y radius
+            .unk1C = 100, // z radius
+            .effect = 0, // fall reset
+            .gamebitDisableValue = 1,
+            // TODO: use custom bit
+            .gamebit = 0x123, // disable when the SwapStone Hollow river is unblocked
+            .target = 0 // player
+        };
+
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &riverFallResetBox, sizeof(riverFallResetBox));
+    }
+
+    // Add dangerous water trigger at the start of the DB river to prevent players from going
+    // this way without a log. The fall reset trigger only applies when the river is dry, so
+    // we need something to stop players from fixing the river but not getting the DIM SepllStone.
+    {
+        Trigger_Setup drownTrigger = {
+            .base = {
+                .objId = OBJ_TriggerArea,
+                .loadFlags = OBJSETUP_LOAD_LEVEL,
+                .fadeFlags = OBJSETUP_FADE_MANUAL,
+                .loadDistance = 0xFF,
+                .fadeDistance = 0xFF,
+                .x = 957.0f,
+                .y = -1095.0f,
+                .z = -1461.0f
+            },
+            .commands = {
+                {
+                    .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
+                    .id = TRG_CMD_HAZARD,
+                    .param1 = 9, // dangerous water
+                    .param2 = 0
+                },
+                {
+                    .condition = CMD_COND_OUT | CMD_COND_RE_EXIT,
+                    .id = TRG_CMD_HAZARD,
+                    .param1 = 10, // safe water
+                    .param2 = 0
+                }
+            },
+            .sizeX = 255,
+            .sizeY = 16,
+            .sizeZ = 170,
+            .rotationY = 0,
+            .rotationX = 0
+        };
+
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &drownTrigger, sizeof(drownTrigger));
+    }
+
+    // Add another drown trigger after the second drop in the river (the deep spot where the vines can knock you down into)
+    {
+        Trigger_Setup drownTrigger = {
+            .base = {
+                .objId = OBJ_TriggerArea,
+                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                .fadeFlags = OBJSETUP_FADE_MANUAL,
+                .mapObjGroup = 0,
+                .fadeDistance = 0xFF,
+                .x = 354.0f,
+                .y = -1440.0f,
+                .z = -813.0f
+            },
+            .commands = {
+                {
+                    .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
+                    .id = TRG_CMD_HAZARD,
+                    .param1 = 9, // dangerous water
+                    .param2 = 0
+                },
+                {
+                    .condition = CMD_COND_OUT | CMD_COND_RE_EXIT,
+                    .id = TRG_CMD_HAZARD,
+                    .param1 = 10, // safe water
+                    .param2 = 0
+                }
+            },
+            .sizeX = 255,
+            .sizeY = 16,
+            .sizeZ = 255,
+            .rotationY = (12680 >> 8),
+            .rotationX = 0
+        };
+
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &drownTrigger, sizeof(drownTrigger));
+    }
+}
+
+static void diamond_bay_modifications(void) {
+    ReAssetID db = reasset_base_id(MAP_DIAMOND_BAY);
+
+    // Delete the dockpoints at the start of the DB river
+    {
+        ReAssetID riverDockpoint1 = reasset_base_id(0x41F04);
+        ReAssetID riverDockpoint2 = reasset_base_id(0x30006);
+
+        reasset_map_objects_delete(db, riverDockpoint1);
+        reasset_map_objects_delete(db, riverDockpoint2);
+    }
+
+    // Increase strength of existing DB riverflows (just the ones in the rapids)
+    {
+        DFriverflow_Setup *riverflow;
+
+        riverflow = reasset_map_objects_get(db, reasset_base_id(0x3006A), NULL);
+        riverflow->range = 127;
+
+        riverflow = reasset_map_objects_get(db, reasset_base_id(0x30069), NULL);
+        riverflow->range = 127;
+        riverflow->yaw = 120;
+    }
+
+    // Add more riverflows to the river
+    // TODO: this could use some polish
+    {
+        DFriverflow_Setup riverflow = {
+            .base = {
+                .objId = OBJ_DFriverflow,
+                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .mapObjGroup = 0
+            },
+            .yaw = 0,
+            .range = 127,
+            .flags = 0,
+            .toggleGamebit = -1
+        };
+
+        riverflow.base.x = 974.0f;
+        riverflow.base.y = -1106.0f;
+        riverflow.base.z = -1521.0f;
+        riverflow.yaw = (31792 >> 8);
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &riverflow, sizeof(riverflow));
+
+        riverflow.base.x = 533.0f;
+        riverflow.base.y = -1416.0f;
+        riverflow.base.z = -826.0f;
+        riverflow.yaw = (15872 >> 8);
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &riverflow, sizeof(riverflow));
+
+        riverflow.base.x = 66.0f;
+        riverflow.base.y = -1416.0f;
+        riverflow.base.z = -872.0f;
+        riverflow.yaw = (11469 >> 8);
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &riverflow, sizeof(riverflow));
+
+        riverflow.base.x = 331.0f;
+        riverflow.base.y = -1416.0f;
+        riverflow.base.z = -800.0f;
+        riverflow.yaw = (12029 >> 8);
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &riverflow, sizeof(riverflow));
+
+        riverflow.base.x = -302.0f;
+        riverflow.base.y = -1416.0f;
+        riverflow.base.z = -1136.0f;
+        riverflow.yaw = (22079 >> 8);
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &riverflow, sizeof(riverflow));
+
+        riverflow.base.x = -447.0f;
+        riverflow.base.y = -1416.0f;
+        riverflow.base.z = -988.0f;
+        riverflow.yaw = (24492 >> 8);
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &riverflow, sizeof(riverflow));
+
+        riverflow.base.mapObjGroup = 1;
+
+        riverflow.base.x = -483.0f;
+        riverflow.base.y = -1416.0f;
+        riverflow.base.z = -918.0f;
+        riverflow.yaw = (24157 >> 8);
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &riverflow, sizeof(riverflow));
+
+        riverflow.base.x = -766.0f;
+        riverflow.base.y = -1416.0f;
+        riverflow.base.z = -644.0f;
+        riverflow.yaw = (12805 >> 8);
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &riverflow, sizeof(riverflow));
+
+        riverflow.base.x = -899.0f;
+        riverflow.base.y = -1416.0f;
+        riverflow.base.z = -798.0f;
+        riverflow.yaw = (5854 >> 8);
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &riverflow, sizeof(riverflow));
+
+        riverflow.base.x = -1049.0f;
+        riverflow.base.y = -1416.0f;
+        riverflow.base.z = -946.0f;
+        riverflow.yaw = (15917 >> 8);
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &riverflow, sizeof(riverflow));
+
+        riverflow.base.x = -1514.0f;
+        riverflow.base.y = -1416.0f;
+        riverflow.base.z = -904.0f;
+        riverflow.yaw = (3116 >> 8);
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &riverflow, sizeof(riverflow));
+
+        riverflow.base.x = -1528.0f;
+        riverflow.base.y = -1416.0f;
+        riverflow.base.z = -1145.0f;
+        riverflow.yaw = (-1166 >> 8);
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &riverflow, sizeof(riverflow));
+    }
+
+    // Increase the size of the trigger plane at the start of the DB river that
+    // sets tricky's goal point and sets up some envfx. In vanilla, it's very easy to miss it.
+    {
+        Trigger_Setup *trigger = reasset_map_objects_get(db, reasset_base_id(0x41EF0), NULL);
+        trigger->sizeX = 34; // scale 0.75 -> 2.125
+        trigger->base.loadDistance = 48; // increase load dist to compensate
+    }
+}
+
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     walled_city_additions();
     warlock_mountain_platform_additions();
     swapstone_hollow_additions();
     //golden_plains_fuel_additions();
+    diamond_bay_additions();
 }
 
 REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
@@ -754,4 +1054,5 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     music_actions_patch();
     // df_patches_shinx();
     // df_modifications();
+    diamond_bay_modifications();
 }

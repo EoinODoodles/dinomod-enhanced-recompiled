@@ -16,8 +16,10 @@ typedef struct {
 
 /** Adds transforms into the setup, and removes boulder if its gamebit is already set */
 RECOMP_PATCH void SHboulder_setup(Object *self, SHboulder_Setup *objSetup, s32 arg2) {
+    SHboulder_Data* objData = self->data;//@recomp
     if (objSetup->gamebitGone != NO_GAMEBIT && main_get_bits(objSetup->gamebitGone)){
-        obj_destroy_object(self);
+        objData->fadeOut = TRUE;
+        self->opacity = 0;
     }
 
     self->srt.yaw = objSetup->yaw << 8;

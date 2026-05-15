@@ -77,3 +77,17 @@ typedef struct {
 /*22*/ u16 unk22;
 /*24*/ u8 warpID;              //Optionally warp the player
 } SeqObj_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ u8 unk18; // yaw?
+/*19*/ u8 unk19; // pitch?
+/*1A*/ u8 unk1A; // width? (x)
+/*1B*/ u8 unk1B; // height? (y) divided by 2
+/*1C*/ u8 unk1C; // length? (z)
+/*1D*/ u8 effect;
+/*1E*/ u8 _unk1E;
+/*1F*/ u8 gamebitDisableValue; // disabled if the target gamebit is this value
+/*20*/ s16 gamebit; // -1 if this effect box is always enabled
+/*22*/ u8 target; // 0 = player, 1 = sidekick, 2 = objtype 6
+} EffectBox_Setup;
