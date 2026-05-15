@@ -39,6 +39,27 @@ typedef struct {
 } TexFrameAnimator_Setup;
 
 typedef struct {
+    ObjSetup base;
+    s16 textureIndex;       //in TABLES.bin subfile #14 ("scroll table")
+    s16 gamebitActivate;    //gamebitID that activates animation (or -1 to skip bit check)
+    s16 unused1C;
+    s8 speedU;              //scroll speed (horizontal)
+    s8 speedV;              //scroll speed (vertical)
+} TexScroll_Setup;
+
+typedef struct {
+    ObjSetup base;
+    s16 textureIndex;       //Primary material: index in TABLES.bin subfile #14 ("scroll table")
+    s16 gamebitActivate;    //Unused, but instances of this object store a gamebitID here (e.g. 0x95)
+    s8 uSpeedB;             //U scroll speed for secondary blend material 
+    s8 vSpeedB;             //V scroll speed for secondary blend material 
+    s8 uSpeedA;             //U scroll speed for primary material              
+    s8 vSpeedA;             //V scroll speed for primary material              
+    s16 blendTextureIndex;  //Secondary blend material: index in TABLES.bin subfile #14 (optional, -1 if unused)
+                            //Blend material is used for multitextured scrolling water, etc.
+} TexScroll2_Setup;
+
+typedef struct {
 /*00*/ ObjSetup base;
 /*18*/ s16 flagPlay;
 /*1A*/ s16 soundID; // Should use a SoundID enum value from dll 6
@@ -91,3 +112,27 @@ typedef struct {
 /*20*/ s16 gamebit; // -1 if this effect box is always enabled
 /*22*/ u8 target; // 0 = player, 1 = sidekick, 2 = objtype 6
 } EffectBox_Setup;
+
+typedef struct {
+    ObjSetup base;
+    s16 gamebitUnlocked;    //GamebitID determining whether the sidekick is unlocked (i.e. Kyte rescued)
+    u8 sidekickIndex;       //Whether this should load Tricky/Kyte (see `SideLoad_Indices`)
+} SideLoad_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ s16 gamebit;     //Spray stops when this gamebit is set (when specified)
+/*1A*/ s8 roll;
+/*1B*/ s8 pitch;
+/*1C*/ s8 yaw;
+/*1D*/ u8 amplitudeX;
+/*1E*/ u8 amplitudeZ;
+/*1F*/ u8 amplitudeY;
+/*20*/ u8 distance;
+/*21*/ u8 unk21;
+/*22*/ u8 unk22;
+/*23*/ u8 flags;
+/*24*/ u8 iterations;
+/*RECOMP*/
+/*25*/ u8 invertGamebit; //When set: spray plays when gamebit set (if a gamebit was specified)
+} WaterFallSpray_Setup;

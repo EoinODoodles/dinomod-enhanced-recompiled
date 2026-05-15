@@ -28,6 +28,8 @@
 INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
 INCBIN(block351, "blocks_0351_SHriver_rocky_waterfall.bin");
 INCBIN(block581, "blocks_0581_SHwell_entrance.bin");
+INCBIN(block989, "blocks_0989_DBriver_waterfall_basin_1.bin");
+INCBIN(hits989, "hits_0989_DBriver_waterfall_basin_1.bin");
 // INCBIN(block338, "0338 0152.bin");
 
 INCBIN(tex0_kiosk_gold_key,             "tex0_kiosk_gold_key.bin");
@@ -374,14 +376,29 @@ static void collectables_animobj_patch(void) {
     } 
 }
 
-/** Causes Cape Claw's Shiny Nugget to increment the same gamebit used by SwapStone Circle's Shiny Nuggets */
-static void cc_shiny_nugget_patch(void) {
+static void cape_claw_modifications(void) {
     ReAssetID capeClaw = reasset_base_id(MAP_CAPE_CLAW);
 
-    Collectable_Setup *gold = (Collectable_Setup*)reasset_map_objects_get(capeClaw, 
-            reasset_base_id(0x42DFD), NULL);
-    if (gold->base.objId == OBJ_CCgoldnuggetPic) {
-        gold->gamebitCount = BIT_627;
+    // Causes Cape Claw's Shiny Nugget to increment the same gamebit used by SwapStone Circle's Shiny Nuggets
+    {
+        Collectable_Setup *gold = (Collectable_Setup*)reasset_map_objects_get(capeClaw, 
+                reasset_base_id(0x42DFD), NULL);
+        if (gold->base.objId == OBJ_CCgoldnuggetPic) {
+            gold->gamebitCount = BIT_627;
+        }
+    }
+
+    // Stop creating spray particles after Kyte pulls lever (gamebit moved to ObjSetup to make patch more reusable)
+    {
+        u32 waterFallSprays[] = {0x42E2C, 0x42E2D, 0x42E2E};
+
+        for (u8 i = 0, end = ARRAYCOUNT(waterFallSprays); i < end; i ++) {
+            WaterFallSpray_Setup *spray = (WaterFallSpray_Setup*)reasset_map_objects_get(capeClaw, 
+                    reasset_base_id(waterFallSprays[i]), NULL);
+            if (spray->base.objId == OBJ_WaterFallSpray) {
+                spray->gamebit = BIT_144;
+            }
+        }
     }
 }
 
@@ -448,6 +465,9 @@ static void golden_plains_fuel_additions(void) {
 }
 PRAGMA_IGNORE_POP()
 
+//TODO: give this a custom gamebitID - this is just a placeholder value for testing, and needs to be changed!
+#define BOULDER_GAMEBIT 0x123
+
 static void swapstone_hollow_additions(void) {
     ReAssetID mapID = reasset_base_id(MAP_SWAPSTONE_HOLLOW);
 
@@ -484,13 +504,14 @@ static void swapstone_hollow_additions(void) {
             boulder.yaw = boulderData[i].yaw;
             boulder.pitch = boulderData[i].pitch;
             boulder.roll = boulderData[i].roll;
-            boulder.gamebitGone = 0x123; //TODO: give this a custom gamebitID - this one's just for testing and needs to be changed!
+            boulder.gamebitGone = BOULDER_GAMEBIT;
 
             reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &boulder, sizeof(boulder));
         }
     }
 
     //Add CFbarrel for blowing up the boulder after Tricky learns Flame
+    //TODO: improve this, check how respawning barrels are usually handled elsewhere!
     {
         typedef struct {
             ObjSetup base;
@@ -513,7 +534,7 @@ static void swapstone_hollow_additions(void) {
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &barrel, sizeof(barrel));
     }
 
-    //Add HitAnimators for removing the water
+    //Add HitAnimators for removing tangible parts of the water
     {
         typedef struct {
             Vec3f coords;
@@ -524,14 +545,17 @@ static void swapstone_hollow_additions(void) {
             u8 blocksFade;
         } HitAnimators;
 
-        // TODO: use custom bit
         HitAnimators hitAnimatorData[] = {
-            {VEC3F(2369.237, -620, 737.118),    0x123, 1, FALSE, TRUE, FALSE},
-            {VEC3F(2119.723, -620, 477.954),    0x123, 1, FALSE, TRUE, FALSE},
-            {VEC3F(1588.987, -620, 436.598),    0x123, 1, FALSE, TRUE, FALSE},
-            {VEC3F(1158.884, -620, 538.609),    0x123, 1, FALSE, TRUE, FALSE},
-            {VEC3F(903.856,  -620, 789.503),    0x123, 1, FALSE, TRUE, FALSE},
-            {VEC3F(590.928,  -620, 965.955),    0x123, 1, FALSE, TRUE, FALSE},
+            {VEC3F(2369.237, -620,  737.118),   BOULDER_GAMEBIT, 1, FALSE, TRUE, FALSE}, //block351 (waterfall near Rocky)
+            {VEC3F(2119.723, -620,  477.954),   BOULDER_GAMEBIT, 1, FALSE, TRUE, FALSE}, //block347 (river bend with log dockpoint)
+            {VEC3F(1588.987, -620,  436.598),   BOULDER_GAMEBIT, 1, FALSE, TRUE, FALSE}, //block360 (river section beside 4 White Mushrooms)
+            {VEC3F(1158.884, -620,  538.609),   BOULDER_GAMEBIT, 1, FALSE, TRUE, FALSE}, //block346 (river crossing, Queen EarthWalker side)
+            {VEC3F(903.856,  -620,  789.503),   BOULDER_GAMEBIT, 1, FALSE, TRUE, FALSE}, //block349 (river crossing, well side)
+            {VEC3F(590.928,  -620,  965.955),   BOULDER_GAMEBIT, 1, FALSE, TRUE, FALSE}, //block989 (Diamond Bay waterfall basin 1) (upper river)
+            {VEC3F(285.865,  -1000, 994.401),   BOULDER_GAMEBIT, 3, FALSE, TRUE, FALSE}, //                                         (rapids)
+            {VEC3F(180.215,  -1000, 1625.786),  BOULDER_GAMEBIT, 2, FALSE, TRUE, FALSE}, //block995 (Diamond Bay river bend)
+            {VEC3F(-263.215, -1000, 1740.963),  BOULDER_GAMEBIT, 3, FALSE, TRUE, FALSE}, //block994 (Diamond Bay waterfall basin 2) (water)
+            {VEC3F(557.214,  -825,  1013.432),  BOULDER_GAMEBIT, 1, TRUE, FALSE, FALSE}, //block994 (Diamond Bay waterfall basin 2) (ledge-grab HITS line)
         };
         u8 count = ARRAYCOUNT(hitAnimatorData);
 
@@ -564,6 +588,68 @@ static void swapstone_hollow_additions(void) {
             }
 
             reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+        }
+    }
+
+    //Add VisAnimators for removing intangible parts of the water
+    {
+        typedef struct {
+            Vec3f coords;
+            s16 gamebit;
+            u8 animatorID;
+            u8 removeWhenSet;
+        } VisAnimators;
+
+        VisAnimators visAnimatorData[] = {
+            {VEC3F(2371.953, -620,  765.635),  BOULDER_GAMEBIT, 2, FALSE},  //block351 (waterfall near Rocky)
+            {VEC3F(501.871,  -620,  981.222),  BOULDER_GAMEBIT, 2, FALSE},  //block989 (Diamond Bay waterfall basin 1) (waterfall)
+            {VEC3F(261.545,  -1000, 995.373),  BOULDER_GAMEBIT, 4, FALSE},  //                                         (rapids foam)
+            {VEC3F(-230.137, -1000, 1740.963), BOULDER_GAMEBIT, 2, FALSE},  //block994 (Diamond Bay waterfall basin 2) (waterfall)
+        };
+        u8 count = ARRAYCOUNT(visAnimatorData);
+
+        //Insert the new objects
+        for (s32 i = 0; i < count; i++) {
+            VisAnimators* data = &visAnimatorData[i];
+            VisAnimator_Setup visA = {0};
+            visA.base.objId = OBJ_VisAnimator;
+            visA.base.actExclusions1 = ~MAP_ACT(1);
+            visA.base.loadFlags = OBJSETUP_LOAD_LEVEL;
+            visA.base.fadeFlags = OBJSETUP_FADE_CAMERA;
+            visA.base.loadDistance = 140;
+            visA.base.fadeDistance = 140;
+            visA.base.x = data->coords.x;
+            visA.base.y = data->coords.y;
+            visA.base.z = data->coords.z;
+            visA.animatorID1 = data->animatorID;
+            visA.gamebitID = data->gamebit;
+            visA.initialVisibility = data->removeWhenSet;
+
+            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &visA, sizeof(visA));
+        }
+    }
+
+    //Add TexScrolls for the waterfall leading down to Diamond Bay
+    {
+        TexScroll2_Setup texScrollData[] = {
+            {.base.x = 563.975, .base.y = -671.187, .base.z = 961.741, .textureIndex = 30, BOULDER_GAMEBIT, 0, 3, 0,  7, 31}, //block989 (Diamond Bay waterfall basin 1) (upper river)
+            {.base.x = 501.871, .base.y = -671.187, .base.z = 981.222, .textureIndex = 37, BOULDER_GAMEBIT, 0, 0, 0, -7, -1}, //block989 (Diamond Bay waterfall basin 1) (waterfall top)
+            {.base.x = 483.437, .base.y = -638.000, .base.z = 981.222, .textureIndex = 45, BOULDER_GAMEBIT, 0, 0, 0, -7, -1}, //block989 (Diamond Bay waterfall basin 1) (waterfall main)
+        };
+        u8 count = ARRAYCOUNT(texScrollData);
+
+        //Insert the new objects
+        for (s32 i = 0; i < count; i++) {
+            TexScroll2_Setup* scroll = &texScrollData[i];
+            scroll->base.objId = OBJ_texscroll2;
+            scroll->base.actExclusions1 = ~MAP_ACT(1);
+            scroll->base.loadFlags = OBJSETUP_LOAD_LEVEL;
+            scroll->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+            scroll->base.loadDistance = 140;
+            scroll->base.fadeDistance = 140;
+            reasset_map_objects_set(mapID, 
+                reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll2_Setup)
+            );
         }
     }
 
@@ -601,12 +687,39 @@ static void swapstone_hollow_modifications(void) {
     ReAssetID sHollow = reasset_base_id(MAP_SWAPSTONE_HOLLOW);
     ReAssetID shTrkblk = reasset_base_id(12);
     ReAssetID shWellTrkblk = reasset_base_id(19);
+    ReAssetID dbTrkblk = reasset_base_id(48);
 
     //Tag Blocks shapes with animatorIDs, so they can be removed with HitAnimators
     reasset_blocks_set(shTrkblk, reasset_base_id(351 - 345), REASSET_BASE_NAMESPACE, block351, block351_end - block351);
     
     //SwapStone Hollow Well: Fix mesh holes, fog issues (on dig spot decals), stalactite animatorIDs, UVs
     reasset_blocks_set(shWellTrkblk, reasset_base_id(581 - 579), REASSET_BASE_NAMESPACE, block581, block581_end - block581);
+
+    //Diamond Bay river: adjust animatorIDs, plus seam fixes at the SH connection
+    reasset_blocks_set(dbTrkblk, reasset_base_id(989 - 974), REASSET_BASE_NAMESPACE, block989, block989_end - block989);
+
+    //Add a HITS line so you dangle off SwapStone Hollow's waterfall when attempting to run off it
+    {
+        ReAssetID dbTrkblk = reasset_base_id(48);
+        HitsLine line = {
+            .Ax = 538,
+            .Ay = -825,
+            .Az = 308,
+
+            .Bx = 575,
+            .By = -825,
+            .Bz = 434,
+
+            .heightA = 0x28,
+            .heightB = 0x28,
+
+            .settingsA = 0xe,
+            .settingsB = 0x82,
+
+            .animatorID = 1,
+        };
+        reasset_hits_set(dbTrkblk, reasset_base_id(989 - 974), reasset_auto_id(13), REASSET_BASE_NAMESPACE, &line);
+    }
 
     //Revert changes to SHboulder's DLL usage
     {
@@ -816,8 +929,7 @@ static void diamond_bay_additions(void) {
             .unk1C = 100, // z radius
             .effect = 0, // fall reset
             .gamebitDisableValue = 1,
-            // TODO: use custom bit
-            .gamebit = 0x123, // disable when the SwapStone Hollow river is unblocked
+            .gamebit = BOULDER_GAMEBIT, // disable when the SwapStone Hollow river is unblocked
             .target = 0 // player
         };
 
@@ -826,7 +938,7 @@ static void diamond_bay_additions(void) {
 
     // Add dangerous water trigger at the start of the DB river to prevent players from going
     // this way without a log. The fall reset trigger only applies when the river is dry, so
-    // we need something to stop players from fixing the river but not getting the DIM SepllStone.
+    // we need something to stop players from fixing the river but not getting the DIM SpellStone.
     {
         Trigger_Setup drownTrigger = {
             .base = {
@@ -920,6 +1032,20 @@ static void diamond_bay_modifications(void) {
         trigger->sizeX = 34; // scale 0.75 -> 2.125
         trigger->base.loadDistance = 48; // increase load dist to compensate
     }
+
+    // Add a gamebit to the SideLoad at the start of the DB river
+    // (stops Tricky from warping down there when river's missing)
+    {
+        SideLoad_Setup *sideLoad = reasset_map_objects_get(db, reasset_base_id(0x42B6F), NULL);
+        sideLoad->gamebitUnlocked = BOULDER_GAMEBIT;
+    }
+
+    // Add a gamebit to the WaterFallSpray at the start of the DB river
+    {
+        WaterFallSpray_Setup *spray = reasset_map_objects_get(db, reasset_base_id(0x4205B), NULL);
+        spray->gamebit = BOULDER_GAMEBIT;
+        spray->invertGamebit = TRUE;
+    }
 }
 
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
@@ -940,14 +1066,13 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     warlock_mountain_platform_modifications();
     swapstone_hollow_modifications();
     cc_lightfoot_patch();
-    cc_shiny_nugget_patch();
+    cape_claw_modifications();
     darkice_mines_modifications();
     golden_plains_modifications();
     walled_city_modifications();
     dragon_rock_upper_modifications();
     golden_plains_modifications();
     // golden_plains_fuel_modifications();
-    cc_lightfoot_patch();
     music_actions_patch();
     // df_patches_shinx();
     // df_modifications();
