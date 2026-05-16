@@ -7,6 +7,7 @@
 #include "common_objsetups.h"
 #include "configs.h"
 #include "custom_textable_ids.h"
+#include "custom_gamebits.h"
 #include "math_util.h"
 #include "mod_common.h"
 #include "object_util.h"
@@ -465,9 +466,6 @@ static void golden_plains_fuel_additions(void) {
 }
 PRAGMA_IGNORE_POP()
 
-//TODO: give this a custom gamebitID - this is just a placeholder value for testing, and needs to be changed!
-#define BOULDER_GAMEBIT 0x123
-
 static void swapstone_hollow_additions(void) {
     ReAssetID mapID = reasset_base_id(MAP_SWAPSTONE_HOLLOW);
 
@@ -504,7 +502,7 @@ static void swapstone_hollow_additions(void) {
             boulder.yaw = boulderData[i].yaw;
             boulder.pitch = boulderData[i].pitch;
             boulder.roll = boulderData[i].roll;
-            boulder.gamebitGone = BOULDER_GAMEBIT;
+            boulder.gamebitGone = DINOMOD_BIT_920_SH_BoulderBlownUp;
 
             reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &boulder, sizeof(boulder));
         }
@@ -546,16 +544,16 @@ static void swapstone_hollow_additions(void) {
         } HitAnimators;
 
         HitAnimators hitAnimatorData[] = {
-            {VEC3F(2369.237, -620,  737.118),   BOULDER_GAMEBIT, 1, FALSE, TRUE, FALSE}, //block351 (waterfall near Rocky)
-            {VEC3F(2119.723, -620,  477.954),   BOULDER_GAMEBIT, 1, FALSE, TRUE, FALSE}, //block347 (river bend with log dockpoint)
-            {VEC3F(1588.987, -620,  436.598),   BOULDER_GAMEBIT, 1, FALSE, TRUE, FALSE}, //block360 (river section beside 4 White Mushrooms)
-            {VEC3F(1158.884, -620,  538.609),   BOULDER_GAMEBIT, 1, FALSE, TRUE, FALSE}, //block346 (river crossing, Queen EarthWalker side)
-            {VEC3F(903.856,  -620,  789.503),   BOULDER_GAMEBIT, 1, FALSE, TRUE, FALSE}, //block349 (river crossing, well side)
-            {VEC3F(590.928,  -620,  965.955),   BOULDER_GAMEBIT, 1, FALSE, TRUE, FALSE}, //block989 (Diamond Bay waterfall basin 1) (upper river)
-            {VEC3F(285.865,  -1000, 994.401),   BOULDER_GAMEBIT, 3, FALSE, TRUE, FALSE}, //                                         (rapids)
-            {VEC3F(180.215,  -1000, 1625.786),  BOULDER_GAMEBIT, 2, FALSE, TRUE, FALSE}, //block995 (Diamond Bay river bend)
-            {VEC3F(-263.215, -1000, 1740.963),  BOULDER_GAMEBIT, 3, FALSE, TRUE, FALSE}, //block994 (Diamond Bay waterfall basin 2) (water)
-            {VEC3F(557.214,  -825,  1013.432),  BOULDER_GAMEBIT, 1, TRUE, FALSE, FALSE}, //block994 (Diamond Bay waterfall basin 2) (ledge-grab HITS line)
+            {VEC3F(2369.237, -620,  737.118),   DINOMOD_BIT_921_SH_RiverUnblocked, 1, FALSE, TRUE, FALSE}, //block351 (waterfall near Rocky)
+            {VEC3F(2119.723, -620,  477.954),   DINOMOD_BIT_921_SH_RiverUnblocked, 1, FALSE, TRUE, FALSE}, //block347 (river bend with log dockpoint)
+            {VEC3F(1588.987, -620,  436.598),   DINOMOD_BIT_921_SH_RiverUnblocked, 1, FALSE, TRUE, FALSE}, //block360 (river section beside 4 White Mushrooms)
+            {VEC3F(1158.884, -620,  538.609),   DINOMOD_BIT_921_SH_RiverUnblocked, 1, FALSE, TRUE, FALSE}, //block346 (river crossing, Queen EarthWalker side)
+            {VEC3F(903.856,  -620,  789.503),   DINOMOD_BIT_921_SH_RiverUnblocked, 1, FALSE, TRUE, FALSE}, //block349 (river crossing, well side)
+            {VEC3F(590.928,  -620,  965.955),   DINOMOD_BIT_921_SH_RiverUnblocked, 1, FALSE, TRUE, FALSE}, //block989 (Diamond Bay waterfall basin 1) (upper river)
+            {VEC3F(285.865,  -1000, 994.401),   DINOMOD_BIT_921_SH_RiverUnblocked, 3, FALSE, TRUE, FALSE}, //                                         (rapids)
+            {VEC3F(180.215,  -1000, 1625.786),  DINOMOD_BIT_921_SH_RiverUnblocked, 2, FALSE, TRUE, FALSE}, //block995 (Diamond Bay river bend)
+            {VEC3F(-263.215, -1000, 1740.963),  DINOMOD_BIT_921_SH_RiverUnblocked, 3, FALSE, TRUE, FALSE}, //block994 (Diamond Bay waterfall basin 2) (water)
+            {VEC3F(557.214,  -825,  1013.432),  DINOMOD_BIT_921_SH_RiverUnblocked, 1, TRUE, FALSE, FALSE}, //block994 (Diamond Bay waterfall basin 2) (ledge-grab HITS line)
         };
         u8 count = ARRAYCOUNT(hitAnimatorData);
 
@@ -601,10 +599,10 @@ static void swapstone_hollow_additions(void) {
         } VisAnimators;
 
         VisAnimators visAnimatorData[] = {
-            {VEC3F(2371.953, -620,  765.635),  BOULDER_GAMEBIT, 2, FALSE},  //block351 (waterfall near Rocky)
-            {VEC3F(501.871,  -620,  981.222),  BOULDER_GAMEBIT, 2, FALSE},  //block989 (Diamond Bay waterfall basin 1) (waterfall)
-            {VEC3F(261.545,  -1000, 995.373),  BOULDER_GAMEBIT, 4, FALSE},  //                                         (rapids foam)
-            {VEC3F(-230.137, -1000, 1740.963), BOULDER_GAMEBIT, 2, FALSE},  //block994 (Diamond Bay waterfall basin 2) (waterfall)
+            {VEC3F(2371.953, -620,  765.635),  DINOMOD_BIT_921_SH_RiverUnblocked, 2, FALSE},  //block351 (waterfall near Rocky)
+            {VEC3F(501.871,  -620,  981.222),  DINOMOD_BIT_921_SH_RiverUnblocked, 2, FALSE},  //block989 (Diamond Bay waterfall basin 1) (waterfall)
+            {VEC3F(261.545,  -1000, 995.373),  DINOMOD_BIT_921_SH_RiverUnblocked, 4, FALSE},  //                                         (rapids foam)
+            {VEC3F(-230.137, -1000, 1740.963), DINOMOD_BIT_921_SH_RiverUnblocked, 2, FALSE},  //block994 (Diamond Bay waterfall basin 2) (waterfall)
         };
         u8 count = ARRAYCOUNT(visAnimatorData);
 
@@ -632,9 +630,9 @@ static void swapstone_hollow_additions(void) {
     //Add TexScrolls for the waterfall leading down to Diamond Bay
     {
         TexScroll2_Setup texScrollData[] = {
-            {.base.x = 563.975, .base.y = -671.187, .base.z = 961.741, .textureIndex = 30, BOULDER_GAMEBIT, 0, 3, 0,  7, 31}, //block989 (Diamond Bay waterfall basin 1) (upper river)
-            {.base.x = 501.871, .base.y = -671.187, .base.z = 981.222, .textureIndex = 37, BOULDER_GAMEBIT, 0, 0, 0, -7, -1}, //block989 (Diamond Bay waterfall basin 1) (waterfall top)
-            {.base.x = 483.437, .base.y = -638.000, .base.z = 981.222, .textureIndex = 45, BOULDER_GAMEBIT, 0, 0, 0, -7, -1}, //block989 (Diamond Bay waterfall basin 1) (waterfall main)
+            {.base.x = 563.975, .base.y = -671.187, .base.z = 961.741, .textureIndex = 30, DINOMOD_BIT_921_SH_RiverUnblocked, 0, 3, 0,  7, 31}, //block989 (Diamond Bay waterfall basin 1) (upper river)
+            {.base.x = 501.871, .base.y = -671.187, .base.z = 981.222, .textureIndex = 37, DINOMOD_BIT_921_SH_RiverUnblocked, 0, 0, 0, -7, -1}, //block989 (Diamond Bay waterfall basin 1) (waterfall top)
+            {.base.x = 483.437, .base.y = -638.000, .base.z = 981.222, .textureIndex = 45, DINOMOD_BIT_921_SH_RiverUnblocked, 0, 0, 0, -7, -1}, //block989 (Diamond Bay waterfall basin 1) (waterfall main)
         };
         u8 count = ARRAYCOUNT(texScrollData);
 
@@ -929,7 +927,7 @@ static void diamond_bay_additions(void) {
             .unk1C = 100, // z radius
             .effect = 0, // fall reset
             .gamebitDisableValue = 1,
-            .gamebit = BOULDER_GAMEBIT, // disable when the SwapStone Hollow river is unblocked
+            .gamebit = DINOMOD_BIT_921_SH_RiverUnblocked, // disable when the SwapStone Hollow river is unblocked
             .target = 0 // player
         };
 
@@ -1037,13 +1035,13 @@ static void diamond_bay_modifications(void) {
     // (stops Tricky from warping down there when river's missing)
     {
         SideLoad_Setup *sideLoad = reasset_map_objects_get(db, reasset_base_id(0x42B6F), NULL);
-        sideLoad->gamebitUnlocked = BOULDER_GAMEBIT;
+        sideLoad->gamebitUnlocked = DINOMOD_BIT_921_SH_RiverUnblocked;
     }
 
     // Add a gamebit to the WaterFallSpray at the start of the DB river
     {
         WaterFallSpray_Setup *spray = reasset_map_objects_get(db, reasset_base_id(0x4205B), NULL);
-        spray->gamebit = BOULDER_GAMEBIT;
+        spray->gamebit = DINOMOD_BIT_921_SH_RiverUnblocked;
         spray->invertGamebit = TRUE;
     }
 }

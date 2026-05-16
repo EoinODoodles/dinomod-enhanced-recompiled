@@ -1,15 +1,21 @@
 #include "modding.h"
 
+#include "custom_gamebits.h"
+
 #include "game/gamebits.h"
 #include "game/objects/object.h"
 #include "sys/main.h"
+#include "sys/map_enums.h"
 #include "dll.h"
 
 #include "recomp/dlls/objects/512_SHLevelControl_recomp.h"
-#include "sys/map_enums.h"
 
 RECOMP_HOOK_DLL(SHLevelControl_control) void SHLevelControl_control_hook(Object *self) {
-    _Bool riverUnblocked = main_get_bits(0x123);
+    _Bool boulderBlownUp = main_get_bits(DINOMOD_BIT_920_SH_BoulderBlownUp);
+    // TODO: temporary, link boulder bit to river bit. we can separate these if a seq is made for fixing the river
+    main_set_bits(DINOMOD_BIT_921_SH_RiverUnblocked, boulderBlownUp);
+
+    _Bool riverUnblocked = main_get_bits(DINOMOD_BIT_921_SH_RiverUnblocked);
     _Bool dimSpellStoneActivated = main_get_bits(BIT_SpellStone_DIM_Activated);
 
     // Link custom object groups to the normal groups used to cull objects around the river.
