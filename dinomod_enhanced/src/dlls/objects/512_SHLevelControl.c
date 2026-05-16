@@ -10,7 +10,7 @@
 
 #include "recomp/dlls/objects/512_SHLevelControl_recomp.h"
 
-RECOMP_HOOK_DLL(SHLevelControl_control) void SHLevelControl_control_hook(Object *self) {
+static void dinomod_river_control(void) {
     _Bool boulderBlownUp = main_get_bits(DINOMOD_BIT_920_SH_BoulderBlownUp);
     // TODO: temporary, link boulder bit to river bit. we can separate these if a seq is made for fixing the river
     main_set_bits(DINOMOD_BIT_921_SH_RiverUnblocked, boulderBlownUp);
@@ -30,5 +30,13 @@ RECOMP_HOOK_DLL(SHLevelControl_control) void SHLevelControl_control_hook(Object 
     // Enable obj group for river related objects that should only load if the player has access to Diamond Bay
     gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_SWAPSTONE_HOLLOW, 12, 
         (riverObjGroupActive && riverUnblocked && dimSpellStoneActivated) ? 1 : 0);
-    
+}
+
+RECOMP_HOOK_DLL(SHLevelControl_control) void SHLevelControl_control_hook(Object *self) {
+    // Drive AMSFX's waterfall sfx logic. This is necessary to stop the waterfallspray sfx that plays
+    // in the DB river when coming back to SH.
+    gDLL_6_AMSFX->vtbl->water_falls_control();
+
+    // Handle river related stuff
+    dinomod_river_control();
 }
