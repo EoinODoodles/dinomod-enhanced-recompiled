@@ -551,9 +551,10 @@ static void swapstone_hollow_additions(void) {
             {VEC3F(903.856,  -620,  789.503),   DINOMOD_BIT_921_SH_RiverUnblocked, 1, FALSE, TRUE, FALSE}, //block349 (river crossing, well side)
             {VEC3F(590.928,  -620,  965.955),   DINOMOD_BIT_921_SH_RiverUnblocked, 1, FALSE, TRUE, FALSE}, //block989 (Diamond Bay waterfall basin 1) (upper river)
             {VEC3F(285.865,  -1000, 994.401),   DINOMOD_BIT_921_SH_RiverUnblocked, 3, FALSE, TRUE, FALSE}, //                                         (rapids)
+            {VEC3F(557.214,  -825,  1013.432),  DINOMOD_BIT_921_SH_RiverUnblocked, 1, TRUE, FALSE, FALSE}, //                                         (ledge-grab HITS line)
             {VEC3F(180.215,  -1000, 1625.786),  DINOMOD_BIT_921_SH_RiverUnblocked, 2, FALSE, TRUE, FALSE}, //block995 (Diamond Bay river bend)
             {VEC3F(-263.215, -1000, 1740.963),  DINOMOD_BIT_921_SH_RiverUnblocked, 3, FALSE, TRUE, FALSE}, //block994 (Diamond Bay waterfall basin 2) (water)
-            {VEC3F(557.214,  -825,  1013.432),  DINOMOD_BIT_921_SH_RiverUnblocked, 1, TRUE, FALSE, FALSE}, //block994 (Diamond Bay waterfall basin 2) (ledge-grab HITS line)
+
         };
         u8 count = ARRAYCOUNT(hitAnimatorData);
 
