@@ -267,13 +267,18 @@ static void warlock_mountain_platform_additions(void) {
     // Add two HitAnimators to the upper tier of Warlock Mountain's main chamber, 
     // for toggling the ledge grab lines at the lifts' upper destinations 
     for (s32 i = 0; i < 2; i++) {
-        HitAnimator_Setup hitAnimator = {0};
-        hitAnimator.base.objId = OBJ_HitAnimator;
-        hitAnimator.base.actExclusions1 = 0;
-        hitAnimator.base.loadFlags = OBJSETUP_LOAD_MAIN;
-        hitAnimator.base.fadeFlags = OBJSETUP_FADE_CAMERA;
-        hitAnimator.base.loadDistance = 10;
-        hitAnimator.base.fadeDistance = 10;
+        HitAnimator_Setup hitAnimator = {
+            .base = {
+                .objId = OBJ_HitAnimator,
+                .actExclusions1 = 0,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 10,
+                .fadeDistance = 10
+            },
+            .mode = HitAnimator_Mode_HITS | HitAnimator_Mode_Invert, //HITS line switched off when gamebit set
+            .hitsAnimatorID = 8 //tag for the ledge grab line
+        };
 
         switch (i) {
             case 0:
@@ -291,9 +296,6 @@ static void warlock_mountain_platform_additions(void) {
                 hitAnimator.gamebitActivate = LIFT_NEAR_TOP_GAMEBIT_SABRE;
                 break;
         }
-
-        hitAnimator.mode = HitAnimator_Mode_HITS | HitAnimator_Mode_Invert; //HITS line switched off when gamebit set
-        hitAnimator.hitsAnimatorID = 8; //tag for the ledge grab line
 
         reasset_map_objects_set(warlockMountain, reasset_auto_id(dinomodNs), &hitAnimator, sizeof(hitAnimator));
     }
@@ -466,6 +468,9 @@ static void golden_plains_fuel_additions(void) {
 }
 PRAGMA_IGNORE_POP()
 
+#define BOULDER_BIT DINOMOD_BIT_920_SH_BoulderBlownUp
+#define RIVER_BIT DINOMOD_BIT_921_SH_RiverUnblocked
+
 static void swapstone_hollow_additions(void) {
     ReAssetID mapID = reasset_base_id(MAP_SWAPSTONE_HOLLOW);
 
@@ -502,7 +507,7 @@ static void swapstone_hollow_additions(void) {
             boulder.yaw = boulderData[i].yaw;
             boulder.pitch = boulderData[i].pitch;
             boulder.roll = boulderData[i].roll;
-            boulder.gamebitGone = DINOMOD_BIT_920_SH_BoulderBlownUp;
+            boulder.gamebitGone = BOULDER_BIT;
 
             reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &boulder, sizeof(boulder));
         }
@@ -544,48 +549,40 @@ static void swapstone_hollow_additions(void) {
         } HitAnimators;
 
         HitAnimators hitAnimatorData[] = {
-            {VEC3F(2369.237, -620,  737.118),   DINOMOD_BIT_921_SH_RiverUnblocked, 1, FALSE, TRUE, FALSE}, //block351 (waterfall near Rocky)
-            {VEC3F(2119.723, -620,  477.954),   DINOMOD_BIT_921_SH_RiverUnblocked, 1, FALSE, TRUE, FALSE}, //block347 (river bend with log dockpoint)
-            {VEC3F(1588.987, -620,  436.598),   DINOMOD_BIT_921_SH_RiverUnblocked, 1, FALSE, TRUE, FALSE}, //block360 (river section beside 4 White Mushrooms)
-            {VEC3F(1158.884, -620,  538.609),   DINOMOD_BIT_921_SH_RiverUnblocked, 1, FALSE, TRUE, FALSE}, //block346 (river crossing, Queen EarthWalker side)
-            {VEC3F(903.856,  -620,  789.503),   DINOMOD_BIT_921_SH_RiverUnblocked, 1, FALSE, TRUE, FALSE}, //block349 (river crossing, well side)
-            {VEC3F(590.928,  -620,  965.955),   DINOMOD_BIT_921_SH_RiverUnblocked, 1, FALSE, TRUE, FALSE}, //block989 (Diamond Bay waterfall basin 1) (upper river)
-            {VEC3F(285.865,  -1000, 994.401),   DINOMOD_BIT_921_SH_RiverUnblocked, 3, FALSE, TRUE, FALSE}, //                                         (rapids)
-            {VEC3F(557.214,  -825,  1013.432),  DINOMOD_BIT_921_SH_RiverUnblocked, 1, TRUE, FALSE, FALSE}, //                                         (ledge-grab HITS line)
-            {VEC3F(180.215,  -1000, 1625.786),  DINOMOD_BIT_921_SH_RiverUnblocked, 2, FALSE, TRUE, FALSE}, //block995 (Diamond Bay river bend)
-            {VEC3F(-263.215, -1000, 1740.963),  DINOMOD_BIT_921_SH_RiverUnblocked, 3, FALSE, TRUE, FALSE}, //block994 (Diamond Bay waterfall basin 2) (water)
-
+            {VEC3F(2369.237, -620,  737.118),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block351 (waterfall near Rocky)
+            {VEC3F(2119.723, -620,  477.954),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block347 (river bend with log dockpoint)
+            {VEC3F(1588.987, -620,  436.598),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block360 (river section beside 4 White Mushrooms)
+            {VEC3F(1158.884, -620,  538.609),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block346 (river crossing, Queen EarthWalker side)
+            {VEC3F(903.856,  -620,  789.503),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block349 (river crossing, well side)
+            {VEC3F(590.928,  -620,  965.955),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block989 (Diamond Bay waterfall basin 1) (upper river)
+            {VEC3F(285.865,  -1000, 994.401),   RIVER_BIT, 3, FALSE, TRUE, FALSE}, //                                         (rapids)
+            {VEC3F(557.214,  -825,  1013.432),  RIVER_BIT, 1, TRUE, FALSE, FALSE}, //                                         (ledge-grab HITS line)
+            {VEC3F(180.215,  -1000, 1625.786),  RIVER_BIT, 2, FALSE, TRUE, FALSE}, //block995 (Diamond Bay river bend)
+            {VEC3F(-263.215, -1000, 1740.963),  RIVER_BIT, 3, FALSE, TRUE, FALSE}, //block994 (Diamond Bay waterfall basin 2) (water)
         };
         u8 count = ARRAYCOUNT(hitAnimatorData);
 
         //Insert the new objects
         for (s32 i = 0; i < count; i++) {
             HitAnimators* data = &hitAnimatorData[i];
-            HitAnimator_Setup hitA = {0};
-            hitA.base.objId = OBJ_HitAnimator;
-            hitA.base.actExclusions1 = ~MAP_ACT(1);
-            hitA.base.loadFlags = OBJSETUP_LOAD_LEVEL;
-            hitA.base.fadeFlags = OBJSETUP_FADE_CAMERA;
-            hitA.base.loadDistance = 140;
-            hitA.base.fadeDistance = 140;
-            hitA.base.x = data->coords.x;
-            hitA.base.y = data->coords.y;
-            hitA.base.z = data->coords.z;
-            hitA.gamebitActivate = data->gamebit;
-            if (data->removeWhenSet) {
-                hitA.mode |= HitAnimator_Mode_Invert;
-            }
-            if (data->isBlocksAnimator) {
-                hitA.blocksAnimatorID = data->animatorID;
-                hitA.mode |= HitAnimator_Mode_BLOCKS;
-                if (!data->blocksFade) {
-                    hitA.mode |= HitAnimator_Mode_No_Fade;
-                }
-            } else {
-                hitA.hitsAnimatorID = data->animatorID;
-                hitA.mode |= HitAnimator_Mode_HITS;
-            }
-
+            HitAnimator_Setup hitA = {
+                .base = {
+                    .objId = OBJ_HitAnimator,
+                    .actExclusions1 = (data->isBlocksAnimator == FALSE) ? 0 : ~MAP_ACT(1), //NOTE: HITS line needs controlling regardless of current Act
+                    .loadFlags = OBJSETUP_LOAD_LEVEL,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = 140,
+                    .fadeDistance = 140,
+                    .x = data->coords.x,
+                    .y = data->coords.y,
+                    .z = data->coords.z
+                },
+                .gamebitActivate = data->gamebit,
+                .mode = hitanimator_configure_mode_flags(
+                    data->removeWhenSet, data->isBlocksAnimator, data->blocksFade),
+                .hitsAnimatorID =   (data->isBlocksAnimator == FALSE) * data->animatorID,
+                .blocksAnimatorID = (data->isBlocksAnimator == TRUE)  * data->animatorID
+            };
             reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
         }
     }
@@ -600,29 +597,32 @@ static void swapstone_hollow_additions(void) {
         } VisAnimators;
 
         VisAnimators visAnimatorData[] = {
-            {VEC3F(2371.953, -620,  765.635),  DINOMOD_BIT_921_SH_RiverUnblocked, 2, FALSE},  //block351 (waterfall near Rocky)
-            {VEC3F(501.871,  -620,  981.222),  DINOMOD_BIT_921_SH_RiverUnblocked, 2, FALSE},  //block989 (Diamond Bay waterfall basin 1) (waterfall)
-            {VEC3F(261.545,  -1000, 995.373),  DINOMOD_BIT_921_SH_RiverUnblocked, 4, FALSE},  //                                         (rapids foam)
-            {VEC3F(-230.137, -1000, 1740.963), DINOMOD_BIT_921_SH_RiverUnblocked, 2, FALSE},  //block994 (Diamond Bay waterfall basin 2) (waterfall)
+            {VEC3F(2371.953, -620,  765.635),  RIVER_BIT, 2, FALSE},  //block351 (waterfall near Rocky)
+            {VEC3F(501.871,  -620,  981.222),  RIVER_BIT, 2, FALSE},  //block989 (Diamond Bay waterfall basin 1) (waterfall)
+            {VEC3F(261.545,  -1000, 995.373),  RIVER_BIT, 4, FALSE},  //                                         (rapids foam)
+            {VEC3F(-230.137, -1000, 1740.963), RIVER_BIT, 2, FALSE},  //block994 (Diamond Bay waterfall basin 2) (waterfall)
         };
         u8 count = ARRAYCOUNT(visAnimatorData);
 
         //Insert the new objects
         for (s32 i = 0; i < count; i++) {
             VisAnimators* data = &visAnimatorData[i];
-            VisAnimator_Setup visA = {0};
-            visA.base.objId = OBJ_VisAnimator;
-            visA.base.actExclusions1 = ~MAP_ACT(1);
-            visA.base.loadFlags = OBJSETUP_LOAD_LEVEL;
-            visA.base.fadeFlags = OBJSETUP_FADE_CAMERA;
-            visA.base.loadDistance = 140;
-            visA.base.fadeDistance = 140;
-            visA.base.x = data->coords.x;
-            visA.base.y = data->coords.y;
-            visA.base.z = data->coords.z;
-            visA.animatorID1 = data->animatorID;
-            visA.gamebitID = data->gamebit;
-            visA.initialVisibility = data->removeWhenSet;
+            VisAnimator_Setup visA = {
+                .base = {
+                    .objId = OBJ_VisAnimator,
+                    .actExclusions1 = ~MAP_ACT(1),
+                    .loadFlags = OBJSETUP_LOAD_LEVEL,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = 140,
+                    .fadeDistance = 140,
+                    .x = data->coords.x,
+                    .y = data->coords.y,
+                    .z = data->coords.z
+                },
+                .animatorID1 = data->animatorID,
+                .gamebitID = data->gamebit,
+                .initialVisibility = data->removeWhenSet
+            };
 
             reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &visA, sizeof(visA));
         }
@@ -631,9 +631,9 @@ static void swapstone_hollow_additions(void) {
     //Add TexScrolls for the waterfall leading down to Diamond Bay
     {
         TexScroll2_Setup texScrollData[] = {
-            {.base.x = 563.975, .base.y = -671.187, .base.z = 961.741, .textureIndex = 30, DINOMOD_BIT_921_SH_RiverUnblocked, 0, 3, 0,  7, 31}, //block989 (Diamond Bay waterfall basin 1) (upper river)
-            {.base.x = 501.871, .base.y = -671.187, .base.z = 981.222, .textureIndex = 37, DINOMOD_BIT_921_SH_RiverUnblocked, 0, 0, 0, -7, -1}, //block989 (Diamond Bay waterfall basin 1) (waterfall top)
-            {.base.x = 483.437, .base.y = -638.000, .base.z = 981.222, .textureIndex = 45, DINOMOD_BIT_921_SH_RiverUnblocked, 0, 0, 0, -7, -1}, //block989 (Diamond Bay waterfall basin 1) (waterfall main)
+            {.base.x = 563.975, .base.y = -671.187, .base.z = 961.741, .textureIndex = 30, RIVER_BIT, 0, 3, 0,  7, 31}, //block989 (Diamond Bay waterfall basin 1) (upper river)
+            {.base.x = 501.871, .base.y = -671.187, .base.z = 981.222, .textureIndex = 37, RIVER_BIT, 0, 0, 0, -7, -1}, //block989 (Diamond Bay waterfall basin 1) (waterfall top)
+            {.base.x = 483.437, .base.y = -638.000, .base.z = 981.222, .textureIndex = 45, RIVER_BIT, 0, 0, 0, -7, -1}, //block989 (Diamond Bay waterfall basin 1) (waterfall main)
         };
         u8 count = ARRAYCOUNT(texScrollData);
 
@@ -928,7 +928,7 @@ static void diamond_bay_additions(void) {
             .unk1C = 100, // z radius
             .effect = 0, // fall reset
             .gamebitDisableValue = 1,
-            .gamebit = DINOMOD_BIT_921_SH_RiverUnblocked, // disable when the SwapStone Hollow river is unblocked
+            .gamebit = RIVER_BIT, // disable when the SwapStone Hollow river is unblocked
             .target = 0 // player
         };
 
@@ -1010,6 +1010,47 @@ static void diamond_bay_additions(void) {
 
         reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &drownTrigger, sizeof(drownTrigger));
     }
+
+    //Add HitAnimator for the top of SwapStone Hollow's waterfall
+    //(There's one in SH's map too, but having a copy in Diamond Bay's objects seems to 
+    // help this behave reliably, with this spot being on the boundary between two maps)
+    {
+        typedef struct {
+            Vec3f coords;
+            s16 gamebit;
+            u8 animatorID;
+            u8 removeWhenSet;
+            u8 isBlocksAnimator;
+            u8 blocksFade;
+        } HitAnimators;
+
+        HitAnimators hitAnimatorData[] = {
+            {VEC3F(1197.214,  -813,  -1546.568),  RIVER_BIT, 1, TRUE, FALSE, FALSE}, //block989 (Diamond Bay waterfall basin 1) (ledge-grab HITS line)
+        };
+
+        HitAnimators* data = &hitAnimatorData[0];
+        HitAnimator_Setup hitA = {
+            .base = {
+                .objId = OBJ_HitAnimator,
+                .actExclusions1 = 0, //NOTE: HITS line needs controlling regardless of current Act
+                .loadFlags = OBJSETUP_LOAD_LEVEL,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 140,
+                .fadeDistance = 140,
+                .x = data->coords.x,
+                .y = data->coords.y,
+                .z = data->coords.z
+            },
+            .gamebitActivate = data->gamebit,
+            .mode = hitanimator_configure_mode_flags(
+                data->removeWhenSet, data->isBlocksAnimator, data->blocksFade),
+            .hitsAnimatorID =   ((data->isBlocksAnimator == FALSE) ? data->animatorID : 0),
+            .blocksAnimatorID = ((data->isBlocksAnimator == TRUE) ? data->animatorID : 0)
+        };
+
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+    }
+
 }
 
 static void diamond_bay_modifications(void) {
@@ -1036,13 +1077,13 @@ static void diamond_bay_modifications(void) {
     // (stops Tricky from warping down there when river's missing)
     {
         SideLoad_Setup *sideLoad = reasset_map_objects_get(db, reasset_base_id(0x42B6F), NULL);
-        sideLoad->gamebitUnlocked = DINOMOD_BIT_921_SH_RiverUnblocked;
+        sideLoad->gamebitUnlocked = RIVER_BIT;
     }
 
     // Add a gamebit to the WaterFallSpray at the start of the DB river
     {
         WaterFallSpray_Setup *spray = reasset_map_objects_get(db, reasset_base_id(0x4205B), NULL);
-        spray->gamebit = DINOMOD_BIT_921_SH_RiverUnblocked;
+        spray->gamebit = RIVER_BIT;
         spray->invertGamebit = TRUE;
     }
 }

@@ -1,6 +1,7 @@
 /** Helper functions for working with game Objects */
 
 #include "object_util.h"
+#include "common_objsetups.h"
 #include "recomputils.h"
 
 extern s16 *gFile_OBJINDEX;
@@ -61,4 +62,30 @@ ObjSetup *maps_find_object_group_endpoint(MapHeader *header, ObjSetup *mapsObjSe
   */
 ObjSetup *objsetup_next(ObjSetup* setup){
     return (ObjSetup*)((u32)setup + (setup->quarterSize << 2));
+}
+
+/** 
+  * Returns a mode flag for a HitAnimator, based on a few common configurations for them. 
+  *
+  * `removeWhenSet` removes the line/shape when the HitAnimator's gamebit is set, rather than before it's set.
+  * `isBlocksAnimator` decides whether the HitAnimator is targetting a Blocks shape rather than a Hits line.
+  * `fadeBlocks` decides whether or not to fade a Blocks shape in/out when affecting its state. 
+  */
+u8 hitanimator_configure_mode_flags(_Bool removeWhenSet, _Bool isBlocksAnimator, _Bool fadeBlocks) {
+    u8 mode = 0;
+
+    if (removeWhenSet) {
+        mode |= HitAnimator_Mode_Invert;
+    }
+
+    if (isBlocksAnimator) {
+        mode |= HitAnimator_Mode_BLOCKS;
+        if (!fadeBlocks) {
+            mode |= HitAnimator_Mode_No_Fade;
+        }
+    } else {
+        mode |= HitAnimator_Mode_HITS;
+    }
+
+    return mode;
 }
