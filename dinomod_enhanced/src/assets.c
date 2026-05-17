@@ -31,6 +31,8 @@ INCBIN(block351, "blocks_0351_SHriver_rocky_waterfall.bin");
 INCBIN(block581, "blocks_0581_SHwell_entrance.bin");
 INCBIN(block989, "blocks_0989_DBriver_waterfall_basin_1.bin");
 INCBIN(hits989, "hits_0989_DBriver_waterfall_basin_1.bin");
+INCBIN(block995, "blocks_0995_DBriver_bend_1.bin");
+INCBIN(block994, "blocks_0994_DBriver_waterfall_basin_2.bin");
 // INCBIN(block338, "0338 0152.bin");
 
 INCBIN(tex0_kiosk_gold_key,             "tex0_kiosk_gold_key.bin");
@@ -557,7 +559,7 @@ static void swapstone_hollow_additions(void) {
             {VEC3F(590.928,  -620,  965.955),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block989 (Diamond Bay waterfall basin 1) (upper river)
             {VEC3F(285.865,  -1000, 994.401),   RIVER_BIT, 3, FALSE, TRUE, FALSE}, //                                         (rapids)
             {VEC3F(557.214,  -825,  1013.432),  RIVER_BIT, 1, TRUE, FALSE, FALSE}, //                                         (ledge-grab HITS line)
-            {VEC3F(180.215,  -1000, 1625.786),  RIVER_BIT, 2, FALSE, TRUE, FALSE}, //block995 (Diamond Bay river bend)
+            {VEC3F(180.215,  -1000, 1625.786),  RIVER_BIT, 3, FALSE, TRUE, FALSE}, //block995 (Diamond Bay river bend)
             {VEC3F(-263.215, -1000, 1740.963),  RIVER_BIT, 3, FALSE, TRUE, FALSE}, //block994 (Diamond Bay waterfall basin 2) (water)
         };
         u8 count = ARRAYCOUNT(hitAnimatorData);
@@ -600,7 +602,9 @@ static void swapstone_hollow_additions(void) {
             {VEC3F(2371.953, -620,  765.635),  RIVER_BIT, 2, FALSE},  //block351 (waterfall near Rocky)
             {VEC3F(501.871,  -620,  981.222),  RIVER_BIT, 2, FALSE},  //block989 (Diamond Bay waterfall basin 1) (waterfall)
             {VEC3F(261.545,  -1000, 995.373),  RIVER_BIT, 4, FALSE},  //                                         (rapids foam)
+            {VEC3F(163.287,  -1000, 1638.482), RIVER_BIT, 4, FALSE},  //block995 (Diamond Bay river bend)        (rapids foam)
             {VEC3F(-230.137, -1000, 1740.963), RIVER_BIT, 2, FALSE},  //block994 (Diamond Bay waterfall basin 2) (waterfall)
+            {VEC3F(-287.761, -1000, 1740.963), RIVER_BIT, 4, FALSE},  //block994 (Diamond Bay waterfall basin 2) (rapids foam)
         };
         u8 count = ARRAYCOUNT(visAnimatorData);
 
@@ -686,16 +690,12 @@ static void swapstone_hollow_modifications(void) {
     ReAssetID sHollow = reasset_base_id(MAP_SWAPSTONE_HOLLOW);
     ReAssetID shTrkblk = reasset_base_id(12);
     ReAssetID shWellTrkblk = reasset_base_id(19);
-    ReAssetID dbTrkblk = reasset_base_id(48);
 
     //Tag Blocks shapes with animatorIDs, so they can be removed with HitAnimators
     reasset_blocks_set(shTrkblk, reasset_base_id(351 - 345), REASSET_BASE_NAMESPACE, block351, block351_end - block351);
     
     //SwapStone Hollow Well: Fix mesh holes, fog issues (on dig spot decals), stalactite animatorIDs, UVs
     reasset_blocks_set(shWellTrkblk, reasset_base_id(581 - 579), REASSET_BASE_NAMESPACE, block581, block581_end - block581);
-
-    //Diamond Bay river: adjust animatorIDs, plus seam fixes at the SH connection
-    reasset_blocks_set(dbTrkblk, reasset_base_id(989 - 974), REASSET_BASE_NAMESPACE, block989, block989_end - block989);
 
     //Add a HITS line so you dangle off SwapStone Hollow's waterfall when attempting to run off it
     {
@@ -1055,6 +1055,16 @@ static void diamond_bay_additions(void) {
 
 static void diamond_bay_modifications(void) {
     ReAssetID db = reasset_base_id(MAP_DIAMOND_BAY);
+    ReAssetID dbTrkblk = reasset_base_id(48);
+
+    //Diamond Bay river: BLOCKS edits
+    {
+        //Adjust animatorIDs for toggling river, plus seam fixes at the SH connection
+        reasset_blocks_set(dbTrkblk, reasset_base_id(989 - 974), REASSET_BASE_NAMESPACE, block989, block989_end - block989); //Waterfall basin 1 (dropping down from SwapStone Hollow)
+        reasset_blocks_set(dbTrkblk, reasset_base_id(995 - 974), REASSET_BASE_NAMESPACE, block995, block995_end - block995); //River bend 1 (near SwapStone Hollow)
+        reasset_blocks_set(dbTrkblk, reasset_base_id(994 - 974), REASSET_BASE_NAMESPACE, block994, block994_end - block994); //Waterfall basin 2 (second drop along river, approaching where rocks fall)
+
+    }
 
     // Delete the dockpoints at the start of the DB river
     {
