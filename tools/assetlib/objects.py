@@ -4,6 +4,11 @@ import os
 from pathlib import Path
 import struct
 
+class ObjSeqObjInfo:
+    def __init__(self, id_to_name: dict[int, str], seq_to_id: dict[int, set[int]]) -> None:
+        self.id_to_name = id_to_name
+        self.seq_to_id = seq_to_id
+
 class ObjDef:
     def __init__(self, data: bytes) -> None:
         self.data = data
@@ -83,9 +88,9 @@ class ObjectList:
 
         return ObjectList(objects)
 
-def obj_load_id_name_map_from_bin(objects_bin: BufferedReader,
+def obj_load_seq_info_from_bin(objects_bin: BufferedReader,
         objects_tab: BufferedReader,
-        objects_idx: BufferedReader):
+        objects_idx: BufferedReader) -> ObjSeqObjInfo:
     tab_to_id: dict[int, int] = {}
 
     id = 0
@@ -100,6 +105,7 @@ def obj_load_id_name_map_from_bin(objects_bin: BufferedReader,
         id += 1
     
     id_to_name: dict[int, str] = {}
+    seq_to_id: dict[int, set[int]] = {}
     tabidx = 0
     while True:
         data = objects_tab.read(4)
@@ -118,7 +124,22 @@ def obj_load_id_name_map_from_bin(objects_bin: BufferedReader,
         if id != None:
             name = str_bytes[:str_bytes.index(0)].decode("utf-8")
             id_to_name[id] = name
+
+            objects_bin.seek(offset + 0x1c, os.SEEK_SET)
+            pseq = struct.unpack_from(">I", objects_bin.read(4))[0]
+
+            if pseq != 0:
+                objects_bin.seek(offset + 0x7a, os.SEEK_SET)
+                num_seqs = struct.unpack_from(">h", objects_bin.read(2))[0]
+                objects_bin.seek(offset + pseq, os.SEEK_SET)
+                for _ in range(num_seqs):
+                    seq = struct.unpack_from(">h", objects_bin.read(2))[0]
+                    id_set = seq_to_id.get(seq)
+                    if id_set == None:
+                        id_set = set()
+                        seq_to_id[seq] = id_set
+                    id_set.add(id)
         
         tabidx += 1
     
-    return id_to_name
+    return ObjSeqObjInfo(id_to_name, seq_to_id)

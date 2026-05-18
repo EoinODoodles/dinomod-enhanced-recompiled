@@ -8,6 +8,8 @@ from typing import Any, TextIO, TypedDict
 import pylibyaml
 import yaml
 
+from .objects import ObjSeqObjInfo
+
 class Keyframe(TypedDict):
     value: float
     interp_type: int
@@ -398,7 +400,7 @@ def __write_events_yaml(events: list[bytes], output: TextIO, indent: str):
                 k += 1
                 j += 1
 
-def obj_seq_write_yaml(seq: ObjSeq, output: TextIO, obj_id2name: dict[int, str]):
+def obj_seq_write_yaml(seq_id: int, seq: ObjSeq, output: TextIO, obj_info: ObjSeqObjInfo):
     output.write("actors:\n")
     for i, actor in enumerate(seq["actors"]):
         output.write(f"# Actor {i}\n")
@@ -407,10 +409,21 @@ def obj_seq_write_yaml(seq: ObjSeq, output: TextIO, obj_id2name: dict[int, str])
         comment: str | None = None
         if actor["objectID"] == 0xFFFF:
             comment = "Self"
+
+            self_id_set = obj_info.seq_to_id.get(seq_id)
+            if self_id_set != None:
+                names: list[str] = []
+                for self_id in self_id_set:
+                    self_name = obj_info.id_to_name.get(self_id)
+                    if self_name == None:
+                        names.append(f"0x{self_id:X}")
+                    else:
+                        names.append(self_name)
+                comment += f" ({", ".join(names)})"
         elif actor["objectID"] == 0xFFFE:
             comment = "Camera"
         else:
-            obj_name = obj_id2name.get(actor["objectID"])
+            obj_name = obj_info.id_to_name.get(actor["objectID"])
             if obj_name != None:
                 comment = obj_name
         if comment != None:
@@ -494,7 +507,7 @@ def anim_curve_from_yaml(curve_yaml: Any) -> Curve:
     
     return { "events": events, "keyframes": keyframes }
 
-def seqs_dump_to_dir(dir: Path, seqs: Sequences, obj_id2name: dict[int, str]):
+def seqs_dump_to_dir(dir: Path, seqs: Sequences, obj_info: ObjSeqObjInfo):
     animseqs_dir = dir.joinpath("animseqs")
     
     if len(seqs["pre_animseqs"]) > 0:
@@ -518,7 +531,7 @@ def seqs_dump_to_dir(dir: Path, seqs: Sequences, obj_id2name: dict[int, str]):
                 continue
             filename = f"{i:04} {i:04X}.yaml"
             with open(objseqs_dir.joinpath(filename), "w", encoding="utf-8") as seq_file:
-                obj_seq_write_yaml(seq, seq_file, obj_id2name)
+                obj_seq_write_yaml(i, seq, seq_file, obj_info)
     
     if len(seqs["post_animseqs"]) > 0:
         animseqs_dir.mkdir(exist_ok=True)
