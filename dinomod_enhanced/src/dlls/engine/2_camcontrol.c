@@ -96,6 +96,11 @@ RECOMP_PATCH void CamControl_lock_icon_tick(void) {
     if (menu_get_current() == MENU_TITLE_SCREEN) {
         return;
     }
+    // @recomp: Return early if in the pause menu (prevents things from being interacted with
+    //          if you press A to unpause the game).
+    if (menu_get_current() == MENU_PAUSE) {
+        return;
+    }
     
     sCamData->targetFlags &= ~ARROW_FLAG_4_Highlighted;
     
