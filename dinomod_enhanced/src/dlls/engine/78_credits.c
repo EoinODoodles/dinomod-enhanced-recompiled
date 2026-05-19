@@ -10,10 +10,12 @@
 #include "sys/gfx/texture.h"
 #include "sys/main.h"
 #include "sys/menu.h"
+#include "sys/objects.h"
 #include "sys/rcp.h"
 #include "sys/vi.h"
 #include "types.h"
 #include "dlls/engine/21_gametext.h"
+#include "dlls/objects/210_player.h"
 
 #include "recomp/dlls/engine/78_credits_recomp.h"
 
@@ -63,6 +65,10 @@ typedef enum {
 
 /* For restoring the credits' playback frame when the DLL is reloaded (i.e. pausing/unpausing) */
 static f32 rsCreditsRestoredFrame = 0;
+
+/* For tracking how long the credits have been playing without an important animation sequence playing 
+   (used to ensure credits don't accidentally persist into gameplay) */
+static u32 rsCreditsFramesWithoutSequence = 0;
 
 static char rsCreditsLeadVoices[3][64] = {
     "LEAD VOICES", 
@@ -207,6 +213,7 @@ RECOMP_PATCH s32 credits_update1(void) {
     //@recomp: make sure gameplay menu is restored at end
     if (sTime >= FRAME_END) {
         credits_finish();
+        return 0;
     } else if (sTime == 0) {
         rsCreditsRestoredFrame = 0;
     }
@@ -323,15 +330,54 @@ RECOMP_PATCH void credits_draw(Gfx** gdl, Mtx** mtx, Vertex** vtx) {
     font_window_draw(gdl, 0, 0, 1);
 }
 
+/* Counts how many frames have elapsed without an important sequence playing (one that takes over player control) */
+static void credits_count_frames_without_sequence(void) {
+    Object* player = get_player();
+    if (!player) {
+        return;
+    }
+
+    //Check if the player Object isn't involved in a sequence
+    if ((player->stateFlags & OBJSTATE_IN_SEQ) == FALSE) {
+
+        //If the player control is unlocked, assume there isn't an important sequence playing
+        Player_Data* playerData = player->data;
+        if (playerData && !(playerData->flags & 0x200000)) {
+            rsCreditsFramesWithoutSequence += gUpdateRate;
+            return;
+        }
+    }
+    
+    //Otherwise, assume an important sequence is playing
+    if (rsCreditsFramesWithoutSequence) {
+        rsCreditsFramesWithoutSequence = 0;
+    }
+}
+
 /** Restore credits when exiting pause menu */
 RECOMP_CALLBACK("*", recomp_on_game_tick_start) void restoreCredits() {
+    u8 previousMenu = menu_get_previous();
+    u8 currentMenu = menu_get_current();
+
+    //Restore credits when unpausing
     if (
-        ((menu_get_previous() == MENU_PAUSE)) && 
+        ((previousMenu == MENU_PAUSE)) && 
         (rsCreditsRestoredFrame > 0) &&
-        (menu_get_current() != MENU_CREDITS) 
+        (currentMenu != MENU_CREDITS) 
     ) {
         menu_set(MENU_CREDITS);
         sTime = rsCreditsRestoredFrame;
+    }
+
+    //Track how long the credits have been playing outside of a sequence
+    if ((rsCreditsRestoredFrame > 0) && (currentMenu != MENU_PAUSE)) {
+        credits_count_frames_without_sequence();
+    }
+
+    // End the credits if they've been playing too long outside of a sequence (i.e. persisting into gameplay)
+    // The credits do look really cool playing over gameplay, but they replace the cmdmenu while active!
+    if (rsCreditsFramesWithoutSequence > 60) {
+        credits_finish();
     }
 }
 
@@ -345,6 +391,11 @@ void credits_set_frame(s32 frame) {
     if (frame < 0) {
         return;
     }
+
+    if (menu_get_current() != MENU_CREDITS) {
+        menu_set(MENU_CREDITS);
+    }
+
     rsCreditsRestoredFrame = frame;
 }
 
@@ -353,6 +404,11 @@ void credits_sync_frame(s32 frame) {
     if (frame < 0) {
         return;
     }
+
+    if (menu_get_current() != MENU_CREDITS) {
+        menu_set(MENU_CREDITS);
+    }
+
     if (sTime < frame) {
         rsCreditsRestoredFrame = frame;
     }
@@ -360,7 +416,8 @@ void credits_sync_frame(s32 frame) {
 
 /** End the credits and restore gameplay menus */
 void credits_finish() {
-    sTime = FRAME_END;
+    sTime = 0;
     rsCreditsRestoredFrame = 0;
+    rsCreditsFramesWithoutSequence = 0;
     menu_set(MENU_GAMEPLAY);
 }
