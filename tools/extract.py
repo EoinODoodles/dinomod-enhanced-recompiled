@@ -11,7 +11,7 @@ import sys
 from assetlib.fs import FSTab, DINO_FILENAMES
 from assetlib.gametext import GameTextBinParser, GameTextSpecWriter
 from assetlib.mpeg import MPEGList
-from assetlib.objects import ObjectList, obj_load_id_name_map_from_bin
+from assetlib.objects import ObjectList, obj_load_seq_info_from_bin
 from assetlib.seq import seqs_from_bin, seqs_dump_to_dir
 from assetlib.warp import WarpTab
 
@@ -106,7 +106,7 @@ class Extractor:
             open(objects_tab, "rb") as objects_tab_file, \
             open(objects_bin, "rb") as objects_bin_file, \
             open(objects_idx, "rb") as objects_idx_file:
-            obj_id2name = obj_load_id_name_map_from_bin(objects_bin_file, objects_tab_file, objects_idx_file)
+            obj_info = obj_load_seq_info_from_bin(objects_bin_file, objects_tab_file, objects_idx_file)
             seqs = seqs_from_bin(
                 objseq_tab_file, objseq_bin_file,
                 objseq2curve_tab_file,
@@ -115,7 +115,7 @@ class Extractor:
         seqs_dir = self.extract_dir.joinpath("SEQUENCES")
         seqs_dir.mkdir(exist_ok=True)
 
-        seqs_dump_to_dir(seqs_dir, seqs, obj_id2name)
+        seqs_dump_to_dir(seqs_dir, seqs, obj_info)
 
     def extract_bin(self, rom: BufferedReader, fs: FSTab):
         self.bin_dir.mkdir(exist_ok=True)

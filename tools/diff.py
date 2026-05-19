@@ -10,7 +10,7 @@ from typing import TypeVar
 
 from assetlib.gametext import GameTextBinParser, GameTextBinWriter, GameTextSpecParser
 from assetlib.mpeg import MPEGList
-from assetlib.objects import ObjectList, obj_load_id_name_map_from_bin
+from assetlib.objects import ObjectList, obj_load_seq_info_from_bin
 from assetlib.seq import ObjSeq, Curve, seqs_from_directory, seqs_dump_to_dir
 from assetlib.warp import WarpTab
 
@@ -37,13 +37,13 @@ class DiffTool:
             if o != None:
                 print(f"SEQUENCES\\{i:04} SEQ_{i:04X}")
         
-        obj_id2name = self.__get_obj_names()
+        obj_info = self.__get_obj_seq_info()
 
         out_dir = self.diff_dir.joinpath("SEQUENCES")
         out_dir.mkdir(exist_ok=True)
-        seqs_dump_to_dir(out_dir, { "objseqs": objseqs, "pre_animseqs": pre_animseqs, "post_animseqs": [] }, obj_id2name)
+        seqs_dump_to_dir(out_dir, { "objseqs": objseqs, "pre_animseqs": pre_animseqs, "post_animseqs": [] }, obj_info)
 
-    def __get_obj_names(self):
+    def __get_obj_seq_info(self):
         objects_tab = PROJECT_DIR.joinpath("bin/OBJECTS.tab")
         objects_bin = PROJECT_DIR.joinpath("bin/OBJECTS.bin")
         objects_idx = PROJECT_DIR.joinpath("bin/OBJINDEX.bin")
@@ -51,7 +51,7 @@ class DiffTool:
         with open(objects_tab, "rb") as objects_tab_file, \
             open(objects_bin, "rb") as objects_bin_file, \
             open(objects_idx, "rb") as objects_idx_file:
-            return obj_load_id_name_map_from_bin(objects_bin_file, objects_tab_file, objects_idx_file)
+            return obj_load_seq_info_from_bin(objects_bin_file, objects_tab_file, objects_idx_file)
 
     def __diff_lists(self, a: list[T], b: list[T]):
         diff: list[T | None] = []
