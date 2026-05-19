@@ -3577,9 +3577,9 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
     //     rcp_tile_write(&dl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], MENU_SCROLL_X, MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY, 255, 255, 255, dInventoryOpacity);
     // }
 
-    //Draw the sidekick food meter
-    if (sidekick != NULL) {
-
+    //Draw the sidekick food meter 
+    //(@recomp: animate opacity even when sidekick's missing, so it doesn't get stuck)
+    {
         //Handle the meter's opacity
         if (((sInventoryPageID == CMDMENU_PAGE_7_Sidekick_Tricky || sInventoryPageID == CMDMENU_PAGE_8_Sidekick_Kyte) && dInventoryOpacity) || 
             (sStatsChangeTimers.sidekickBlueFood >= 0.0f) ||

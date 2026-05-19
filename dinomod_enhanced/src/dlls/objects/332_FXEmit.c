@@ -128,19 +128,14 @@ RECOMP_PATCH void FXEmit_control(Object* self) {
             objdata->disabled = TRUE;
         }
 
-        //@recomp: return if switched off
-        if (hideFlashes && objdata->disabled){
-            return;
-        }
-
         if ((objdata->fxRate >= 0) || ((objdata->fxRate < 0) && (self->unkDC <= 0))) {
             VECTOR_SUBTRACT(self->globalPosition, player->globalPosition, vectorToPlayer);
             if (objdata->fxRate == 0) {
                 objdata->disabled = TRUE;
             }
 
-            //@recomp: return if switched off
-            if (hideFlashes && objdata->disabled){
+            //@recomp: fix FX flashing up for a single frame
+            if (hideFlashes && objdata->disabled && (setup->interval != 0xFF) && (objdata->bank == 0)){
                 return;
             }
 
