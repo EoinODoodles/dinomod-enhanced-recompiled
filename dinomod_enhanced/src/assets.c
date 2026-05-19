@@ -23,12 +23,17 @@
 #include "sys/fs.h"
 #include "sys/map.h"
 #include "sys/map_enums.h"
+#include "sys/math.h"
 #include "sys/memory.h"
 #include "macros.h"
 
 INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
 INCBIN(block351, "blocks_0351_SHriver_rocky_waterfall.bin");
+INCBIN(block579, "blocks_0579_SHwell_lily_pond_climb.bin");
+INCBIN(block580, "blocks_0580_SHwell_lily_pond_vines.bin");
 INCBIN(block581, "blocks_0581_SHwell_entrance.bin");
+INCBIN(block582, "blocks_0582_SHwell_stalactite_tunnels.bin");
+INCBIN(block583, "blocks_0583_SHwell_river_end.bin");
 INCBIN(block989, "blocks_0989_DBriver_waterfall_basin_1.bin");
 INCBIN(hits989, "hits_0989_DBriver_waterfall_basin_1.bin");
 INCBIN(block995, "blocks_0995_DBriver_bend_1.bin");
@@ -52,6 +57,10 @@ INCBIN(amap_purple_mushroom,    "amap_purple_mushroom_recreation.bin");
 INCBIN(objects_purple_mushroom, "objects_0571 023B SHrocketmushroo.bin");
 
 INCBIN(objects_shboulder, "objects_0583 0247 SHboulder.bin");
+
+#define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
+
+#define COORDS_SETUP(coordX, coordY, coordZ) .base.x = coordX, .base.y = coordY, .base.z = coordZ
 
 #define INCFST(fileID, filename, ext) \
     INCBIN(fst_assets_##filename##_##ext, "assets/" #filename "."#ext); \
@@ -452,19 +461,21 @@ static void golden_plains_fuel_additions(void) {
 
     //Insert the new objects
     for (s32 i = 0; i < count; i++) {
-        CRFuelTank_Setup fuel = {0};
-        fuel.base.objId = OBJ_CRFuelTank;
-        fuel.base.actExclusions1 = ~MAP_ACT(3);
-        fuel.base.loadFlags = OBJSETUP_LOAD_MAIN;
-        fuel.base.fadeFlags = OBJSETUP_FADE_CAMERA;
-        fuel.base.loadDistance = 140;
-        fuel.base.fadeDistance = 140;
-        fuel.base.x = fuelData[i].coords.x;
-        fuel.base.y = fuelData[i].coords.y;
-        fuel.base.z = fuelData[i].coords.z;
-        fuel.unk1A = 0x12C;
-        fuel.gamebit = NO_GAMEBIT;
-
+        CRFuelTank_Setup fuel = {
+            .base = {
+                .objId = OBJ_CRFuelTank,
+                .actExclusions1 = ~MAP_ACT(3),
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 140,
+                .fadeDistance = 140,
+                .x = fuelData[i].coords.x,
+                .y = fuelData[i].coords.y,
+                .z = fuelData[i].coords.z
+            },
+            .unk1A = 0x12C,
+            .gamebit = NO_GAMEBIT
+        };
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &fuel, sizeof(fuel));
     }
 }
@@ -472,9 +483,12 @@ PRAGMA_IGNORE_POP()
 
 #define BOULDER_BIT DINOMOD_BIT_920_SH_BoulderBlownUp
 #define RIVER_BIT DINOMOD_BIT_921_SH_RiverUnblocked
+#define VINES_BIT DINOMOD_BIT_922_SH_Well_LilyPondVinesUnblocked
 
 static void swapstone_hollow_additions(void) {
     ReAssetID mapID = reasset_base_id(MAP_SWAPSTONE_HOLLOW);
+    ReAssetID shTrkblk = reasset_base_id(12);
+    int sHollowBlocksBase = 345;
 
     //Add SHBoulders blocking the waterfall near Rocky 
     //(One for each side of the opening, to give the illusion that you're seeing the back of the boulder)
@@ -488,31 +502,90 @@ static void swapstone_hollow_additions(void) {
         } SHBoulders;
 
         SHBoulders boulderData[2] = {
-            {VEC3F(2410.9, -653.4, 956.3), 141, DEGREES_TO_ANGLE8(36.6f), DEGREES_TO_ANGLE8(0.9f), 0},
+            {VEC3F(2410.9, -654.8, 956.3), 146, DEGREES_TO_ANGLE8(34.3f), DEGREES_TO_ANGLE8(0.9f), 0},
             {VEC3F(2383.0, -642.7, 922.0), 141, DEGREES_TO_ANGLE8(21.0f), 0, 0},
         };
         u8 count = ARRAYCOUNT(boulderData);
 
         //Insert the new objects
         for (s32 i = 0; i < count; i++) {
-            SHboulder_Setup boulder = {0};
-            boulder.base.objId = OBJ_SHboulder;
-            boulder.base.actExclusions1 = ~MAP_ACT(1);
-            boulder.base.loadFlags = OBJSETUP_LOAD_MAIN;
-            boulder.base.fadeFlags = OBJSETUP_FADE_CAMERA;
-            boulder.base.loadDistance = 140;
-            boulder.base.fadeDistance = 140;
-            boulder.base.x = boulderData[i].coords.x;
-            boulder.base.y = boulderData[i].coords.y;
-            boulder.base.z = boulderData[i].coords.z;
-            boulder.scale = boulderData[i].scale;
-            boulder.yaw = boulderData[i].yaw;
-            boulder.pitch = boulderData[i].pitch;
-            boulder.roll = boulderData[i].roll;
-            boulder.gamebitGone = BOULDER_BIT;
-
+            SHboulder_Setup boulder = {
+                .base = {
+                    .objId = OBJ_SHboulder,
+                    .actExclusions1 = ~MAP_ACT(1),
+                    .loadFlags = OBJSETUP_LOAD_MAIN,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = 140,
+                    .fadeDistance = 140,
+                    .x = boulderData[i].coords.x,
+                    .y = boulderData[i].coords.y,
+                    .z = boulderData[i].coords.z
+                },
+                .scale = boulderData[i].scale,
+                .yaw = boulderData[i].yaw,
+                .pitch = boulderData[i].pitch,
+                .roll = boulderData[i].roll,
+                .gamebitGone = BOULDER_BIT
+            };
             reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &boulder, sizeof(boulder));
         }
+    }
+
+    //Add HITS lines around the SHboulder near Rocky, to help stabilise player collision around it
+    {
+        ReAssetID blockIDRockyWaterfall = reasset_base_id(351 - sHollowBlocksBase);
+        #define BOULDER_HITS_ANIMATOR 0xB0
+
+        Vec3f points[] = {
+            VEC3F(531, -691, 296),
+            VEC3F(518, -691, 328),
+            VEC3F(491, -691, 347),
+            VEC3F(459, -691, 349)
+        };
+
+        for (int i = 0, count = ARRAYCOUNT(points); i < count - 1; i++) {
+            HitsLine line = {
+                .Ax = points[i].x,
+                .Ay = points[i].y,
+                .Az = points[i].z,
+
+                .Bx = points[(i + 1) % count].x,
+                .By = points[(i + 1) % count].y,
+                .Bz = points[(i + 1) % count].z,
+
+                .heightA = 60,
+                .heightB = 60,
+
+                .settingsA = 0,
+                .settingsB = 1,
+
+                .animatorID = BOULDER_HITS_ANIMATOR,
+            };
+            reasset_hits_set(shTrkblk, blockIDRockyWaterfall, reasset_auto_id(40 + i), REASSET_BASE_NAMESPACE, &line);
+        }
+    
+        //Add HitAnimator for removing these lines
+        {
+            HitAnimator_Setup hitA = {
+                .base = {
+                    .objId = OBJ_HitAnimator,
+                    .actExclusions1 = 0, //NOTE: HITS line needs controlling regardless of current Act
+                    .loadFlags = OBJSETUP_LOAD_LEVEL,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = 140,
+                    .fadeDistance = 140,
+                    .x = 2418.481,
+                    .y = -618.471,
+                    .z = 967.463
+                },
+                .gamebitActivate = BOULDER_BIT,
+                .mode = hitanimator_configure_mode_flags(
+                    TRUE, FALSE, FALSE),
+                .hitsAnimatorID = BOULDER_HITS_ANIMATOR
+            };
+            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+        }
+
     }
 
     //Add CFbarrel for blowing up the boulder after Tricky learns Flame
@@ -526,31 +599,25 @@ static void swapstone_hollow_additions(void) {
             s32 unk20;
         } CFBarrel_Setup;
 
-        CFBarrel_Setup barrel = {0};
-        barrel.base.objId = OBJ_CFbarrel;
-        barrel.base.actExclusions1 = ~MAP_ACT(1);
-        barrel.base.loadFlags = OBJSETUP_LOAD_MAIN;
-        barrel.base.fadeFlags = OBJSETUP_FADE_CAMERA;
-        barrel.base.loadDistance = 140;
-        barrel.base.fadeDistance = 140;
-        barrel.base.x = 2244.0f;
-        barrel.base.y = -676.0f;
-        barrel.base.z = 2299.0f;
+        CFBarrel_Setup barrel = {
+            .base = {
+                .objId = OBJ_CFbarrel,
+                .actExclusions1 = ~MAP_ACT(1),
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 140,
+                .fadeDistance = 140,
+                .x = 2244.0f,
+                .y = -676.0f,
+                .z = 2299.0f
+            }
+        };
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &barrel, sizeof(barrel));
     }
 
     //Add HitAnimators for removing tangible parts of the water
     {
-        typedef struct {
-            Vec3f coords;
-            s16 gamebit;
-            u8 animatorID;
-            u8 removeWhenSet;
-            u8 isBlocksAnimator;
-            u8 blocksFade;
-        } HitAnimators;
-
-        HitAnimators hitAnimatorData[] = {
+        HitAnimator_Config hitAnimatorData[] = {
             {VEC3F(2369.237, -620,  737.118),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block351 (waterfall near Rocky)
             {VEC3F(2119.723, -620,  477.954),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block347 (river bend with log dockpoint)
             {VEC3F(1588.987, -620,  436.598),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block360 (river section beside 4 White Mushrooms)
@@ -564,9 +631,8 @@ static void swapstone_hollow_additions(void) {
         };
         u8 count = ARRAYCOUNT(hitAnimatorData);
 
-        //Insert the new objects
         for (s32 i = 0; i < count; i++) {
-            HitAnimators* data = &hitAnimatorData[i];
+            HitAnimator_Config* data = &hitAnimatorData[i];
             HitAnimator_Setup hitA = {
                 .base = {
                     .objId = OBJ_HitAnimator,
@@ -689,36 +755,10 @@ static void swapstone_hollow_additions(void) {
 static void swapstone_hollow_modifications(void) {
     ReAssetID sHollow = reasset_base_id(MAP_SWAPSTONE_HOLLOW);
     ReAssetID shTrkblk = reasset_base_id(12);
-    ReAssetID shWellTrkblk = reasset_base_id(19);
+    int sHollowBlocksBase = 345;
 
     //Tag Blocks shapes with animatorIDs, so they can be removed with HitAnimators
     reasset_blocks_set(shTrkblk, reasset_base_id(351 - 345), REASSET_BASE_NAMESPACE, block351, block351_end - block351);
-    
-    //SwapStone Hollow Well: Fix mesh holes, fog issues (on dig spot decals), stalactite animatorIDs, UVs
-    reasset_blocks_set(shWellTrkblk, reasset_base_id(581 - 579), REASSET_BASE_NAMESPACE, block581, block581_end - block581);
-
-    //Add a HITS line so you dangle off SwapStone Hollow's waterfall when attempting to run off it
-    {
-        ReAssetID dbTrkblk = reasset_base_id(48);
-        HitsLine line = {
-            .Ax = 538,
-            .Ay = -825,
-            .Az = 308,
-
-            .Bx = 575,
-            .By = -825,
-            .Bz = 434,
-
-            .heightA = 0x28,
-            .heightB = 0x28,
-
-            .settingsA = 0xe,
-            .settingsB = 0x82,
-
-            .animatorID = 1,
-        };
-        reasset_hits_set(dbTrkblk, reasset_base_id(989 - 974), reasset_auto_id(13), REASSET_BASE_NAMESPACE, &line);
-    }
 
     //Revert changes to SHboulder's DLL usage
     {
@@ -767,6 +807,279 @@ static void swapstone_hollow_modifications(void) {
         trigger->commands[2].param1 = 0;
         trigger->commands[2].param2 = MAP_DIAMOND_BAY;
     }
+
+    //Add a HITS line so you dangle off SwapStone Hollow's waterfall when attempting to run off it
+    {
+        ReAssetID dbTrkblk = reasset_base_id(48);
+        HitsLine line = {
+            .Ax = 538,
+            .Ay = -825,
+            .Az = 308,
+
+            .Bx = 575,
+            .By = -825,
+            .Bz = 434,
+
+            .heightA = 0x28,
+            .heightB = 0x28,
+
+            .settingsA = 0xe,
+            .settingsB = 0x82,
+
+            .animatorID = 1,
+        };
+        reasset_hits_set(dbTrkblk, reasset_base_id(989 - 974), reasset_auto_id(13), REASSET_BASE_NAMESPACE, &line);
+    }
+}
+
+static void swapstone_hollow_well_additions(void) {
+    ReAssetID mapID = reasset_base_id(MAP_SWAPSTONE_HOLLOW_2);
+
+    /*  Add SHVine blocking the route to SnowHorn Wastes' river
+        (Intended to be burnt away by Tricky from the SnowHorn Wastes side after 
+        he learns Flame, so he can be brought down into the well to dig up MoonSeeds.) */
+    {
+        typedef struct {
+            ObjSetup base;
+            s8 yaw;
+            s8 roll;  //@recomp: repurposing unused field
+            u8 scale; //@recomp: repurposing unused field
+            s16 flameDistance;
+            s16 gamebitBurnt;
+        } SHvines_Setup;
+
+        typedef struct {
+            Vec3f coords;
+            u8 yaw;
+            u8 roll;
+            u8 scale;
+            s16 flameDistance;
+        } SHvines_Config;
+
+        SHvines_Config vines[] = {
+            // {VEC3F(983.343, -1129.392, 545.166),  DEGREES_TO_ANGLE8(356.640), DEGREES_TO_ANGLE8(9.581),  295/2,  0},   //Lily pond side (replaced with Blocks edit for visual improvements)
+            {VEC3F(975.102, -1129.448, 670.665), DEGREES_TO_ANGLE8(182),     DEGREES_TO_ANGLE8(359),    149,    150}, //Stalactite cave
+        };
+
+        for (int i = 0, end = ARRAYCOUNT(vines); i < end; i++) {
+            SHvines_Setup vine = {
+                .base = {
+                    .objId = OBJ_SHvines,
+                    .actExclusions1 = 0,
+                    .loadFlags = OBJSETUP_LOAD_LEVEL,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = 255, //Needs to be visible from quite far away due to the long approach from the ice floe river
+                    .fadeDistance = 255,
+                    .x = vines[i].coords.x,
+                    .y = vines[i].coords.y,
+                    .z = vines[i].coords.z
+                },
+                .yaw = vines[i].yaw,
+                .roll = vines[i].roll,
+                .scale = vines[i].scale,
+                .flameDistance = vines[i].flameDistance,
+                .gamebitBurnt = VINES_BIT
+            };
+            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &vine, sizeof(vine));
+        }
+    }
+
+    //Add HitAnimator for the lily pond's HITS lines blocking the river route between SwapStone Hollow Well and SnowHorn Wastes
+    {
+        HitAnimator_Setup hitA = {
+            .base = {
+                .objId = OBJ_HitAnimator,
+                .actExclusions1 = 0,
+                .loadFlags = OBJSETUP_LOAD_LEVEL,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 140,
+                .fadeDistance = 140,
+                .x = 979.246,
+                .y = -1041.493,
+                .z = 609.779
+            },
+            .gamebitActivate = VINES_BIT,
+            .mode = hitanimator_configure_mode_flags(
+                TRUE, FALSE, FALSE),
+            .hitsAnimatorID = 1,
+        };
+        reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+    }
+
+    // Add HitAnimator for burning away the vines on the lily pond side of the blockade
+    // (This side needed to be part of the BLOCKS model, because of transparency sorting issues between Objects/Blocks)
+    {
+        HitAnimator_Setup hitA = {
+            .base = {
+                .objId = OBJ_HitAnimator,
+                .actExclusions1 = 0,
+                .loadFlags = OBJSETUP_LOAD_LEVEL,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 140,
+                .fadeDistance = 140,
+                .x = 979.246,
+                .y = -1049.981,
+                .z = 609.779
+            },
+            .gamebitActivate = VINES_BIT,
+            .mode = hitanimator_configure_mode_flags(
+                TRUE, TRUE, FALSE),
+            .blocksAnimatorID = 3,
+        };
+        reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+    }
+
+    // Add GroundAnimators for the dig spots in the stalactite cave
+    // (Just placeholders for now since there's no way for Tricky to navigate to them, but they do work!)
+    {
+        GroundAnimator_Setup groundAnimators[] = {
+            {COORDS_SETUP( 981, -1121, 902),  .gamebitDug = DINOMOD_BIT_926_SH_Well_Stalactite_Cave_Tricky_Dug_1, .animatorID = 50},
+            {COORDS_SETUP(1129, -1121, 1122), .gamebitDug = DINOMOD_BIT_927_SH_Well_Stalactite_Cave_Tricky_Dug_2, .animatorID = 51},
+            {COORDS_SETUP( 747, -1121, 986),  .gamebitDug = DINOMOD_BIT_928_SH_Well_Stalactite_Cave_Tricky_Dug_3, .animatorID = 52}
+        };
+
+        // TODO: patch the GroundAnimators so they don't do anything/don't show Find until a gamebit is set
+        // Use `DINOMOD_BIT_923_SH_Well_Stalactite_Cave_Cracked_Ground_1`, 2, 3
+        for (int i = 0, end = ARRAYCOUNT(groundAnimators); i < end; i++) {
+            GroundAnimator_Setup* groundA = &groundAnimators[i]; 
+            groundA->base.objId = OBJ_GroundAnimator;
+            groundA->base.actExclusions1 = 0;
+            groundA->base.loadFlags = OBJSETUP_LOAD_MAIN;
+            groundA->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+            groundA->base.loadDistance = 140;
+            groundA->base.fadeDistance = 140;
+            groundA->digDepthMax = 16;
+            groundA->soundIndex = 0;
+            groundA->findCommandRadius = 75;
+            groundA->falloffRadius = 29;
+            groundA->collectableDepth = 10;
+            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), groundA, sizeof(GroundAnimator_Setup));
+        }
+    }
+}
+
+static void swapstone_hollow_well_modifications(void) {
+    ReAssetID shWellTrkblk = reasset_base_id(19);
+    u32 shWellBlocksBase = 579;
+    u32 shWellBlocks;
+
+    //SwapStone Hollow Well: Fix mesh holes, fog issues (on dig spot decals), vines, stalactite animatorIDs, UVs
+    BLOCKS_REPLACE_BASE(shWellTrkblk, shWellBlocksBase, 579, block579);
+    BLOCKS_REPLACE_BASE(shWellTrkblk, shWellBlocksBase, 580, block580);
+    BLOCKS_REPLACE_BASE(shWellTrkblk, shWellBlocksBase, 581, block581);
+    BLOCKS_REPLACE_BASE(shWellTrkblk, shWellBlocksBase, 582, block582);
+    BLOCKS_REPLACE_BASE(shWellTrkblk, shWellBlocksBase, 583, block583);
+
+    //HITS edits
+    {
+        /* Reinstate Rare's HITS line (now edited to be controlled by HitAnimator), blocking you from 
+           taking the well's exit onto the Garunda Te area earlier than you're intended to.
+
+           (You're not supposed to reach Garunda Te until after learning Distract, and the ice floe 
+           river route from SnowHorn Wastes into SwapStone Hollow Well isn't supposed to be unblocked
+           until Tricky learns Flame.) */
+        {
+            ReAssetID blockIDLilyPondVines = reasset_base_id(580 - shWellBlocksBase);
+            HitsLine line = {
+                .Ax = 247,
+                .Ay = -1125,
+                .Az = 575,
+
+                .Bx = 460,
+                .By = -1109,
+                .Bz = 579,
+
+                .heightA = 0,
+                .heightB = 56,
+
+                .settingsA = 0x8e,
+                .settingsB = 0x01,
+
+                .animatorID = 1,
+            };
+            reasset_hits_set(shWellTrkblk, blockIDLilyPondVines, reasset_base_id(32), REASSET_BASE_NAMESPACE, &line);
+        }
+
+        //Add an equivalent HITS line at the opposite side of the vines, so the collision's more stable at that side too
+        {
+            ReAssetID blockIDLilyPondVines = reasset_base_id(580 - shWellBlocksBase);
+            HitsLine line = {
+                .Ax = 454,
+                .Ay = -1127,
+                .Az = 640,
+
+                .Bx = 238,
+                .By = -1127,
+                .Bz = 640,
+
+                .heightA = 0,
+                .heightB = 56,
+
+                .settingsA = 0x8e,
+                .settingsB = 0x01,
+
+                .animatorID = 1,
+            };
+            reasset_hits_set(shWellTrkblk, blockIDLilyPondVines, reasset_auto_id(33), REASSET_BASE_NAMESPACE, &line);
+        }
+
+        // Allow ledge-grabs on two lines near the top of the climbable vines in the lily pond cave
+        // (they were set up just as invisible walls, probably by mistake)
+        {
+            ReAssetID blockIDLilyPondClimb = reasset_base_id(579 - shWellBlocksBase);
+            
+            HitsLine line;
+
+            //Line 50
+            ReAssetID hitsVineTopEdge1 = reasset_base_id(50);
+            bcopy(reasset_hits_get(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge1), &line, sizeof(HitsLine));
+            line.settingsA = 0;
+            line.settingsB = 0x82;
+            reasset_hits_set(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge1, REASSET_BASE_NAMESPACE, &line);
+            
+            //Line 51
+            ReAssetID hitsVineTopEdge2 = reasset_base_id(51);
+            bcopy(reasset_hits_get(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge2), &line, sizeof(HitsLine));
+            line.settingsA = 0;
+            line.settingsB = 0x82;
+            reasset_hits_set(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge2, REASSET_BASE_NAMESPACE, &line);
+        }
+
+        //Add HITS lines so you can jump from the central island in the stalactite cave
+        {
+            ReAssetID blockIDStalactiteCave = reasset_base_id(582 - shWellBlocksBase);
+
+            Vec3f points[] = {
+                VEC3F(344, -1127, 325),
+                VEC3F(376, -1127, 306),
+                VEC3F(396, -1127, 262),
+                VEC3F(376, -1127, 223),
+                VEC3F(334, -1127, 200),
+                VEC3F(301, -1127, 208),
+                VEC3F(283, -1127, 256),
+                VEC3F(296, -1127, 294)
+            };
+            for (int i = 0, count = ARRAYCOUNT(points); i < count; i++) {
+                HitsLine line = {
+                    .Ax = points[i].x,
+                    .Ay = points[i].y,
+                    .Az = points[i].z,
+
+                    .Bx = points[(i + 1) % count].x,
+                    .By = points[(i + 1) % count].y,
+                    .Bz = points[(i + 1) % count].z,
+
+                    .heightA = 40,
+                    .heightB = 40,
+
+                    .settingsA = 0,
+                    .settingsB = 0x85
+                };
+                reasset_hits_set(shWellTrkblk, blockIDStalactiteCave, reasset_auto_id(127 + i), REASSET_BASE_NAMESPACE, &line);
+            }
+        }
+    }
+
 }
 
 static void cc_lightfoot_patch(void) {
@@ -1015,20 +1328,11 @@ static void diamond_bay_additions(void) {
     //(There's one in SH's map too, but having a copy in Diamond Bay's objects seems to 
     // help this behave reliably, with this spot being on the boundary between two maps)
     {
-        typedef struct {
-            Vec3f coords;
-            s16 gamebit;
-            u8 animatorID;
-            u8 removeWhenSet;
-            u8 isBlocksAnimator;
-            u8 blocksFade;
-        } HitAnimators;
-
-        HitAnimators hitAnimatorData[] = {
+        HitAnimator_Config hitAnimatorData[] = {
             {VEC3F(1197.214,  -813,  -1546.568),  RIVER_BIT, 1, TRUE, FALSE, FALSE}, //block989 (Diamond Bay waterfall basin 1) (ledge-grab HITS line)
         };
 
-        HitAnimators* data = &hitAnimatorData[0];
+        HitAnimator_Config* data = &hitAnimatorData[0];
         HitAnimator_Setup hitA = {
             .base = {
                 .objId = OBJ_HitAnimator,
@@ -1102,6 +1406,7 @@ REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     walled_city_additions();
     warlock_mountain_platform_additions();
     swapstone_hollow_additions();
+    swapstone_hollow_well_additions();
     //golden_plains_fuel_additions();
     diamond_bay_additions();
 }
@@ -1115,6 +1420,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     shrine_fxemit_modifications();
     warlock_mountain_platform_modifications();
     swapstone_hollow_modifications();
+    swapstone_hollow_well_modifications();
     cc_lightfoot_patch();
     cape_claw_modifications();
     darkice_mines_modifications();

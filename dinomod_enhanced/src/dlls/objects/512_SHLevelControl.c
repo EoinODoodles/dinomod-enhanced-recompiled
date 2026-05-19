@@ -1,4 +1,5 @@
 #include "modding.h"
+#include "recomputils.h"
 
 #include "custom_gamebits.h"
 
@@ -6,7 +7,10 @@
 #include "game/objects/object.h"
 #include "sys/main.h"
 #include "sys/map_enums.h"
+#include "sys/objects.h"
+#include "sys/print.h"
 #include "dll.h"
+#include "dlls/objects/common/sidekick.h"
 
 #include "recomp/dlls/objects/512_SHLevelControl_recomp.h"
 
@@ -32,6 +36,38 @@ static void dinomod_river_control(void) {
         (riverObjGroupActive && riverUnblocked && dimSpellStoneActivated) ? 1 : 0);
 }
 
+#define VINE_AREA_MIN_X -7744
+#define VINE_AREA_MIN_Z -2284
+#define VINE_AREA_MAX_X -7038
+#define VINE_AREA_MAX_Z -1556
+
+static void dinomod_well_control(void) {
+    Object* player = get_player();
+    
+    //Don't run if the player isn't in the well
+    if (!player || player->srt.transl.y > -845.0f) {
+        return;
+    }
+    
+    // Temporary: set gamebit if the player issued Flame command near the lily pond vines
+    // (can be removed in future if we create a curve network for Tricky to follow in the well)    
+    _Bool lilyPondVinesGone = main_get_bits(DINOMOD_BIT_922_SH_Well_LilyPondVinesUnblocked);
+    if (lilyPondVinesGone == FALSE) {
+
+        //Check if Flame was used
+        if (gDLL_1_cmdmenu->vtbl->was_this_item_used(Sidekick_Command_INDEX_4_Flame)){
+
+            //Check that player's roughly in the area of the vines
+            if (
+                ((VINE_AREA_MIN_X < player->srt.transl.x) && (player->srt.transl.x < VINE_AREA_MAX_X)) &&
+                ((VINE_AREA_MIN_Z < player->srt.transl.z) && (player->srt.transl.z < VINE_AREA_MAX_Z))
+            ) {
+                main_set_bits(DINOMOD_BIT_922_SH_Well_LilyPondVinesUnblocked, TRUE);
+            }
+        }
+    }
+}
+
 RECOMP_HOOK_DLL(SHLevelControl_control) void SHLevelControl_control_hook(Object *self) {
     // Drive AMSFX's waterfall sfx logic. This is necessary to stop the waterfallspray sfx that plays
     // in the DB river when coming back to SH.
@@ -39,4 +75,7 @@ RECOMP_HOOK_DLL(SHLevelControl_control) void SHLevelControl_control_hook(Object 
 
     // Handle river related stuff
     dinomod_river_control();
+
+    // Handle well related stuff
+    dinomod_well_control();
 }

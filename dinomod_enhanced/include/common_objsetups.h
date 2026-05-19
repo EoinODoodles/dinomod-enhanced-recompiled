@@ -120,6 +120,22 @@ typedef struct {
 } SideLoad_Setup;
 
 typedef struct {
+    ObjSetup base;
+    s16 gamebitDug;         //Gamebit to set when Tricky digs up the spot
+    s16 unused1A;      
+    s16 unused1C;
+    s16 magicCaveID;        //Values 3 onwards cause the dig spot to become be a Magic Cave entrance
+    u8 digDepthMax;         //Dig distance (stored at 100x scale)
+    u8 soundIndex;          //Index of the sound to play when digging has finished (0: small secret, 1: big secret)
+    u8 unused22;
+    u8 findCommandRadius;   //Range for Find command to show up in inventory
+    u8 unused24;            
+    u8 animatorID;          //Block shapes with this tag will be animated
+    u8 falloffRadius;       //Vertex influence tapers off with this radius, and it also decides how far Tricky scoots backwards while digging
+    u8 collectableDepth;    //How far down the collectable is buried beneath the dig spot
+} GroundAnimator_Setup;
+
+typedef struct {
 /*00*/ ObjSetup base;
 /*18*/ s16 gamebit;     //Spray stops when this gamebit is set (when specified)
 /*1A*/ s8 roll;

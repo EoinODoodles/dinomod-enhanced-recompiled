@@ -15,4 +15,14 @@ ObjSetup *maps_find_generic_group_endpoint(MapHeader *header, ObjSetup *mapsObjS
 ObjSetup *maps_find_object_group_endpoint(MapHeader *header, ObjSetup *mapsObjSetups, u8 objectGroupID);
 ObjSetup *objsetup_next(ObjSetup* setup);
 
+/* Intermediary struct, helping configure HitAnimators' objSetups in a slightly easier way */
+typedef struct {
+    Vec3f coords;
+    s16 gamebit;
+    u8 animatorID;
+    u8 removeWhenSet;
+    u8 isBlocksAnimator;
+    u8 blocksFade;
+} HitAnimator_Config;
+
 u8 hitanimator_configure_mode_flags(_Bool removeWhenSet, _Bool isBlocksAnimator, _Bool fadeBlocks);
