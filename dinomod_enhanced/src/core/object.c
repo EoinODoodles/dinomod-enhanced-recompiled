@@ -174,3 +174,25 @@ RECOMP_CALLBACK("*", recomp_on_game_tick_start) void updateExtraTextObjects() {
         remove_extra_descriptions_objects();
     }
 }
+
+/**
+ * Set quarterSize for dynamically created setups. This isn't required by the game but is 
+ * handy to have for debugging (the game does sometimes set this at runtime, it's not consistent).
+ */
+RECOMP_PATCH void *obj_alloc_setup(s32 size, s32 objId) {
+    ObjSetup *setup;
+
+    setup = (ObjSetup*)mmAlloc(size, ALLOC_TAG_OBJECTS_COL, ALLOC_NAME("romdef"));
+    bzero(setup, size);
+
+    // @recomp: Set quarterSize
+    setup->quarterSize = mmAlign4(size) / 4;
+    setup->uID = -1;
+    setup->loadDistance = 100;
+    setup->fadeDistance = 50;
+    setup->loadFlags = OBJSETUP_LOAD_CAMERA;
+    setup->fadeFlags = OBJSETUP_FADE_CAMERA;
+    setup->objId = objId;
+
+    return (void*)setup;
+}
