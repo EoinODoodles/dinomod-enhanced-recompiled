@@ -157,5 +157,6 @@ typedef struct {
 /*23*/ u8 flags;
 /*24*/ u8 iterations;
 /*RECOMP*/
+// Note: This addition is OK because this setup has a size of 0x28 in the map files.
 /*25*/ u8 invertGamebit; //When set: spray plays when gamebit set (if a gamebit was specified)
 } WaterFallSpray_Setup;
