@@ -52,8 +52,6 @@ static u8 rsShowActiveSideCommand = FALSE;      //Whether to show/hide the Activ
 #define DEBUG_INVENTORY_SCROLLING FALSE
 #define DEBUG_SIDEKICK_METER FALSE
 
-#define HANDLE_NOCLIP_MOD_YIELD TRUE
-
 #define INVENTORY_LERP_SPEED (1.0f/((f32)(MENU_HEIGHT_OPEN >> 2)))
 
 //Fixes a bug where the inventory strip doesn't draw the item/command icons in the top row of pixels (noticeable when scrolling)
@@ -1533,19 +1531,6 @@ static u16 cmdmenu_get_extended_disabled_buttons() {
     u8 rNewControls = recomp_get_config_u32("cmdmenu_new_controls");  //whether to use new controls
     u8 rDControls = recomp_get_config_u32("cmdmenu_d_controls") > DPAD_OFF; //whether D-pad can navigate
     u16 joyButtonMaskExtended = sJoyButtonMask;
-
-    #if HANDLE_NOCLIP_MOD_YIELD
-    Object* player;
-    if (rDControls) {
-        player = get_player();
-        if (player && 
-            (joy_get_buttons(0) & L_TRIG) && 
-            (player->opacity == 128) && (player->curModAnimId == 112)
-        ) {
-            joyButtonMaskExtended |= (U_JPAD | D_JPAD);
-        }
-    }
-    #endif
 
     //@recomp: handle optional new controls
     if (rNewControls && (joyButtonMaskExtended & D_CBUTTONS)) {
