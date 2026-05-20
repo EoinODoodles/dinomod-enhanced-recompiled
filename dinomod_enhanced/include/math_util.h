@@ -15,6 +15,8 @@
 #define DEGREES_TO_ANGLE8(degrees) ((u8)(degrees*((f32)0x100/360.0f) + 0.5f))
 
 extern f32 sqrtf(f32 num);
+extern f32 sinf(f32 angle);
+f32 cosf(f32 angle);
 
 f32 lerp_float(f32 tValue, f32 start, f32 end);
 
@@ -32,6 +34,12 @@ f32 ease_in_out_quart(f32 tValue);
 
 void rotate_point_by_angle_2D(f32 x, f32 y, f32* ox, f32* oy, s16 theta);
 
+void vec3_cross(Vec3f* vA, Vec3f* vB, Vec3f* vO);
+void vec3_diPrintf(Vec3f* v);
+void vec3_recomp_printf(Vec3f* v);
+
+f32 degrees_to_radians(f32 degrees);
+f32 radians_to_degrees(f32 radians);
 f32 angle16_to_degrees(s32 angle16);
 f32 angle16_to_radians(s32 angle16);
 s32 degrees_to_angle16(f32 degrees);

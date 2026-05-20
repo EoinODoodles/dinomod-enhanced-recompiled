@@ -317,7 +317,7 @@ In the unpatched December 2000 Prototype the sidekicks' food meter always shows 
 
 Dinomod Enhanced connects up the sidekicks' actual food counts to the meters, letting you see Tricky's blue energy decreasing as he digs at certain spots (note that not all dig spots have an energy cost assigned).
 
-It's not possible to increase the sidekick's red food count however, since there's no Red Mushroom inventory item. If you'd like to only see the sidekick's blue food count and exclude red food from the meter, this config option can be enabled.
+It's not possible to increase a sidekick's red food count however, since there's no way to obtain Red Mushrooms as an inventory item. If you'd like to only see the sidekick's blue food count and exclude red food from the meter, this config option can be enabled.
 '''
 type = "Enum"
 options = [ "Off", "On" ]
@@ -414,6 +414,20 @@ This setting prevents those single-frame flashes from appearing, however they ca
 type = "Enum"
 options = [ "Show", "Hide" ]
 default = "Hide"
+
+[[manifest.config_options]]
+id = "sidekick_toy_zoomies"
+name = "Sidekick Toy: Stop Zoomies"
+description = '''
+In the unedited December 2000 Prototype, Tricky's toy ball is programmed to come to a stop when resting on flat terrain. If the terrain it stops on isn't flat, it instead gains a sudden burst of momentum and zooms off in the direction it was last headed.
+
+It's unclear whether Rare programmed it this way to help prevent the ball from getting stuck, as a placeholder for planned rolling behaviour while grounded, or just as a way to add a bit of mischief to the toy. In any case, it can cause some frustration when collecting the ball, since it often zooms away at the last moment! 
+
+Enabling this config option stops the zoomies, allowing the ball roll to a stop on inclines. Alternatively you can keep the zoomies, if you prefer!
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
 
 [[manifest.config_options]]
 id = "magic_dust_reflect_bounce"

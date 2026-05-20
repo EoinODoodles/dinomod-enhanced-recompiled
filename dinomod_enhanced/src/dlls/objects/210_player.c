@@ -1,14 +1,18 @@
-#include "modding.h"
-#include "recompconfig.h"
-#include "recomputils.h"
 #include "dll_util.h"
 #include "math_util.h"
+#include "modding.h"
 #include "object_util.h"
+#include "player_util.h"
+#include "recompconfig.h"
+#include "recomputils.h"
 #include "sidekick_util.h"
 
 #include "common.h"
+#include "game/objects/object.h"
+#include "game/objects/object_id.h"
 #include "sys/map_enums.h"
 #include "sys/menu.h"
+#include "sys/newshadows.h"
 #include "sys/objanim.h"
 #include "sys/objtype.h"
 #include "sys/objmsg.h"
@@ -17,7 +21,6 @@
 #include "sys/gfx/model.h"
 #include "sys/gfx/animseq.h"
 #include "dll.h"
-
 #include "dlls/objects/common/vehicle.h"
 #include "dlls/objects/common/group48.h"
 #include "dlls/objects/common/foodbag.h"
@@ -2239,4 +2242,117 @@ RECOMP_HOOK_DLL(dll_210_func_60A8) void dll_210_func_60A8_hook(Object *self, Obj
             temp_v0[2] = 0;
         }
     }
+}
+
+extern void dll_210_func_363C(Object* player, Player_Data* arg1, Gfx** arg2, Mtx** arg3, Vertex** arg4);
+extern void dll_210_func_3B40(Object* player, Gfx** arg1, Mtx** arg2, Vertex** arg3, Triangle** arg4);
+extern void dll_210_func_8EA4(Object* player, Player_Data* arg1, Object* vehicle, Gfx** arg3, Mtx** arg4, Vertex** arg5, Triangle** arg6, s32 arg7);
+
+/** 
+  * Stores the player's hand coords in the player's print function, while model matrices are readable. 
+  * Coords only stored while the player's carrying Tricky's toy ball, since that's what they're used for.
+  */
+static Vec3f rsHandRLastCoords;
+
+RECOMP_PATCH void dll_210_print(Object* player, Gfx** arg1, Mtx** arg2, Vertex** arg3, Triangle** arg4, s8 arg5) {
+    Object* sp8C;
+    s32 pad;
+    Player_Data* data;
+    ModelInstance* sp80;
+    f32 sp7C;
+    f32 sp78;
+    f32 sp74;
+    f32 sp70;
+    f32 sp6C;
+    f32 sp68;
+    f32 scaleBefore;
+    s32 pad2;
+    s32 pad3;
+
+    data = player->data;
+    sp80 = player->modelInsts[player->modelInstIdx];
+    if (arg5 == -1 || !(data->flags & 0x4001)) {
+        if ((data->vehicle != NULL) && ((player->stateFlags & OBJSTATE_IN_SEQ) || data->unk0.animState == PLAYER_ASTATE_Vehicle_Riding || data->unk0.animState == PLAYER_ASTATE_Log_Riding)) {
+            dll_210_func_8EA4(player, data, data->vehicle, arg1, arg2, arg3, arg4, 1);
+        }
+        if (data->unk8BE == 1) {
+            dll_210_func_3B40(player, arg1, arg2, arg3, arg4);
+        }
+        gDLL_16->vtbl->func1(player);
+        if (data->vehicle != NULL && ((player->stateFlags & OBJSTATE_IN_SEQ) || data->unk0.animState == PLAYER_ASTATE_Vehicle_Riding || data->unk0.animState == PLAYER_ASTATE_Log_Riding)) {
+            ((DLL_IVehicle*)data->vehicle->dll)->vtbl->func19(data->vehicle, player->def->scale);
+        }
+        if (data->unk818 > 0.0f) {
+            func_80036FBC(0xC8U, 0U, 0U, data->unk81C);
+        }
+        player->srt.transl.y += data->unk83C;
+
+        draw_object(player, arg1, arg2, arg3, arg4, 1.0f);
+        player->srt.transl.y -= data->unk83C;
+        if (data->vehicle != NULL && ((player->stateFlags & OBJSTATE_IN_SEQ) || data->unk0.animState == PLAYER_ASTATE_Vehicle_Riding || data->unk0.animState == PLAYER_ASTATE_Log_Riding)) {
+            func_80034FF0(NULL);
+        }
+        if (arg5 != 0) {
+            dll_210_func_363C(player, data, arg1, arg2, arg3);
+        }
+        func_80032238(player, 4, 2, &data->unk39C);
+        func_80031F6C(player, 9, &data->unk7EC.x, &data->unk7EC.y, &data->unk7EC.z, 0);
+
+        //@recomp: store coords of player's hands while carrying Tricky's ball
+        if (data->unk708 && data->unk708->id == OBJ_SidekickBall) {
+            func_80031F6C(player, 0,
+                &rsHandRLastCoords.x,
+                &rsHandRLastCoords.y,
+                &rsHandRLastCoords.z,
+                0
+            );
+        }
+
+        if (sp80->unk34 & 8) {
+            sp8C = data->unk850;
+            if (sp8C != NULL && (data->flags & 4)) {
+                scaleBefore = sp8C->srt.scale;
+                sp8C->srt.scale /= player->srt.scale;
+                pad = player->opacityWithFade;
+                if (pad > OBJECT_OPACITY_MAX) {
+                    pad = OBJECT_OPACITY_MAX;
+                }
+                func_80035AF4(arg1, arg2, arg3, arg4, player, sp80, 0, 0, sp8C, 6, player->opacityWithFade > OBJECT_OPACITY_MAX ? OBJECT_OPACITY_MAX : player->opacityWithFade);
+                sp8C->srt.scale = scaleBefore;
+            }
+        }
+
+        if (data->unk0.animState == PLAYER_ASTATE_Block_Pushing) {
+            func_80031F6C(player, 7, &data->unk680.unk1C, &data->unk680.unk20, &data->unk680.unk24, 0);
+        }
+
+        //Handle held object (baskets etc.)
+        if (data->unk868 != NULL && data->unk868->unkE0 == 1) {
+            func_80031F6C(player, 6, &sp7C, &sp78, &sp74, 0);
+            func_80031F6C(player, 7, &sp70, &sp6C, &sp68, 0);
+            sp7C = (sp7C + sp70) * 0.5f;
+            sp78 = (sp78 + sp6C) * 0.5f;
+            sp74 = (sp74 + sp68) * 0.5f;
+
+            sp7C -= fsin16_precise(player->srt.yaw) * data->unk86C;
+            sp74 -= fcos16_precise(player->srt.yaw) * data->unk86C;
+            data->unk868->srt.transl.x = sp7C;
+            data->unk868->srt.transl.y = sp78;
+            data->unk868->srt.transl.z = sp74;
+            data->unk868->srt.yaw = player->srt.yaw;
+            data->unk868->dll->vtbl->print(data->unk868, arg1, arg2, arg3, arg4, -1);
+        }
+
+        shadows_update_dynamic_tex(player, arg1, arg2, arg3, arg4);
+    }
+}
+
+/* 
+ * Retrieves the worldSpace coords of the player's right hand.
+ * Used by a patch for Tricky's ball (so it's thrown from the player's hand!)
+ */ 
+void player_get_hand_coords(Vec3f* v) {
+    v->x = rsHandRLastCoords.x;
+    v->y = rsHandRLastCoords.y;
+    v->z = rsHandRLastCoords.z;
 }
