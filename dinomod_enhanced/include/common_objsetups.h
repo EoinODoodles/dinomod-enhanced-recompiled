@@ -77,3 +77,10 @@ typedef struct {
 /*22*/ u16 unk22;
 /*24*/ u8 warpID;              //Optionally warp the player
 } SeqObj_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ s8 rotation;
+/*19*/ u8 _unk19[0x20 - 0x19];
+/*20*/ s16 gamebitEnabled;
+} DR_EarthCallPad_Setup;
