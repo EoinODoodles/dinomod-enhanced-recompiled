@@ -9,12 +9,25 @@
 #include "recomp/dlls/objects/713_DR_EarthWarrior_recomp.h"
 
 typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ s8 rotation;
+/*19*/ s8 unk19;
+} DRearthwalk_Setup;
+
+typedef struct {
     u8 _unk0[0xA58 - 0x0];
     u16 unkA58;
     u8 _unkA5A[0xA62 - 0xA5A];
     s8 unkA62;
     s8 unkA63;
 } DLL713_Data;
+
+/** Allow a summoned Earth Warrior to be ridden if he was already brought to the surface. */
+RECOMP_HOOK_DLL(dll_713_setup) void dll_713_setup_hook(Object* self, DRearthwalk_Setup* setup, s32 arg2) {
+    if (main_get_bits(BIT_656)) {
+        setup->unk19 = 0;
+    }
+}
 
 //Stops the shackled EarthWalker from going dark too early when entering tunnels (originally by MusicalProgrammer)
 RECOMP_PATCH s32 dll_713_func_32EC(Object* self, u8 arg1) {

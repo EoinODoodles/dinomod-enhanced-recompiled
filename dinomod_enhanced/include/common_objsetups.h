@@ -101,6 +101,13 @@ typedef struct {
 
 typedef struct {
 /*00*/ ObjSetup base;
+/*18*/ s8 rotation;
+/*19*/ u8 _unk19[0x20 - 0x19];
+/*20*/ s16 gamebitEnabled;
+} DR_EarthCallPad_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
 /*18*/ u8 unk18; // yaw?
 /*19*/ u8 unk19; // pitch?
 /*1A*/ u8 unk1A; // width? (x)

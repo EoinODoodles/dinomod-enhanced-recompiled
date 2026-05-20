@@ -333,6 +333,13 @@ static void dragon_rock_upper_modifications(void) {
     reasset_map_objects_delete(drTop, reasset_base_id(0x338CB));
     reasset_map_objects_delete(drTop, reasset_base_id(0x33984));
     reasset_map_objects_delete(drTop, reasset_base_id(0x406A1));
+
+    // Only enable callpads after the Earth Warrior has been brought to the surface (normally they are always enabled)
+    DR_EarthCallPad_Setup* callpad;
+    callpad = reasset_map_objects_get(drTop, reasset_base_id(0x4033C), NULL);
+    callpad->gamebitEnabled = 0x656;
+    callpad = reasset_map_objects_get(drTop, reasset_base_id(0x4059C), NULL);
+    callpad->gamebitEnabled = 0x656;
 }
 
 /** Change the fade settings of the GP_ShrinePillar so they're visible across Golden Plains 
