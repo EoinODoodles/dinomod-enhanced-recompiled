@@ -1,3 +1,4 @@
+#include "configs.h"
 #include "dll_util.h"
 #include "math_util.h"
 #include "modding.h"
@@ -14,9 +15,11 @@
 #include "sys/menu.h"
 #include "sys/newshadows.h"
 #include "sys/objanim.h"
+#include "sys/objects.h"
 #include "sys/objtype.h"
 #include "sys/objmsg.h"
 #include "sys/objlib.h"
+#include "sys/print.h"
 #include "sys/segment_53F00.h"
 #include "sys/gfx/model.h"
 #include "sys/gfx/animseq.h"
@@ -2355,4 +2358,44 @@ void player_get_hand_coords(Vec3f* v) {
     v->x = rsHandRLastCoords.x;
     v->y = rsHandRLastCoords.y;
     v->z = rsHandRLastCoords.z;
+}
+
+// #define DEBUG_ILLUSION_SPELL
+
+/** Option to always play as Fox instead of Sabre */
+RECOMP_HOOK_DLL(dll_210_control) void play_as_fox(Object* self) {
+    u8 config = recomp_get_config_u32("play_as_fox");
+
+    if (!self || (self->id != OBJ_Sabre)) {
+        return;
+    }
+
+    Player_Data* objData = self->data;
+    if (!objData) {
+        return;
+    }
+
+    #ifdef DEBUG_ILLUSION_SPELL
+    diPrintf("Config: %d\n", config);
+    diPrintf("Illusion state: %d\n", objData->unk8BF);
+    diPrintf("modelInstIdx: %d\n", self->modelInstIdx);
+    #endif
+
+    switch (config) {
+    default:
+    case PLAY_AS_SABRE_WITH_FOX_AS_ILLUSION:
+        //Fox only shows up while Sabre's using the Illusion Spell
+        if ((objData->unk8BF == 0) && (self->modelInstIdx == 2)) {
+            self->modelInstIdx = 0;
+        } else if ((objData->unk8BF != 0) && (self->modelInstIdx != 2)) {
+            self->modelInstIdx = 2;
+        }
+        break;
+
+    case PLAY_AS_FOX_ALWAYS:
+        if (self->modelInstIdx != 2) {
+            self->modelInstIdx = 2;
+        }
+        break;
+    }
 }

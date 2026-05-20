@@ -930,7 +930,38 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
 
     //Draw character icon
     {
+        _Bool rConfigFoxIcon = recomp_get_config_u32("cmdmenu_icons_fox");
+        static s16 rsIllusionOpacity;
+        static u8 rsIllusionIcon = 0;
+        ModelInstance* modelInst;
+        u8 showFoxIcon = FALSE;
+        u8 opacity;
+
+        //@recomp: Check if the Illusion Spell is showing the Fox model
+        if (rConfigFoxIcon && (player->id == OBJ_Sabre)) {
+            if ((player->modelInstIdx == 2) && 
+                (modelInst = player->modelInsts[player->modelInstIdx]) && 
+                ((modelInst->model->modelId == 9) || (modelInst->model->modelId == 10)) //Check if it's either Fox model
+            ) {
+                showFoxIcon = TRUE;
+            } else {
+                showFoxIcon = FALSE;
+            }
+        }
+
         statsOpacity = ((u8)sOpacityHealth < (u8)sOpacityMagic) ? (u8)sOpacityMagic : (u8)sOpacityHealth;
+
+        //@recomp: if the character portrait's currently hidden and it needs to be swapped, swap it immediately off-screen
+        if (rConfigFoxIcon && (statsOpacity < 20)) {
+            rsIllusionOpacity = MAX_OPACITY;
+
+            if (showFoxIcon && (rsIllusionIcon == Illusion_Icon_Sabre)) {
+                rsIllusionIcon = Illusion_Icon_Fox;
+            } else if (!showFoxIcon && (rsIllusionIcon == Illusion_Icon_Fox)) {
+                rsIllusionIcon = Illusion_Icon_Sabre;
+            }
+        }
+
         if (statsOpacity) {
             if (player->id == OBJ_Krystal) {
                 offsetX = 0;
@@ -943,23 +974,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
             }
 
             //@recomp: handle optional Sabre icon behaviour
-            if ((player->id == OBJ_Sabre) && recomp_get_config_u32("cmdmenu_icons_fox")) {
-                static s16 rsIllusionOpacity = MAX_OPACITY;
-                static u8 rsIllusionIcon = 0;
-                ModelInstance* modelInst;
-                u8 showFoxIcon;
-                u8 opacity;
-
-                //Check if the Illusion Spell is showing the Fox model
-                if ((player->modelInstIdx == 2) && 
-                    (modelInst = player->modelInsts[player->modelInstIdx]) && 
-                    ((modelInst->model->modelId == 9) || (modelInst->model->modelId == 10)) //Check if it's either Fox model
-                ) {
-                    showFoxIcon = TRUE;
-                } else {
-                    showFoxIcon = FALSE;
-                }
-
+            if (rConfigFoxIcon && (player->id == OBJ_Sabre)) {
                 //Change to Fox icon when Sabre's using the Illusion Spell
                 if (showFoxIcon) {
                     if (rsIllusionIcon == Illusion_Icon_Sabre) {

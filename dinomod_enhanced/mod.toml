@@ -252,26 +252,6 @@ options = [ "Off", "On" ]
 default = "On"
 
 [[manifest.config_options]]
-id = "cmdmenu_icons_fox"
-name = "Illusion Spell: Fox Icon"
-description = '''
-Star Fox Adventures' Kiosk build (2002) contains many leftover assets from earlier in development, for example a folder ("swapcircle") containing Dinosaur Planet inventory/HUD icons from around January 2001.
-
-Looking through the folder's contents we can see Rare had by that stage replaced Sabre's portrait icon with a new Fox icon, designed by Nick Southam. The icon's art style closely matches the Dinosaur Planet character portraits seen in December 2000.
-
-The Fox icon didn't end up being used in the retail Star Fox Adventures, but this config option let you see it while playing Dinosaur Planet's prototype, appearing when Sabre uses the Illusion Spell!
-
-If you're curious about why Sabre turns into Fox when using that Spell, here's the explanation:
-
-In the unmodified prototype, Rare replaced Sabre's gameplay and cutscene models with new Fox models, but Sabre's "high-quality textures" model and unfinished Illusion Spell models thankfully escaped being overwritten. As a funny side-effect, Fox would appear to disguise himself as Sabre whenever he used the Illusion Spell!
-
-Dinomod Enhanced uses those surviving Sabre models to restore/recreate Sabre's gameplay and cutscene models. The Fox models were then kept and used in place of Sabre's unfinished Illusion Spell model, as a homage to the "disguise" behaviour seen in the unedited prototype.
-'''
-type = "Enum"
-options = [ "Off", "On" ]
-default = "On"
-
-[[manifest.config_options]]
 id = "cmdmenu_active_icon_overlap"
 name = "Active Spell/Command: Overlap Fix"
 description = '''
@@ -520,6 +500,41 @@ This config lets you see the model, with a few different options:
 type = "Enum"
 options = [ "Off", "On (Fade-Out)", "On (Persist)" ]
 default = "On (Fade-Out)"
+
+[[manifest.config_options]]
+id = "cmdmenu_icons_fox"
+name = "Illusion Spell: Fox Icon"
+description = '''
+Star Fox Adventures' Kiosk build (2002) contains many leftover assets from earlier in development, for example a folder ("swapcircle") containing Dinosaur Planet inventory/HUD icons from around January 2001.
+
+Looking through the folder's contents we can see Rare had by that stage replaced Sabre's portrait icon with a new Fox icon, designed by Nick Southam. The icon's art style closely matches the Dinosaur Planet character portraits seen in December 2000.
+
+The Fox icon didn't end up being used in the retail Star Fox Adventures, but this config option let you see it while playing Dinosaur Planet's prototype, appearing when Sabre uses the Illusion Spell!
+
+If you're curious about why Sabre turns into Fox when using that Spell, here's the explanation:
+
+In the original unmodified December 2000 prototype, Rare had overwritten Sabre's gameplay and cutscene models with new Fox models as part of their earliest work on Star Fox Adventures. Sabre's "high-quality textures" model and unfinished Illusion Spell models thankfully escaped being overwritten though, and as a funny side-effect Fox would appear to disguise himself as Sabre whenever he used the Illusion Spell!
+
+Dinomod Enhanced uses those surviving Sabre models to restore/recreate Sabre's gameplay and cutscene models. The Fox models were then kept and used in place of Sabre's unfinished Illusion Spell model, as a homage to the "disguise" behaviour seen in the unedited prototype.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+
+[[manifest.config_options]]
+id = "play_as_fox"
+name = "Sabre: Play as Fox"
+description = '''
+In the original unmodified December 2000 prototype, Rare had overwritten Sabre's gameplay and cutscene models with new Fox models as part of their earliest work on Star Fox Adventures. Sabre's "high-quality textures" model and unfinished Illusion Spell models thankfully escaped being overwritten though, and as a funny side-effect Fox would appear to disguise himself as Sabre whenever he used the Illusion Spell!
+
+Dinomod Enhanced uses those surviving Sabre models to restore/recreate Sabre's gameplay and cutscene models. The Fox models were then kept and used in place of Sabre's unfinished Illusion Spell model, as a homage to the "disguise" behaviour seen in the unedited prototype.
+
+If you'd prefer to always play as Fox, this option can be enabled.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "Off"
 
 [[manifest.config_options]]
 id = "rolling_demo"
