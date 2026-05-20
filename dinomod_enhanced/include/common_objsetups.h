@@ -88,16 +88,19 @@ typedef struct {
 
 typedef struct {
 /*00*/ ObjSetup base;
-/*18*/ s16 gamebitPlay;        //The sequence will play when this gamebit is set
-/*1A*/ s16 gamebitFinished;    //This gamebit will be set when the sequence has played
-/*1C*/ u8 rotate;
+/*18*/ s16 gamebitPlayed;
+/*1A*/ s16 gamebitPlay;  
+/*1C*/ u8 yaw;
 /*1D*/ u8 playbackOptions;
-/*1E*/ s8 seqIndex;            //The index of the sequence in the Object.bin entry's sequence list
+/*1E*/ s8 seqIndex;            //The index of the sequence in the Objects.bin entry's sequence list
 /*1F*/ s8 modelInstIdx;        //Choose between 3D models, visible when debugging (usually a clapperboard)
 /*20*/ s16 unk20;
 /*22*/ u16 unk22;
 /*24*/ u8 warpID;              //Optionally warp the player
 } SeqObj_Setup;
+
+#define TRIG_BITS_MODE(mode) (mode << 14)
+#define TRIG_PARAMS_COMBINED(params) .param1 = (u8)((params) >> 8), .param2 = ((u8)params)
 
 typedef struct {
 /*00*/ ObjSetup base;

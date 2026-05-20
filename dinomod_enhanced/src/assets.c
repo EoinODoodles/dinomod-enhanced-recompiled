@@ -48,15 +48,16 @@ INCBIN(tex0_custom_energy_egg,          "tex0_energy_egg_custom.bin");
 INCBIN(tex0_custom_energy_egg_moldy,    "tex0_energy_egg_moldy_custom.bin");
 INCBIN(tex0_kiosk_fox,                  "tex0_kiosk_fox_icon_custom.bin");
 
-INCBIN(models_dimtent_burnt, "models_0886_DIMtent_burnt_opacity.bin");
-INCBIN(objects_dimtent, "objects_0320 0140 DIMTent.bin");
+INCBIN(models_dimtent_burnt,    "models_0886_DIMtent_burnt_opacity.bin");
+INCBIN(objects_dimtent,         "objects_0320 0140 DIMTent.bin");
 
 INCBIN(models_purple_mushroom,  "models_purple_mushroom_recreation.bin");
 INCBIN(modanim_purple_mushroom, "modanim_purple_mushroom_recreation.bin");
 INCBIN(amap_purple_mushroom,    "amap_purple_mushroom_recreation.bin");
 INCBIN(objects_purple_mushroom, "objects_0571 023B SHrocketmushroo.bin");
 
-INCBIN(objects_shboulder, "objects_0583 0247 SHboulder.bin");
+INCBIN(objects_shseqobject,     "objects_0561_SHseqobject.bin");
+INCBIN(objects_shboulder,       "objects_0583 0247 SHboulder.bin");
 
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 
@@ -228,7 +229,7 @@ static void walled_city_modifications(void) {
     {
         SeqObj_Setup *seqobj = (SeqObj_Setup*)reasset_map_objects_get(walledCity, 
             reasset_base_id(0x41474), NULL);
-        seqobj->gamebitFinished = 0x829;
+        seqobj->gamebitPlay = 0x829;
     }
 
     // Moon Aperture
@@ -489,6 +490,57 @@ static void swapstone_hollow_additions(void) {
     ReAssetID mapID = reasset_base_id(MAP_SWAPSTONE_HOLLOW);
     ReAssetID shTrkblk = reasset_base_id(12);
     int sHollowBlocksBase = 345;
+
+    //Add a SHseqobject to play an unused cutscene when Sabre leaves the shop (found by jeebs2kx)
+    {
+        SeqObj_Setup objSeq = {
+            .base = {
+                .objId = OBJ_SHseqobject,
+                .actExclusions1 = 0,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 50,
+                .fadeDistance = 50,
+                .x = 2529.7,
+                .y = -636,
+                .z = 1413.7
+            },
+            .gamebitPlay = BIT_SP_Exiting_Shop,
+            .gamebitPlayed = NO_GAMEBIT,
+            .yaw = 0,
+            .playbackOptions = 8,
+            .seqIndex = 9,
+            .unk22 = 1,
+            .warpID = 0
+        };
+        reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &objSeq, sizeof(objSeq));
+    }
+
+    //Add a TriggerTime object as well, to make sure the "Exiting Shop" gamebit unsets while near the SwapStone
+    {
+        Trigger_Setup tTime = {
+            .base = {
+                .objId = OBJ_TriggerTime,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 50,
+                .fadeDistance = 50,
+                .x = 2529.7,
+                .y = -616,
+                .z = 1413.7
+            },
+            .commands = {
+                {
+                    .condition = CMD_COND_IN,
+                    .id = TRG_CMD_FLAG,
+                    TRIG_PARAMS_COMBINED( TRIG_BITS_MODE(0) | BIT_SP_Exiting_Shop ) //Unset gamebit
+                },
+            },
+            .timerDuration = 60
+        };
+
+        reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &tTime, sizeof(tTime));
+    }
 
     //Add SHBoulders blocking the waterfall near Rocky 
     //(One for each side of the opening, to give the illusion that you're seeing the back of the boulder)
@@ -756,6 +808,12 @@ static void swapstone_hollow_modifications(void) {
     ReAssetID sHollow = reasset_base_id(MAP_SWAPSTONE_HOLLOW);
     ReAssetID shTrkblk = reasset_base_id(12);
     int sHollowBlocksBase = 345;
+
+    //Add extra sequences to SHseqobject
+    {
+        ReAssetID objects_shseqobject_id = reasset_base_id(561); //OBJ_SHseqobject
+        reasset_objects_set(objects_shseqobject_id, REASSET_BASE_NAMESPACE, objects_shseqobject, objects_shseqobject_end - objects_shseqobject);
+    }
 
     //Tag Blocks shapes with animatorIDs, so they can be removed with HitAnimators
     reasset_blocks_set(shTrkblk, reasset_base_id(351 - 345), REASSET_BASE_NAMESPACE, block351, block351_end - block351);
@@ -1360,13 +1418,14 @@ static void diamond_bay_additions(void) {
 static void diamond_bay_modifications(void) {
     ReAssetID db = reasset_base_id(MAP_DIAMOND_BAY);
     ReAssetID dbTrkblk = reasset_base_id(48);
+    int dbTrkblkBase = 974;
 
     //Diamond Bay river: BLOCKS edits
     {
         //Adjust animatorIDs for toggling river, plus seam fixes at the SH connection
-        reasset_blocks_set(dbTrkblk, reasset_base_id(989 - 974), REASSET_BASE_NAMESPACE, block989, block989_end - block989); //Waterfall basin 1 (dropping down from SwapStone Hollow)
-        reasset_blocks_set(dbTrkblk, reasset_base_id(995 - 974), REASSET_BASE_NAMESPACE, block995, block995_end - block995); //River bend 1 (near SwapStone Hollow)
-        reasset_blocks_set(dbTrkblk, reasset_base_id(994 - 974), REASSET_BASE_NAMESPACE, block994, block994_end - block994); //Waterfall basin 2 (second drop along river, approaching where rocks fall)
+        BLOCKS_REPLACE_BASE(dbTrkblk, dbTrkblkBase, 989, block989); //Waterfall basin 1 (dropping down from SwapStone Hollow)
+        BLOCKS_REPLACE_BASE(dbTrkblk, dbTrkblkBase, 995, block995); //River bend 1 (near SwapStone Hollow)
+        BLOCKS_REPLACE_BASE(dbTrkblk, dbTrkblkBase, 994, block994); //Waterfall basin 2 (second drop along river, approaching where rocks fall)
 
     }
 
