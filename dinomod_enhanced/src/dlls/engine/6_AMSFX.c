@@ -1,16 +1,20 @@
 #include "PR/os.h"
 #include "PR/ultratypes.h"
+#include "common_objsetups.h"
 #include "modding.h"
 #include "recomputils.h"
 #include "recompconfig.h"
 
 #include "old_pickup_sfx_bank.h"
 
+#include "game/gamebits.h"
+#include "game/objects/object_id.h"
 #include "libnaudio/n_libaudio.h"
 #include "libnaudio/n_sndplayer.h"
 #include "mp3/mp3.h"
 #include "sys/acache.h"
 #include "sys/fs.h"
+#include "sys/main.h"
 #include "sys/map.h"
 #include "sys/mpeg.h"
 #include "sys/asset_thread.h"
@@ -321,4 +325,46 @@ RECOMP_PATCH void amsfx_water_falls_control(void) {
         }
         amsfx_set_vol(sWaterfallHighHandle, sWaterfallHighVolume);
     }
+}
+
+/** When searching for WaterFallSpray objects, ignore any that are switched off via a gamebit */
+RECOMP_PATCH s32 amsfx_water_falls_find_sprays(void) {
+    Object* player;
+    s32 offset;
+    ObjSetup* setup;
+    s32 setupListLength;
+
+    player = get_player();
+    if (player == NULL) {
+        return TRUE;
+    }
+    
+    setup = map_world_xz_to_map_obj_setup_list(player->srt.transl.x, player->srt.transl.z, &setupListLength);
+    if (setup == NULL) {
+        return TRUE;
+    }
+
+    offset = 0;
+    sWaterFallSprayCount = 0;
+    while (setupListLength > offset && sWaterFallSprayCount < MAX_WATER_FALL_SPRAY) {
+        if (setup->objId == OBJ_WaterFallSpray) {
+            //@recomp: ignore the WaterFallSpray object if it's switched off via its gamebit
+            WaterFallSpray_Setup* spraySetup = (WaterFallSpray_Setup*)setup;
+            if ((spraySetup->gamebit <= NO_GAMEBIT + 1) || //the WaterFallSpray doesn't use a gamebit, so it's always on
+                (   (spraySetup->invertGamebit && main_get_bits(spraySetup->gamebit))   ||  //switched on when gamebit set
+                    (!spraySetup->invertGamebit && !main_get_bits(spraySetup->gamebit))     //switched on when gamebit unset
+                )
+            ) {
+                sWaterFallSprays[sWaterFallSprayCount].pos.x = setup->x;
+                sWaterFallSprays[sWaterFallSprayCount].pos.y = setup->y;
+                sWaterFallSprays[sWaterFallSprayCount].pos.z = setup->z;
+                sWaterFallSprays[sWaterFallSprayCount].unkC = spraySetup->unk21 * 16;
+                sWaterFallSprays[sWaterFallSprayCount].unkE = spraySetup->unk22 * 16;
+                sWaterFallSprayCount++;
+            }
+        }
+        offset += setup->quarterSize << 2;
+        setup = (ObjSetup*)((u8*)setup + (setup->quarterSize << 2));
+    }
+    return FALSE;
 }
