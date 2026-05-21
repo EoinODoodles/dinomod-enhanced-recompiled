@@ -671,7 +671,7 @@ static void swapstone_hollow_additions(void) {
                 .z = 2299.0f
             }
         };
-        reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &barrel, sizeof(barrel));
+        reasset_map_objects_set(mapID, reasset_id(dinomodNs, 0x100000), &barrel, sizeof(barrel));
     }
 
     //Add HitAnimators for removing tangible parts of the water
