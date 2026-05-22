@@ -1051,10 +1051,20 @@ RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2
  * doesn't seem to have actual anims for hopping on/off logs so this patch uses similar anims used for other vehicles.
  */
 RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) {
-    static s16 recomp_betterBWLogAnims[] = { 
-        0x1b, 0x1d, 0x1b, 0x1b, 0x1b, 0x1b, // idle/rowing anims (same as vanilla)
+    static s16 recomp_betterBWLogAnims_Krystal[] = { 
+        0x1b, 0x1d, // idle/rowing anims (same as vanilla)
+        0x0453, 0x0454, // meant for rolling? (these are for logs)
+        0x1b, 0x1b,
         0x367, 0x366, // anims for hopping on log (these are not actually for logs but it looks better than nothing)
         0xf6, 0xf7, // anims for hopping off log (still not for logs, i think these are for hopping off bigger dinos)
+        0xffff, 0xffff
+    };
+    static s16 recomp_betterBWLogAnims_Sabre[] = { 
+        0x1b, 0x1d,
+        0x0453, 0x0454,
+        0x1b, 0x1b,
+        0x366, 0x365, // note: the IDs for the same anims here are slightly different for sabre
+        0xf6, 0xf7,
         0xffff, 0xffff
     };
     s32 pad;
@@ -1100,7 +1110,7 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) 
             break;
         case OBJ_BWLog:
             // @recomp: Use custom mod anim list
-            objdata->unk76C = recomp_betterBWLogAnims;
+            objdata->unk76C = player->id == OBJ_Krystal ? recomp_betterBWLogAnims_Krystal : recomp_betterBWLogAnims_Sabre;
             objdata->unk770 = 3;
             gDLL_2_Camera->vtbl->change_mode(0, 0x29);
             break;

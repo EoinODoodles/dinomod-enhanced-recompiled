@@ -430,6 +430,41 @@ static void cape_claw_modifications(void) {
         DFriverflow_Setup* riverflow = reasset_map_objects_get(capeClaw, reasset_base_id(0x300A9), NULL);
         riverflow->flags = 0xFE; // ignore log but not player
     }
+
+    // Edit outer CC riverflows to prevent the player from leaving the area
+    {
+        DFriverflow_Setup* riverflow;
+
+        // Shift the one close to the golden nugget cave a little closer
+        riverflow = reasset_map_objects_get(capeClaw, reasset_base_id(0x300AC), NULL);
+        riverflow->base.x = 1804.66f;
+        riverflow->base.z = 2110.17f;
+
+        // Crank up the size of the one closer to the hightop
+        riverflow = reasset_map_objects_get(capeClaw, reasset_base_id(0x304ED), NULL);
+        riverflow->range = 200;
+
+        // New riverflow to fill in a gap
+        DFriverflow_Setup newRiverflow = {
+            .base = {
+                .objId = OBJ_DFriverflow,
+                .actExclusions1 = 0xF8,
+                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .mapObjGroup = 1,
+                .fadeDistance = 0,
+                .x = 1370.0f,
+                .y = -277.0f,
+                .z = 1960.0f
+            },
+            .yaw = 0,
+            .range = 0xFF,
+            .flags = 0xFF,
+            .toggleGamebit = -1
+        };
+
+        reasset_map_objects_set(capeClaw, reasset_auto_id(dinomodNs), &newRiverflow, sizeof(newRiverflow));
+    }
 }
 
 /** (CURRENTLY UNUSED) Adds jetbike fuel refills around Golden Plains, only showing up in Act 3 */
@@ -1476,6 +1511,51 @@ static void diamond_bay_modifications(void) {
     }
 }
 
+static void discovery_falls_hit_edits(void) {
+    ReAssetID df = reasset_base_id(MAP_DISCOVERY_FALLS);
+    ReAssetID dfTrkblk = reasset_base_id(11);
+    const int dfTrkblkBase = 319;
+
+    HitsLine *hit;
+
+    // Rough edits to make it possible to go down to the waterfall leading to the shrine. These hits
+    // in vanilla are for an older DF layout so this patch adjusts them so they don't block the path.
+    // TODO: replace with a more polished patch
+    {
+        ReAssetID waterfallRiverBlock = reasset_base_id(324 - dfTrkblkBase);
+        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(2));
+        hit->Bx = 237;
+        hit->Bz = 264;
+        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(3));
+        hit->Ax = 237;
+        hit->Az = 264;
+
+        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(5));
+        hit->Ax = 359;
+        hit->Az = 186;
+        hit->Bx = 372;
+        hit->Bz = 115;
+
+        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(6));
+        hit->Ax = 372;
+        hit->Az = 115;
+
+        reasset_hits_delete(dfTrkblk, waterfallRiverBlock, reasset_base_id(8));
+        reasset_hits_delete(dfTrkblk, waterfallRiverBlock, reasset_base_id(9));
+        reasset_hits_delete(dfTrkblk, waterfallRiverBlock, reasset_base_id(10));
+
+        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(11));
+        hit->Ax = 220;
+        hit->Az = 95;
+        hit->Bx = 180;
+        hit->Bz = 160;
+
+        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(12));
+        hit->Ax = 180;
+        hit->Az = 160;
+    }
+}
+
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     walled_city_additions();
     warlock_mountain_platform_additions();
@@ -1507,4 +1587,5 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     // df_patches_shinx();
     // df_modifications();
     diamond_bay_modifications();
+    discovery_falls_hit_edits();
 }

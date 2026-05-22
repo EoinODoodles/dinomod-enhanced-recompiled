@@ -312,6 +312,12 @@ RECOMP_PATCH void dll_793_control(Object* self) {
         // @recomp: Apply turn by rotating the front/end log points (like DFLog rather than altering yaw directly)
         if (objdata->unk32E == 2) {
             f32 turn = (f32) objdata->unk322 * (60.0f - ((f32) objdata->unk324 * 0.05f)) / 60.0f * 0.01f;
+            // Reduce turning effectiveness with increased pitch to help avoid fast spiralling when going down waterfalls
+            f32 pitchDamp = (f32)self->srt.pitch / (f32)M_90_DEGREES;
+            if (pitchDamp < 0) {
+                pitchDamp = -pitchDamp;
+            }
+            turn *= (1.0f - MIN(pitchDamp, 1.0f));
             if (i == 1) {
                 sp184[0] -= turn;
             } else {
