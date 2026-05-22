@@ -163,3 +163,13 @@ typedef struct {
 // Note: This addition is OK because this setup has a size of 0x28 in the map files.
 /*25*/ u8 invertGamebit; //When set: spray plays when gamebit set (if a gamebit was specified)
 } WaterFallSpray_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ s8 unk18;
+/*19*/ s8 unk19;
+/*1A*/ s16 unk1A;
+/*1C*/ s16 unk1C;
+/*1E*/ s16 unk1E;
+/*20*/ s16 unk20;
+} DLL506_Setup;
