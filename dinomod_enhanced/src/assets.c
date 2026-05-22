@@ -422,6 +422,14 @@ static void cape_claw_modifications(void) {
             }
         }
     }
+
+    // Change CC riverflow between the fruit tree and the golden nugget cave (along the shore) to ignore logs. This
+    // riverflow is great for stopping the player from leaving the shore but makes it unnecessarily difficult to get
+    // to the golden nugget cave with the log.
+    {
+        DFriverflow_Setup* riverflow = reasset_map_objects_get(capeClaw, reasset_base_id(0x300A9), NULL);
+        riverflow->flags = 0xFE; // ignore log but not player
+    }
 }
 
 /** (CURRENTLY UNUSED) Adds jetbike fuel refills around Golden Plains, only showing up in Act 3 */

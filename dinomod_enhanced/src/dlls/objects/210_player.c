@@ -1045,6 +1045,130 @@ RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2
     return 0;
 }
 
+/** 
+ * Use a correctly sized mod anim array for BWLog. In the vanilla Dec 2000 build, this array is too short and causes
+ * the anims for hopping on/off the log to read out of bounds and interpret other memory as mod anim indices. This build
+ * doesn't seem to have actual anims for hopping on/off logs so this patch uses similar anims used for other vehicles.
+ */
+RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) {
+    static s16 recomp_betterBWLogAnims[] = { 
+        0x1b, 0x1d, 0x1b, 0x1b, 0x1b, 0x1b, // idle/rowing anims (same as vanilla)
+        0x367, 0x366, // anims for hopping on log (these are not actually for logs but it looks better than nothing)
+        0xf6, 0xf7, // anims for hopping off log (still not for logs, i think these are for hopping off bigger dinos)
+        0xffff, 0xffff
+    };
+    s32 pad;
+    s32 sp88;
+    ObjectShadow* temp_v0_3;
+    Object* temp_s2;
+    Vec3f sp74;
+    Vec3f sp68;
+    f32 sp64;
+    f32 sp60;
+    f32 sp5C;
+    Vec3f sp50;
+    Player_Data* objdata;
+    s8 v0;
+    s16 sp48;
+    ModelInstance* sp44;
+
+    objdata = player->data;
+    temp_s2 = objdata->vehicle;
+    {
+        s32 temp_v0 = dll_210_func_EFB4(player, fsa, arg2);
+        if (temp_v0 != 0) { return temp_v0; }
+    }
+    // @fake
+    //if (((!fsa) && (!fsa)) && (!fsa)) {}
+    if (fsa->enteredAnimState != 0) {
+        fsa->unk270 = PLAYER_ASTATE_Vehicle_Getting_On;
+    }
+    func_800267A4(player);
+    player->velocity.f[1] = 0.0f;
+    if (fsa->enteredAnimState != 0) {
+        objdata->unk8A9 = 1;
+        switch (temp_s2->id) {
+        case OBJ_IMSnowBike:
+        case OBJ_CRSnowBike:
+            objdata->unk76C = _data_158;
+            objdata->unk770 = 3;
+            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMSLIDE, 1, 0, 0, NULL, 0, 0xFF);
+            break;
+        case OBJ_DR_CloudRunner:
+            objdata->unk76C = _data_170;
+            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMDRAKOR, 1, 0, 0, NULL, 0, 0xFF);
+            break;
+        case OBJ_BWLog:
+            // @recomp: Use custom mod anim list
+            objdata->unk76C = recomp_betterBWLogAnims;
+            objdata->unk770 = 3;
+            gDLL_2_Camera->vtbl->change_mode(0, 0x29);
+            break;
+        case OBJ_DR_EarthWarrior:
+            objdata->unk76C = _data_170;
+            objdata->unk770 = 4;
+            gDLL_2_Camera->vtbl->change_mode(0, 0x69);
+            break;
+        default:
+            objdata->unk76C = _data_170;
+            objdata->unk770 = 4;
+            gDLL_2_Camera->vtbl->change_mode(0, 0x1D);
+            break;
+        }
+        sp88 = ((DLL_IVehicle*)temp_s2->dll)->vtbl->func8(temp_s2);
+        ((DLL_IVehicle*)temp_s2->dll)->vtbl->func14(temp_s2, 1);
+        switch (sp88) {
+            case 1:
+                v0 = 6;
+                break;
+            case 2:
+            default:
+                v0 = 7;
+                break;
+        }
+        player->srt.yaw = temp_s2->srt.yaw;
+        func_80023D30(player, objdata->unk76C[v0], 0.0f, 4U);
+        sp44 = player->modelInsts[player->modelInstIdx];
+        func_8001A3FC(sp44, 0U, 0, 0.0f, player->srt.scale, &sp74, &sp48);
+        func_8001A3FC(sp44, 0U, 0, 1.0f, player->srt.scale, &sp68, &sp48);
+        ((DLL_IVehicle*)temp_s2->dll)->vtbl->func9(temp_s2, &sp5C, &sp60, &sp64);
+        // @recomp: HACK: the mod anims used in this patch for hopping on the log plays too low, so
+        //          artificially raise the point we lerp to a little bit (is there a better way to do this?).
+        if (temp_s2->id == OBJ_BWLog) {
+            sp60 += 8.0f;
+        }
+        sp5C -= player->srt.transl.f[0];
+        sp60 -= player->srt.transl.f[1];
+        sp64 -= player->srt.transl.f[2];
+        objdata->unk738.f[0] = player->srt.transl.f[0];
+        objdata->unk738.f[1] = player->srt.transl.f[1];
+        objdata->unk738.f[2] = player->srt.transl.f[2];
+        objdata->unk744.f[0] = sp5C;
+        objdata->unk744.f[1] = sp60 - sp68.f[1];
+        objdata->unk744.f[2] = sp64;
+        player->srt.flags |= OBJFLAG_MANUAL_PREV_POSITIONS;
+        player->shadow->flags |= OBJ_SHADOW_FLAG_FADE_OUT;
+        fsa->animTickDelta = 0.022f;
+    }
+    player->srt.transl.f[0] = objdata->unk738.f[0] + (player->animProgress * objdata->unk744.x);
+    player->srt.transl.f[1] = objdata->unk738.f[1] + (player->animProgress * objdata->unk744.y);
+    player->srt.transl.f[2] = objdata->unk738.f[2] + (player->animProgress * objdata->unk744.z);
+    ((DLL_IVehicle*)temp_s2->dll)->vtbl->func12(temp_s2, &sp5C, &sp60, &sp64);
+    sp50.z = ((sp5C - objdata->unk738.x) * player->animProgress) + objdata->unk738.x;
+    sp50.y = ((sp60 - objdata->unk738.y) * player->animProgress) + objdata->unk738.y;
+    sp50.x = ((sp64 - objdata->unk738.z) * player->animProgress) + objdata->unk738.z;
+    gDLL_2_Camera->vtbl->reposition_player(sp50.z, sp50.y, sp50.x);
+    if ((fsa->enteredAnimState == 0) && (fsa->unk33A != 0)) {
+        func_80023D30(player, *objdata->unk76C, 0.0f, 1U);
+        ((DLL_IVehicle*)temp_s2->dll)->vtbl->func14(temp_s2, 2);
+        if (temp_s2->id == 0x22) {
+            return 0x26;
+        }
+        return 0x25;
+    }
+    return 0;
+}
+
 /** Prevent Projectile Spell from triggering after dismounting log (originally by MusicalProgrammer) */
 RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) {
     Object* temp_s2;
@@ -1077,6 +1201,11 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     player->velocity.f[1] = 0.0f;
     if (fsa->enteredAnimState != 0) {
         ((DLL_IVehicle*)temp_s2->dll)->vtbl->func9(temp_s2, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z);
+        // @recomp: HACK: the mod anims used in this patch for hopping off the log plays too low, so
+        //          artificially raise the point we lerp from a little bit.
+        if (temp_s2->id == OBJ_BWLog) {
+            player->srt.transl.y += 8.0f;
+        }
         if ((temp_s2->id == OBJ_IMSnowBike) || (temp_s2->id == OBJ_CRSnowBike)) {
             gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, 0, 1, 0, NULL, 100, 0xFF);
         } else {

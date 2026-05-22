@@ -2,6 +2,8 @@
 #include "recompconfig.h"
 
 #include "dlls/objects/210_player.h"
+#include "dlls/objects/418_DFriverflow.h"
+#include "dlls/engine/27.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
 #include "sys/math.h"
@@ -141,6 +143,83 @@ RECOMP_PATCH void dll_793_setup(Object *self, BWlog_Setup *setup, s32 arg2) {
     self->srt.yaw = setup->startRotation << 8;
 }
 
+// This is yoinked and modified from dll_27_func_1D60. Looks at the log collisions and rotates the log
+// such that it reacts to moving along a wall. This effect can also be enabled by setting the DLL 27
+// flag 0x8000, but the built-in version of this applies a very weak spin.
+// static void wall_react(Object* arg0, DLL27_Data* arg1) {
+//     f32 temp;
+//     f32 f2;
+//     f32 f0;
+//     s32 var_s1_2;
+//     s32 var_s0_2;
+//     f32 f14;
+//     u8 temp_t7;
+//     s8 var_a1;
+//     f32 f12;
+//     s32 i;
+//     SRT spDC;
+//     f32 temp2;
+//     f32 spC8[4];
+//     f32 spB8[4];
+//     f32 spA8[4];
+//     MtxF sp68;
+//     Vec3f globalPosition;
+
+//     for (s32 i = 0; i < 2; i++) {
+//         // Note: Don't do anything if we're not touching a wall, otherwise we get a weird wiggle at higher fps
+//         Vec3f *array = NULL;
+//         if (i == 0) {
+//             if (!(arg1->unk25C & 3)) {
+//                 continue;
+//             }
+//             array = arg1->unk38;
+//         } else {
+//             if (!(arg1->hitsTouchBits & 3)) {
+//                 continue;
+//             }
+//             array = arg1->unk110;
+//         }
+
+//         temp_t7 = (arg1->numTestPoints >> 4);
+//         globalPosition.x = 0.0f;
+//         globalPosition.y = 0.0f;
+//         globalPosition.z = 0.0f;
+//         for (i = 0; i < (temp_t7*3); i+=3) {
+//             globalPosition.x += array[0].f[i];
+//             globalPosition.y += array[0].f[i+1];
+//             globalPosition.z += array[0].f[i+2];
+//         }
+//         VECTOR_SCALE(globalPosition, 1.0f / temp_t7);
+
+//         spDC.yaw = -arg0->srt.yaw;
+//         spDC.pitch = -arg0->srt.pitch;
+//         spDC.roll = -arg0->srt.roll;
+//         spDC.scale = 1;
+//         spDC.transl.x = -globalPosition.x;
+//         spDC.transl.y = -globalPosition.y;
+//         spDC.transl.z = -globalPosition.z;
+//         matrix_from_srt_reversed(&sp68, &spDC);
+//         for (var_s0_2 = 0, i = 0; i < temp_t7; i++) {
+//             vec3_transform(&sp68, 
+//                             array[var_s0_2].x, array[var_s0_2].y, array[var_s0_2].z, 
+//                             &spC8[i], &spB8[i], &spA8[i]);
+//             var_s0_2++;
+//         }
+
+//         var_s1_2 = 0;
+//         var_s0_2 = 1;
+//         var_a1 = 1;
+
+//         f0 = spC8[0] + spC8[var_s1_2];
+//         f2 = spA8[0] + spA8[var_s1_2];
+//         temp = spC8[var_s0_2] + spC8[var_a1];
+//         f12 = f0 - temp;
+//         temp2 = spA8[var_s0_2] + spA8[var_a1];
+//         f14 = f2 - temp2;
+//         arg0->srt.yaw += (s16) ((arctan2_f(f12, f14) & 0xFFFF) + 0x8000);
+//     }
+// }
+
 RECOMP_PATCH void dll_793_control(Object* self) {
     BWlog_Data* objdata;
     f32 var_fv1;
@@ -194,8 +273,8 @@ RECOMP_PATCH void dll_793_control(Object* self) {
             dll_793_func_1A5C(self, objdata);
             break;
         }
-        // @recomp: Make turning framerate independent
-        self->srt.yaw -= (s32) ((f32) objdata->unk322 * (60.0f - ((f32) objdata->unk324 * 0.05f)) * 0.1f * gUpdateRateF) & 0xFFFF & 0xFFFF;
+        // @recomp: Don't apply turn to yaw directly to behave more like DFLog (turn logic moved to below code)
+        //self->srt.yaw -= (s32) ((f32) objdata->unk322 * (60.0f - ((f32) objdata->unk324 * 0.05f)) * 0.1f * gUpdateRateF) & 0xFFFF & 0xFFFF;
     }
     sp160.yaw = self->srt.yaw;
     sp160.pitch = self->srt.pitch;
@@ -221,14 +300,39 @@ RECOMP_PATCH void dll_793_control(Object* self) {
         vec3_transform(&spA0, 
                        objdata->unk2D0[i], 0.0f, objdata->unk2E0[i], 
                        &sp184[0], &sp184[1], &sp184[2]);
-        sp184[0] *= -0.5f;
-        sp184[2] *= 0.5f;
+        // @recomp: Don't cut riverflow strength in half (many of the game's riverflows were designed for DFlog
+        //          which is affected by riverflows much more than BWLog). Note that this does make the Blackwater
+        //          Canyon riverflows feel stronger and may need to be tweaked for that level.
+        // sp184[0] *= -0.5f;
+        // sp184[2] *= 0.5f;
+        sp184[0] *= -1.0f;
         objdata->unk310 = sqrtf(SQ(sp184[2]) + SQ(sp184[0]));
         sp184[2] += objdata->unk2FC;
-        objdata->unk290[i] += ((sp184[2] - objdata->unk290[i]) * gUpdateRateF * 0.1f);
-        if (objdata->unk32A == 0) {
-            objdata->unk298[i] += ((sp184[0] - objdata->unk298[i]) * gUpdateRateF * 0.1f);
+
+        // @recomp: Apply turn by rotating the front/end log points (like DFLog rather than altering yaw directly)
+        if (objdata->unk32E == 2) {
+            f32 turn = (f32) objdata->unk322 * (60.0f - ((f32) objdata->unk324 * 0.05f)) / 60.0f * 0.01f;
+            if (i == 1) {
+                sp184[0] -= turn;
+            } else {
+                sp184[0] += turn;
+            }
         }
+
+        // @recomp: Add roll movement here instead of forcing unk298. Note: Doing this here makes rolling affected
+        //          by riverflows, which helps prevent escaping intended areas. This shouldn't have too much of
+        //          an effect on the Blackwater Canyon rapids.
+        if (objdata->unk32A == 1) {
+            sp184[0] += -2.5f;
+        } else if (objdata->unk32A == 2) {
+            sp184[0] += 2.5f;
+        }
+
+        objdata->unk290[i] += ((sp184[2] - objdata->unk290[i]) * gUpdateRateF * 0.1f);
+        // @recomp: Allow lateral movement while rolling (we changed how roll movement is applied)
+        //if (objdata->unk32A == 0) {
+            objdata->unk298[i] += ((sp184[0] - objdata->unk298[i]) * gUpdateRateF * 0.1f);
+        //}
         vec3_transform(&spE0, 
                        objdata->unk298[i], 0.0f, -objdata->unk290[i], 
                        &objdata->unk278[i].x, &sp9C, &objdata->unk278[i].z);
@@ -255,9 +359,16 @@ RECOMP_PATCH void dll_793_control(Object* self) {
     // @recomp: Clamp pitch to avoid reaching exactly 90 degrees (clamps to ~87 degrees).
     //          This allows the player to move forward slightly even when vertical.
     CLAMP(self->srt.pitch, -0x3E00, 0x3E00);
+    // @recomp: Calculate yaw from log front/back points (like DFLog)
+    self->srt.yaw = arctan2_f(sp178[0], sp178[2]);
     gDLL_27->vtbl->func_1E8(self, &objdata->unk0, gUpdateRateF);
     gDLL_27->vtbl->func_5A8(self, &objdata->unk0);
     gDLL_27->vtbl->func_624(self, &objdata->unk0, gUpdateRateF);
+    // @recomp: When not rolling, rotate log when bumping into walls
+    // TODO: this is fun but it messes up going down waterfalls. will need some changes before we can enable it
+    // if (objdata->unk32A == 0) {
+    //     wall_react(self, &objdata->unk0);
+    // }
     dll_793_func_2020(self, objdata);
     dll_793_func_2444(self, objdata);
 }
@@ -418,6 +529,33 @@ RECOMP_PATCH void dll_793_func_1600(Object* self, BWlog_Data* objdata) {
     }
 }
 
+RECOMP_PATCH void dll_793_func_178C(Object* self, BWlog_Data* objdata, s32 arg2) {
+    if (arg2 != 0) {
+        objdata->unk2A0.x = 1500.0f;
+        objdata->unk2A0.y = 500.0f;
+        objdata->unk2A0.z = 2000.0f;
+        objdata->unk2A0.w = 4000.0f;
+        objdata->unk32B = 2;
+        // @recomp: Don't force lateral movement for rolling here, we'll factor in this speed in the normal movement code
+        // objdata->unk298[0] = -2.5f;
+        // objdata->unk298[1] = -2.5f;
+    } else {
+        objdata->unk2A0.x = -1500.0f;
+        objdata->unk2A0.y = -500.0f;
+        objdata->unk2A0.z = -2000.0f;
+        objdata->unk2A0.w = -4000.0f;
+        objdata->unk32B = 3;
+        // @recomp: Ditto
+        // objdata->unk298[0] = 2.5f;
+        // objdata->unk298[1] = 2.5f;
+    }
+    objdata->unk318 = 0;
+    objdata->unk2BC = 0.0f;
+    objdata->unk2B0 = objdata->unk2A0.x;
+    objdata->unk2C8 = 0.0f;
+    objdata->unk2CC = 0.0f;
+}
+
 RECOMP_PATCH void dll_793_func_2020(Object* arg0, BWlog_Data* arg1) {
     u8 var_a1;
     u8 sp3E;
@@ -466,4 +604,112 @@ RECOMP_PATCH void dll_793_func_2020(Object* arg0, BWlog_Data* arg1) {
         gDLL_6_AMSFX->vtbl->play(arg0, 0x76D, var_v1, NULL, NULL, 0, NULL);
     }
     arg1->unk32D = sp3E;
+}
+
+RECOMP_PATCH void dll_793_func_1C18(Object* self, BWlog_Data* objdata) {
+    s32 i;
+    s32 k;
+    s32 sp120[2];
+    s32 objListLength;
+    Object* obj;
+    Object** objList;
+    f32 temp_fs0;
+    f32 temp_fv0;
+    f32 temp_fv0_2;
+    f32 temp_fv1;
+    f32 sp100;
+    f32 spFC;
+    f32 spF8;
+    SRT spE0;
+    MtxF spA0;
+
+    for (i = 0; i < 2; i++) {
+        objdata->unk2D0[i] = 0.0f;
+        objdata->unk2E0[i] = 0.0f;
+        sp120[i] = 0;
+    }
+
+    // grabs DFriverflow instances (and possibly more)
+    objList = obj_get_all_of_type(22, &objListLength);
+
+    for (i = 0; i < objListLength; i++) {
+        obj = objList[i];
+        // @recomp: Respect riverflow log filter flag (makes BWlog behave correctly in areas where DFLog was originally used)
+        if (((DFriverflow_Setup*)obj->setup)->flags & 1) {
+            for (k = 0; k < 2; k++) {
+                temp_fv0 = obj->srt.transl.y - objdata->unk260[k].y;
+                if ((temp_fv0 <= 200.0f) && (temp_fv0 >= -200.0f)) {
+                    temp_fs0 = obj->srt.transl.x - objdata->unk260[k].x;
+                    temp_fv0_2 = obj->srt.transl.z - objdata->unk260[k].z;
+                    temp_fs0 = sqrtf(SQ(temp_fs0) + SQ(temp_fv0_2));
+                    temp_fv1 = (f32) (u8)((DFriverflow_Setup*)obj->setup)->range * 1.5f;
+                    if (temp_fs0 < temp_fv1) {
+                        temp_fs0 = ((temp_fv1 - temp_fs0) / temp_fv1);
+                        temp_fs0 *= (obj->srt.scale * 10.0f);
+                        objdata->unk2D0[k] += fsin16_precise(obj->srt.yaw) * temp_fs0;
+                        objdata->unk2E0[k] += fcos16_precise(obj->srt.yaw) * temp_fs0;
+                        sp120[k] += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    for (i = 0; i < 2; i++) {
+        if (sp120[i] != 0) {
+            objdata->unk2D0[i] /= sp120[i];
+            objdata->unk2E0[i] /= sp120[i];
+        }
+    }
+    
+    for (i = 0; i < 2; i++) {
+        spE0.yaw = arctan2_f(objdata->unk2D0[i], objdata->unk2E0[i]);
+        spE0.pitch = 0;
+        spE0.roll = 0;
+        spE0.scale = 1.0f;
+        spE0.transl.x = 0;
+        spE0.transl.y = 0;
+        spE0.transl.z = 0;
+        matrix_from_srt_reversed(&spA0, &spE0);
+        vec3_transform(&spA0, 
+            objdata->unk0.waterNormalXList[i], objdata->unk0.waterNormalYList[i], objdata->unk0.waterNormalZList[i], 
+            &sp100, &spFC, &spF8);
+        spE0.yaw = 0;
+        spE0.pitch = 0x4000 - arctan2_f(spFC, spF8);
+        spE0.roll = -(0x4000 - arctan2_f(spFC, sp100));
+        matrix_from_srt_reversed(&spA0, &spE0);
+        vec3_transform(&spA0, 
+            objdata->unk2D0[i], 0.0f, objdata->unk2E0[i], 
+            &objdata->unk2D0[i], &objdata->unk2D8[i], &objdata->unk2E0[i]);
+    }
+}
+
+/** Get off log in the direction of the dockpoint (helps avoid hopping off into deep water). */
+RECOMP_PATCH s32 dll_793_func_C3C(Object *self) {
+    SRT sp88;
+    MtxF sp48;
+    f32 sp44;
+    f32 sp40;
+    f32 sp3C;
+    f32 temp;
+    f32 temp2;
+    BWlog_Data* objdata = self->data;
+
+    if (objdata->unk338 != NULL) {
+        sp88.yaw = self->srt.yaw + 0x4000;
+        sp88.pitch = self->srt.pitch;
+        sp88.roll = self->srt.roll;
+        sp88.transl.x = 0.0f;
+        sp88.transl.y = 0.0f;
+        sp88.transl.z = 0.0f;
+        sp88.scale = 1.0f;
+        matrix_from_srt(&sp48, &sp88);
+        vec3_transform(&sp48, 0.0f, 0.0f, 1.0f, &sp44, &sp40, &sp3C);
+        temp2 = -((self->srt.transl.x * sp44) + (sp40 * self->srt.transl.y) + (sp3C * self->srt.transl.z));
+        temp = (objdata->unk338->srt.transl.x * sp44) + (sp40 * objdata->unk338->srt.transl.y) + (sp3C * objdata->unk338->srt.transl.z) + temp2;
+        if (temp < 0) {
+            return 1;
+        }
+    }
+    return 2;
 }
