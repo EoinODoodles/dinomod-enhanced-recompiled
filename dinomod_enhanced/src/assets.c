@@ -938,6 +938,13 @@ static void swapstone_hollow_modifications(void) {
         };
         reasset_hits_set(dbTrkblk, reasset_base_id(989 - 974), reasset_auto_id(13), REASSET_BASE_NAMESPACE, &line);
     }
+
+    // Edit SHplantspore leading to the SwapStone to only become enabled after saving the queen EarthWalker
+    // (in vanilla, this enables after the Thorntail by the well moves. it's just looking for the wrong Thorntail basically)
+    {
+        DLL506_Setup* plantSpore = reasset_map_objects_get(sHollow, reasset_base_id(0x34DF5), NULL);
+        plantSpore->unk20 = BIT_SH_Move_Thorntail_Blocking_Swapstone; // 0x8D4
+    }
 }
 
 static void swapstone_hollow_well_additions(void) {
