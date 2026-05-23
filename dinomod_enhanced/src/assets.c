@@ -29,6 +29,7 @@
 
 INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
 INCBIN(block351, "blocks_0351_SHriver_rocky_waterfall.bin");
+INCBIN(block358, "blocks_0358_SH_reflection_pool.bin");
 INCBIN(block579, "blocks_0579_SHwell_lily_pond_climb.bin");
 INCBIN(block580, "blocks_0580_SHwell_lily_pond_vines.bin");
 INCBIN(block581, "blocks_0581_SHwell_entrance.bin");
@@ -672,10 +673,10 @@ static void swapstone_hollow_additions(void) {
                 .base = {
                     .objId = OBJ_HitAnimator,
                     .actExclusions1 = 0, //NOTE: HITS line needs controlling regardless of current Act
-                    .loadFlags = OBJSETUP_LOAD_LEVEL,
+                    .loadFlags = OBJSETUP_LOAD_MAIN,
                     .fadeFlags = OBJSETUP_FADE_CAMERA,
-                    .loadDistance = 140,
-                    .fadeDistance = 140,
+                    .loadDistance = 30,
+                    .fadeDistance = 30,
                     .x = 2418.481,
                     .y = -618.471,
                     .z = 967.463
@@ -690,20 +691,20 @@ static void swapstone_hollow_additions(void) {
 
     }
 
-    //Add CFbarrel for blowing up the boulder after Tricky learns Flame
-    //TODO: improve this, check how respawning barrels are usually handled elsewhere!
+    //Add DFbarrelcreator for blowing up the boulder after Tricky learns Flame
     {
         typedef struct {
             ObjSetup base;
-            s8 unk18;
-            s8 unk19;
-            s32 unk1C;
-            s32 unk20;
-        } CFBarrel_Setup;
+            u8 searchDistance;   // Creates a barrel if none are found inside this radius (stored divided by 4)
+            u8 yaw : 4;          // @recomp: Yaw for the barrels created
+            u8 barrelHealth : 2; // @recomp: Optional health value for the barrel that's created
+            u8 delay : 2;        // @recomp: Optional waiting time between barrels
+            s16 gamebitStop;     // Stops creating barrels if this gamebit is set
+        } DFBarrelCreator_Setup;
 
-        CFBarrel_Setup barrel = {
+        DFBarrelCreator_Setup barrel = {
             .base = {
-                .objId = OBJ_CFbarrel,
+                .objId = OBJ_DFbarrelcreator,
                 .actExclusions1 = ~MAP_ACT(1),
                 .loadFlags = OBJSETUP_LOAD_MAIN,
                 .fadeFlags = OBJSETUP_FADE_CAMERA,
@@ -712,9 +713,84 @@ static void swapstone_hollow_additions(void) {
                 .x = 2244.0f,
                 .y = -676.0f,
                 .z = 2299.0f
-            }
+            },
+            .searchDistance = 0xFF,
+            .gamebitStop = BOULDER_BIT,
+            .barrelHealth = 3,
+            .delay = 2,
+            .yaw = DEGREES_TO_ANGLE8(288) >> 4
         };
         reasset_map_objects_set(mapID, reasset_id(dinomodNs, 0x100000), &barrel, sizeof(barrel));
+    }
+
+    //Add a SharpClaw guarding the barrel
+    {
+        u8 sharpClaw_Setup[] = {
+            0x00, 0x11, 0x0E, 0x00, 
+            0x00, 0x00, 0x7F, 0x60,
+            0x00, 0x00, 0x00, 0x00, 
+            0x00, 0x00, 0x00, 0x00, 
+            0x00, 0x00, 0x00, 0x00, 
+            0x00, 0x00, 0x00, 0x00, 
+
+            0xFF, 0xFF, 0xFF, 0xFF, 
+            0xFF, 0xFF, 0x00, 0x00, 
+            0x00, 0x00, 0x00, 0x01, 
+            0x00, 0x00, 0x00, 0x00, 
+            0x00, 0x0E, 0x00, 0x00, 
+            0x00, 0x48, 0xFF, 0x01, 
+            0xFF, 0xFF, 0x06, 0x00, 
+            0x00, 0x00, 0x00, 0x00 
+        };
+
+        ObjSetup* sharpClaw = (ObjSetup*)sharpClaw_Setup;
+        sharpClaw->objId = OBJ_ClubSharpClaw;
+        sharpClaw->actExclusions1 = ~MAP_ACT(1);
+        sharpClaw->loadFlags = OBJSETUP_LOAD_MAIN;
+        sharpClaw->fadeFlags = OBJSETUP_FADE_CAMERA;
+        sharpClaw->loadDistance = 140;
+        sharpClaw->fadeDistance = 140;
+        sharpClaw->x = 2467.278f;
+        sharpClaw->y = -658.742f;
+        sharpClaw->z = 2183.488f;
+        reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &sharpClaw_Setup, sizeof(sharpClaw_Setup));
+    }
+
+    //Add HITS lines to help pen the SharpClaw in
+    {
+        ReAssetID blockIDReflectionPool = reasset_base_id(358 - sHollowBlocksBase);
+        HitsLine line1 = {
+            .Ax = 442,
+            .Ay = -675,
+            .Az = 299,
+
+            .Bx = 481,
+            .By = -674,
+            .Bz = 391,
+
+            .heightA = 0x28,
+            .heightB = 0x28,
+
+            .settingsA = 0xb,
+            .settingsB = 0x01,
+        };
+        reasset_hits_set(shTrkblk, blockIDReflectionPool, reasset_auto_id(14), REASSET_BASE_NAMESPACE, &line1);
+        HitsLine line2 = {
+            .Ax = 640,
+            .Ay = -656,
+            .Az = 217,
+
+            .Bx = 640,
+            .By = -656,
+            .Bz = 164,
+
+            .heightA = 0x28,
+            .heightB = 0x28,
+
+            .settingsA = 0xb,
+            .settingsB = 0x01,
+        };
+        reasset_hits_set(shTrkblk, blockIDReflectionPool, reasset_auto_id(15), REASSET_BASE_NAMESPACE, &line2);
     }
 
     //Add HitAnimators for removing tangible parts of the water
@@ -865,8 +941,11 @@ static void swapstone_hollow_modifications(void) {
         reasset_objects_set(objects_shseqobject_id, REASSET_BASE_NAMESPACE, objects_shseqobject, objects_shseqobject_end - objects_shseqobject);
     }
 
-    //Tag Blocks shapes with animatorIDs, so they can be removed with HitAnimators
-    reasset_blocks_set(shTrkblk, reasset_base_id(351 - 345), REASSET_BASE_NAMESPACE, block351, block351_end - block351);
+    //BLOCKS edits (Tag Blocks shapes with animatorIDs, so they can be removed with HitAnimators)
+    {
+        BLOCKS_REPLACE_BASE(shTrkblk, sHollowBlocksBase, 351, block351);
+        BLOCKS_REPLACE_BASE(shTrkblk, sHollowBlocksBase, 358, block358); //add light source
+    }
 
     //Revert changes to SHboulder's DLL usage
     {
