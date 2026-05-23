@@ -39,13 +39,13 @@ RECOMP_PATCH void main_set_bits(s32 entry, u32 value) {
             case 0: // Never saved to savegame
                 bitString = &gGplayState->bitString[0];
                 break;
-            case 1: // Saved with checkpoints
-                bitString = &gGplayState->save.chkpnt.bitString[0];
+            case 1: // Saved with savepoints
+                bitString = &gGplayState->save.main.bitString[0];
                 break;
             case 2: // Always saved
                 bitString = &gGplayState->save.file.bitString[0];
                 break;
-            case 3: // Saved with map saves
+            case 3: // Saved with savepoints that include a map save
                 bitString = &gGplayState->save.map.bitString[0];
                 break;
         }
@@ -140,7 +140,7 @@ extern s8 gPauseState;
 RECOMP_PATCH void func_80013D80(void) {
     s32 button;
 
-    joy_set_button_mask(0, U_JPAD | R_JPAD);
+    joy_disable_buttons(0, U_JPAD | R_JPAD);
     gDLL_2_Camera->vtbl->lock_icon_tick();
     gDLL_22_Subtitles->vtbl->func_4C0();
 
@@ -178,7 +178,7 @@ RECOMP_PATCH void func_80013D80(void) {
                     && ((button & START_BUTTON) != 0) 
                     && (main_get_bits(BIT_44F) == 0)) {
                 gPauseState = 1;
-                joy_set_button_mask(0, START_BUTTON);
+                joy_disable_buttons(0, START_BUTTON);
                 menu_set(MENU_PAUSE);
             }
 

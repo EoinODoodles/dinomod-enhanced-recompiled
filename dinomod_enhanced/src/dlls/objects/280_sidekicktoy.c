@@ -146,7 +146,7 @@ static void ball_handle_river_flow(Object* self) {
 
     pushZ = 0.0f;
     pushX = 0.0f;
-    riverflows = obj_get_all_of_type(OBJTYPE_22, &objCount);
+    riverflows = obj_get_all_of_type(OBJTYPE_Riverflow, &objCount);
     pushDivisor = 0;
     for (i = 0; i < objCount; i++) {
         flow = riverflows[i];

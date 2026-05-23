@@ -10,7 +10,7 @@
 #include "sys/objexpr.h"
 #include "sys/objhits.h"
 #include "dll.h"
-#include "dlls/engine/53.h"
+#include "dlls/engine/53_movelib.h"
 #include "dlls/objects/210_player.h"
 
 #include "recomp/dlls/_asm/739_recomp.h"
@@ -79,7 +79,7 @@ RECOMP_PATCH int dll_739_func_7B4(Object* self, Object*arg1, AnimObj_Data* animD
     }
 
     modAnimID = objData->modAnims[2];
-    if (((DLL_53*)(gTempDLLInsts[1]))->vtbl->func4(self, animData, objData, modAnimID, modAnimID) != 0) {
+    if (((DLL_53_movelib*)(gTempDLLInsts[1]))->vtbl->func4(self, animData, (MoveLibData*)objData, modAnimID, modAnimID) != 0) {
         return 1;
     }
 

@@ -132,7 +132,7 @@ RECOMP_PATCH void task_mark_task_completed(u8 task) {
 
     // Set checkpoint and bail if task0
     if (task == 0) {
-        gDLL_29_Gplay->vtbl->checkpoint(NULL, 0, 1, map_get_layer());
+        gDLL_29_Gplay->vtbl->savepoint(NULL, 0, GPLAY_SAVEPOINT_SkipMapSave, map_get_layer());
         return;
     }
 

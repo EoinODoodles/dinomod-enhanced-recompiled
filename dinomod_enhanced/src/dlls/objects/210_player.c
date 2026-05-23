@@ -383,7 +383,7 @@ void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
             if (player->animProgressLayered > 0.59f) {
                 arg1->unk8A8 = 2;
             }
-            if ((temp_s2 != NULL) && (player->animProgressLayered > 0.7f) && (temp_s2->group == GROUP_UNK48)) {
+            if ((temp_s2 != NULL) && (player->animProgressLayered > 0.7f) && (temp_s2->controlNo == OBJCONTROL_Weapon)) {
                 ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func7(temp_s2, 0.15f);
             }
             if (temp_s3 != 0) {
@@ -392,7 +392,7 @@ void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
             }
             break;
         case 13:
-            if ((temp_s2 != NULL) && (temp_s2->group == GROUP_UNK48)) {
+            if ((temp_s2 != NULL) && (temp_s2->controlNo == OBJCONTROL_Weapon)) {
                 ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func7(temp_s2, 1.0f);
             }
             arg1->unk8A8 = 2;
@@ -410,7 +410,7 @@ void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
             if (player->animProgressLayered < 0.24f) {
                 arg1->unk8A8 = 0;
             }
-            if ((temp_s2 != NULL) && (player->animProgressLayered < 0.7f) && (temp_s2->group == GROUP_UNK48)) {
+            if ((temp_s2 != NULL) && (player->animProgressLayered < 0.7f) && (temp_s2->controlNo == OBJCONTROL_Weapon)) {
                 ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func8(temp_s2);
             }
             if (temp_s3 != 0) {
@@ -420,7 +420,7 @@ void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
             }
             break;
         case 14:
-            if (temp_s2->group == GROUP_UNK48) {
+            if (temp_s2->controlNo == OBJCONTROL_Weapon) {
                 ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func8(temp_s2);
             }
             // arg1->unk87C = -1; //@recomp: don't unequip spells
@@ -1382,8 +1382,8 @@ RECOMP_PATCH s32 dll_210_func_18630(Object* self, ObjFSA_Data* fsa, f32 arg2) {
             }
         }
     } else {
-        if (weapon->group == GROUP_UNK48) {
-            ((DLL_Unknown *)weapon->dll)->vtbl->func[11].withOneArg((s32)weapon);
+        if (weapon->controlNo == OBJCONTROL_Weapon) {
+            ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func11(weapon);
         }
         sp47 = 1;
         objData->flags &= ~0x40;
@@ -1412,7 +1412,7 @@ RECOMP_PATCH s32 dll_210_func_18630(Object* self, ObjFSA_Data* fsa, f32 arg2) {
         if (self->objhitInfo != NULL) {
             self->objhitInfo->unk61 = 0;
         }
-        if (weapon->group == GROUP_UNK48) {
+        if (weapon->controlNo == OBJCONTROL_Weapon) {
             ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func12(weapon, 1);
             ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func13(weapon, (&objData->unk3B4[objData->unk8A1])->unk30);
             ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func18(weapon, (&objData->unk3B4[objData->unk8A1])->unk1C, (&objData->unk3B4[objData->unk8A1])->unk20);
@@ -1843,7 +1843,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                 break;
             case 16:
                 sp60 = 400.0f;
-                tempObj = obj_get_nearest_type_to(OBJTYPE_MOBILE_MAP, arg0, &sp60);
+                tempObj = obj_get_nearest_type_to(OBJTYPE_MobileMap, arg0, &sp60);
                 if (tempObj != NULL) {
                     func_8005B5B8(arg0, tempObj, 1);
                 }

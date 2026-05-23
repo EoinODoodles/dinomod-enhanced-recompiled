@@ -144,7 +144,7 @@ RECOMP_PATCH int SHswapstone_anim_callback(Object* self, Object* overrideObj, An
                 // Going to SwapStone Hollow
                 gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_SWAPSTONE_HOLLOW, 0, 1);
                 gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_SWAPSTONE_HOLLOW, 7, 1);
-                gDLL_29_Gplay->vtbl->set_map_setup(MAP_SWAPSTONE_HOLLOW, 1);
+                gDLL_29_Gplay->vtbl->set_act(MAP_SWAPSTONE_HOLLOW, 1);
                 if ((main_get_bits(BIT_Play_Seq_0180_Release_Spirit_1) != 0) && (main_get_bits(BIT_Played_Seq_01FD_Rocky_Teaches_Distract) == 0)) {
                     // Set Rocky to give Tricky the distract command
                     main_set_bits(BIT_Play_Seq_01FD_Rocky_Teaches_Distract, 1);
@@ -154,7 +154,7 @@ RECOMP_PATCH int SHswapstone_anim_callback(Object* self, Object* overrideObj, An
             } else {
                 // Going to SwapStone Circle
                 gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_SWAPSTONE_CIRCLE, 0, 1);
-                //gDLL_29_Gplay->vtbl->set_map_setup(MAP_SWAPSTONE_CIRCLE, 2); // @recomp: Don't reset SwapStone circle act
+                //gDLL_29_Gplay->vtbl->set_act(MAP_SWAPSTONE_CIRCLE, 2); // @recomp: Don't reset SwapStone circle act
                 main_set_bits(objdata->bitSwappedToSeq, 1);
             }
 
@@ -173,18 +173,18 @@ RECOMP_PATCH int SHswapstone_anim_callback(Object* self, Object* overrideObj, An
             case PLAYER_SPIRIT_5:
             case PLAYER_SPIRIT_7:
                 // Sabre has a spirit
-                gDLL_29_Gplay->vtbl->set_map_setup(MAP_ICE_MOUNTAIN_1, 1);
-                gDLL_29_Gplay->vtbl->set_map_setup(MAP_SNOWHORN_WASTES, 1);
-                //gDLL_29_Gplay->vtbl->set_map_setup(MAP_WARLOCK_MOUNTAIN, 3); // @recomp: Don't reset Warlock Mountain act
+                gDLL_29_Gplay->vtbl->set_act(MAP_ICE_MOUNTAIN_1, 1);
+                gDLL_29_Gplay->vtbl->set_act(MAP_SNOWHORN_WASTES, 1);
+                //gDLL_29_Gplay->vtbl->set_act(MAP_WARLOCK_MOUNTAIN, 3); // @recomp: Don't reset Warlock Mountain act
                 break;
             case PLAYER_SPIRIT_1:
             case PLAYER_SPIRIT_3:
             case PLAYER_SPIRIT_6:
             case PLAYER_SPIRIT_8:
                 // Krystal has a spirit
-                gDLL_29_Gplay->vtbl->set_map_setup(MAP_ICE_MOUNTAIN_1, 1);
-                gDLL_29_Gplay->vtbl->set_map_setup(MAP_SNOWHORN_WASTES, 1);
-                //gDLL_29_Gplay->vtbl->set_map_setup(MAP_WARLOCK_MOUNTAIN, 2); // @recomp: Don't reset Warlock Mountain act
+                gDLL_29_Gplay->vtbl->set_act(MAP_ICE_MOUNTAIN_1, 1);
+                gDLL_29_Gplay->vtbl->set_act(MAP_SNOWHORN_WASTES, 1);
+                //gDLL_29_Gplay->vtbl->set_act(MAP_WARLOCK_MOUNTAIN, 2); // @recomp: Don't reset Warlock Mountain act
                 break;
             }
             menu_set(MENU_GAMEPLAY); // @recomp: Reactivate gameplay menu (so spells/bag can be used again)
@@ -196,8 +196,8 @@ RECOMP_PATCH int SHswapstone_anim_callback(Object* self, Object* overrideObj, An
         case 9:
             playerno = gDLL_29_Gplay->vtbl->get_playerno();
             gDLL_29_Gplay->vtbl->set_playerno(1 - playerno);
-            gDLL_29_Gplay->vtbl->set_map_setup(MAP_ICE_MOUNTAIN_1, 1);
-            gDLL_29_Gplay->vtbl->set_map_setup(MAP_SWAPSTONE_CIRCLE, 2);
+            gDLL_29_Gplay->vtbl->set_act(MAP_ICE_MOUNTAIN_1, 1);
+            gDLL_29_Gplay->vtbl->set_act(MAP_SWAPSTONE_CIRCLE, 2);
             menu_set(MENU_GAMEPLAY);
             warpPlayer(WARP_ICE_MOUNTAIN_CAMPSITE, /*fadeToBlack=*/FALSE);
             break;

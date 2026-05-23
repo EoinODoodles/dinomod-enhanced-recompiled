@@ -45,7 +45,7 @@ RECOMP_PATCH void dll_779_control(Object *self) {
         self->unkDC = 1;
     }
 
-    act = gDLL_29_Gplay->vtbl->get_map_setup(self->mapID);
+    act = gDLL_29_Gplay->vtbl->get_act(self->mapID);
     if ((act == 1) || (act != 2)) {
         WCLevelControl_handle_act1(self, objdata);
     } else {

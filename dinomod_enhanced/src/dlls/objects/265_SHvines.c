@@ -32,7 +32,7 @@ RECOMP_PATCH void SHvines_setup(Object* self, SHvines_Setup* objSetup, s32 arg2)
     Model* model;
 
     objData = self->data;
-    obj_add_object_type(self, OBJTYPE_51);
+    obj_add_object_type(self, OBJTYPE_TrickyTarget);
 
     if (main_get_bits(objSetup->gamebitBurnt)) {
         self->srt.flags |= OBJFLAG_INVISIBLE;

@@ -185,7 +185,7 @@ RECOMP_PATCH void SCcollectables_setup(Object* self, Collectable_Setup* objsetup
 
     objdata = self->data;
 
-    obj_add_object_type(self, OBJTYPE_5);
+    obj_add_object_type(self, OBJTYPE_Collectable);
     obj_init_mesg_queue(self, 2);
 
     self->srt.yaw = objsetup->yaw << 8;

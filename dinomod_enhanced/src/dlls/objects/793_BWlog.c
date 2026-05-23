@@ -113,7 +113,7 @@ RECOMP_PATCH void dll_793_setup(Object *self, BWlog_Setup *setup, s32 arg2) {
     // @recomp: Add block hits collider
     gDLL_27->vtbl->setup_hits_collider(&objdata->unk0, 2, _data_0, _data_18, 8);
     objdata->unk0.boundsYExtension = 100;
-    obj_add_object_type(self, OBJTYPE_11);
+    obj_add_object_type(self, OBJTYPE_Vehicle);
     objdata->unk31C[1] = 0x2000;
     objdata->unk2B4 = 15.0f;
     
@@ -239,7 +239,7 @@ RECOMP_PATCH void dll_793_control(Object* self) {
 
     objdata = (BWlog_Data*)self->data;
     sp98 = 10000.0f;
-    objdata->unk338 = obj_get_nearest_type_to(OBJTYPE_23, self, &sp98);
+    objdata->unk338 = obj_get_nearest_type_to(OBJTYPE_Dockpoint, self, &sp98);
     if (objdata->unk338 != NULL) {
         temp_s0 = (ObjType23Setup*)objdata->unk338->setup;
         sp98 = vec3_distance(&self->globalPosition, &objdata->unk338->globalPosition);

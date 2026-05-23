@@ -338,7 +338,7 @@ static void WMPlatform_setup_custom(Object* self, GenProps_Setup* objSetup, s32 
     objData->midpointY = objData->pStartY + (objData->pEndY - objData->pStartY)/2.0f;
 
     //Lock the platform if Randorn has yet to activate it later in the game (unused MPEG dialogue hints at this)
-    wmAct = gDLL_29_Gplay->vtbl->get_map_setup(MAP_WARLOCK_MOUNTAIN);
+    wmAct = gDLL_29_Gplay->vtbl->get_act(MAP_WARLOCK_MOUNTAIN);
     if ((objData->isKrystalsPlatform && wmAct < 6) || (!objData->isKrystalsPlatform && wmAct < 7)){
         objData->state = Platform_State_Locked_Top;
         applyLerp(self, 1);

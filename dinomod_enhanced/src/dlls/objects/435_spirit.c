@@ -32,12 +32,12 @@ RECOMP_PATCH void Spirit_setup(Object* self, AnimObj_Setup* objSetup, s32 arg2) 
     temp_v0 = self->unkDC;
     
     if ((temp_v0 == 0) && (objSetup->sequenceIdBitfield != 1)) {
-        gDLL_3_Animation->vtbl->func6(&objData->base, objSetup);
+        gDLL_3_Animation->vtbl->init_curve(&objData->base, objSetup);
         self->unkDC = objSetup->sequenceIdBitfield + 1;
     } else if (temp_v0 && (temp_v0 != objSetup->sequenceIdBitfield + 1)) {
-        gDLL_3_Animation->vtbl->func8(&objData->base);
+        gDLL_3_Animation->vtbl->free_curve(&objData->base);
         if (objSetup->sequenceIdBitfield != -1) {
-            gDLL_3_Animation->vtbl->func6(&objData->base, objSetup);
+            gDLL_3_Animation->vtbl->init_curve(&objData->base, objSetup);
         }
         self->unkDC = objSetup->sequenceIdBitfield + 1;
     }

@@ -22,11 +22,11 @@ extern Texture* dTexElectricity;
 RECOMP_PATCH void DFP_LevelControl_setup(Object* self, ObjSetup *setup, s32 arg2) {
     u8 mapSetup;
 
-    obj_add_object_type(self, OBJTYPE_10);
+    obj_add_object_type(self, OBJTYPE_LevelControl);
     dTexElectricity = tex_load_deferred(1132);
     self->animCallback = DFP_LevelControl_anim_callback;
-    gDLL_29_Gplay->vtbl->set_map_setup(self->mapID, 1);
-    mapSetup = gDLL_29_Gplay->vtbl->get_map_setup(self->mapID);
+    gDLL_29_Gplay->vtbl->set_act(self->mapID, 1);
+    mapSetup = gDLL_29_Gplay->vtbl->get_act(self->mapID);
 
     switch (mapSetup) { 
         case 0:

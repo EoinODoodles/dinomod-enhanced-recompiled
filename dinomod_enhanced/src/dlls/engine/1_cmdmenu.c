@@ -393,7 +393,7 @@ extern s16 dTutorialBoxX;
 extern s16 dTutorialBoxOpacity;
 extern s16 dTutorialBoxTextOpacity;
 extern Texture* dInventoryPageIcon;
-extern s8 sJoyButtonMask;
+extern s8 sJoyDisabledButtons;
 extern s16 dInventoryMovesQueued;
 extern u8 dInventoryIsScrolling;
 extern u8 sForceStatsDisplay;
@@ -1545,7 +1545,7 @@ s8 cmdmenu_new_get_next_category_right(Object* player, Object* sidekick, s8* rMo
 static u16 cmdmenu_get_extended_disabled_buttons() {
     u8 rNewControls = recomp_get_config_u32("cmdmenu_new_controls");  //whether to use new controls
     u8 rDControls = recomp_get_config_u32("cmdmenu_d_controls") > DPAD_OFF; //whether D-pad can navigate
-    u16 joyButtonMaskExtended = sJoyButtonMask;
+    u16 joyButtonMaskExtended = sJoyDisabledButtons;
 
     //@recomp: handle optional new controls
     if (rNewControls && (joyButtonMaskExtended & D_CBUTTONS)) {
@@ -1606,7 +1606,7 @@ RECOMP_PATCH void cmdmenu_update2(void) {
 
     //@recomp: set button mask
     if (rDControls) {
-        joy_set_button_mask(0, rJoyButtonMaskExtended | ALL_MENUOPEN_D_PAD);
+        joy_disable_buttons(0, rJoyButtonMaskExtended | ALL_MENUOPEN_D_PAD);
     }
 
     player = get_player();
@@ -1621,11 +1621,11 @@ RECOMP_PATCH void cmdmenu_update2(void) {
     sJoyHeldButtons = joy_get_buttons(0); //D-right holds not needed anyway
 
     if (player->stateFlags & OBJSTATE_IN_SEQ) {
-        joy_set_button_mask(0, rAllMenuOpenButtons);
+        joy_disable_buttons(0, rAllMenuOpenButtons);
         sJoyPressedButtons &= ~(R_TRIG | rAllMenuOpenButtons);
         sJoyHeldButtons &= ~(R_TRIG | rAllMenuOpenButtons);
     } else if (rJoyButtonMaskExtended != 0) {
-        joy_set_button_mask(0, rJoyButtonMaskExtended);
+        joy_disable_buttons(0, rJoyButtonMaskExtended);
         sJoyPressedButtons &= ~rJoyButtonMaskExtended;
         sJoyHeldButtons &= ~rJoyButtonMaskExtended;
     }
@@ -1645,7 +1645,7 @@ RECOMP_PATCH void cmdmenu_update2(void) {
             //C-down: Sidekick Commands
             newPageIndex = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[newPageIndex].items, TRUE)) {
-                joy_set_button_mask(0, rMenuDown);
+                joy_disable_buttons(0, rMenuDown);
                 dNextPageCategory = CMDMENU_CATEGORY_2_Sidekick;
                 sInventoryPageID = newPageIndex;
             }
@@ -1653,14 +1653,14 @@ RECOMP_PATCH void cmdmenu_update2(void) {
             //C-right: Items
             newPageIndex = player->id == OBJ_Krystal ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[newPageIndex].items, FALSE)) {
-                joy_set_button_mask(0, rMenuRight);
+                joy_disable_buttons(0, rMenuRight);
                 dNextPageCategory = CMDMENU_CATEGORY_3_Items;
                 sInventoryPageID = newPageIndex;
             }
         } else if ((sJoyPressedButtons & rMenuLeft) && (dPageCategory != CMDMENU_CATEGORY_4_Spells)) {
             //C-left: Magic Spells
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[CMDMENU_PAGE_6_Spells].items, FALSE)) {
-                joy_set_button_mask(0, rMenuLeft);
+                joy_disable_buttons(0, rMenuLeft);
                 dNextPageCategory = CMDMENU_CATEGORY_4_Spells;
                 sInventoryPageID = CMDMENU_PAGE_6_Spells;
             }
@@ -1691,7 +1691,7 @@ RECOMP_PATCH void cmdmenu_update2(void) {
             //C-down while Closed: Open on Sidekick Commands
             newPageIndex = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[newPageIndex].items, TRUE)) {
-                joy_set_button_mask(0, rMenuDown);
+                joy_disable_buttons(0, rMenuDown);
                 dNextPageCategory = CMDMENU_CATEGORY_2_Sidekick;
                 sInventoryPageID = newPageIndex;
             }
@@ -1699,25 +1699,25 @@ RECOMP_PATCH void cmdmenu_update2(void) {
             //C-right while Closed: Open on Items
             newPageIndex = player->id == OBJ_Krystal ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[newPageIndex].items, FALSE)) {
-                joy_set_button_mask(0, rMenuRight);
+                joy_disable_buttons(0, rMenuRight);
                 dNextPageCategory = CMDMENU_CATEGORY_3_Items;
                 sInventoryPageID = newPageIndex;
             }
         } else if ((!rIsInventoryOpen) && (sJoyPressedButtons & rMenuLeft) && (dPageCategory != CMDMENU_CATEGORY_4_Spells)) {
             //C-left while Closed: Open on Magic Spells
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[CMDMENU_PAGE_6_Spells].items, FALSE)) {
-                joy_set_button_mask(0, rMenuLeft);
+                joy_disable_buttons(0, rMenuLeft);
                 dNextPageCategory = CMDMENU_CATEGORY_4_Spells;
                 sInventoryPageID = CMDMENU_PAGE_6_Spells;
             }
         } else if (rIsInventoryOpen && (sJoyPressedButtons & rMenuLeft) && cmdmenu_new_get_next_category_right(player, sidekick, &rMoveToCategory, &rMoveToPage)) {
             //C-left while Open: go to previous category
-            joy_set_button_mask(0, rMenuLeft);
+            joy_disable_buttons(0, rMenuLeft);
             dNextPageCategory = rMoveToCategory;
             sInventoryPageID = rMoveToPage;
         } else if (rIsInventoryOpen && (sJoyPressedButtons & rMenuRight) && cmdmenu_new_get_next_category_left(player, sidekick, &rMoveToCategory, &rMoveToPage)) {
             //C-right while Open: go to next category
-            joy_set_button_mask(0, rMenuRight);
+            joy_disable_buttons(0, rMenuRight);
             dNextPageCategory = rMoveToCategory;
             sInventoryPageID = rMoveToPage;
         } else if (sUsedItemPageID != EXIT) {
@@ -1837,8 +1837,8 @@ RECOMP_PATCH void cmdmenu_update2(void) {
         }
     }
 
-    joy_set_button_mask(0, rAllMenuOpenButtons);
-    sJoyButtonMask = 0;
+    joy_disable_buttons(0, rAllMenuOpenButtons);
+    sJoyDisabledButtons = 0;
 }
 
 #define NEW_CONTROLS_CONTINUOUS_SCROLL_WAIT 30
@@ -1894,9 +1894,9 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
 
     //Lock/unlock accessing the C-button scroll menu
     if (player->stateFlags & OBJSTATE_IN_SEQ) {
-        joy_set_button_mask(0, (rCControls * (ALL_MENUOPEN_C_BUTTONS | U_CBUTTONS)) | (rDControls * (ALL_MENUOPEN_D_PAD | U_JPAD)));
+        joy_disable_buttons(0, (rCControls * (ALL_MENUOPEN_C_BUTTONS | U_CBUTTONS)) | (rDControls * (ALL_MENUOPEN_D_PAD | U_JPAD)));
     } else if (rJoyButtonMaskExtended != 0) {
-        joy_set_button_mask(0, rJoyButtonMaskExtended);
+        joy_disable_buttons(0, rJoyButtonMaskExtended);
     }
 
     //Get button presses (or simulated ones, for tutorial sequences)
@@ -1953,7 +1953,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
 
     //@recomp: disable C-up while inventory open (to prevent entering 1st-person while navigating up)
     if (rNewControls && (dInventoryShow > 0)) {
-        joy_set_button_mask(0, rJoyButtonMaskExtended | rMenuUp);
+        joy_disable_buttons(0, rJoyButtonMaskExtended | rMenuUp);
     }
 
     //Play item use sound if needed
@@ -2185,7 +2185,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
         sInventoryFrameCounter = 0;
         dInventoryMovesQueued = 0;
     } else {
-        joy_set_button_mask(0, A_BUTTON | B_BUTTON);
+        joy_disable_buttons(0, A_BUTTON | B_BUTTON);
     }
 
     *pageSelectionIndex = sMenuSelectedItemIdx;

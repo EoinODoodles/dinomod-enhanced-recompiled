@@ -115,7 +115,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
                 gDLL_3_Animation->vtbl->start_obj_sequence(1, self, -1);
             }
             
-            frostWeed = obj_get_nearest_type_to(OBJTYPE_4, self, 0);
+            frostWeed = obj_get_nearest_type_to(OBJTYPE_Baddie, self, 0);
             setup = (SnowHorn_Setup*)self->setup;
             if (frostWeed && (frostWeed->id == OBJ_Tumbleweed2 || 
                 (FROSTWEED_TWIGS_ACCEPTED && frostWeed->id == OBJ_Tumbleweed2twig)) &&  //@recomp: option of accepting FrostWeed twigs as well

@@ -582,7 +582,7 @@ static void swapstone_hollow_additions(void) {
             .commands = {
                 {
                     .condition = CMD_COND_IN,
-                    .id = TRG_CMD_FLAG,
+                    .id = TRG_CMD_BITS,
                     TRIG_PARAMS_COMBINED( TRIG_BITS_MODE(0) | BIT_SP_Exiting_Shop ) //Unset gamebit
                 },
             },

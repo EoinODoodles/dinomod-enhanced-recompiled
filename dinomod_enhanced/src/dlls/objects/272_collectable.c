@@ -351,7 +351,7 @@ RECOMP_PATCH void collectable_setup(Object* self, Collectable_Setup* objSetup, s
     Collectable_Data_Recomp* objData;
 
     objData = self->data;
-    obj_add_object_type(self, OBJTYPE_5);
+    obj_add_object_type(self, OBJTYPE_Collectable);
     obj_init_mesg_queue(self, 2);
 
     self->srt.yaw = objSetup->yaw << 8;
@@ -843,13 +843,13 @@ RECOMP_PATCH void collectable_collect(Object* self) {
     case Collectable_Type_Food:
         foodbag = ((DLL_210_Player*)player->dll)->vtbl->func66(player, 15);
         switch (self->id) {  
-        case OBJ_EnergyEgg:      
+        case OBJ_meatPickup:      
             ((DLL_IFoodbag*)foodbag->dll)->vtbl->collect_food(foodbag, FOOD_Dino_Egg);
-            obj_free_object_type(self, OBJTYPE_5);
+            obj_free_object_type(self, OBJTYPE_Collectable);
             return;
         case OBJ_applePickup:
             ((DLL_IFoodbag*)foodbag->dll)->vtbl->collect_food(foodbag, FOOD_Red_Apple);
-            obj_free_object_type(self, OBJTYPE_5);
+            obj_free_object_type(self, OBJTYPE_Collectable);
             obj_destroy_object(self);
             return;
         case OBJ_beanPickup:

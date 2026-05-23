@@ -169,8 +169,8 @@ RECOMP_PATCH void Tumbleweed_free(Object* self, s32 arg1) {
         objData->goldenNugget = NULL;
     }
 
-    obj_free_object_type(self, OBJTYPE_4);
-    obj_free_object_type(self, OBJTYPE_51);
+    obj_free_object_type(self, OBJTYPE_Baddie);
+    obj_free_object_type(self, OBJTYPE_TrickyTarget);
 }
 
 /**
@@ -220,7 +220,7 @@ RECOMP_PATCH int Tumbleweed_handle_carry_behaviour(Object* self) {
             //Fixes issue where player can immediately drop Tumbleweed after lifting it (from tapping A)
             if (playerUtil_is_player_standing_or_walking(player)){
                 if (joy_get_pressed(0) & A_BUTTON) {
-                    joy_set_button_mask(0, A_BUTTON);
+                    joy_disable_buttons(0, A_BUTTON);
                     objData->beingCarried = FALSE;
                 }
             }

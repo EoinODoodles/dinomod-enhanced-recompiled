@@ -249,7 +249,7 @@ RECOMP_PATCH void CamControl_set_target_flag_2(s32 enable) {
         Object **objectList;
         s32 count;
 
-        objectList = obj_get_all_of_type(OBJTYPE_4, &count);
+        objectList = obj_get_all_of_type(OBJTYPE_Baddie, &count);
 
         for (s32 i = 0; i < count; i++) {
             if (objectList[i]->id == OBJ_DIM_Boss) {

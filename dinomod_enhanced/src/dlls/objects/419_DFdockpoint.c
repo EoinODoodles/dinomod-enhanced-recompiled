@@ -40,7 +40,7 @@ RECOMP_PATCH void DFdockpoint_control(Object *self) {
     //Create a log if none exists
     /* @bug: doesn't first check if player's outside the log's unload distance, 
        so a log will be rapidly created/deleted until the player comes into the log's load range */
-    obj_get_all_of_type(OBJTYPE_11, &logCount);
+    obj_get_all_of_type(OBJTYPE_Vehicle, &logCount);
     if (logCount != 0) {
         return;
     }

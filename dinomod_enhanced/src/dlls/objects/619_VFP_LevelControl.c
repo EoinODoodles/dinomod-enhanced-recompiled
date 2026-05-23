@@ -21,10 +21,10 @@ extern void VFP_LevelControl_func_AAC(Object *self);
 RECOMP_PATCH void VFP_LevelControl_setup(Object* self, ObjSetup* setup, s32 a2) {
     u8 mapSetupID;
 
-    obj_add_object_type(self, OBJTYPE_10);
+    obj_add_object_type(self, OBJTYPE_LevelControl);
     // @recomp: Don't force act 1
-    //gDLL_29_Gplay->vtbl->set_map_setup(self->mapID, 1);
-    mapSetupID = gDLL_29_Gplay->vtbl->get_map_setup(self->mapID);
+    //gDLL_29_Gplay->vtbl->set_act(self->mapID, 1);
+    mapSetupID = gDLL_29_Gplay->vtbl->get_act(self->mapID);
     switch (mapSetupID) {
     case 1:
     case 2:
@@ -56,8 +56,8 @@ RECOMP_PATCH void VFP_LevelControl_control(Object* self) {
 
     player = get_player();
     map_world_xz_to_map_id(player->srt.transl.x, player->srt.transl.z);
-    diPrintf("ACT %d \n", gDLL_29_Gplay->vtbl->get_map_setup(self->mapID));
-    mapSetupID = gDLL_29_Gplay->vtbl->get_map_setup(self->mapID);
+    diPrintf("ACT %d \n", gDLL_29_Gplay->vtbl->get_act(self->mapID));
+    mapSetupID = gDLL_29_Gplay->vtbl->get_act(self->mapID);
     switch (mapSetupID) {
     case 1:
         if (_data_0 != 0) {

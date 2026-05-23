@@ -275,7 +275,7 @@ RECOMP_PATCH void SHmushroom_setup(Object* self, SHmushroom_Setup* setup, s32 ar
 		objData->prevPursuerDistance = 200.0f;
 	}
 
-	obj_add_object_type(self, OBJTYPE_51);
+	obj_add_object_type(self, OBJTYPE_TrickyTarget);
 
 	//Set up inventory gamebit (value incremented when collected)
 	if (self->modelInstIdx == SHmushroom_MODEL_0_Blue_Mushroom) {

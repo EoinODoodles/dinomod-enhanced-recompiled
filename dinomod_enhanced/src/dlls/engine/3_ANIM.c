@@ -4,6 +4,7 @@
 #include "dlls/engine/3_animation.h"
 #include "dlls/objects/210_player.h"
 #include "game/objects/object.h"
+#include "game/objects/object_id.h"
 #include "sys/gfx/animseq.h"
 #include "sys/memory.h"
 #include "sys/menu.h"
@@ -17,7 +18,7 @@
 
 // Subtypes for ANIM_CODE_EVT_6
 enum Anim6CodeEventType {
-    ANIM_CODE_EVT_6_0 = 0, // remove override?
+    ANIM_CODE_EVT_6_END = 0, // signal end of seq for the current object
     ANIM_CODE_EVT_6_2 = 2, // curve related
     ANIM_CODE_EVT_6_5 = 5, // sfx related, noop
     ANIM_CODE_EVT_6_6 = 6, // sfx related, noop
@@ -45,8 +46,8 @@ enum Anim6CodeEventType {
     ANIM_CODE_EVT_6_RESTART_GOTO = 32,
     ANIM_CODE_EVT_6_33 = 33,
     ANIM_CODE_EVT_6_34 = 34,
-    ANIM_CODE_EVT_6_CHECKPOINT = 35,
-    ANIM_CODE_EVT_6_CHECKPOINT_NO_LOCATION = 36,
+    ANIM_CODE_EVT_6_SAVEPOINT = 35,
+    ANIM_CODE_EVT_6_SAVEPOINT_NO_LOCATION = 36,
     ANIM_CODE_EVT_6_TOGGLE_PLAYER_CONTROL = 37
 };
 
@@ -59,7 +60,7 @@ enum ActorUpperSettings {
     ACTORUSETTING_UNK20 = 0x20
 };
 
-extern s8 _bss_A4;;
+extern s8 sSeqEnded;
 extern s8 _bss_198[MAX_SEQSLOTS];
 extern u8 _bss_3A8[MAX_SEQSLOTS];
 
@@ -97,7 +98,7 @@ static s32 start_obj_sequence_hijack(s32 objectSeqIndex, Object* object, s32 ena
     return start_obj_sequence_orig(objectSeqIndex, object, enabledActors);
 }
 
-RECOMP_PATCH s32 anim_func_6620(Object *animObj, Object *actor, AnimObj_Data *st, s32 arg3, s8 arg4) {
+RECOMP_PATCH s32 anim_do_code_event_6(Object *animObj, Object *actor, AnimObj_Data *st, s32 arg3, s8 arg4) {
     s32 sp54;
     s32 sp4C[2];
     Object *player;
@@ -170,7 +171,7 @@ RECOMP_PATCH s32 anim_func_6620(Object *animObj, Object *actor, AnimObj_Data *st
             break;
         }
         if (sp54 < actor->def->numModels) {
-            if ((actor->group == 1) && (actor->modelInstIdx == 2)) {
+            if ((actor->controlNo == OBJCONTROL_Player) && (actor->modelInstIdx == 2)) {
                 return 1;
             }
             STUBBED_PRINTF(" MODEL NO %i \n", actor->modelInstIdx);
@@ -178,12 +179,12 @@ RECOMP_PATCH s32 anim_func_6620(Object *animObj, Object *actor, AnimObj_Data *st
         }
         break;
     case ANIM_CODE_EVT_6_24:
-        if (actor->group == 1) {
+        if (actor->controlNo == OBJCONTROL_Player) {
             ((DLL_210_Player*)actor->dll)->vtbl->func28(actor, sp54);
         }
         break;
     case ANIM_CODE_EVT_6_25:
-        if (actor->group == 1) {
+        if (actor->controlNo == OBJCONTROL_Player) {
             ((DLL_210_Player*)actor->dll)->vtbl->func29(actor, sp54);
         }
         break;
@@ -198,11 +199,11 @@ RECOMP_PATCH s32 anim_func_6620(Object *animObj, Object *actor, AnimObj_Data *st
         st->unk7A &= ~ANIM7AFLAG_UNK400;
         st->unk142_4 = 0;
         break;
-    case ANIM_CODE_EVT_6_CHECKPOINT:
-        gDLL_29_Gplay->vtbl->checkpoint(&actor->srt.transl, actor->srt.yaw, 0, map_get_layer());
+    case ANIM_CODE_EVT_6_SAVEPOINT:
+        gDLL_29_Gplay->vtbl->savepoint(&actor->srt.transl, actor->srt.yaw, 0, map_get_layer());
         break;
-    case ANIM_CODE_EVT_6_CHECKPOINT_NO_LOCATION:
-        gDLL_29_Gplay->vtbl->checkpoint(NULL, 0, 1, map_get_layer());
+    case ANIM_CODE_EVT_6_SAVEPOINT_NO_LOCATION:
+        gDLL_29_Gplay->vtbl->savepoint(NULL, 0, GPLAY_SAVEPOINT_SkipMapSave, map_get_layer());
         break;
     case ANIM_CODE_EVT_6_TOGGLE_PLAYER_CONTROL:
         ((DLL_210_Player*)get_player()->dll)->vtbl->func69(get_player(), sp54);
@@ -212,8 +213,8 @@ RECOMP_PATCH s32 anim_func_6620(Object *animObj, Object *actor, AnimObj_Data *st
     }
 
     switch (arg3) {
-    case ANIM_CODE_EVT_6_0: 
-        _bss_A4 = 1;
+    case ANIM_CODE_EVT_6_END: 
+        sSeqEnded = TRUE;
         return 0;
     case ANIM_CODE_EVT_6_5: 
         gDLL_6_AMSFX->vtbl->func_480(actor);
@@ -276,7 +277,7 @@ RECOMP_PATCH s32 anim_func_6620(Object *animObj, Object *actor, AnimObj_Data *st
         gDLL_29_Gplay->vtbl->set_obj_group_status(actor->mapID, sp54, 0);
         break;
     case ANIM_CODE_EVT_6_SET_ACT:
-        gDLL_29_Gplay->vtbl->set_map_setup(actor->mapID, sp54);
+        gDLL_29_Gplay->vtbl->set_act(actor->mapID, sp54);
         break;
     case ANIM_CODE_EVT_6_ENABLE_LETTERBOX:
         if (arg4 == 0) {
