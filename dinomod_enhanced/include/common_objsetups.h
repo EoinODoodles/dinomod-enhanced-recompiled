@@ -173,3 +173,9 @@ typedef struct {
 /*1E*/ s16 unk1E;
 /*20*/ s16 unk20;
 } DLL506_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ s8 yaw;
+/*19*/ s8 spawnLogDisabled;
+} DFdockpoint_Setup;
