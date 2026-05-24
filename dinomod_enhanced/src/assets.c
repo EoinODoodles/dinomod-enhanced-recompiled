@@ -536,6 +536,7 @@ PRAGMA_IGNORE_POP()
 #define BOULDER_BIT DINOMOD_BIT_920_SH_BoulderBlownUp
 #define RIVER_BIT DINOMOD_BIT_921_SH_RiverUnblocked
 #define VINES_BIT DINOMOD_BIT_922_SH_Well_LilyPondVinesUnblocked
+#define BOULDER_SEQ_BIT DINOMOD_BIT_92C_SH_River_Seq_Has_Played
 
 static void swapstone_hollow_additions(void) {
     ReAssetID mapID = reasset_base_id(MAP_SWAPSTONE_HOLLOW);
@@ -596,41 +597,21 @@ static void swapstone_hollow_additions(void) {
     //Add SHBoulders blocking the waterfall near Rocky 
     //(One for each side of the opening, to give the illusion that you're seeing the back of the boulder)
     {
-        typedef struct {
-            Vec3f coords;
-            u16 scale;
-            s16 yaw;
-            s16 pitch;
-            s16 roll;
-        } SHBoulders;
-
-        SHBoulders boulderData[2] = {
-            {VEC3F(2410.9, -654.8, 956.3), 146, DEGREES_TO_ANGLE8(34.3f), DEGREES_TO_ANGLE8(0.9f), 0},
-            {VEC3F(2383.0, -642.7, 922.0), 141, DEGREES_TO_ANGLE8(21.0f), 0, 0},
+        SHboulder_Setup boulders[2] = {
+            {COORDS_SETUP(2410.9, -654.8, 956.3), .scale = 146, .yaw = DEGREES_TO_ANGLE8(34.3f), .pitch = DEGREES_TO_ANGLE8(0.9f), .invincible = FALSE, .debris = FALSE}, //Inner side (Rocky's pond)
+            {COORDS_SETUP(2383.0, -642.7, 922.0), .scale = 141, .yaw = DEGREES_TO_ANGLE8(21.0f), .pitch = 0,                       .invincible = TRUE,  .debris = TRUE},  //Outer side
         };
-        u8 count = ARRAYCOUNT(boulderData);
 
-        //Insert the new objects
-        for (s32 i = 0; i < count; i++) {
-            SHboulder_Setup boulder = {
-                .base = {
-                    .objId = OBJ_SHboulder,
-                    .actExclusions1 = ~MAP_ACT(1),
-                    .loadFlags = OBJSETUP_LOAD_MAIN,
-                    .fadeFlags = OBJSETUP_FADE_CAMERA,
-                    .loadDistance = 140,
-                    .fadeDistance = 140,
-                    .x = boulderData[i].coords.x,
-                    .y = boulderData[i].coords.y,
-                    .z = boulderData[i].coords.z
-                },
-                .scale = boulderData[i].scale,
-                .yaw = boulderData[i].yaw,
-                .pitch = boulderData[i].pitch,
-                .roll = boulderData[i].roll,
-                .gamebitGone = BOULDER_BIT
-            };
-            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &boulder, sizeof(boulder));
+        for (s32 i = 0, count = ARRAYCOUNT(boulders); i < count; i++) {
+            SHboulder_Setup* boulder = &boulders[i];
+            boulder->base.objId = OBJ_SHboulder;
+            boulder->base.actExclusions1 = ~MAP_ACT(1);
+            boulder->base.loadFlags = OBJSETUP_LOAD_MAIN;
+            boulder->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+            boulder->base.loadDistance = 170;
+            boulder->base.fadeDistance = 170;
+            boulder->gamebitGone = BOULDER_BIT;
+            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), boulder, sizeof(SHboulder_Setup));
         }
     }
 
@@ -754,6 +735,31 @@ static void swapstone_hollow_additions(void) {
         sharpClaw->y = -658.742f;
         sharpClaw->z = 2183.488f;
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &sharpClaw_Setup, sizeof(sharpClaw_Setup));
+    }
+
+    //Add a SHseqobject to play a custom sequence
+    {
+        SeqObj_Setup objSeq = {
+            .base = {
+                .objId = OBJ_SHseqobject,
+                .actExclusions1 = 0,
+                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                .fadeFlags = OBJSETUP_FADE_MAIN,
+                .mapObjGroup = 0,
+                .fadeDistance = 0xFF,
+                .x = 2432,
+                .y = -532,
+                .z = 888
+            },
+            .gamebitPlay = BOULDER_BIT,
+            .gamebitPlayed = BOULDER_SEQ_BIT,
+            .yaw = 0,
+            .playbackOptions = 0,
+            .seqIndex = 10,
+            .unk22 = 1,
+            .warpID = 0
+        };
+        reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &objSeq, sizeof(objSeq));
     }
 
     //Add HITS lines to help pen the SharpClaw in
@@ -896,6 +902,46 @@ static void swapstone_hollow_additions(void) {
             scroll->base.fadeDistance = 140;
             reasset_map_objects_set(mapID, 
                 reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll2_Setup)
+            );
+        }
+    }
+
+    //Add WaveAnimators to the waterfall basin (in a special objectGroup just for the sequence)
+    {
+        typedef struct {
+        /*00*/ ObjSetup base;
+        /*18*/ s16 unk18;
+        /*1A*/ s16 gamebitActivate;
+        /*1C*/ u8 frequencyZ;
+        /*1D*/ u8 frequencyX;
+        /*1E*/ u8 amplitude;
+        /*1F*/ s8 verticalOffset;
+        /*20*/ u8 animatorID;
+        /*21*/ u8 period; //Always set to 60?
+        /*22*/ u8 unk22;  //Always set to 6?
+        /*23*/ u8 vertexColourEffect; //0: lava, 1: water, 2: orange
+        } WaveAnimator_Setup;
+
+        WaveAnimator_Setup waveAnimatorData[] = {
+            {COORDS_SETUP(321.844, -1002.904, 1052.198), .frequencyX = 0, .frequencyZ = 1, .animatorID = 3},
+            {COORDS_SETUP(321.844, -1002.904, 1052.198), .frequencyX = 0, .frequencyZ = 1, .animatorID = 4},
+        };
+
+        for (int i = 0, end = ARRAYCOUNT(waveAnimatorData); i < end; i++) {
+            WaveAnimator_Setup* wAnim = &waveAnimatorData[i];
+            wAnim->base.objId = OBJ_WaveAnimator;
+            wAnim->base.actExclusions1 = 0;
+            wAnim->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+            wAnim->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+            wAnim->base.mapObjGroup = 20;
+            wAnim->base.fadeDistance = 140;
+            wAnim->amplitude = 3;
+            wAnim->verticalOffset = -12,
+            wAnim->period = 35;
+            wAnim->unk22 = 6;
+            wAnim->vertexColourEffect = 1; //water
+            reasset_map_objects_set(mapID, 
+                reasset_auto_id(dinomodNs), wAnim, sizeof(WaveAnimator_Setup)
             );
         }
     }
@@ -1093,7 +1139,7 @@ static void swapstone_hollow_well_additions(void) {
                 .base = {
                     .objId = OBJ_SHvines,
                     .actExclusions1 = 0,
-                    .loadFlags = OBJSETUP_LOAD_LEVEL,
+                    .loadFlags = OBJSETUP_LOAD_MAIN,
                     .fadeFlags = OBJSETUP_FADE_CAMERA,
                     .loadDistance = 255, //Needs to be visible from quite far away due to the long approach from the ice floe river
                     .fadeDistance = 255,
@@ -1117,10 +1163,10 @@ static void swapstone_hollow_well_additions(void) {
             .base = {
                 .objId = OBJ_HitAnimator,
                 .actExclusions1 = 0,
-                .loadFlags = OBJSETUP_LOAD_LEVEL,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
                 .fadeFlags = OBJSETUP_FADE_CAMERA,
-                .loadDistance = 140,
-                .fadeDistance = 140,
+                .loadDistance = 100,
+                .fadeDistance = 100,
                 .x = 979.246,
                 .y = -1041.493,
                 .z = 609.779
@@ -1140,10 +1186,10 @@ static void swapstone_hollow_well_additions(void) {
             .base = {
                 .objId = OBJ_HitAnimator,
                 .actExclusions1 = 0,
-                .loadFlags = OBJSETUP_LOAD_LEVEL,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
                 .fadeFlags = OBJSETUP_FADE_CAMERA,
-                .loadDistance = 140,
-                .fadeDistance = 140,
+                .loadDistance = 100,
+                .fadeDistance = 100,
                 .x = 979.246,
                 .y = -1049.981,
                 .z = 609.779

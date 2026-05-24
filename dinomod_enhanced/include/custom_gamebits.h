@@ -13,5 +13,6 @@ typedef enum {
     DINOMOD_BIT_928_SH_Well_Stalactite_Cave_Tricky_Dug_3 = 0x928, // len:1 group:1
     DINOMOD_BIT_929_SH_Well_Stalactite_Cave_Collected_MoonSeed_1 = 0x929, // len:1 group:1
     DINOMOD_BIT_92A_SH_Well_Stalactite_Cave_Collected_MoonSeed_2 = 0x92A, // len:1 group:1
-    DINOMOD_BIT_92B_SH_Well_Stalactite_Cave_Collected_MoonSeed_3 = 0x92B  // len:1 group:1
+    DINOMOD_BIT_92B_SH_Well_Stalactite_Cave_Collected_MoonSeed_3 = 0x92B,  // len:1 group:1
+    DINOMOD_BIT_92C_SH_River_Seq_Has_Played = 0x92C  // len:1 group:1
 } DinomodGameBits;

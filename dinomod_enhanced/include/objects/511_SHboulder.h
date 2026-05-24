@@ -10,6 +10,7 @@ typedef struct {
     s8 roll;
     u8 scale;               //100 = 1.0f scale
     s16 gamebitGone;        //Gamebit to set when destroyed (also destroys the boulder when gamebit set)
-    u8 invincible;          //Boulder can't be destroyed by explosions (for the custom one blocking Willow Grove)
+    u8 invincible : 1;      //Boulder can't be destroyed by explosions (for the custom one blocking Willow Grove)
+    u8 debris : 1;          //Boulder creates debris when destroyed (for the river sequence)
 } SHboulder_Setup;          //@recomp: custom setup struct
 
