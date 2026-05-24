@@ -928,6 +928,39 @@ static void swapstone_hollow_additions(void) {
 
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &distractNode, sizeof(distractNode));
     }
+
+    //Revert the SHboulder blocking Willow Grove back to being a ThornTail (it used be one in older patches) to avoid confusion,
+    //since the player might try carrying a barrel to it and be confused about why it can't be destroyed
+    //TODO: config for this? 
+    {
+        //Add a ThornTail (a custom sleeping one)
+        {
+            typedef struct {
+            /*00*/ ObjSetup base;
+            /*18*/ u8 thornTailIndex;
+            /*19*/ u8 yaw;          //@recomp: custom param
+            /*1A*/ s16 gamebitAway; //@recomp: ThornTail doesn't show up when set
+            } SHthorntail_Setup;
+
+            SHthorntail_Setup thornTail = {
+                .base = {
+                    .objId = OBJ_SHthorntail,
+                    .actExclusions1 = ~MAP_ACT(1),
+                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .mapObjGroup = 9,
+                    .fadeDistance = 100,
+                    .x = 3145.765625, 
+                    .y = -789,
+                    .z = -188.720
+                },
+                .thornTailIndex = 4,    //Custom ThornTail
+                .yaw = DEGREES_TO_ANGLE8(180),
+                .gamebitAway = BIT_1E6, //Willow Grove open, maybe the ThornTail wandered off to explore it?
+            };
+            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &thornTail, sizeof(thornTail));
+        }
+    }
 }
 
 static void swapstone_hollow_modifications(void) {
@@ -953,12 +986,12 @@ static void swapstone_hollow_modifications(void) {
         reasset_objects_set(objects_shboulder_id, REASSET_BASE_NAMESPACE, objects_shboulder, objects_shboulder_end - objects_shboulder);
     }
 
-    //Edit the SHboulder blocking Willow Grove, so it can't be destroyed
+    //Delete the SHboulder blocking Willow Grove (reverting to a ThornTail like in older patches, 
+    //to avoid confusion where players might carry the explosive barrel over to it)
+    //TODO: config for this, choosing between boulder/ThornTail/something else?
     {
-        SHboulder_Setup *boulder = (SHboulder_Setup*)reasset_map_objects_get(sHollow, 
-            reasset_base_id(0x307F3), NULL);
-        boulder->scale = 177;
-        boulder->invincible = TRUE;
+        ReAssetID shBoulderWillowGrove = reasset_base_id(0x307F3);
+        reasset_map_objects_delete(sHollow, shBoulderWillowGrove);
     }
 
     // Move river sfx TriggerPoints into obj group 11
