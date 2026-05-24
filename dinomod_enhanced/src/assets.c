@@ -3,6 +3,9 @@
 #include "recomputils.h"
 #include "reasset.h"
 
+#include "custom/dlls/SHbarrel.h"
+#include "custom_object_ids.h"
+#include "custom_objsetups.h"
 #include "compression_util.h"
 #include "common_objsetups.h"
 #include "configs.h"
@@ -59,6 +62,8 @@ INCBIN(objects_purple_mushroom, "objects_0571 023B SHrocketmushroo.bin");
 
 INCBIN(objects_shseqobject,     "objects_0561_SHseqobject.bin");
 INCBIN(objects_shboulder,       "objects_0583 0247 SHboulder.bin");
+
+INCBIN(objects_shbarrel,       "SHbarrel.bin");
 
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 
@@ -720,7 +725,7 @@ static void swapstone_hollow_additions(void) {
             .delay = 2,
             .yaw = DEGREES_TO_ANGLE8(288) >> 4
         };
-        reasset_map_objects_set(mapID, reasset_id(dinomodNs, 0x100000), &barrel, sizeof(barrel));
+        reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &barrel, sizeof(barrel));
     }
 
     //Add a SharpClaw guarding the barrel
@@ -927,6 +932,24 @@ static void swapstone_hollow_additions(void) {
         };
 
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &distractNode, sizeof(distractNode));
+    }
+
+    {
+        SHBarrel_Setup barrel = {
+            .base = {
+                .objId = OBJ_SHbarrel,
+                .actExclusions1 = ~MAP_ACT(1),
+                .loadFlags = OBJSETUP_LOAD_LEVEL,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 140,
+                .fadeDistance = 140,
+                .x = 2472.42f,
+                .y = -630.12f,
+                .z = 1700.7f
+            }
+        };
+
+        reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &barrel, sizeof(barrel));
     }
 }
 
@@ -1642,7 +1665,25 @@ static void discovery_falls_hit_edits(void) {
     }
 }
 
+static void custom_objects(void) {
+    // SHbarrel
+    {
+        ReAssetID shBarrelID = reasset_auto_id(dinomodNs);
+        reasset_objects_set(shBarrelID, dinomodNs, objects_shbarrel, objects_shbarrel_end - objects_shbarrel);
+        reasset_object_indices_set(reasset_id(dinomodNs, OBJ_SHbarrel), shBarrelID);
+    }
+}
+
+static void custom_dlls(void) {
+    // SHbarrel
+    reasset_dlls_set(reasset_id(dinomodNs, 0x824C), DLL_BANK_OBJECTS, 
+        /*exportCount*/ 7, (void*)SHbarrel_ctor, (void*)SHbarrel_dtor, &DLL_SHbarrel_vtbl);
+}
+
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
+    custom_objects();
+    custom_dlls();
+
     walled_city_additions();
     warlock_mountain_platform_additions();
     swapstone_hollow_additions();

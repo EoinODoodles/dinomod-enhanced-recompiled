@@ -5,6 +5,7 @@
 #include "sys/objects.h"
 #include "dll.h"
 #include "dlls/engine/18_objfsa.h"
+#include "dlls/engine/54_pickup.h"
 #include "dlls/objects/210_player.h"
 
 #include "recomp/dlls/objects/210_player_recomp.h"
@@ -40,12 +41,10 @@ void playerUtil_stop_carrying(Object* player){
         return;
     }
 
-    objData->unk870 = 0;
-    objData->unk868 = NULL;
-
-    playerUtil_use_walk_anims(player);
-
-    gDLL_18_objfsa->vtbl->set_anim_state(player, &objData->unk0, PLAYER_ASTATE_Standing);
+    if (objData->unk868 != NULL) {
+        gDLL_54_pickup->vtbl->drop(objData->unk868, objData->unk868->data);
+        playerUtil_use_walk_anims(player);
+    }
 }
 
 /**

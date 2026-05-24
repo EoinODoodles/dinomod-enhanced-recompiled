@@ -91,7 +91,7 @@ typedef struct {
 } DFBarrel_Setup; //0x20
 
 typedef struct {
-    u8 _unk0[0xA - 0x0];
+    Pickup pickup;
     u8 damage;                  //Damage accumulated by the barrel (explodes if it's damaged at all, though!)
     u8 framesSinceDetonation;   //Seems intended to count up to deleting the barrel after it explodes, but it's deleted immediately anyway
     s32 _unusedC;
@@ -109,7 +109,7 @@ RECOMP_PATCH void DFbarrel_setup(Object* self, DFBarrel_Setup* objSetup, s32 res
     obj_add_object_type(self, OBJTYPE_Barrel);
     self->srt.yaw = objSetup->yaw << 8;
     self->stateFlags |= OBJSTATE_UPDATE_DISABLED;
-    ((DLL_Unknown*)gDLL_54)->vtbl->func[0].withThreeArgs((s32)self, (s32)self->data, 33); //TODO: remove cast once function signature understood
+    gDLL_54_pickup->vtbl->setup(self, (Pickup*)self->data, 33);
 
     //@recomp: fade in when respawned
     if (objSetup->wasRespawned) {
@@ -160,7 +160,7 @@ RECOMP_PATCH void DFbarrel_control(Object* self) {
     
     switch (objData->framesSinceDetonation) {
     case 0:
-        if (gDLL_54->vtbl->func1.withOneArgS32((s32)self) == 0) {
+        if (gDLL_54_pickup->vtbl->control(self) == 0) {
             DFbarrel_handle_movement(self);
             DFbarrel_handle_damage(self);
         }
@@ -483,7 +483,7 @@ RECOMP_PATCH void DFbarrel_free(Object* self, s32 onlySelf) {
     DFBarrel_Data* objData = self->data;
 
     obj_free_object_type(self, OBJTYPE_Barrel);
-    ((DLL_Unknown*)gDLL_54)->vtbl->func[3].withOneArg((s32)self);
+    gDLL_54_pickup->vtbl->free(self);
 }
 
 u32 RECOMP_PATCH DFbarrel_get_data_size(Object* self) {

@@ -15,5 +15,9 @@ enum CustomObjID {
     OBJ_AnimSpellstone2 = 1416,
     OBJ_CCKrazoaTabletB = 1410,
     OBJ_CCTabletPickup = 1412,
-    OBJ_AnimBlackEyePod = 1393
+    OBJ_AnimBlackEyePod = 1393,
+
+    // reasset ids start here (dont use these at runtime)
+
+    OBJ_SHbarrel = 1466
 };
