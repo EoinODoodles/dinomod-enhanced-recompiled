@@ -80,7 +80,7 @@ RECOMP_PATCH void SHboulder_control(Object* self) {
     }
 
     //Check for damage
-    if (func_80025F40(self, &hitBy, &hitSphereID, &hitDamage) == Damage_Type_Barrel_Explosion) {
+    if (func_80025F40(self, &hitBy, &hitSphereID, &hitDamage) == Damage_Type_Explosion) {
         objData->fadeOut = TRUE;
 
         //@recomp: set gamebit on destruction

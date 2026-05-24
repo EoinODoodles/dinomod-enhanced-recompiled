@@ -1,10 +1,10 @@
+#include "modding.h"
+#include "recomputils.h"
+
 #include "PR/ultratypes.h"
 #include "game/objects/object_id.h"
-#include "modding.h"
-
 #include "game/objects/object.h"
 #include "game/gamebits.h"
-#include "recomputils.h"
 #include "sys/main.h"
 #include "sys/map_enums.h"
 #include "sys/objects.h"
@@ -12,9 +12,8 @@
 #include "sys/objtype.h"
 #include "dll.h"
 
-#include "recomp/dlls/_asm/269_recomp.h"
+#include "recomp/dlls/objects/269_sideload_recomp.h"
 
-#define sideload_control dll_269_control //TODO: remove once decomp updated
 typedef struct {
     ObjSetup base;
     s16 gamebitUnlocked;    //GamebitID determining whether the sidekick is unlocked (i.e. Kyte rescued)

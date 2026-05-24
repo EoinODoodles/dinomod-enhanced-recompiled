@@ -1,40 +1,27 @@
+#include "modding.h"
+#include "math_util.h"
+#include "player_util.h"
+#include "recomputils.h"
+#include "common_objsetups.h"
+#include "string_util.h"
+
 #include "dlls/engine/27.h"
 #include "dlls/objects/210_player.h"
 #include "game/objects/interaction_arrow.h"
 #include "game/objects/object.h"
-#include "math_util.h"
-#include "modding.h"
-#include "player_util.h"
-#include "recomputils.h"
-#include "common_objsetups.h"
-
 #include "common.h"
-#include "string_util.h"
 #include "sys/main.h"
 #include "sys/math.h"
 #include "sys/memory.h"
 #include "sys/objects.h"
 #include "sys/objtype.h"
+#include "sys/print.h"
 // #include "dlls/objects/357_ExplodeAnimator.h"
 // #include "dlls/objects/358_debris.h"
 #include "dlls/objects/418_DFriverflow.h"
 // #include "dlls/objects/541_DIMexplosion.h"
 
-#include "recomp/dlls/_asm/423_recomp.h"
-#include "sys/print.h"
-
-//TODO: remove after decomp update
-#define OBJTYPE_27 27
-#define OBJTYPE_35 53
-#define PARTICLE_355 0x355
-#define Damage_Type_Explosion Damage_Type_Barrel_Explosion
-#define DFbarrel_setup dll_423_setup
-#define DFbarrel_control dll_423_control
-#define DFbarrel_update dll_423_update
-#define DFbarrel_free dll_423_free
-#define DFbarrel_get_data_size dll_423_get_data_size
-#define DFbarrel_handle_movement dll_423_func_304
-#define DFbarrel_handle_damage dll_423_func_960
+#include "recomp/dlls/objects/423_DFbarrel_recomp.h"
 
 typedef struct {
 /*00*/    ObjSetup base;
@@ -119,7 +106,7 @@ extern void DFbarrel_handle_movement(Object* self);
 extern void DFbarrel_handle_damage(Object* self);
 
 RECOMP_PATCH void DFbarrel_setup(Object* self, DFBarrel_Setup* objSetup, s32 reset) {
-    obj_add_object_type(self, OBJTYPE_27);
+    obj_add_object_type(self, OBJTYPE_Barrel);
     self->srt.yaw = objSetup->yaw << 8;
     self->stateFlags |= OBJSTATE_UPDATE_DISABLED;
     ((DLL_Unknown*)gDLL_54)->vtbl->func[0].withThreeArgs((s32)self, (s32)self->data, 33); //TODO: remove cast once function signature understood
@@ -495,7 +482,7 @@ RECOMP_PATCH void DFbarrel_handle_damage(Object* self) {
 RECOMP_PATCH void DFbarrel_free(Object* self, s32 onlySelf) {
     DFBarrel_Data* objData = self->data;
 
-    obj_free_object_type(self, OBJTYPE_27);
+    obj_free_object_type(self, OBJTYPE_Barrel);
     ((DLL_Unknown*)gDLL_54)->vtbl->func[3].withOneArg((s32)self);
 }
 

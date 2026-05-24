@@ -1,8 +1,10 @@
 #include "modding.h"
 #include "recompconfig.h"
 
+#include "dlls/objects/common/vehicle.h"
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/418_DFriverflow.h"
+#include "dlls/objects/419_DFdockpoint.h"
 #include "dlls/engine/27.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
@@ -23,52 +25,55 @@ static int dinomod_log_can_hold_a(void) {
 
 #include "recomp/dlls/objects/793_BWlog_recomp.h"
 
-typedef struct {
-    ObjSetup base;
-    u8 _unk18[2];
-    s16 unk1A;
-} ObjType23Setup;
+typedef enum {
+    BWLog_STATE_0_Main,
+    BWLog_STATE_1_Roll_Left,
+    BWLog_STATE_2_Roll_Right,
+    BWLog_STATE_3_Placeholder1,
+    BWLog_STATE_4_Placeholder2
+} BWlog_States;
+
 
 typedef struct {
-    DLL27_Data unk0;
-    Vec3f unk260[2];
-    Vec3f unk278[2];
-    f32 unk290[2];
-    f32 unk298[2];
-    Vec4f unk2A0;
-    f32 unk2B0;
-    f32 unk2B4;
-    f32 unk2B8;
-    f32 unk2BC;
-    f32 unk2C0;
-    f32 unk2C4;
-    f32 unk2C8;
-    f32 unk2CC;
-    f32 unk2D0[2];
-    f32 unk2D8[2];
-    f32 unk2E0[2];
-    u8 _unk2E8[0x2F8 - 0x2E8];
-    f32 unk2F8;
-    f32 unk2FC;
-    f32 unk300[2];
-    f32 unk308;
-    f32 unk30C;
-    f32 unk310;
-    u32 unk314;
-    s32 unk318;
-    u16 unk31C[2];
-    u16 unk320;
-    s16 unk322;
-    s16 unk324;
-    s16 unk326;
-    s16 unk328;
-    u8 unk32A;
-    u8 unk32B;
-    u8 unk32C;
-    u8 unk32D;
-    u8 unk32E;
-    u8 _unk32E[0x338 - 0x32F];
-    Object *unk338; // dockpoint
+/*000*/ DLL27_Data collider;
+/*260*/ Vec3f endPoints[2];
+/*278*/ Vec3f velocity[2];
+/*290*/ f32 powerZ[2]; // forward/backward
+/*298*/ f32 powerX[2]; // lateral
+/*2A0*/ Vec4f rollCurve; //Roll speed spline
+/*2B0*/ f32 rollSpeed; // wobble (smoothed)
+/*2B4*/ f32 targetWaterYOffset;
+/*2B8*/ f32 paddleTimer; // move timer (when > 0, move forward)
+/*2BC*/ f32 rollTimer;
+/*2C0*/ f32 rollAcceleration; // wobble
+/*2C4*/ s32 _unk2C4;
+/*2C8*/ f32 rollCurveProgress;
+/*2CC*/ f32 tValueRoll;
+/*2D0*/ f32 flowX[2]; //DFriverflow objects' combined push strength in X (values for both ends of log)
+/*2D8*/ f32 flowY[2]; //DFriverflow objects' combined push strength in Y (values for both ends of log)
+/*2E0*/ f32 flowZ[2]; //DFriverflow objects' combined push strength in Z (values for both ends of log)
+/*2E8*/ u8 _unk2E8[0x2F8 - 0x2E8];
+/*2F8*/ f32 joyATimer;
+/*2FC*/ f32 paddlePower;
+/*300*/ f32 unk300[2];
+/*308*/ f32 soundPitch;
+/*30C*/ f32 soundVolume;
+/*310*/ f32 riverflowMagnitude;
+/*314*/ u32 soundHandle; //Controls rushing water sound loop
+/*318*/ s32 rollAngle; // when rolling, the current roll rotation
+/*31C*/ u16 wiggleYOffsets[2]; // y offset for each end point to pitch the log up/down to simulate small waves
+/*320*/ u16 joyPressed; // controller buttons pressed
+/*322*/ s16 joyStickX; // joystick x
+/*324*/ s16 joyStickY; // joystick y
+/*326*/ s16 soundPitchPhase;
+/*328*/ s16 soundVolumePhase;
+/*32A*/ u8 state; // roll state (0 = not rolling, 1 = left, 2 = right)
+/*32B*/ u8 playerVehicleAnim;
+/*32C*/ u8 joyARecentTap; // a pressed (turns off automatically after a time or if a is pressed again)
+/*32D*/ u8 unk32D; // bitfield of which side of the log is touching terrain (0x1 = front, 0x2 = back, 0x3 = both)
+/*32E*/ u8 mountState; // see VehicleMountState
+/*32F*/ u8 _unk32F[0x338 - 0x32F];
+/*338*/ Object *dockpoint;
 } BWlog_Data;
 
 // @recomp: Custom setup
@@ -77,19 +82,19 @@ typedef struct {
     s8 startRotation;
 } BWlog_Setup;
 
-extern Vec3f _data_0[2];
-extern f32 _data_18[2];
-extern u8 _data_20[2];
+extern Vec3f dLocalEndpointCoords[2];
+extern f32 dCollisionRadii[2];
+extern u8 dColliderParams[2];
 
-extern void dll_793_func_EB0(Object* self, BWlog_Data* objdata, s32 arg2);
-extern void dll_793_func_1600(Object* self, BWlog_Data* objdata);
-extern void dll_793_func_178C(Object* self, BWlog_Data* objdata, s32 arg2);
-extern void dll_793_func_1858(Object* self, BWlog_Data* objdata);
-extern void dll_793_func_1A4C(Object* self, BWlog_Data* objdata);
-extern void dll_793_func_1A5C(Object* self, BWlog_Data* objdata);
-extern void dll_793_func_1C18(Object* self, BWlog_Data* objdata);
-extern void dll_793_func_2020(Object* arg0, BWlog_Data* arg1);
-extern void dll_793_func_2444(Object* self, BWlog_Data* objdata);
+extern void BWlog_handle_water(Object* self, BWlog_Data* objdata, s32 arg2);
+extern void BWlog_handle_controls_a_button(Object* self, BWlog_Data* objdata);
+extern void BWlog_start_roll(Object* self, BWlog_Data* objdata, s32 arg2);
+extern void BWlog_handle_roll(Object* self, BWlog_Data* objdata);
+extern void BWlog_handle_unknown_state(Object* self, BWlog_Data* objdata);
+extern void BWlog_handle_paddle_motion(Object* self, BWlog_Data* objdata);
+extern void BWlog_find_riverflows(Object* self, BWlog_Data* objdata);
+extern void BWlog_handle_sounds(Object* arg0, BWlog_Data* arg1);
+extern void BWlog_handle_fx(Object* self, BWlog_Data* objdata);
 
 // @recomp: Copy of DFlog's anim callback
 static int recomp_BWlog_animcallback(Object *self, Object *a1, AnimObj_Data *a2, s8 a3) {
@@ -97,7 +102,7 @@ static int recomp_BWlog_animcallback(Object *self, Object *a1, AnimObj_Data *a2,
     return 0;
 }
 
-RECOMP_PATCH void dll_793_setup(Object *self, BWlog_Setup *setup, s32 arg2) {
+RECOMP_PATCH void BWlog_setup(Object *self, BWlog_Setup *setup, s32 arg2) {
     BWlog_Data *objdata = (BWlog_Data*)self->data;
     s32 i;
 
@@ -105,17 +110,17 @@ RECOMP_PATCH void dll_793_setup(Object *self, BWlog_Setup *setup, s32 arg2) {
     //          an anim callback, but there's some sequences that assume one is set up to adjust collision.
     self->animCallback = recomp_BWlog_animcallback;
 
-    gDLL_27->vtbl->init(&objdata->unk0, 
+    gDLL_27->vtbl->init(&objdata->collider, 
         DLL27FLAG_NONE, 
         DLL27FLAG_8000000 | DLL27FLAG_40000 | DLL27FLAG_20 | DLL27FLAG_2 | DLL27FLAG_1, 
         DLL27MODE_1);
-    gDLL_27->vtbl->setup_terrain_collider(&objdata->unk0, 2, _data_0, _data_18, _data_20);
+    gDLL_27->vtbl->setup_terrain_collider(&objdata->collider, 2, dLocalEndpointCoords, dCollisionRadii, dColliderParams);
     // @recomp: Add block hits collider
-    gDLL_27->vtbl->setup_hits_collider(&objdata->unk0, 2, _data_0, _data_18, 8);
-    objdata->unk0.boundsYExtension = 100;
+    gDLL_27->vtbl->setup_hits_collider(&objdata->collider, 2, dLocalEndpointCoords, dCollisionRadii, 8);
+    objdata->collider.boundsYExtension = 100;
     obj_add_object_type(self, OBJTYPE_Vehicle);
-    objdata->unk31C[1] = 0x2000;
-    objdata->unk2B4 = 15.0f;
+    objdata->wiggleYOffsets[1] = 0x2000;
+    objdata->targetWaterYOffset = 15.0f;
     
     self->shadow->flags |= (OBJ_SHADOW_FLAG_WATER_SURFACE | OBJ_SHADOW_FLAG_TOP_DOWN | OBJ_SHADOW_FLAG_USE_OBJ_YAW | OBJ_SHADOW_FLAG_CUSTOM_COLOR | OBJ_SHADOW_FLAG_CUSTOM_DIR);
     self->shadow->r = 0xFF;
@@ -124,9 +129,9 @@ RECOMP_PATCH void dll_793_setup(Object *self, BWlog_Setup *setup, s32 arg2) {
     self->shadow->a = 0x7F;
 
     for (i = 0; i < 2; i++) {
-        objdata->unk260[i].x = self->srt.transl.x;
-        objdata->unk260[i].y = self->srt.transl.y;
-        objdata->unk260[i].z = self->srt.transl.z;
+        objdata->endPoints[i].x = self->srt.transl.x;
+        objdata->endPoints[i].y = self->srt.transl.y;
+        objdata->endPoints[i].z = self->srt.transl.z;
     }
 
     // @recomp: Do the same hit info setup as DFlog. Helps with cases where an Override takes control
@@ -137,7 +142,7 @@ RECOMP_PATCH void dll_793_setup(Object *self, BWlog_Setup *setup, s32 arg2) {
     //          after the log spawns, sometimes this state won't be initialized with the log's current position.
     //          This is a problem with the totem puzzle log, where the log will warp away a bit after regaining
     //          control if this state is not set up right.
-    gDLL_27->vtbl->reset(self, &objdata->unk0);
+    gDLL_27->vtbl->reset(self, &objdata->collider);
 
     // @recomp: Support start yaw via setup
     self->srt.yaw = setup->startRotation << 8;
@@ -220,98 +225,110 @@ RECOMP_PATCH void dll_793_setup(Object *self, BWlog_Setup *setup, s32 arg2) {
 //     }
 // }
 
-RECOMP_PATCH void dll_793_control(Object* self) {
+RECOMP_PATCH void BWlog_control(Object* self) {
     BWlog_Data* objdata;
-    f32 var_fv1;
-    f32 sp184[3];
-    f32 sp178[3];
-    SRT sp160;
-    MtxF sp120;
-    MtxF spE0;
-    MtxF spA0;
+    f32 damp;
+    f32 vel[3];
+    Vec3f vec;
+    SRT srt;
+    MtxF logMtx;
+    MtxF pitchYawMtx;
+    MtxF invPitchYawMtx;
     f32 sp9C;
-    f32 sp98;
-    ObjType23Setup* temp_s0;
+    f32 distance;
+    DFdockpoint_Setup* dockpointSetup;
     s32 i;
 
     // @recomp: Run objhit func just like DFlog does. Resets the state modified by the anim callback.
     func_8002674C(self);
 
     objdata = (BWlog_Data*)self->data;
-    sp98 = 10000.0f;
-    objdata->unk338 = obj_get_nearest_type_to(OBJTYPE_Dockpoint, self, &sp98);
-    if (objdata->unk338 != NULL) {
-        temp_s0 = (ObjType23Setup*)objdata->unk338->setup;
-        sp98 = vec3_distance(&self->globalPosition, &objdata->unk338->globalPosition);
-        if (objdata->unk32E == 2) {
-            var_fv1 = 0.95f;
+    
+    distance = 10000.0f;
+    objdata->dockpoint = obj_get_nearest_type_to(OBJTYPE_Dockpoint, self, &distance);
+    if (objdata->dockpoint != NULL) {
+        dockpointSetup = (DFdockpoint_Setup*)objdata->dockpoint->setup;
+        distance = vec3_distance(&self->globalPosition, &objdata->dockpoint->globalPosition);
+        // Reduce velocity while near a dockpoint
+        if (objdata->mountState == VEHICLE_Mounted) {
+            damp = 0.95f;
         } else {
-            var_fv1 = 0.5f;
+            damp = 0.5f;
         }
-        if (sp98 < (f32) temp_s0->unk1A) {
+        if (distance < dockpointSetup->range) {
             for (i = 0; i < 2; i++) {
-                objdata->unk278[i].x *= var_fv1;
-                objdata->unk278[i].z *= var_fv1;
+                objdata->velocity[i].x *= damp;
+                objdata->velocity[i].z *= damp;
             }
         } else {
-            objdata->unk338 = NULL;
+            objdata->dockpoint = NULL;
         }
     }
-    dll_793_func_1C18(self, objdata);
-    if (objdata->unk32E == 2) {
-        dll_793_func_1600(self, objdata);
-        switch (objdata->unk32A) {
-        case 1:
-        case 2:
-            dll_793_func_1858(self, objdata);
+
+    BWlog_find_riverflows(self, objdata);
+
+    if (objdata->mountState == VEHICLE_Mounted) {
+        BWlog_handle_controls_a_button(self, objdata);
+
+        switch (objdata->state) {
+        case BWLog_STATE_1_Roll_Left:
+        case BWLog_STATE_2_Roll_Right:
+            BWlog_handle_roll(self, objdata);
             break;
-        case 3:
-        case 4:
-            dll_793_func_1A4C(self, objdata);
+        case BWLog_STATE_3_Placeholder1:
+        case BWLog_STATE_4_Placeholder2:
+            BWlog_handle_unknown_state(self, objdata); //Placeholder for other left/right state? Maybe getting hurt?
             break;
         default:
-            dll_793_func_1A5C(self, objdata);
+            BWlog_handle_paddle_motion(self, objdata);
             break;
         }
+
         // @recomp: Don't apply turn to yaw directly to behave more like DFLog (turn logic moved to below code)
         //self->srt.yaw -= (s32) ((f32) objdata->unk322 * (60.0f - ((f32) objdata->unk324 * 0.05f)) * 0.1f * gUpdateRateF) & 0xFFFF & 0xFFFF;
     }
-    sp160.yaw = self->srt.yaw;
-    sp160.pitch = self->srt.pitch;
-    sp160.roll = self->srt.roll;
-    sp160.scale = 1.0f;
-    sp160.transl.x = self->srt.transl.x;
-    sp160.transl.y = self->srt.transl.y;
-    sp160.transl.z = self->srt.transl.z;
-    matrix_from_srt(&sp120, &sp160);
-    sp160.roll = 0;
-    sp160.transl.x = 0;
-    sp160.transl.y = 0;
-    sp160.transl.z = 0;
-    matrix_from_srt(&spE0, &sp160);
-    sp160.yaw = -sp160.yaw;
-    sp160.pitch = -sp160.pitch;
-    matrix_from_srt_reversed(&spA0, &sp160);
+
+    srt.yaw = self->srt.yaw;
+    srt.pitch = self->srt.pitch;
+    srt.roll = self->srt.roll;
+    srt.scale = 1.0f;
+    srt.transl.x = self->srt.transl.x;
+    srt.transl.y = self->srt.transl.y;
+    srt.transl.z = self->srt.transl.z;
+    matrix_from_srt(&logMtx, &srt);
+    srt.roll = 0;
+    srt.transl.x = 0;
+    srt.transl.y = 0;
+    srt.transl.z = 0;
+    matrix_from_srt(&pitchYawMtx, &srt);
+    srt.yaw = -srt.yaw;
+    srt.pitch = -srt.pitch;
+    matrix_from_srt_reversed(&invPitchYawMtx, &srt);
+
     for (i = 0; i < 2; i++) {
-        vec3_transform(&sp120, 
-                       _data_0[i].x, _data_0[i].y, _data_0[i].z, 
-                       &objdata->unk260[i].x, &objdata->unk260[i].y, &objdata->unk260[i].z);
-        dll_793_func_EB0(self, objdata, i);
-        vec3_transform(&spA0, 
-                       objdata->unk2D0[i], 0.0f, objdata->unk2E0[i], 
-                       &sp184[0], &sp184[1], &sp184[2]);
+        // Recalculate log end points from current matrix
+        vec3_transform(&logMtx, 
+                       dLocalEndpointCoords[i].x, dLocalEndpointCoords[i].y, dLocalEndpointCoords[i].z, 
+                       &objdata->endPoints[i].x, &objdata->endPoints[i].y, &objdata->endPoints[i].z);
+        // Do water physics for this side of the log
+        BWlog_handle_water(self, objdata, i);
+        // Factor in riverflow influence
+        vec3_transform(&invPitchYawMtx, 
+                       objdata->flowX[i], 0.0f, objdata->flowZ[i], 
+                       &vel[0], &vel[1], &vel[2]);
         // @recomp: Don't cut riverflow strength in half (many of the game's riverflows were designed for DFlog
         //          which is affected by riverflows much more than BWLog). Note that this does make the Blackwater
         //          Canyon riverflows feel stronger and may need to be tweaked for that level.
-        // sp184[0] *= -0.5f;
-        // sp184[2] *= 0.5f;
-        sp184[0] *= -1.0f;
-        objdata->unk310 = sqrtf(SQ(sp184[2]) + SQ(sp184[0]));
-        sp184[2] += objdata->unk2FC;
+        // vel[0] *= -0.5f;
+        // vel[2] *= 0.5f;
+        vel[0] *= -1.0f;
+        objdata->riverflowMagnitude = sqrtf(SQ(vel[2]) + SQ(vel[0]));
+        // Factor in paddle forward power
+        vel[2] += objdata->paddlePower;
 
         // @recomp: Apply turn by rotating the front/end log points (like DFLog rather than altering yaw directly)
-        if (objdata->unk32E == 2) {
-            f32 turn = (f32) objdata->unk322 * (60.0f - ((f32) objdata->unk324 * 0.05f)) / 60.0f * 0.01f;
+        if (objdata->mountState == VEHICLE_Mounted) {
+            f32 turn = (f32) objdata->joyStickX * (60.0f - ((f32) objdata->joyStickY * 0.05f)) / 60.0f * 0.01f;
             // Reduce turning effectiveness with increased pitch to help avoid fast spiralling when going down waterfalls
             f32 pitchDamp = (f32)self->srt.pitch / (f32)M_90_DEGREES;
             if (pitchDamp < 0) {
@@ -319,132 +336,138 @@ RECOMP_PATCH void dll_793_control(Object* self) {
             }
             turn *= (1.0f - MIN(pitchDamp, 1.0f));
             if (i == 1) {
-                sp184[0] -= turn;
+                vel[0] -= turn;
             } else {
-                sp184[0] += turn;
+                vel[0] += turn;
             }
         }
 
         // @recomp: Add roll movement here instead of forcing unk298. Note: Doing this here makes rolling affected
         //          by riverflows, which helps prevent escaping intended areas. This shouldn't have too much of
         //          an effect on the Blackwater Canyon rapids.
-        if (objdata->unk32A == 1) {
-            sp184[0] += -2.5f;
-        } else if (objdata->unk32A == 2) {
-            sp184[0] += 2.5f;
+        if (objdata->state == BWLog_STATE_1_Roll_Left) {
+            vel[0] += -2.5f;
+        } else if (objdata->state == BWLog_STATE_2_Roll_Right) {
+            vel[0] += 2.5f;
         }
 
-        objdata->unk290[i] += ((sp184[2] - objdata->unk290[i]) * gUpdateRateF * 0.1f);
+        // Interpolate to target forward/lateral powers
+        objdata->powerZ[i] += ((vel[2] - objdata->powerZ[i]) * gUpdateRateF * 0.1f);
         // @recomp: Allow lateral movement while rolling (we changed how roll movement is applied)
-        //if (objdata->unk32A == 0) {
-            objdata->unk298[i] += ((sp184[0] - objdata->unk298[i]) * gUpdateRateF * 0.1f);
+        //if (objdata->state == BWLog_STATE_0_Main) {
+            objdata->powerX[i] += ((vel[0] - objdata->powerX[i]) * gUpdateRateF * 0.1f);
         //}
-        vec3_transform(&spE0, 
-                       objdata->unk298[i], 0.0f, -objdata->unk290[i], 
-                       &objdata->unk278[i].x, &sp9C, &objdata->unk278[i].z);
+        // Convert powers to velocity in world space
+        vec3_transform(&pitchYawMtx, 
+                       objdata->powerX[i], 0.0f, -objdata->powerZ[i], 
+                       &objdata->velocity[i].x, &sp9C, &objdata->velocity[i].z);
         // @recomp: Clamp pitch acceleration to avoid launches at extreme angles.
         //          There might be a better way to patch this, but this works pretty much perfectly.
-        CLAMP(objdata->unk278[i].y, -10.0f, 10.0f);
-        sp184[0] = objdata->unk278[i].x * gUpdateRateF;
-        sp184[1] = objdata->unk278[i].y * gUpdateRateF;
-        sp184[2] = objdata->unk278[i].z * gUpdateRateF;
-        objdata->unk260[i].x = objdata->unk260[i].x + sp184[0];
-        objdata->unk260[i].y = objdata->unk260[i].y + sp184[1];
-        objdata->unk260[i].z = objdata->unk260[i].z + sp184[2];
+        CLAMP(objdata->velocity[i].y, -10.0f, 10.0f);
+        // Apply velocity
+        vel[0] = objdata->velocity[i].x * gUpdateRateF;
+        vel[1] = objdata->velocity[i].y * gUpdateRateF;
+        vel[2] = objdata->velocity[i].z * gUpdateRateF;
+        objdata->endPoints[i].x = objdata->endPoints[i].x + vel[0];
+        objdata->endPoints[i].y = objdata->endPoints[i].y + vel[1];
+        objdata->endPoints[i].z = objdata->endPoints[i].z + vel[2];
     }
-    sp178[0] = objdata->unk260[0].x + objdata->unk260[1].x;
-    sp178[1] = objdata->unk260[0].y + objdata->unk260[1].y;
-    sp178[2] = objdata->unk260[0].z + objdata->unk260[1].z;
-    self->srt.transl.x = sp178[0] * 0.5f;
-    self->srt.transl.y = sp178[1] * 0.5f;
-    self->srt.transl.z = sp178[2] * 0.5f;
-    sp178[0] = objdata->unk260[1].x - objdata->unk260[0].x;
-    sp178[1] = objdata->unk260[1].y - objdata->unk260[0].y;
-    sp178[2] = objdata->unk260[1].z - objdata->unk260[0].z;
-    self->srt.pitch = -arctan2_f(sp178[1], sqrtf(SQ(sp178[2]) + SQ(sp178[0])));
+
+    // Set object position to average of end point positions
+    VECTOR_ADD(objdata->endPoints[0], objdata->endPoints[1], vec);
+    self->srt.transl.x = vec.f[0] * 0.5f;
+    self->srt.transl.y = vec.f[1] * 0.5f;
+    self->srt.transl.z = vec.f[2] * 0.5f;
+    // Align object pitch with pitch of end points line
+    VECTOR_SUBTRACT(objdata->endPoints[1], objdata->endPoints[0], vec);
+    self->srt.pitch = -arctan2_f(vec.f[1], sqrtf(SQ(vec.f[2]) + SQ(vec.f[0])));
     // @recomp: Clamp pitch to avoid reaching exactly 90 degrees (clamps to ~87 degrees).
     //          This allows the player to move forward slightly even when vertical.
     CLAMP(self->srt.pitch, -0x3E00, 0x3E00);
     // @recomp: Calculate yaw from log front/back points (like DFLog)
-    self->srt.yaw = arctan2_f(sp178[0], sp178[2]);
-    gDLL_27->vtbl->func_1E8(self, &objdata->unk0, gUpdateRateF);
-    gDLL_27->vtbl->func_5A8(self, &objdata->unk0);
-    gDLL_27->vtbl->func_624(self, &objdata->unk0, gUpdateRateF);
+    self->srt.yaw = arctan2_f(vec.f[0], vec.f[2]);
+    // Collider updates
+    gDLL_27->vtbl->func_1E8(self, &objdata->collider, gUpdateRateF);
+    gDLL_27->vtbl->func_5A8(self, &objdata->collider);
+    gDLL_27->vtbl->func_624(self, &objdata->collider, gUpdateRateF);
     // @recomp: When not rolling, rotate log when bumping into walls
     // TODO: this is fun but it messes up going down waterfalls. will need some changes before we can enable it
-    // if (objdata->unk32A == 0) {
+    // if (objdata->state == BWLog_STATE_0_Main) {
     //     wall_react(self, &objdata->unk0);
     // }
-    dll_793_func_2020(self, objdata);
-    dll_793_func_2444(self, objdata);
+    
+    BWlog_handle_sounds(self, objdata);
+    BWlog_handle_fx(self, objdata);
 }
 
-RECOMP_PATCH void dll_793_func_EB0(Object* self, BWlog_Data* objdata, s32 arg2) {
+RECOMP_PATCH void BWlog_handle_water(Object* self, BWlog_Data* objdata, s32 side) {
     f32 temp_fa1;
     f32 temp_ft5;
     f32 temp_fv0;
     f32 sp60;
     s32 sp50;
-    f32 var_fv0;
+    f32 volume;
     f32 var_fv1;
-    s32 var_v1;
-    f32 temp;
+    s32 i;
+    f32 targetY;
 
     // @recomp: Use floor position when water is not detected
-    f32 floor = objdata->unk0.waterYList[arg2];
+    f32 floor = objdata->collider.waterYList[side];
     s32 foundWater = TRUE;
     if (floor <= -100000.0f) {
-        floor = objdata->unk0.floorYList[arg2];
+        floor = objdata->collider.floorYList[side];
         foundWater = FALSE;
     }
 
-    temp = objdata->unk2B4 + floor;
-    if ((objdata->unk260[arg2].y + 30.0f) < temp) {
+    targetY = objdata->targetWaterYOffset + floor;
+    if ((objdata->endPoints[side].y + 30.0f) < targetY) {
         diPrintf("Water too high\n");
     }
     // @recomp: Don't apply the pitch wiggle if not actually in water. Avoids the log wiggling
     //          when it's up on the CClogpush cliff.
     if (foundWater) {
-        temp += (fsin16_precise(objdata->unk31C[arg2]) * 1.5f);
-        objdata->unk31C[arg2] += (gUpdateRateF * 512.0f);
+        targetY += (fsin16_precise(objdata->wiggleYOffsets[side]) * 1.5f);
+        objdata->wiggleYOffsets[side] += (gUpdateRateF * 512.0f);
     }
-    sp60 = temp - objdata->unk260[arg2].y;
-    if ((sp60 > 0.0f) && (objdata->unk300[arg2] < 0.0f)) {
-        var_fv0 = objdata->unk278[arg2].y * 127.0f;
-        if (var_fv0 < 0.0f) {
-            var_fv0 = -var_fv0;
+
+    sp60 = targetY - objdata->endPoints[side].y;
+    if ((sp60 > 0.0f) && (objdata->unk300[side] < 0.0f)) {
+        volume = objdata->velocity[side].y * 127.0f;
+        if (volume < 0.0f) {
+            volume = -volume;
         }
-        if (var_fv0 > 127.0f) {
-            var_fv0 = 127.0f;
+        if (volume > 127.0f) {
+            volume = 127.0f;
         }
-        if (var_fv0 > 20.0f) {
-            gDLL_6_AMSFX->vtbl->play(self, 0xA75, (u8) var_fv0, NULL, NULL, 0, NULL);
+        if (volume > 20.0f) {
+            gDLL_6_AMSFX->vtbl->play(self, SOUND_A75, (u8)volume, NULL, NULL, 0, NULL);
         }
-    } else if ((sp60 < 0.0f) && (objdata->unk300[arg2] > 0.0f)) {
-        var_fv0 = objdata->unk278[arg2].y * 127.0f;
-        if (var_fv0 < 0.0f) {
-            var_fv0 = -var_fv0;
+    } else if ((sp60 < 0.0f) && (objdata->unk300[side] > 0.0f)) {
+        volume = objdata->velocity[side].y * 127.0f;
+        if (volume < 0.0f) {
+            volume = -volume;
         }
-        if (var_fv0 > 127.0f) {
-            var_fv0 = 127.0f;
+        if (volume > 127.0f) {
+            volume = 127.0f;
         }
-        if (var_fv0 > 20.0f) {
-            gDLL_6_AMSFX->vtbl->play(self, 0xA74, (u8) var_fv0, NULL, NULL, 0, NULL);
+        if (volume > 20.0f) {
+            gDLL_6_AMSFX->vtbl->play(self, SOUND_A74, (u8)volume, NULL, NULL, 0, NULL);
         }
     }
-    objdata->unk300[arg2] = sp60;
+
+    objdata->unk300[side] = sp60;
     if (sp60 > 25.0f) {
         sp60 = 25.0f;
     }
     if (sp60 < 0.0f) {
         sp60 = 0.0f;
     }
-    objdata->unk278[arg2].y = (f32) (objdata->unk278[arg2].y + ((sp60 / 15.0f) * 0.15f * gUpdateRateF));
-    objdata->unk278[arg2].y = (f32) (objdata->unk278[arg2].y - (0.1f * gUpdateRateF));
-    var_v1 = (s32) gUpdateRate;
-    diPrintf("[%d]=%f\n", arg2, &sp60);
+    objdata->velocity[side].y += ((sp60 / 15.0f) * 0.15f * gUpdateRateF);
+    objdata->velocity[side].y -= (0.1f * gUpdateRateF);
+    i = (s32) gUpdateRate;
+    diPrintf("[%d]=%f\n", side, &sp60);
     if (sp60 > 0.0f) {
-        if (objdata->unk278[arg2].y < 0.0f) {
+        if (objdata->velocity[side].y < 0.0f) {
             var_fv1 = sp60 / 25.0f;
             temp_ft5 = 1.0f + var_fv1;
             if (var_fv1 > 1.0f) {
@@ -452,187 +475,202 @@ RECOMP_PATCH void dll_793_func_EB0(Object* self, BWlog_Data* objdata, s32 arg2) 
             }
             var_fv1 = (1.0f - var_fv1);
             temp_fa1 = (0.007000029f * var_fv1) + 0.988f;
-            while (var_v1--) {
-                temp_fv0 = objdata->unk278[arg2].y;
+            while (i--) {
+                temp_fv0 = objdata->velocity[side].y;
                 if (temp_fv0 > 0/*.0f*/) {
                     var_fv1 = temp_fv0;
                 } else {
                     var_fv1 = -temp_fv0;
                 }
-                objdata->unk278[arg2].y = (f32) (temp_fv0 - (temp_fv0 * var_fv1 * 0.1f * temp_ft5));
-                objdata->unk290[arg2] = (f32) (objdata->unk290[arg2] * temp_fa1);
-                objdata->unk298[arg2] = (f32) (objdata->unk298[arg2] * temp_fa1);
-                objdata->unk2FC *= 0.99f;
+                objdata->velocity[side].y = temp_fv0 - (temp_fv0 * var_fv1 * 0.1f * temp_ft5);
+                objdata->powerZ[side] *= temp_fa1;
+                objdata->powerX[side] *= temp_fa1;
+                objdata->paddlePower *= 0.99f;
             }
-            return;
-        }
-        
-        var_fv1 = sp60 / 25.0f;
-        temp_ft5 = 1.0f + var_fv1;
-        if (var_fv1 > 1.0f) {
-            var_fv1 = 1.0f;
-        }
-        var_fv1 = (1.0f - var_fv1);
-        temp_fa1 = (0.007000029f * var_fv1) + 0.988f;
-        while (var_v1--) {
-            temp_fv0 = objdata->unk278[arg2].y;
-            if (temp_fv0 > 0/*.0f*/) {
-                var_fv1 = temp_fv0;
-            } else {
-                var_fv1 = -temp_fv0;
+        } else {
+            var_fv1 = sp60 / 25.0f;
+            temp_ft5 = 1.0f + var_fv1;
+            if (var_fv1 > 1.0f) {
+                var_fv1 = 1.0f;
             }
-            objdata->unk278[arg2].y = (f32) (temp_fv0 - (temp_fv0 * var_fv1 * 0.1f * temp_ft5));
-            objdata->unk290[arg2] = (f32) (objdata->unk290[arg2] * temp_fa1);
-            objdata->unk298[arg2] = (f32) (objdata->unk298[arg2] * temp_fa1);
-            objdata->unk2FC *= 0.99f;
+            var_fv1 = (1.0f - var_fv1);
+            temp_fa1 = (0.007000029f * var_fv1) + 0.988f;
+            while (i--) {
+                temp_fv0 = objdata->velocity[side].y;
+                if (temp_fv0 > 0/*.0f*/) {
+                    var_fv1 = temp_fv0;
+                } else {
+                    var_fv1 = -temp_fv0;
+                }
+                objdata->velocity[side].y = temp_fv0 - (temp_fv0 * var_fv1 * 0.1f * temp_ft5);
+                objdata->powerZ[side] *= temp_fa1;
+                objdata->powerX[side] *= temp_fa1;
+                objdata->paddlePower *= 0.99f;
+            }
         }
-        return;
-    }
-    
-    while (var_v1--) {
-        objdata->unk278[arg2].y = (f32) (objdata->unk278[arg2].y * 0.994f);
-        objdata->unk290[arg2] = (f32) (objdata->unk290[arg2] * 0.995f);
-        objdata->unk298[arg2] = (f32) (objdata->unk298[arg2] * 0.99f);
-        objdata->unk2FC *= 0.99f;
+    } else {
+        while (i--) {
+            objdata->velocity[side].y *= 0.994f;
+            objdata->powerZ[side] *= 0.995f;
+            objdata->powerX[side] *= 0.99f;
+            objdata->paddlePower *= 0.99f;
+        }
     }
 }
 
-RECOMP_PATCH void dll_793_func_1600(Object* self, BWlog_Data* objdata) {
+RECOMP_PATCH void BWlog_handle_controls_a_button(Object* self, BWlog_Data* objdata) {
     s32 doubleTappedA;
 
-    objdata->unk320 = joy_get_pressed(0);
-    objdata->unk322 = joy_get_stick_x(0);
-    objdata->unk324 = joy_get_stick_y(0);
-    objdata->unk2F8 -= gUpdateRateF;
-    if (objdata->unk2F8 <= 0.0f) {
-        objdata->unk32C = 0;
-        objdata->unk2F8 = 0.0f;
+    objdata->joyPressed = joy_get_pressed(0);
+    objdata->joyStickX = joy_get_stick_x(0);
+    objdata->joyStickY = joy_get_stick_y(0);
+
+    //Decrement timer (used for detecting A button double-tap)
+    objdata->joyATimer -= gUpdateRateF;
+    if (objdata->joyATimer <= 0.0f) {
+        objdata->joyARecentTap = FALSE;
+        objdata->joyATimer = 0.0f;
     }
+
+    //Check for A button presses
     doubleTappedA = FALSE;
-    if (objdata->unk320 & A_BUTTON) {
-        if (objdata->unk32C != 0) {
+    if (objdata->joyPressed & A_BUTTON) {
+        if (objdata->joyARecentTap) {
+            //If A button was already tapped recently, register this A press as a double-tap
             doubleTappedA = TRUE;
-            objdata->unk32C = 0;
-            objdata->unk2F8 = 0.0f;
+            objdata->joyARecentTap = FALSE;
+            objdata->joyATimer = 0.0f;
         } else {
-            objdata->unk32C = 1;
-            objdata->unk2F8 = 15.0f;
+            //Otherwise, remember that there was a recent A-tap and start a timer until it's forgotten
+            objdata->joyARecentTap = TRUE;
+            objdata->joyATimer = 15.0f;
         }
     }
+
     if (doubleTappedA) {
-        if (objdata->unk322 >= 0x15) {
-            dll_793_func_178C(self, objdata, 0);
-            objdata->unk32A = 2;
+        //Roll when double-tapping A
+        if (objdata->joyStickX > 20) {
+            BWlog_start_roll(self, objdata, FALSE);
+            objdata->state = BWLog_STATE_2_Roll_Right;
             return;
         }
-        if (objdata->unk322 < -0x14) {
-            dll_793_func_178C(self, objdata, 1);
-            objdata->unk32A = 1;
+        if (objdata->joyStickX < -20) {
+            BWlog_start_roll(self, objdata, TRUE);
+            objdata->state = BWLog_STATE_1_Roll_Left;
         }
       // @recomp: If enabled, allow the A button to be held instead of requiring repeated tapping
-    } else if ((objdata->unk320 & A_BUTTON) || (dinomod_log_can_hold_a() && joy_get_buttons(0) & A_BUTTON)) {
-        objdata->unk2B8 = 30.0f;
+    } else if ((objdata->joyPressed & A_BUTTON) || (dinomod_log_can_hold_a() && joy_get_buttons(0) & A_BUTTON)) {
+        //Paddle with single A-press
+        objdata->paddleTimer = 30.0f;
     }
 }
 
-RECOMP_PATCH void dll_793_func_178C(Object* self, BWlog_Data* objdata, s32 arg2) {
+RECOMP_PATCH void BWlog_start_roll(Object* self, BWlog_Data* objdata, s32 arg2) {
     if (arg2 != 0) {
-        objdata->unk2A0.x = 1500.0f;
-        objdata->unk2A0.y = 500.0f;
-        objdata->unk2A0.z = 2000.0f;
-        objdata->unk2A0.w = 4000.0f;
-        objdata->unk32B = 2;
+        objdata->rollCurve.x = 1500.0f;
+        objdata->rollCurve.y = 500.0f;
+        objdata->rollCurve.z = 2000.0f;
+        objdata->rollCurve.w = 4000.0f;
+        objdata->playerVehicleAnim = 2;
         // @recomp: Don't force lateral movement for rolling here, we'll factor in this speed in the normal movement code
-        // objdata->unk298[0] = -2.5f;
-        // objdata->unk298[1] = -2.5f;
+        // objdata->powerX[0] = -2.5f;
+        // objdata->powerX[1] = -2.5f;
     } else {
-        objdata->unk2A0.x = -1500.0f;
-        objdata->unk2A0.y = -500.0f;
-        objdata->unk2A0.z = -2000.0f;
-        objdata->unk2A0.w = -4000.0f;
-        objdata->unk32B = 3;
+        objdata->rollCurve.x = -1500.0f;
+        objdata->rollCurve.y = -500.0f;
+        objdata->rollCurve.z = -2000.0f;
+        objdata->rollCurve.w = -4000.0f;
+        objdata->playerVehicleAnim = 3;
         // @recomp: Ditto
-        // objdata->unk298[0] = 2.5f;
-        // objdata->unk298[1] = 2.5f;
+        // objdata->powerX[0] = 2.5f;
+        // objdata->powerX[1] = 2.5f;
     }
-    objdata->unk318 = 0;
-    objdata->unk2BC = 0.0f;
-    objdata->unk2B0 = objdata->unk2A0.x;
-    objdata->unk2C8 = 0.0f;
-    objdata->unk2CC = 0.0f;
+
+    objdata->rollAngle = 0;
+    objdata->rollTimer = 0.0f;
+    objdata->rollSpeed = objdata->rollCurve.x;
+    objdata->rollCurveProgress = 0.0f;
+    objdata->tValueRoll = 0.0f;
 }
 
-RECOMP_PATCH void dll_793_func_2020(Object* arg0, BWlog_Data* arg1) {
-    u8 var_a1;
-    u8 sp3E;
-    s32 var_v1;
+RECOMP_PATCH void BWlog_handle_sounds(Object* self, BWlog_Data* objdata) {
+    u8 bumpSide;
+    u8 colliderFlags;
+    s32 volume;
 
-    if (arg1->unk314 == 0) {
-        gDLL_6_AMSFX->vtbl->play(arg0, 0xA77, 0x7F, &arg1->unk314, NULL, 0, NULL);
+    if (objdata->soundHandle == 0) {
+        gDLL_6_AMSFX->vtbl->play(self, SOUND_A77, MAX_VOLUME, &objdata->soundHandle, NULL, 0, NULL);
     } else {
-        arg1->unk30C = arg1->unk310 * 127.0f;
-        arg1->unk30C += fsin16_precise(arg1->unk328) * 30.0f;
-        if (arg1->unk30C < 30.0f) {
-            arg1->unk30C = 30.0f;
-        } else if (arg1->unk30C > 127.0f) {
-            arg1->unk30C = 127.0f;
+        //Adjust sound volume sinusoidally
+        objdata->soundVolume = objdata->riverflowMagnitude * 127.0f;
+        objdata->soundVolume += fsin16_precise(objdata->soundVolumePhase) * 30.0f;
+        if (objdata->soundVolume < 30.0f) {
+            objdata->soundVolume = 30.0f;
+        } else if (objdata->soundVolume > 127.0f) {
+            objdata->soundVolume = 127.0f;
         }
-        gDLL_6_AMSFX->vtbl->set_vol(arg1->unk314, arg1->unk30C);
-        arg1->unk308 = ((arg1->unk300[0] + arg1->unk300[1]) * 0.5f) / 25.0f;
-        if (arg1->unk308 < 0.0f) {
-            arg1->unk308 = 0.0f;
+        gDLL_6_AMSFX->vtbl->set_vol(objdata->soundHandle, objdata->soundVolume);
+
+        //Adjust sound pitch sinusoidally
+        objdata->soundPitch = ((objdata->unk300[0] + objdata->unk300[1]) * 0.5f) / 25.0f;
+        if (objdata->soundPitch < 0.0f) {
+            objdata->soundPitch = 0.0f;
         }
-        arg1->unk308 = 1.0f - arg1->unk308;
-        arg1->unk308 = (arg1->unk308 * 0.2f) + 0.2f;
-        arg1->unk308 += (fsin16_precise(arg1->unk326) * 0.1f);
-        gDLL_6_AMSFX->vtbl->set_pitch(arg1->unk314, arg1->unk308);
-        arg1->unk326 = arg1->unk326 + (gUpdateRate << 8);
-        arg1->unk328 = arg1->unk328 + (gUpdateRate << 9);
+        objdata->soundPitch = 1.0f - objdata->soundPitch;
+        objdata->soundPitch = (objdata->soundPitch * 0.2f) + 0.2f;
+        objdata->soundPitch += fsin16_precise(objdata->soundPitchPhase) * 0.1f;
+        gDLL_6_AMSFX->vtbl->set_pitch(objdata->soundHandle, objdata->soundPitch);
+
+        objdata->soundPitchPhase += gUpdateRate << 8;
+        objdata->soundVolumePhase += gUpdateRate << 9;
     }
-    var_v1 = 0;
+
+    //Play bump sound when colliding
+    volume = 0;
     // @recomp: Also consider block hit touches
-    sp3E = (arg1->unk0.hitsTouchBits | arg1->unk0.unk25C) & 3;
-    var_a1 = sp3E & (sp3E ^ arg1->unk32D);
-    if (var_a1 & 1) {
-        var_v1 = (s32) ((sqrtf(SQ(arg1->unk290[0]) + SQ(arg1->unk298[0])) * 127.0f) / 0.95f);
+    colliderFlags = (objdata->collider.hitsTouchBits | objdata->collider.unk25C) & 3;
+    bumpSide = colliderFlags & (colliderFlags ^ objdata->unk32D);
+    if (bumpSide & 1) {
+        volume = (s32) ((sqrtf(SQ(objdata->powerZ[0]) + SQ(objdata->powerX[0])) * 127.0f) / 0.95f);
     }
-    if (var_a1 & 2) {
-        if (var_v1 > ((sqrtf(SQ(arg1->unk290[1]) + SQ(arg1->unk298[1])) * 127.0f) / 0.95f)) {
-            var_v1 = (s32) (f32) var_v1; // what
+    if (bumpSide & 2) {
+        if (volume > ((sqrtf(SQ(objdata->powerZ[1]) + SQ(objdata->powerX[1])) * 127.0f) / 0.95f)) {
+            volume = (s32) (f32) volume; // what
         } else {
-            var_v1 = (s32) ((sqrtf(SQ(arg1->unk290[1]) + SQ(arg1->unk298[1])) * 127.0f) / 0.95f);
+            volume = (s32) ((sqrtf(SQ(objdata->powerZ[1]) + SQ(objdata->powerX[1])) * 127.0f) / 0.95f);
         }
     }
-    if (var_v1 >= 0xB) {
-        if (var_v1 >= 0x80) {
-            var_v1 = 0x7F;
+    if (volume > 10) {
+        if (volume > MAX_VOLUME) {
+            volume = MAX_VOLUME;
         }
-        gDLL_6_AMSFX->vtbl->play(arg0, 0x76D, var_v1, NULL, NULL, 0, NULL);
+        gDLL_6_AMSFX->vtbl->play(self, SOUND_76D_Log_Bump, volume, NULL, NULL, 0, NULL);
     }
-    arg1->unk32D = sp3E;
+
+    objdata->unk32D = colliderFlags;
 }
 
-RECOMP_PATCH void dll_793_func_1C18(Object* self, BWlog_Data* objdata) {
+RECOMP_PATCH void BWlog_find_riverflows(Object* self, BWlog_Data* objdata) {
     s32 i;
     s32 k;
-    s32 sp120[2];
+    s32 flowInfluences[2];
     s32 objListLength;
     Object* obj;
     Object** objList;
-    f32 temp_fs0;
-    f32 temp_fv0;
-    f32 temp_fv0_2;
-    f32 temp_fv1;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 pushRadius;
     f32 sp100;
     f32 spFC;
     f32 spF8;
-    SRT spE0;
+    SRT srt;
     MtxF spA0;
 
     for (i = 0; i < 2; i++) {
-        objdata->unk2D0[i] = 0.0f;
-        objdata->unk2E0[i] = 0.0f;
-        sp120[i] = 0;
+        objdata->flowX[i] = 0.0f;
+        objdata->flowZ[i] = 0.0f;
+        flowInfluences[i] = 0;
     }
 
     // grabs DFriverflow instances (and possibly more)
@@ -643,18 +681,18 @@ RECOMP_PATCH void dll_793_func_1C18(Object* self, BWlog_Data* objdata) {
         // @recomp: Respect riverflow log filter flag (makes BWlog behave correctly in areas where DFLog was originally used)
         if (((DFriverflow_Setup*)obj->setup)->flags & 1) {
             for (k = 0; k < 2; k++) {
-                temp_fv0 = obj->srt.transl.y - objdata->unk260[k].y;
-                if ((temp_fv0 <= 200.0f) && (temp_fv0 >= -200.0f)) {
-                    temp_fs0 = obj->srt.transl.x - objdata->unk260[k].x;
-                    temp_fv0_2 = obj->srt.transl.z - objdata->unk260[k].z;
-                    temp_fs0 = sqrtf(SQ(temp_fs0) + SQ(temp_fv0_2));
-                    temp_fv1 = (f32) (u8)((DFriverflow_Setup*)obj->setup)->range * 1.5f;
-                    if (temp_fs0 < temp_fv1) {
-                        temp_fs0 = ((temp_fv1 - temp_fs0) / temp_fv1);
-                        temp_fs0 *= (obj->srt.scale * 10.0f);
-                        objdata->unk2D0[k] += fsin16_precise(obj->srt.yaw) * temp_fs0;
-                        objdata->unk2E0[k] += fcos16_precise(obj->srt.yaw) * temp_fs0;
-                        sp120[k] += 1;
+                dy = obj->srt.transl.y - objdata->endPoints[k].y;
+                if ((dy <= 200.0f) && (dy >= -200.0f)) {
+                    dx = obj->srt.transl.x - objdata->endPoints[k].x;
+                    dz = obj->srt.transl.z - objdata->endPoints[k].z;
+                    dx = sqrtf(SQ(dx) + SQ(dz));
+                    pushRadius = ((DFriverflow_Setup*)obj->setup)->range * 1.5f;
+                    if (dx < pushRadius) {
+                        dx = ((pushRadius - dx) / pushRadius);
+                        dx *= (obj->srt.scale * 10.0f);
+                        objdata->flowX[k] += fsin16_precise(obj->srt.yaw) * dx;
+                        objdata->flowZ[k] += fcos16_precise(obj->srt.yaw) * dx;
+                        flowInfluences[k]++;
                     }
                 }
             }
@@ -662,36 +700,36 @@ RECOMP_PATCH void dll_793_func_1C18(Object* self, BWlog_Data* objdata) {
     }
 
     for (i = 0; i < 2; i++) {
-        if (sp120[i] != 0) {
-            objdata->unk2D0[i] /= sp120[i];
-            objdata->unk2E0[i] /= sp120[i];
+        if (flowInfluences[i] != 0) {
+            objdata->flowX[i] /= flowInfluences[i];
+            objdata->flowZ[i] /= flowInfluences[i];
         }
     }
     
     for (i = 0; i < 2; i++) {
-        spE0.yaw = arctan2_f(objdata->unk2D0[i], objdata->unk2E0[i]);
-        spE0.pitch = 0;
-        spE0.roll = 0;
-        spE0.scale = 1.0f;
-        spE0.transl.x = 0;
-        spE0.transl.y = 0;
-        spE0.transl.z = 0;
-        matrix_from_srt_reversed(&spA0, &spE0);
+        srt.yaw = arctan2_f(objdata->flowX[i], objdata->flowZ[i]);
+        srt.pitch = 0;
+        srt.roll = 0;
+        srt.scale = 1.0f;
+        srt.transl.x = 0;
+        srt.transl.y = 0;
+        srt.transl.z = 0;
+        matrix_from_srt_reversed(&spA0, &srt);
         vec3_transform(&spA0, 
-            objdata->unk0.waterNormalXList[i], objdata->unk0.waterNormalYList[i], objdata->unk0.waterNormalZList[i], 
+            objdata->collider.waterNormalXList[i], objdata->collider.waterNormalYList[i], objdata->collider.waterNormalZList[i], 
             &sp100, &spFC, &spF8);
-        spE0.yaw = 0;
-        spE0.pitch = 0x4000 - arctan2_f(spFC, spF8);
-        spE0.roll = -(0x4000 - arctan2_f(spFC, sp100));
-        matrix_from_srt_reversed(&spA0, &spE0);
+        srt.yaw = 0;
+        srt.pitch = M_90_DEGREES - arctan2_f(spFC, spF8);
+        srt.roll = -(M_90_DEGREES - arctan2_f(spFC, sp100));
+        matrix_from_srt_reversed(&spA0, &srt);
         vec3_transform(&spA0, 
-            objdata->unk2D0[i], 0.0f, objdata->unk2E0[i], 
-            &objdata->unk2D0[i], &objdata->unk2D8[i], &objdata->unk2E0[i]);
+            objdata->flowX[i], 0.0f, objdata->flowZ[i], 
+            &objdata->flowX[i], &objdata->flowY[i], &objdata->flowZ[i]);
     }
 }
 
 /** Get off log in the direction of the dockpoint (helps avoid hopping off into deep water). */
-RECOMP_PATCH s32 dll_793_func_C3C(Object *self) {
+RECOMP_PATCH s32 BWlog_vehicle_get_dismount_side(Object *self) {
     SRT sp88;
     MtxF sp48;
     f32 sp44;
@@ -701,7 +739,7 @@ RECOMP_PATCH s32 dll_793_func_C3C(Object *self) {
     f32 temp2;
     BWlog_Data* objdata = self->data;
 
-    if (objdata->unk338 != NULL) {
+    if (objdata->dockpoint != NULL) {
         sp88.yaw = self->srt.yaw + 0x4000;
         sp88.pitch = self->srt.pitch;
         sp88.roll = self->srt.roll;
@@ -712,7 +750,7 @@ RECOMP_PATCH s32 dll_793_func_C3C(Object *self) {
         matrix_from_srt(&sp48, &sp88);
         vec3_transform(&sp48, 0.0f, 0.0f, 1.0f, &sp44, &sp40, &sp3C);
         temp2 = -((self->srt.transl.x * sp44) + (sp40 * self->srt.transl.y) + (sp3C * self->srt.transl.z));
-        temp = (objdata->unk338->srt.transl.x * sp44) + (sp40 * objdata->unk338->srt.transl.y) + (sp3C * objdata->unk338->srt.transl.z) + temp2;
+        temp = (objdata->dockpoint->srt.transl.x * sp44) + (sp40 * objdata->dockpoint->srt.transl.y) + (sp3C * objdata->dockpoint->srt.transl.z) + temp2;
         if (temp < 0) {
             return 1;
         }

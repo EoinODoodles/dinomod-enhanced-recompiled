@@ -6,13 +6,7 @@
 #include "sys/main.h"
 #include "sys/objtype.h"
 
-#include "recomp/dlls/_asm/425_recomp.h"
-
-//TODO: remove after decomp update
-#define OBJTYPE_27 27
-#define DFbarrelcreator_setup dll_425_setup
-#define DFbarrelcreator_control dll_425_control
-#define DFbarrelcreator_get_data_size dll_425_get_data_size
+#include "recomp/dlls/objects/425_DFbarrelcreator_recomp.h"
 
 typedef struct {
     ObjSetup base;
@@ -83,7 +77,7 @@ RECOMP_PATCH void DFbarrelcreator_control(Object* self) {
 
     //Don't create a barrel if there's already one nearby
     distance = objSetup->searchDistance * 4;
-    if (obj_get_nearest_type_to(OBJTYPE_27, self, &distance)) {
+    if (obj_get_nearest_type_to(OBJTYPE_Barrel, self, &distance)) {
         return;
     }
 

@@ -1018,7 +1018,7 @@ RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2
         }
     }
     if (objData2->unk770 & 1) {
-        ((DLL_IVehicle*)steed->dll)->vtbl->func15(steed, &sp40, &sp34);
+        ((DLL_IVehicle*)steed->dll)->vtbl->get_player_anim(steed, &sp40, &sp34);
         sp38 = (sp40 * 1023.0f);
         if (sp38 < 0) {
             sp38 = -sp38;
@@ -1039,7 +1039,7 @@ RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2
         func_80024DD0(self, 1, 0, sp3C * 1023.0f);
         func_80025140(self, objData->unk0.animTickDelta, arg2, 0);
     }
-    if (((DLL_IVehicle*)steed->dll)->vtbl->func10(steed, self) != 0) {
+    if (((DLL_IVehicle*)steed->dll)->vtbl->can_dismount(steed, self) != 0) {
         return 0x27;
     }
     return 0;
@@ -1068,9 +1068,9 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) 
         0xffff, 0xffff
     };
     s32 pad;
-    s32 sp88;
+    s32 mountSide;
     ObjectShadow* temp_v0_3;
-    Object* temp_s2;
+    Object* vehicle;
     Vec3f sp74;
     Vec3f sp68;
     f32 sp64;
@@ -1083,7 +1083,7 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     ModelInstance* sp44;
 
     objdata = player->data;
-    temp_s2 = objdata->vehicle;
+    vehicle = objdata->vehicle;
     {
         s32 temp_v0 = dll_210_func_EFB4(player, fsa, arg2);
         if (temp_v0 != 0) { return temp_v0; }
@@ -1097,7 +1097,7 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     player->velocity.f[1] = 0.0f;
     if (fsa->enteredAnimState != 0) {
         objdata->unk8A9 = 1;
-        switch (temp_s2->id) {
+        switch (vehicle->id) {
         case OBJ_IMSnowBike:
         case OBJ_CRSnowBike:
             objdata->unk76C = _data_158;
@@ -1125,9 +1125,9 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) 
             gDLL_2_Camera->vtbl->change_mode(0, 0x1D);
             break;
         }
-        sp88 = ((DLL_IVehicle*)temp_s2->dll)->vtbl->func8(temp_s2);
-        ((DLL_IVehicle*)temp_s2->dll)->vtbl->func14(temp_s2, 1);
-        switch (sp88) {
+        mountSide = ((DLL_IVehicle*)vehicle->dll)->vtbl->get_mount_side(vehicle);
+        ((DLL_IVehicle*)vehicle->dll)->vtbl->set_mount_state(vehicle, VEHICLE_Mounting);
+        switch (mountSide) {
             case 1:
                 v0 = 6;
                 break;
@@ -1136,15 +1136,15 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) 
                 v0 = 7;
                 break;
         }
-        player->srt.yaw = temp_s2->srt.yaw;
+        player->srt.yaw = vehicle->srt.yaw;
         func_80023D30(player, objdata->unk76C[v0], 0.0f, 4U);
         sp44 = player->modelInsts[player->modelInstIdx];
         func_8001A3FC(sp44, 0U, 0, 0.0f, player->srt.scale, &sp74, &sp48);
         func_8001A3FC(sp44, 0U, 0, 1.0f, player->srt.scale, &sp68, &sp48);
-        ((DLL_IVehicle*)temp_s2->dll)->vtbl->func9(temp_s2, &sp5C, &sp60, &sp64);
+        ((DLL_IVehicle*)vehicle->dll)->vtbl->get_rider_position(vehicle, &sp5C, &sp60, &sp64);
         // @recomp: HACK: the mod anims used in this patch for hopping on the log plays too low, so
         //          artificially raise the point we lerp to a little bit (is there a better way to do this?).
-        if (temp_s2->id == OBJ_BWLog) {
+        if (vehicle->id == OBJ_BWLog) {
             sp60 += 8.0f;
         }
         sp5C -= player->srt.transl.f[0];
@@ -1163,15 +1163,15 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     player->srt.transl.f[0] = objdata->unk738.f[0] + (player->animProgress * objdata->unk744.x);
     player->srt.transl.f[1] = objdata->unk738.f[1] + (player->animProgress * objdata->unk744.y);
     player->srt.transl.f[2] = objdata->unk738.f[2] + (player->animProgress * objdata->unk744.z);
-    ((DLL_IVehicle*)temp_s2->dll)->vtbl->func12(temp_s2, &sp5C, &sp60, &sp64);
+    ((DLL_IVehicle*)vehicle->dll)->vtbl->get_camera_position(vehicle, &sp5C, &sp60, &sp64);
     sp50.z = ((sp5C - objdata->unk738.x) * player->animProgress) + objdata->unk738.x;
     sp50.y = ((sp60 - objdata->unk738.y) * player->animProgress) + objdata->unk738.y;
     sp50.x = ((sp64 - objdata->unk738.z) * player->animProgress) + objdata->unk738.z;
     gDLL_2_Camera->vtbl->reposition_player(sp50.z, sp50.y, sp50.x);
     if ((fsa->enteredAnimState == 0) && (fsa->unk33A != 0)) {
-        func_80023D30(player, *objdata->unk76C, 0.0f, 1U);
-        ((DLL_IVehicle*)temp_s2->dll)->vtbl->func14(temp_s2, 2);
-        if (temp_s2->id == 0x22) {
+        func_80023D30(player, *objdata->unk76C, 0.0f, 1);
+        ((DLL_IVehicle*)vehicle->dll)->vtbl->set_mount_state(vehicle, VEHICLE_Mounted);
+        if (vehicle->id == 0x22) {
             return 0x26;
         }
         return 0x25;
@@ -1181,13 +1181,13 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) 
 
 /** Prevent Projectile Spell from triggering after dismounting log (originally by MusicalProgrammer) */
 RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) {
-    Object* temp_s2;
-    s32 spA0;
+    Object* vehicle;
+    s32 dismountSide;
     f32 temp;
     s32 var_v0_2;
     Vec3f sp8C;
     Vec3f sp80;
-    Player_Data* temp_s1;
+    Player_Data* objdata;
     f32 sp78;
     f32 sp74;
     f32 sp70;
@@ -1199,31 +1199,31 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     if (fsa->enteredAnimState != 0) {
         fsa->unk270 = PLAYER_ASTATE_Vehicle_Getting_Off;
     }
-    temp_s1 = player->data;
-    temp_s2 = temp_s1->vehicle;
+    objdata = player->data;
+    vehicle = objdata->vehicle;
     {
         s32 temp_v0 = dll_210_func_EFB4(player, fsa, arg2);
         if (temp_v0 != 0) { return temp_v0; }
     }
 
-    temp_s1->unk834 = 0; //@recomp
+    objdata->unk834 = 0; //@recomp
     func_800267A4(player);
     player->velocity.f[1] = 0.0f;
     if (fsa->enteredAnimState != 0) {
-        ((DLL_IVehicle*)temp_s2->dll)->vtbl->func9(temp_s2, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z);
+        ((DLL_IVehicle*)vehicle->dll)->vtbl->get_rider_position(vehicle, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z);
         // @recomp: HACK: the mod anims used in this patch for hopping off the log plays too low, so
         //          artificially raise the point we lerp from a little bit.
-        if (temp_s2->id == OBJ_BWLog) {
+        if (vehicle->id == OBJ_BWLog) {
             player->srt.transl.y += 8.0f;
         }
-        if ((temp_s2->id == OBJ_IMSnowBike) || (temp_s2->id == OBJ_CRSnowBike)) {
+        if ((vehicle->id == OBJ_IMSnowBike) || (vehicle->id == OBJ_CRSnowBike)) {
             gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, 0, 1, 0, NULL, 100, 0xFF);
         } else {
             gDLL_2_Camera->vtbl->change_mode(0, 1);
         }
-        spA0 = ((DLL_IVehicle*)temp_s2->dll)->vtbl->func11(temp_s2);
-        ((DLL_IVehicle*)temp_s2->dll)->vtbl->func14(temp_s2, 3);
-        switch (spA0) {
+        dismountSide = ((DLL_IVehicle*)vehicle->dll)->vtbl->get_dismount_side(vehicle);
+        ((DLL_IVehicle*)vehicle->dll)->vtbl->set_mount_state(vehicle, VEHICLE_Dismounting);
+        switch (dismountSide) {
             case 1:
             var_v0_2 = 8;
             break;
@@ -1232,10 +1232,10 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
             var_v0_2 = 9;
             break;
         }
-        player->srt.yaw = temp_s2->srt.yaw;
+        player->srt.yaw = vehicle->srt.yaw;
         player->srt.pitch = 0;
         player->srt.roll = 0;
-        func_80023D30(player, temp_s1->unk76C[var_v0_2], 0.0f, 1U);
+        func_80023D30(player, objdata->unk76C[var_v0_2], 0.0f, 1U);
         sp50 = player->modelInsts[player->modelInstIdx];
         func_8001A3FC(sp50, 0U, 0, 0.0f, player->srt.scale, &sp8C, &sp54.yaw);
         func_8001A3FC(sp50, 0U, 0, 1.0f, player->srt.scale, &sp80, &sp54.yaw);
@@ -1247,17 +1247,17 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
         sp80.f[2] += player->srt.transl.f[2];
         player->srt.transl.f[1] -= sp8C.f[1];
         temp_fv0 = gDLL_27->vtbl->func_DF4(player, sp80.f[0], player->srt.transl.f[1], sp80.f[2], 20.0f);
-        temp_s1->unk738.x = sp80.f[0];
-        temp_s1->unk738.y = temp_fv0;
-        temp_s1->unk738.z = sp80.f[2];
-        temp_s1->unk744.y = player->srt.transl.f[1] - temp_s1->unk738.y;
-        temp_s1->unk750 = spA0;
+        objdata->unk738.x = sp80.f[0];
+        objdata->unk738.y = temp_fv0;
+        objdata->unk738.z = sp80.f[2];
+        objdata->unk744.y = player->srt.transl.f[1] - objdata->unk738.y;
+        objdata->unk750 = dismountSide;
         player->srt.flags &= ~OBJFLAG_MANUAL_PREV_POSITIONS;
         player->curModAnimIdLayered = -1;
         fsa->animTickDelta = 0.016f;
     }
     temp_fv0 = (1.0f - player->animProgress);
-    player->srt.transl.y = temp_s1->unk738.y + (temp_s1->unk744.y * temp_fv0);
+    player->srt.transl.y = objdata->unk738.y + (objdata->unk744.y * temp_fv0);
     sp54.transl.x = temp_fv0;
     sp4C = func_80034804(player, 5);
     temp_fv0 = sp54.transl.x;
@@ -1265,31 +1265,31 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     sp4C++;
     sp4C--;
     if (sp4C != NULL) {
-        sp4C[0] = temp_s2->srt.pitch * temp_fv0;
-        sp4C[2] = temp_s2->srt.roll * temp_fv0;
+        sp4C[0] = vehicle->srt.pitch * temp_fv0;
+        sp4C[2] = vehicle->srt.roll * temp_fv0;
     }
-    ((DLL_IVehicle*)temp_s2->dll)->vtbl->func12(temp_s2, &sp70, &sp74, &sp78);
-    gDLL_2_Camera->vtbl->reposition_player(((temp_s1->unk738.x - sp70) * player->animProgress) + sp70, ((temp_s1->unk738.y - sp74) * player->animProgress) + sp74, temp= ((temp_s1->unk738.z - sp78) * player->animProgress) + sp78);
+    ((DLL_IVehicle*)vehicle->dll)->vtbl->get_camera_position(vehicle, &sp70, &sp74, &sp78);
+    gDLL_2_Camera->vtbl->reposition_player(((objdata->unk738.x - sp70) * player->animProgress) + sp70, ((objdata->unk738.y - sp74) * player->animProgress) + sp74, temp= ((objdata->unk738.z - sp78) * player->animProgress) + sp78);
     if ((fsa->enteredAnimState == 0) && (fsa->unk33A != 0)) {
         if (sp4C != NULL) {
             sp4C[0] = 0;
             sp4C[2] = 0;
         }
         player->shadow->flags &= ~OBJ_SHADOW_FLAG_FADE_OUT;
-        player->globalPosition.x = temp_s1->unk7EC.x;
-        player->globalPosition.z = temp_s1->unk7EC.z;
+        player->globalPosition.x = objdata->unk7EC.x;
+        player->globalPosition.z = objdata->unk7EC.z;
         inverse_transform_point_by_object(player->globalPosition.x, 0.0f, player->globalPosition.z, player->srt.transl.f, &sp54.scale, &player->srt.transl.z, player->parent);
-        if (temp_s1->unk750 == 1) {
+        if (objdata->unk750 == 1) {
             player->srt.yaw += 0x4000;
         } else {
             player->srt.yaw -= 0x4000;
         }
         func_80023D30(player, 0, 0.0f, 1U);
         func_80024DD0(player, 0, 0, 0);
-        ((DLL_IVehicle*)temp_s2->dll)->vtbl->func14(temp_s2, 0);
-        dll_210_func_7260(player, (Player_Data* ) temp_s1);
+        ((DLL_IVehicle*)vehicle->dll)->vtbl->set_mount_state(vehicle, VEHICLE_NoRider);
+        dll_210_func_7260(player, (Player_Data* ) objdata);
         func_8002674C(player);
-        temp_s1->vehicle = NULL;
+        objdata->vehicle = 0;
         return -1;
     }
     return 0;
@@ -1726,7 +1726,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                     objdata->unk72C.x = objdata->unk7EC.x;
                     objdata->unk72C.y = objdata->unk7EC.y;
                     objdata->unk72C.z = objdata->unk7EC.z;
-                    ((DLL_IVehicle*)vehicle->dll)->vtbl->func14(vehicle, 2);
+                    ((DLL_IVehicle*)vehicle->dll)->vtbl->set_mount_state(vehicle, VEHICLE_Mounted);
                     arg0->srt.flags |= OBJFLAG_MANUAL_PREV_POSITIONS;
                     arg0->shadow->flags |= OBJ_SHADOW_FLAG_FADE_OUT;
                     arg2->unk7A &= ~0x4;
@@ -1756,7 +1756,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                 gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAMNORMAL, 4, 0, 0);
                 vehicle = objdata->vehicle;
                 if (vehicle != NULL) {
-                    ((DLL_IVehicle*)vehicle->dll)->vtbl->func14(vehicle, 0);
+                    ((DLL_IVehicle*)vehicle->dll)->vtbl->set_mount_state(vehicle, VEHICLE_NoRider);
                     arg0->srt.flags &= ~OBJFLAG_MANUAL_PREV_POSITIONS;
                     arg0->shadow->flags &= ~OBJ_SHADOW_FLAG_FADE_OUT;
                     vehicle = NULL;
@@ -1892,7 +1892,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
         }
     }
     if ((objdata->vehicle != NULL) && 
-        (((DLL_IVehicle*)objdata->vehicle->dll)->vtbl->func13(objdata->vehicle) == 2)) {
+        (((DLL_IVehicle*)objdata->vehicle->dll)->vtbl->get_mount_state(objdata->vehicle) == VEHICLE_Mounted)) {
         arg2->unk7A &= ~0x3;
     }
     ((void (*)(Object*, Player_Data*, f32)) objdata->unk3BC)(arg0, objdata, gUpdateRateF);
@@ -2422,13 +2422,12 @@ RECOMP_PATCH void dll_210_print(Object* player, Gfx** arg1, Mtx** arg2, Vertex**
         }
         gDLL_16->vtbl->func1(player);
         if (data->vehicle != NULL && ((player->stateFlags & OBJSTATE_IN_SEQ) || data->unk0.animState == PLAYER_ASTATE_Vehicle_Riding || data->unk0.animState == PLAYER_ASTATE_Log_Riding)) {
-            ((DLL_IVehicle*)data->vehicle->dll)->vtbl->func19(data->vehicle, player->def->scale);
+            ((DLL_IVehicle*)data->vehicle->dll)->vtbl->handle_rider_scale(data->vehicle, player->def->scale);
         }
         if (data->unk818 > 0.0f) {
             func_80036FBC(0xC8U, 0U, 0U, data->unk81C);
         }
         player->srt.transl.y += data->unk83C;
-
         draw_object(player, arg1, arg2, arg3, arg4, 1.0f);
         player->srt.transl.y -= data->unk83C;
         if (data->vehicle != NULL && ((player->stateFlags & OBJSTATE_IN_SEQ) || data->unk0.animState == PLAYER_ASTATE_Vehicle_Riding || data->unk0.animState == PLAYER_ASTATE_Log_Riding)) {

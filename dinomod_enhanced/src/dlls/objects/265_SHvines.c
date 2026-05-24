@@ -1,15 +1,16 @@
-#include "dlls/objects/common/sidekick.h"
-#include "game/gamebits.h"
-#include "game/objects/object.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
 #include "configs.h"
 
 #include "common.h"
+#include "dlls/objects/common/sidekick.h"
+#include "game/gamebits.h"
+#include "game/objects/object.h"
 #include "sys/main.h"
 #include "sys/objanim.h"
 #include "sys/objtype.h"
+#include "dll.h"
 
 #include "recomp/dlls/objects/265_SHvines_recomp.h"
 
@@ -55,7 +56,7 @@ RECOMP_PATCH void SHvines_setup(Object* self, SHvines_Setup* objSetup, s32 arg2)
         }
     }
     
-    create_temp_dll(DLL_ID_53);
+    create_temp_dll(DLL_ID_53_MOVELIB);
 
     modelInstance = self->modelInsts[self->modelInstIdx];
     model = modelInstance->model;

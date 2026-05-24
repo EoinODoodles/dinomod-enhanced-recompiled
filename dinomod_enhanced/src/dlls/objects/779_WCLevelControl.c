@@ -19,19 +19,15 @@ typedef struct {
     u8 previousState;
 } WCLevelControl_Data;
 
-extern void dll_779_func_1444(Object *self, WCLevelControl_Data *objdata);
-extern void dll_779_func_1928(Object *self, WCLevelControl_Data *objdata);
-
-//TODO: sync with decomp later
-#define WCLevelControl_handle_act1 dll_779_func_1444
-#define WCLevelControl_handle_act2 dll_779_func_1928
+extern void WCLevelControl_handle_act1(Object *self, WCLevelControl_Data *objdata);
+extern void WCLevelControl_handle_act2(Object *self, WCLevelControl_Data *objdata);
 
 /**
   * Fix a bug where you suddenly get blinded by intense fog when visiting Walled City (originally by MusicalProgrammer)
   *
   * TODO: An alternative fix could be to edit the EnvFxAction that has the bugged fog distances (0x149)
   */
-RECOMP_PATCH void dll_779_control(Object *self) {
+RECOMP_PATCH void WCLevelControl_control(Object *self) {
     WCLevelControl_Data *objdata = self->data;
     f32 time;
     u8 act;

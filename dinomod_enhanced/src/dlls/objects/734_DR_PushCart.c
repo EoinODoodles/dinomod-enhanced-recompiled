@@ -9,7 +9,7 @@
 #include "sys/main.h"
 #include "sys/objects.h"
 
-#include "recomp/dlls/_asm/734_recomp.h"
+#include "recomp/dlls/objects/734_DR_PushCart_recomp.h"
 
 typedef struct {
     UnkCurvesStruct unk0;
@@ -171,7 +171,7 @@ RECOMP_PATCH s32 dll_734_func_DD8(Object* self, u8 arg1, u8 arg2, s32* arg3) {
             }
         }
     } else {
-        main_set_bits(BIT_7BA, 1);
+        main_set_bits(BIT_DR_Minecart_Track_Entrance_Demolished, 1);
     }
     
     return 1;

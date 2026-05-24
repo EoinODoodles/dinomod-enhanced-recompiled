@@ -14,10 +14,7 @@
 #include "dlls/objects/common/sidekick.h"
 #include "dlls/objects/272_collectable.h"
 
-#include "recomp/dlls/_asm/351_recomp.h"
-
-//TODO: remove after decomp update
-#define GroundAnimator_store_shapeIDs_and_vertex_weights dll_351_func_A28
+#include "recomp/dlls/objects/351_GroundAnimator_recomp.h"
 
 typedef struct {
     f32* vtxWeights;        //Displacement strengths (from 0 to 1) for each vertex being animated (influence falls off from centre)

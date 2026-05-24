@@ -13,7 +13,7 @@
 #include "dlls/engine/53_movelib.h"
 #include "dlls/objects/210_player.h"
 
-#include "recomp/dlls/_asm/739_recomp.h"
+#include "recomp/dlls/objects/739_DR_SupGuardClaw_recomp.h"
 
 typedef struct {
     s16 soundID;
@@ -54,7 +54,7 @@ typedef enum {
   * (DR_NiceSharpy)
   * Stop cutscene from triggering too early (originally by MusicalProgrammer) 
   */
-RECOMP_PATCH int dll_739_func_7B4(Object* self, Object*arg1, AnimObj_Data* animData) {
+RECOMP_PATCH int DR_NPC_anim_callback(Object* self, Object*arg1, AnimObj_Data* animData) {
     DR_NPC_Data* objData;
     DR_NPC_Setup* objSetup;
     Object* player;
@@ -84,12 +84,12 @@ RECOMP_PATCH int dll_739_func_7B4(Object* self, Object*arg1, AnimObj_Data* animD
     }
 
     //Feeding the SharpClaw
-    foodGamebit = ((DLL_210_Player*)player->dll)->vtbl->func74((s32)player); //TODO: remove cast after decomp update
+    foodGamebit = ((DLL_210_Player*)player->dll)->vtbl->func74(player);
     if (foodGamebit != NO_GAMEBIT) {
         if ((foodGamebit == BIT_Dino_Egg_Count) || (foodGamebit == BIT_Moldy_Meat_Count)) {
             STUBBED_PRINTF(" Edanble FoodType %i ", foodGamebit);
-            // ((DLL_210_Player*)player->dll)->vtbl->func75((s32)player, 1); //TODO: remove cast after decomp update
-            ((DLL_210_Player*)player->dll)->vtbl->func75((s32)player, 0);
+            // ((DLL_210_Player*)player->dll)->vtbl->func75(player, 1);
+            ((DLL_210_Player*)player->dll)->vtbl->func75(player, 0);
             
             //@recomp: don't set gamebit here
             // main_set_bits(objSetup->gamebitFinished, 1);
@@ -99,7 +99,7 @@ RECOMP_PATCH int dll_739_func_7B4(Object* self, Object*arg1, AnimObj_Data* animD
             return 0;
         } else {
             STUBBED_PRINTF(" FoodType %i ", foodGamebit);
-            ((DLL_210_Player*)player->dll)->vtbl->func75((s32)player, 2); //TODO: remove cast after decomp update
+            ((DLL_210_Player*)player->dll)->vtbl->func75(player, 2);
         }
     }
 

@@ -87,7 +87,7 @@ static void animobj_krystal_handle_rolling_demo_ending(Object* self) {
             self->srt.roll = vehicle->srt.roll;
 
             //Get position from vehicle DLL
-            ((DLL_IVehicle*)vehicle->dll)->vtbl->func9(
+            ((DLL_IVehicle*)vehicle->dll)->vtbl->get_rider_position(
                 vehicle, 
                 &parentPosition.x, 
                 &parentPosition.y, 
@@ -141,7 +141,7 @@ RECOMP_PATCH void animobj_print(Object *self, Gfx **gdl, Mtx **mtxs, Vertex **vt
             self->srt.roll = vehicle->srt.roll;
 
             //Get position from vehicle DLL
-            ((DLL_IVehicle*)vehicle->dll)->vtbl->func9(
+            ((DLL_IVehicle*)vehicle->dll)->vtbl->get_rider_position(
                 vehicle, 
                 &parentPosition.x, 
                 &parentPosition.y, 
