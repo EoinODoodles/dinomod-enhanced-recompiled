@@ -1103,6 +1103,16 @@ static void swapstone_hollow_modifications(void) {
         DLL506_Setup* plantSpore = reasset_map_objects_get(sHollow, reasset_base_id(0x34DF5), NULL);
         plantSpore->unk20 = BIT_SH_Move_Thorntail_Blocking_Swapstone; // 0x8D4
     }
+
+    // Edit TriggerCylinder around Rocky, so it unsets the "Exiting the Shop" gamebit
+    {
+        Trigger_Setup *trigger = reasset_map_objects_get(
+            sHollow, reasset_base_id(0xbe040a9), NULL);
+        trigger->commands[1].id = TRG_CMD_BITS;
+        trigger->commands[1].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
+        trigger->commands[1].param1 = (BIT_SP_Exiting_Shop >> 8);
+        trigger->commands[1].param2 = (BIT_SP_Exiting_Shop);
+    }
 }
 
 static void swapstone_hollow_well_additions(void) {
