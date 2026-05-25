@@ -754,7 +754,7 @@ static void swapstone_hollow_additions(void) {
             .gamebitPlay = BOULDER_BIT,
             .gamebitPlayed = BOULDER_SEQ_BIT,
             .yaw = 0,
-            .playbackOptions = 0,
+            .playbackOptions = SEQOBJ_OPTIONS_AutoHasPlayed_Set_After_Sequence, //wait until end of sequence to set gamebit
             .seqIndex = 10,
             .unk22 = 1,
             .warpID = 0

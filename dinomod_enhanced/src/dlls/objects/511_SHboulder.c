@@ -89,10 +89,17 @@ RECOMP_PATCH void SHboulder_control(Object* self) {
     s32 opacity;
     Object* hitBy;
     SHboulder_Data* objData;
-    SHboulder_Setup* objSetup; //@recomp
+    /* RECOMP */
+    SHboulder_Setup* objSetup;
+    u8 seqHasPlayed = FALSE;
 
     objData = self->data;
     objSetup = (SHboulder_Setup*)self->setup;
+
+    //@recomp: check if the sequence has played (for the special debris boulder)
+    if (objSetup && objSetup->debris) {
+        seqHasPlayed = main_get_bits(DINOMOD_BIT_92C_SH_River_Seq_Has_Played);
+    }
 
     //@recomp: check for gamebit
     if (!objData->fadeOut && 
@@ -102,8 +109,10 @@ RECOMP_PATCH void SHboulder_control(Object* self) {
     ){
         objData->fadeOut = TRUE;
         if (objSetup->debris) {
-            SHboulder_set_seq_time();
-            SHboulder_create_debris(self, objSetup);
+            if (seqHasPlayed == FALSE) {
+                SHboulder_set_seq_time();
+                SHboulder_create_debris(self, objSetup);
+            }
             self->opacity = 0;
         }
     }
@@ -111,7 +120,7 @@ RECOMP_PATCH void SHboulder_control(Object* self) {
     //@recomp: destroy the special sequence boulder after it's finished creating particles
     if (objSetup->debris && objData->fadeOut) {
         objData->timer += gUpdateRate;
-        if (objData->timer > 333) {
+        if (seqHasPlayed || (objData->timer > 333)) {
             obj_destroy_object(self);
         }
     }
