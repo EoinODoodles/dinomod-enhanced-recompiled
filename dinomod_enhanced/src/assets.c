@@ -1113,6 +1113,16 @@ static void swapstone_hollow_modifications(void) {
         trigger->commands[1].param1 = (BIT_SP_Exiting_Shop >> 8);
         trigger->commands[1].param2 = (BIT_SP_Exiting_Shop);
     }
+
+    // Edit TriggerPlane approaching Rocky, so it unsets the "Exiting the Shop" gamebit too (just in case)
+    {
+        Trigger_Setup *trigger = reasset_map_objects_get(
+            sHollow, reasset_base_id(0x34732), NULL);
+        trigger->commands[7].id = TRG_CMD_BITS;
+        trigger->commands[7].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
+        trigger->commands[7].param1 = (BIT_SP_Exiting_Shop >> 8);
+        trigger->commands[7].param2 = (BIT_SP_Exiting_Shop);
+    }
 }
 
 static void swapstone_hollow_well_additions(void) {
