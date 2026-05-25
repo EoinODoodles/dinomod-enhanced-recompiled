@@ -558,11 +558,11 @@ static void swapstone_hollow_additions(void) {
                 .z = 1413.7
             },
             .gamebitPlay = BIT_SP_Exiting_Shop,
-            .gamebitPlayed = NO_GAMEBIT,
+            .gamebitHasPlayed = NO_GAMEBIT,
             .yaw = 0,
             .playbackOptions = 8,
             .seqIndex = 9,
-            .unk22 = 1,
+            .replayActorMask = 1,
             .warpID = 0
         };
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &objSeq, sizeof(objSeq));
@@ -752,11 +752,11 @@ static void swapstone_hollow_additions(void) {
                 .z = 888
             },
             .gamebitPlay = BOULDER_BIT,
-            .gamebitPlayed = BOULDER_SEQ_BIT,
+            .gamebitHasPlayed = BOULDER_SEQ_BIT,
             .yaw = 0,
             .playbackOptions = SEQOBJ_OPTIONS_AutoHasPlayed_Set_After_Sequence, //wait until end of sequence to set gamebit
             .seqIndex = 10,
-            .unk22 = 1,
+            .replayActorMask = 1,
             .warpID = 0
         };
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &objSeq, sizeof(objSeq));
