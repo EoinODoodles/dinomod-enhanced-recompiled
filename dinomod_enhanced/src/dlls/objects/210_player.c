@@ -2709,7 +2709,7 @@ RECOMP_HOOK_DLL(dll_210_control) void play_as_fox(Object* self) {
         //Fox only shows up while Sabre's using the Illusion Spell
         if ((objData->unk8BF == 0) && (self->modelInstIdx == 2)) {
             self->modelInstIdx = 0;
-        } else if ((objData->unk8BF != 0) && (self->modelInstIdx != 2)) {
+        } else if ((objData->unk8BF == 1) && (self->modelInstIdx != 2)) {
             self->modelInstIdx = 2;
         }
         break;
