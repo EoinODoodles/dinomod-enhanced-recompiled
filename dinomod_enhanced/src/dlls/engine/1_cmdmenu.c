@@ -16,6 +16,7 @@
 #include "game/objects/interaction_arrow.h"
 #include "game/objects/inventory_items.h"
 #include "game/objects/object_id.h"
+#include "sys/camera.h"
 #include "sys/fonts.h"
 #include "sys/gfx/model.h"
 #include "sys/joypad.h"
@@ -2783,6 +2784,29 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     #endif
 }
 
+/**
+  * Hides the active spell/sidekick-command icons if an important sequence is playing.
+  */
+static void cmdmenu_hide_active_spell_sidekick_command_during_sequences() {
+    Player_Data* playerData;
+    Object* player = get_player();
+    if (!player || !player->data) {
+        return;
+    }
+
+    playerData = player->data;
+
+    //Check if the letterbox is active, and the player is either in a sequence or locked
+    if (camera_get_letterbox() && (
+            (player->stateFlags & OBJSTATE_IN_SEQ) ||                                       //Player involved in sequence
+            (!(player->stateFlags & OBJSTATE_IN_SEQ) && (playerData->flags & 0x200000))     //Player not in sequence, but locked
+        )
+    ) {
+        rsOpacityActiveSpell = 0;
+        rsOpacityActiveSideCommand = 0;
+    }
+}
+
 /** 
   * - Fix sidekick icon appearing half-way through fading out from exiting Items/Spells page.
   * - Optionally move/fade the Active Spell/Sidekick Command icons to avoid clashing with the inventory.
@@ -2830,6 +2854,9 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
     gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0, -SCREEN_WIDTH * 4, 0);
     #endif
+
+    // @recomp: Hide the active Spell/Sidekick-command icons if an important sequence is playing
+    cmdmenu_hide_active_spell_sidekick_command_during_sequences();
 
     //Draw active spell icon
     {
