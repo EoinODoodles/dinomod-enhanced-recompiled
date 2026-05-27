@@ -11,6 +11,7 @@
 #include "common.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
+#include "game/gamebits.h"
 #include "sys/map_enums.h"
 #include "sys/menu.h"
 #include "sys/newshadows.h"
@@ -34,11 +35,15 @@
 
 #define DEBUG_MESSAGES FALSE
 
+
 extern f32 _data_C[];
 extern u8 _data_14[4];
 extern s16 _data_18[2];
 extern f32 _bss_1C;
 extern s16 _data_24[2];
+/*0x28*/ extern u8 _data_28[];
+/*0x30*/ extern u8 _data_30[];
+/*0x38*/ extern UNK_TYPE_32 _data_38[];
 extern s16 _data_98[];
 extern s16 _data_C8[];
 extern s16 _data_F8[];
@@ -75,6 +80,14 @@ extern void dll_210_func_1D8B8(Object* player);
 extern void dll_210_func_1DB6C(Object* arg0, f32 arg1);
 extern void dll_210_func_1DC48(Object* player);
 extern Object *dll_210_func_1DD94(Object* player, s32 arg1);
+extern void dll_210_func_11A0(Object* player, Player_Data* arg1, f32 arg2);
+extern void dll_210_func_1CA8(Object* player, Player_Data* arg1, ObjFSA_Data* fsa);
+extern void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Data* fsa);
+extern void dll_210_func_47B8(Object* player, Player_Data* arg1);
+extern void dll_210_func_7180(Object* player, Player_Data* arg1, f32 updateRate);
+extern void dll_210_func_2534(Object* player, Player_Data* arg1, ObjFSA_Data* fsa);
+extern void dll_210_func_1DE64(UNK_TYPE_32 *player);
+extern void dll_210_add_scarab(Object* player, s32 amount);
 
 extern s8 _bss_0;
 extern s16 _bss_2;
@@ -82,36 +95,146 @@ extern ObjFSA_StateCallback _bss_58[81];
 extern ObjFSA_StateCallback _bss_19C[1];
 extern u8 _bss_1AA[0x2];
 extern f32 _bss_1AC;
+/*0x20C*/ extern Camera *_bss_20C;
 extern Object *_bss_210[4];
 extern s16 _bss_220[2];
 extern ObjFSA_StateCallback _bss_224[1];
+/*0x4C0*/ extern s16 _data_4C0[];
+/*0x4CC*/ extern s16 _data_4CC[];
 
-typedef void (*func_1D04C)(Object *obj, s32);
-static func_1D04C player_func_1D04C; 
-static void func_1D04C_hijack(Object *self, s32);
+/*0x120*/ extern const char _rodata_120[];
 
-RECOMP_HOOK_DLL(dll_210_ctor) void player_ctor_hook(DLLFile *dll) {
-    player_func_1D04C = dinomod_hijack_dll_export(dll, 61, func_1D04C_hijack);
-}
+RECOMP_PATCH void dll_210_control(Object* player) {
+    Player_Data* data = player->data;
+    s32 sp80;
+    s32 i;
+    s32 var_v0;
+    s16* var_v0_3;
+    f32 sp70;
+    f32 sp6C;
+    Object* tempObj;
+    s32 pad;
+    s32 pad2;
+    s32 sp48[6] = { 0, 1, 2, 3, 4, 5 };
 
-RECOMP_HOOK_RETURN_DLL(dll_210_dtor) void player_dtor_hook() {
-    player_func_1D04C = NULL;
-}
-
-static void func_1D04C_hijack(Object *self, s32 a1) {
-    // @recomp: Ignore func_1D04C calls if in Galadon fight (removes forced z-targeting)
-    Object **objectList;
-    s32 count;
-
-    objectList = obj_get_all_of_type(4, &count);
-
-    for (s32 i = 0; i < count; i++) {
-        if (objectList[i]->id == OBJ_DIM_Boss) {
-            return;
-        }
+    if (menu_get_current() == MENU_TITLE_SCREEN) {
+        return;
     }
 
-    player_func_1D04C(self, a1);
+    if (joy_get_buttons(0) & U_JPAD) {
+        dll_210_add_scarab(player, 1);
+    }
+    _bss_1AC = gUpdateRateF;
+    if (_bss_1AC > 4.0f) {
+        _bss_1AC = 4.0f;
+    }
+    sp6C = dll_210_func_63F0(data, gUpdateRateF);
+    sp80 = gUpdateRate;
+    if (sp80 >= 5) {
+        sp80 = 4;
+    }
+    if ((player->parent == NULL) && (map_world_coords_to_block_index(player->srt.transl.x, player->srt.transl.y, player->srt.transl.z) < 0)) {
+        data->unk0.target = NULL;
+        data->unk854 = 0;
+        gDLL_2_Camera->vtbl->set_target_object(NULL);
+    }
+    _bss_20C = get_main_camera();
+    dll_210_func_1DDC(player, data, &data->unk0);
+    dll_210_func_1CA8(player, data, &data->unk0);
+    if (player->parent != NULL) {
+        var_v0 = (0x8000 - _bss_20C->srt.yaw);
+        var_v0 = (player->parent->srt.yaw & 0xFFFF) - (var_v0 & 0xFFFF);
+        CIRCLE_WRAP(var_v0)
+        data->unk0.unk324 = var_v0 + 0x8000;
+    } else {
+        data->unk0.unk324 = _bss_20C->srt.yaw;
+    }
+    data->unk8BC = gDLL_2_Camera->vtbl->get_dll_ID();
+    if (data->unk8BC == 0x56 && data->unk0.animState != PLAYER_ASTATE_Standing) {
+        gDLL_18_objfsa->vtbl->set_anim_state(player, &data->unk0, PLAYER_ASTATE_Standing);
+    }
+    data->unk7FC = 100000.0f;
+    data->unk8BD = 1;
+    data->unk0.unk304 = 0;
+    for (i = 0; i < data->unk8AD; i++) { data->unk0.unk304 |= (1 << (data->unk8AE[i] & 0xFF)) & 0xFF; }
+    if (data->unk0.unk304 & 1 && data->unk0.animState != PLAYER_ASTATE_Fall_Reset) {
+        gDLL_18_objfsa->vtbl->set_anim_state(player, &data->unk0, PLAYER_ASTATE_Fall_Reset);
+    }
+    if (data->vehicle == NULL) {
+        sp70 = sp6C / _bss_1AC;
+        for (i = 0; i < sp80; i++) {
+            *_bss_1AA = i;
+            dll_210_func_11A0(player, data, sp70);
+            get_object_child_position(player, &player->globalPosition.x, &player->globalPosition.y, &player->globalPosition.z);
+            data->unk7EC.x += player->velocity.x;
+            data->unk7EC.y += player->velocity.y;
+            data->unk7EC.z += player->velocity.z;
+        }
+    } else {
+        *_bss_1AA = 0;
+        dll_210_func_11A0(player, data, _bss_1AC);
+    }
+    i = gDLL_1_cmdmenu->vtbl->was_used_item_in_gamebit_array(sp48, 6);
+    if (i != -1) {
+        gDLL_6_AMSFX->vtbl->play(player, (player->id != PLAYER_SABRE ? _data_4C0 : _data_4CC)[i], 0x7FU, NULL, NULL, 0, NULL);
+    }
+    dll_210_func_7180(player, data, gUpdateRateF);
+    if ((data->unk87C != -1) && ((joy_get_pressed(0) & 0x4000) || (data->stats->magic == 0))) {
+        // @recomp: Don't allow B to unequip projectile spell while targetting
+        if (data->stats->magic == 0 || data->unk87C != BIT_Spell_Projectile || data->unk0.target == NULL) {
+            data->unk87C = -1;
+        }
+        data->unk8BF = -1;
+        if (*_data_38 != 0) {
+            dll_210_func_1DE64(_data_38);
+        }
+    }
+    tempObj = player->linkedObject;
+    if (tempObj == NULL) {
+        player->linkedObject = obj_create(obj_alloc_setup(0x18, _data_24[data->unk8B4]), OBJINIT_FLAG4, -1, -1, player->parent);
+    } else {
+        tempObj->parent = player->parent;
+    }
+    data->unk87E -= gUpdateRate;
+    if (data->unk87E < 0) {
+        data->unk87E = _data_28[data->unk8A5];
+        data->unk8A6 = _data_30[data->unk8A5];
+        if (gDLL_2_Camera->vtbl->get_dll_ID() == DLL_ID_CAM1STPERSON) {
+            data->unk8A6 = 0;
+        }
+    }
+    if (data->unk818 > 0.0f) {
+        data->unk818 -= gUpdateRateF;
+        data->unk81C += gUpdateRateF * data->unk8B9;
+        if (data->unk81C < 0.0f) {
+            data->unk8B9 = -data->unk8B9;
+            data->unk81C = -data->unk81C;
+        } else if (data->unk81C > 120.0f) {
+            data->unk8B9 = -data->unk8B9;
+            data->unk81C = 120.0f - (data->unk81C - 120.0f);
+        }
+    }
+    if (data->unk8BE == 1) {
+        data->unk844 += data->unk840 * gUpdateRateF;
+        if (data->unk844 >= 40.0f) {
+            data->unk844 = 40.0f;
+            data->unk840 = 0;
+        } else if (data->unk844 <= 0) {
+            data->unk844 = 0;
+            data->unk840 = 0.2f;
+        }
+        diPrintf(_rodata_120, &data->unk844, &data->unk840);
+    }
+    gDLL_2_Camera->vtbl->apply_highlight_flags(data->unk8BD);
+    data->unk870 = 0;
+    data->unk8AD = 0U;
+    dll_210_func_2534(player, data, &data->unk0);
+    gDLL_27->vtbl->func_1E8(player, &data->unk0.unk4, gUpdateRateF);
+    gDLL_27->vtbl->func_5A8(player, &data->unk0.unk4);
+    gDLL_27->vtbl->func_624(player, &data->unk0.unk4, gUpdateRateF);
+    if (data->unk868 != NULL) {
+        dll_210_func_47B8(player, data);
+    }
 }
 
 /** Fix Ice Blast / Grenade Spell selection (originally by MusicalProgrammer) */
@@ -140,14 +263,38 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                         gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 58);
                         arg1->flags |= 0x400000;
                     }
-                //If not in aiming state, and not in a state that's allowed to lead into the aiming state, reject spell selection
-                } else if (fsa->animState != 58){
-                    gDLL_6_AMSFX->vtbl->play(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
-                    break; //@recomp;
+                } else {
+                    // @recomp: Check for additional cases for whether the spell can be selected
+                    _Bool disallowSelection = TRUE;
+                    if (fsa->animState == PLAYER_ASTATE_Aiming_Spell) {
+                        // Spell can be swapped while aiming
+                        disallowSelection = FALSE;
+                    } else if (messageArgument == BIT_Spell_Projectile && fsa->target != NULL 
+                                && /*is a target we can attack*/fsa->unk33D == 1) {
+                        // The projectile spell can be equipped while targetting
+                        disallowSelection = FALSE;
+
+                        // Allow spell to be disabled via cmdmenu while targetting (to return to melee)
+                        if (arg1->unk87C != -1) {
+                            arg1->unk87C = -1;
+                            break;
+                        }
+
+                        // These bits must be cleared or else spell aiming will not be properly cancelled
+                        // if the z-lock target is removed for any reason.
+                        // TODO: figure out what exactly this is doing and why (0x400000 is set when aiming, but
+                        //       not from holding Z. 0x1000 is toggled when pressing Z i think?)
+                        arg1->flags &= ~0x401000;
+                    }
+
+                    if (disallowSelection) {
+                        gDLL_6_AMSFX->vtbl->play(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+                        break;
+                    }
                 }
             }
 
-            //@recomp: change conditions for reaching here
+            //@recomp: change conditions for reaching here (see above)
             dll_210_func_6DD8(player, arg1, messageArgument);
             break;
         case 0xE0000:
@@ -845,6 +992,7 @@ RECOMP_PATCH s32 dll_210_func_B4E0(Object* player, ObjFSA_Data* fsa, f32 deltaTi
         gDLL_6_AMSFX->vtbl->play(player, SOUND_6B4_Basket_Carry, 0x61, NULL, NULL, 0, NULL);
 
         //@recomp: override carry position offset value for specific objects 
+        // TODO: this patch should be done in the actual barrel DLLs
         //(usually sent as message by carried object)
         heldObject = objdata->unk868;
         if (heldObject){
@@ -1898,6 +2046,42 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
     ((void (*)(Object*, Player_Data*, f32)) objdata->unk3BC)(arg0, objdata, gUpdateRateF);
     dll_210_func_1BC0(arg0, objdata);
     return spC8;
+}
+
+RECOMP_PATCH void dll_210_func_1AAD8(Object* player, ObjFSA_Data *fsa) {
+    Object* temp_a0;
+    s16* temp_v0;
+    s32 i;
+    Player_Data* temp_s0;
+
+    temp_s0 = player->data;
+
+    // @recomp: Don't uneqiup weapon if targetting (and target is still valid)
+    if (fsa->target != NULL && fsa->unk33D == 1) {
+        return;
+    }
+
+    temp_s0->unk87C = -1;
+    temp_s0->flags &= ~0x400;
+    temp_a0 = player->linkedObject;
+    ((DLL_Unknown*)temp_a0->dll)->vtbl->func[14].withThreeArgs((s32)temp_a0, 0, (s32)player);
+    if (temp_s0->unk848 != 0) {
+        gDLL_6_AMSFX->vtbl->stop(temp_s0->unk848);
+        temp_s0->unk848 = 0;
+    }
+    if (gDLL_2_Camera->vtbl->get_dll_ID() != DLL_ID_CAMNORMAL) {
+        gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, 0, 1, 0, NULL, 120, 0xFF);
+    }
+    for (i = 0; i < 4; i++) {
+        temp_a0 = _bss_210[i];
+        if (temp_a0 != 0) {
+            obj_destroy_object(temp_a0);
+            _bss_210[i] = 0;
+        }
+    }
+    temp_v0 = func_80034804(player, 9);
+    temp_v0[1] = 0;
+    temp_v0[0] = 0;
 }
 
 static s16 iceblast_timer = 0;
