@@ -975,7 +975,7 @@ RECOMP_PATCH s32 dll_210_func_125BC(Object *self, ObjFSA_Data *fsa, f32 updateRa
     return 0;
 }
 
-/** Fix Sabre floating around when he rides SnowHorns, stop projectile spell activating on dismount (originally by MusicalProgrammer) */
+/** Fix Sabre floating around when he rides SnowHorns (originally by MusicalProgrammer) */
 RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2) {
     Player_Data* objData2;
     Object* steed;
@@ -992,11 +992,6 @@ RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2
     objData2 = self->data;
     objData->unk0.unk4.mode = 0;
     objData->unk0.animExitAction = dll_210_func_14B70;
-
-    //@recomp: prevent Projectile Spell equip
-    objData->unk834 = 0;
-    objData->flags &= 0xFF00;
-
     func_800267A4(self);
     steed = objData2->vehicle;
     if (steed == NULL) {
@@ -1190,7 +1185,6 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     return 0;
 }
 
-/** Prevent Projectile Spell from triggering after dismounting log (originally by MusicalProgrammer) */
 RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) {
     Object* vehicle;
     s32 dismountSide;
@@ -1217,7 +1211,6 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
         if (temp_v0 != 0) { return temp_v0; }
     }
 
-    objdata->unk834 = 0; //@recomp
     func_800267A4(player);
     player->velocity.f[1] = 0.0f;
     if (fsa->enteredAnimState != 0) {
@@ -2607,4 +2600,17 @@ RECOMP_PATCH s32 dll_210_func_18E10(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     }
 
     return 0;
+}
+
+RECOMP_HOOK_DLL(dll_210_func_11A0) void dll_210_func_11A0_hook(Object* player, Player_Data* arg1, f32 arg2) {
+    // Reset timer for holding Z to aim spell if Z is not held. This avoids entering the aiming
+    // state when doing things like dismounting a vehicle if Z was held when initially mounting.
+    //
+    // Note: This is a more general issue with how the player DLL reads controller inputs. It's possible
+    // for button releases to be missed when riding a vehicle due to the change in how the player DLL
+    // handles input buffering while on a vehicle.
+    if (!(joy_get_buttons_buffered(arg1->unk884, *_bss_1AA) & Z_TRIG)) {
+        arg1->flags &= ~0x1000; // clear Z held flag
+        arg1->unk834 = 0.0f;
+    }
 }
