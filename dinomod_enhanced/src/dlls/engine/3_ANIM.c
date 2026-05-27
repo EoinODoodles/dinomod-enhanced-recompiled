@@ -15,7 +15,7 @@
 
 #include "recomp/dlls/engine/3_ANIM_recomp.h"
 
-#define DEBUG_ANIM
+//#define DEBUG_ANIM
 
 // Maximum number of active object sequences
 #define MAX_SEQSLOTS 45
@@ -259,6 +259,7 @@ extern s8 _bss_8B;
 
 extern s8 anim_get_free_sfx_slot(AnimObj_Data* st);
 
+#ifdef DEBUG_ANIM
 RECOMP_PATCH s32 anim_process_event(Object* animObj, ModelInstance* animObjModelInst, AnimCurvesEvent** events, s8 arg3, s32* arg4) {
     AnimState* temp_v1;
     f32 var_fv0;
@@ -514,7 +515,6 @@ RECOMP_PATCH s32 anim_process_event(Object* animObj, ModelInstance* animObjModel
     return 0;
 }
 
-#ifdef DEBUG_ANIM
 static char anim_command_names[][64] = {
     "0", // 0, // remove override?
     "1", // 1,
