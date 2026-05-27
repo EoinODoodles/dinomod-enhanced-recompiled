@@ -41,26 +41,15 @@
  * - Use a different animation for a full charge end that plays a roar sound normally missing due to a bug.
  * - Switch to unused "intense" fight music while boss is charging (or preparing a charge).
  * - Don't let boss do a 180 if the player is in view.
- *
- * Enhanced (Hard Mode):
- * - Adjustments to speed, vulnerable times, and reverse/charge chances.
- * - Silent 180 turns.
- * - Sometimes charges for an extra segment.
- * - Always charges around the corner during the last phase if the player is in the next segment.
  */
 
 enum KTRecompMode {
     KT_RECOMP_VANILLA,
-    KT_RECOMP_ENHANCED,
-    KT_RECOMP_HARD
+    KT_RECOMP_ENHANCED
 };
 
 static int dinomod_kt_enhanced(void) {
     return recomp_get_config_u32("kt_mode") != KT_RECOMP_VANILLA;
-}
-
-static int dinomod_kt_hard(void) {
-    return recomp_get_config_u32("kt_mode") == KT_RECOMP_HARD;
 }
 
 #include "recomp/dlls/objects/702_KTrex_recomp.h"
@@ -287,28 +276,10 @@ RECOMP_HOOK_DLL(dll_702_setup) void dll_702_setup_hook(Object* self, KTrex_ObjSe
 
     if (dinomod_kt_enhanced()) {
         // @recomp: (enhanced) Difficulty adjustments
-        if (!dinomod_kt_hard()) {
-            setup->speeds[2] = 4.5f; // speed up full charge a little (4 -> 4.5)
-            setup->vulnerableTime[1] = 500; // 6 -> 5 swipes
-            setup->vulnerableTime[2] = 400; // 6 -> 4 swipes
-            setup->vulnerableTime[3] = 300; // 6 -> 3 swipes
-        } else  {
-            setup->speeds[0] = 4.5f; // speed up normal speed (4 -> 4.5)
-            setup->speeds[1] = 5.5f; // speed up normal charge (4 -> 5.5)
-            setup->speeds[2] = 6.5f; // speed up full charge (4 -> 6.5)
-            setup->vulnerableTime[0] = 400; // 6 -> 4 swipes
-            setup->vulnerableTime[1] = 300; // 6 -> 3 swipes
-            setup->vulnerableTime[2] = 200; // 6 -> 2 swipes
-            setup->vulnerableTime[3] = 100; // 6 -> 1 swipes
-            setup->reverseChance[0] = 10; // 0% -> 10%
-            setup->reverseChance[1] = 20; // 5% -> 20%
-            setup->reverseChance[2] = 30; // 10% -> 30%
-            setup->reverseChance[3] = 40; // 20% -> 40%
-            setup->chargeChance[0] = 10; // 0% -> 10%
-            setup->chargeChance[1] = 20; // 5% -> 20%
-            setup->chargeChance[2] = 30; // 10% -> 30%
-            setup->chargeChance[3] = 40; // 20% -> 40%
-        }
+        setup->speeds[2] = 4.5f; // speed up full charge a little (4 -> 4.5)
+        setup->vulnerableTime[1] = 500; // 6 -> 5 swipes
+        setup->vulnerableTime[2] = 400; // 6 -> 4 swipes
+        setup->vulnerableTime[3] = 300; // 6 -> 3 swipes
     }
 }
 
@@ -395,11 +366,6 @@ RECOMP_PATCH s32 dll_702_anim_state_2(Object* self, ObjFSA_Data* fsa, f32 update
         //          segment after the turn. Really only noticeable at higher movement speeds.
         self->srt.transl.x = sKTData->pos.x;
         self->srt.transl.z = sKTData->pos.z;
-
-        // @recomp: (hard) Increase turn speed on hard mode
-        if (dinomod_kt_hard()) {
-            fsa->animTickDelta *= (sKTData->anger == 0 ? 1.25f : 1.5f);
-        }
     }
     dll_702_anim_event_to_fx(KTANIM_EVT_2_Footfall_Right, KTFX_Footfall_Right1); // on event 2 -> right footfall
     dll_702_anim_event_to_fx(KTANIM_EVT_1_Footfall_Left, KTFX_Footfall_Left1); // on event 1 -> left footfall
@@ -420,30 +386,6 @@ RECOMP_PATCH s32 dll_702_anim_state_2(Object* self, ObjFSA_Data* fsa, f32 update
         self->srt.yaw = (f32) sKTData->turnStartYaw + (16384.0f * self->animProgress);
     } else {
         self->srt.yaw = (f32) sKTData->turnStartYaw - (16384.0f * self->animProgress);
-    }
-    return 0;
-}
-
-RECOMP_PATCH s32 dll_702_anim_state_3(Object* self, ObjFSA_Data* fsa, f32 updateRate) {
-    u16 reversed;
-
-    reversed = sKTData->flags & KTFLAG_REVERSED;
-    if (fsa->enteredAnimState) {
-        func_80023D30(self, KTANIM_Turn_180, 0.0f, 0);
-        fsa->animTickDelta = 0.005f;
-        fsa->unk278 = 0.0f;
-        fsa->unk27C = 0.0f;
-        sKTData->turnStartYaw = self->srt.yaw;
-
-        // @recomp: (hard) Increase turn speed on hard mode
-        if (dinomod_kt_hard()) {
-            fsa->animTickDelta *= 2.5f;
-        }
-    }
-    if (reversed) {
-        self->srt.yaw = (f32) sKTData->turnStartYaw + (32768.0f * self->animProgress);
-    } else {
-        self->srt.yaw = (f32) sKTData->turnStartYaw - (32768.0f * self->animProgress);
     }
     return 0;
 }
@@ -526,19 +468,13 @@ RECOMP_PATCH s32 dll_702_logic_state_2(Object* self, ObjFSA_Data* fsa, f32 updat
         if ((sKTData->fightProgress >= 2) && !(sKTData->flags & KTFLAG_ROLLED_CHANCE) && 
                 ((!reversed && sKTData->segmentPos >= 0.7f) || (reversed && sKTData->segmentPos <= 0.3f))) {
             chanceIdx = sKTData->fightProgress >> 1;
-            // @recomp: (hard) Always charge around the corner if the player is in the next segment on hard mode in the last phase
-            if (rand_next(0, 100) <= objsetup->chargeChance[chanceIdx] || 
-                    (dinomod_kt_hard() && sKTData->fightProgress >= 6 && dinomod_kt_is_player_in_next_segment())) {
+            if (rand_next(0, 100) <= objsetup->chargeChance[chanceIdx]) {
                 sKTData->chargeCounter = 2;
                 dll_702_push_state(KT_LSTATE_5_CHARGE);
                 sKTData->roarType = 1;
                 if (dinomod_kt_enhanced()) {
                     // @recomp: (enhanced) Kick in more intense version of music for charge
                     gDLL_5_AMSEQ2->vtbl->set(self, 0xD9, 0, 0, 0);
-                }
-                if (dinomod_kt_enhanced() && rand_next(0, 100) <= 50) {
-                    // @recomp: (hard) Charge an extra segment randomly on hard mode
-                    sKTData->chargeCounter += 1;
                 }
                 return KT_LSTATE_4_ROAR + 1;
             }
@@ -566,9 +502,6 @@ RECOMP_PATCH s32 dll_702_logic_state_2(Object* self, ObjFSA_Data* fsa, f32 updat
         if (dinomod_kt_enhanced()) {
             // @recomp: (enhanced) Kick in more intense version of music for charge
             gDLL_5_AMSEQ2->vtbl->set(self, 0xD9, 0, 0, 0);
-        }
-        if (dinomod_kt_hard() && ((!reversed && sKTData->segmentPos >= 0.5f) || (reversed && sKTData->segmentPos <= 0.5f))) {
-            sKTData->chargeCounter += 1;
         }
         return KT_LSTATE_4_ROAR + 1;
     }
@@ -702,10 +635,6 @@ RECOMP_PATCH s32 dll_702_logic_state_9(Object* self, ObjFSA_Data* fsa, f32 updat
             // @recomp: (enhanced) Kick in more intense version of music for charge
             gDLL_5_AMSEQ2->vtbl->set(self, 0xD9, 0, 0, 0);
         }
-        // @recomp: (hard) Compensate for increased move speed
-        if (dinomod_kt_hard()) {
-            sKTData->timer /= 2.0f;
-        }
         return KT_LSTATE_10_FULL_CHARGE + 1;
     }
     return 0;
@@ -742,11 +671,7 @@ RECOMP_PATCH s32 dll_702_logic_state_10(Object* self, ObjFSA_Data* fsa, f32 upda
             } else {
                 sKTData->roarType = 0;
                 dll_702_push_state(KT_LSTATE_11_REVERSE);
-
-                // @recomp: (hard) Skip roar and do a silent turn on hard mode
-                if (!dinomod_kt_hard()) {
-                    dll_702_push_state(KT_LSTATE_4_ROAR);
-                }
+                dll_702_push_state(KT_LSTATE_4_ROAR);
             }
         } else {
             // @recomp: Decrement fight progress if not damaged (an above patch makes this always get incremented)

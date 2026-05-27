@@ -389,12 +389,11 @@ Options to adjust the behavior of the Klanadack boss fight.
 
 - Vanilla: Only include bug fixes and basic polish.
 - Enhanced: Small adjustments to Klanadack's behavior to improve the boss fight.
-- Enhanced (Hard Mode): Everything from Enhanced but with increased difficulty.
 
 Note: This must be set *before* entering the boss fight!
 '''
 type = "Enum"
-options = [ "Vanilla", "Enhanced", "Enhanced (Hard Mode)" ]
+options = [ "Vanilla", "Enhanced" ]
 default = "Enhanced"
 
 [[manifest.config_options]]
