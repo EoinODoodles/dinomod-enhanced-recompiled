@@ -326,6 +326,20 @@ options = [ "Tap", "Hold" ]
 default = "Tap"
 
 [[manifest.config_options]]
+id = "log_rolling"
+name = "Log: Rolling"
+description = '''
+Whether the roll action while riding a log is enabled.
+
+The December 2000 prototype ROM contains two implementations of the rideable log (one broken due to bugs and one that works). Dinomod Enhanced replaces all instances of the older broken version of the log with the new one that was meant for a specific part of BlackWater Canyon. However, the BlackWater Canyon log includes a roll ability that, presumably, wasn't meant to be used in other areas.
+
+In practice, pressing A repeatedly to row results in accidentally rolling quite often, so this has been disabled by default to better align with the log gameplay intent of areas like Cape Claw and Discovery Falls. Rolling can be re-enabled with this option, though it has no use in the current build.
+'''
+type = "Enum"
+options = [ "Disabled", "Enabled" ]
+default = "Disabled"
+
+[[manifest.config_options]]
 id = "iceblast_cost"
 name = "Ice Blast Spell: Reduced Magic Cost"
 description = '''
