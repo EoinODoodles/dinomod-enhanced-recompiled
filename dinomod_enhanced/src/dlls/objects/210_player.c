@@ -35,15 +35,11 @@
 
 #define DEBUG_MESSAGES FALSE
 
-
 extern f32 _data_C[];
 extern u8 _data_14[4];
 extern s16 _data_18[2];
 extern f32 _bss_1C;
 extern s16 _data_24[2];
-/*0x28*/ extern u8 _data_28[];
-/*0x30*/ extern u8 _data_30[];
-/*0x38*/ extern UNK_TYPE_32 _data_38[];
 extern s16 _data_98[];
 extern s16 _data_C8[];
 extern s16 _data_F8[];
@@ -80,14 +76,6 @@ extern void dll_210_func_1D8B8(Object* player);
 extern void dll_210_func_1DB6C(Object* arg0, f32 arg1);
 extern void dll_210_func_1DC48(Object* player);
 extern Object *dll_210_func_1DD94(Object* player, s32 arg1);
-extern void dll_210_func_11A0(Object* player, Player_Data* arg1, f32 arg2);
-extern void dll_210_func_1CA8(Object* player, Player_Data* arg1, ObjFSA_Data* fsa);
-extern void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Data* fsa);
-extern void dll_210_func_47B8(Object* player, Player_Data* arg1);
-extern void dll_210_func_7180(Object* player, Player_Data* arg1, f32 updateRate);
-extern void dll_210_func_2534(Object* player, Player_Data* arg1, ObjFSA_Data* fsa);
-extern void dll_210_func_1DE64(UNK_TYPE_32 *player);
-extern void dll_210_add_scarab(Object* player, s32 amount);
 
 extern s8 _bss_0;
 extern s16 _bss_2;
@@ -95,147 +83,9 @@ extern ObjFSA_StateCallback _bss_58[81];
 extern ObjFSA_StateCallback _bss_19C[1];
 extern u8 _bss_1AA[0x2];
 extern f32 _bss_1AC;
-/*0x20C*/ extern Camera *_bss_20C;
 extern Object *_bss_210[4];
 extern s16 _bss_220[2];
 extern ObjFSA_StateCallback _bss_224[1];
-/*0x4C0*/ extern s16 _data_4C0[];
-/*0x4CC*/ extern s16 _data_4CC[];
-
-/*0x120*/ extern const char _rodata_120[];
-
-RECOMP_PATCH void dll_210_control(Object* player) {
-    Player_Data* data = player->data;
-    s32 sp80;
-    s32 i;
-    s32 var_v0;
-    s16* var_v0_3;
-    f32 sp70;
-    f32 sp6C;
-    Object* tempObj;
-    s32 pad;
-    s32 pad2;
-    s32 sp48[6] = { 0, 1, 2, 3, 4, 5 };
-
-    if (menu_get_current() == MENU_TITLE_SCREEN) {
-        return;
-    }
-
-    if (joy_get_buttons(0) & U_JPAD) {
-        dll_210_add_scarab(player, 1);
-    }
-    _bss_1AC = gUpdateRateF;
-    if (_bss_1AC > 4.0f) {
-        _bss_1AC = 4.0f;
-    }
-    sp6C = dll_210_func_63F0(data, gUpdateRateF);
-    sp80 = gUpdateRate;
-    if (sp80 >= 5) {
-        sp80 = 4;
-    }
-    if ((player->parent == NULL) && (map_world_coords_to_block_index(player->srt.transl.x, player->srt.transl.y, player->srt.transl.z) < 0)) {
-        data->unk0.target = NULL;
-        data->unk854 = 0;
-        gDLL_2_Camera->vtbl->set_target_object(NULL);
-    }
-    _bss_20C = get_main_camera();
-    dll_210_func_1DDC(player, data, &data->unk0);
-    dll_210_func_1CA8(player, data, &data->unk0);
-    if (player->parent != NULL) {
-        var_v0 = (0x8000 - _bss_20C->srt.yaw);
-        var_v0 = (player->parent->srt.yaw & 0xFFFF) - (var_v0 & 0xFFFF);
-        CIRCLE_WRAP(var_v0)
-        data->unk0.unk324 = var_v0 + 0x8000;
-    } else {
-        data->unk0.unk324 = _bss_20C->srt.yaw;
-    }
-    data->unk8BC = gDLL_2_Camera->vtbl->get_dll_ID();
-    if (data->unk8BC == 0x56 && data->unk0.animState != PLAYER_ASTATE_Standing) {
-        gDLL_18_objfsa->vtbl->set_anim_state(player, &data->unk0, PLAYER_ASTATE_Standing);
-    }
-    data->unk7FC = 100000.0f;
-    data->unk8BD = 1;
-    data->unk0.unk304 = 0;
-    for (i = 0; i < data->unk8AD; i++) { data->unk0.unk304 |= (1 << (data->unk8AE[i] & 0xFF)) & 0xFF; }
-    if (data->unk0.unk304 & 1 && data->unk0.animState != PLAYER_ASTATE_Fall_Reset) {
-        gDLL_18_objfsa->vtbl->set_anim_state(player, &data->unk0, PLAYER_ASTATE_Fall_Reset);
-    }
-    if (data->vehicle == NULL) {
-        sp70 = sp6C / _bss_1AC;
-        for (i = 0; i < sp80; i++) {
-            *_bss_1AA = i;
-            dll_210_func_11A0(player, data, sp70);
-            get_object_child_position(player, &player->globalPosition.x, &player->globalPosition.y, &player->globalPosition.z);
-            data->unk7EC.x += player->velocity.x;
-            data->unk7EC.y += player->velocity.y;
-            data->unk7EC.z += player->velocity.z;
-        }
-    } else {
-        *_bss_1AA = 0;
-        dll_210_func_11A0(player, data, _bss_1AC);
-    }
-    i = gDLL_1_cmdmenu->vtbl->was_used_item_in_gamebit_array(sp48, 6);
-    if (i != -1) {
-        gDLL_6_AMSFX->vtbl->play(player, (player->id != PLAYER_SABRE ? _data_4C0 : _data_4CC)[i], 0x7FU, NULL, NULL, 0, NULL);
-    }
-    dll_210_func_7180(player, data, gUpdateRateF);
-    if ((data->unk87C != -1) && ((joy_get_pressed(0) & 0x4000) || (data->stats->magic == 0))) {
-        // @recomp: Don't allow B to unequip projectile spell while targetting
-        if (data->stats->magic == 0 || data->unk87C != BIT_Spell_Projectile || data->unk0.target == NULL) {
-            data->unk87C = -1;
-        }
-        data->unk8BF = -1;
-        if (*_data_38 != 0) {
-            dll_210_func_1DE64(_data_38);
-        }
-    }
-    tempObj = player->linkedObject;
-    if (tempObj == NULL) {
-        player->linkedObject = obj_create(obj_alloc_setup(0x18, _data_24[data->unk8B4]), OBJINIT_FLAG4, -1, -1, player->parent);
-    } else {
-        tempObj->parent = player->parent;
-    }
-    data->unk87E -= gUpdateRate;
-    if (data->unk87E < 0) {
-        data->unk87E = _data_28[data->unk8A5];
-        data->unk8A6 = _data_30[data->unk8A5];
-        if (gDLL_2_Camera->vtbl->get_dll_ID() == DLL_ID_CAM1STPERSON) {
-            data->unk8A6 = 0;
-        }
-    }
-    if (data->unk818 > 0.0f) {
-        data->unk818 -= gUpdateRateF;
-        data->unk81C += gUpdateRateF * data->unk8B9;
-        if (data->unk81C < 0.0f) {
-            data->unk8B9 = -data->unk8B9;
-            data->unk81C = -data->unk81C;
-        } else if (data->unk81C > 120.0f) {
-            data->unk8B9 = -data->unk8B9;
-            data->unk81C = 120.0f - (data->unk81C - 120.0f);
-        }
-    }
-    if (data->unk8BE == 1) {
-        data->unk844 += data->unk840 * gUpdateRateF;
-        if (data->unk844 >= 40.0f) {
-            data->unk844 = 40.0f;
-            data->unk840 = 0;
-        } else if (data->unk844 <= 0) {
-            data->unk844 = 0;
-            data->unk840 = 0.2f;
-        }
-        diPrintf(_rodata_120, &data->unk844, &data->unk840);
-    }
-    gDLL_2_Camera->vtbl->apply_highlight_flags(data->unk8BD);
-    data->unk870 = 0;
-    data->unk8AD = 0U;
-    dll_210_func_2534(player, data, &data->unk0);
-    gDLL_27->vtbl->func_1E8(player, &data->unk0.unk4, gUpdateRateF);
-    gDLL_27->vtbl->func_5A8(player, &data->unk0.unk4);
-    gDLL_27->vtbl->func_624(player, &data->unk0.unk4, gUpdateRateF);
-    if (data->unk868 != NULL) {
-        dll_210_func_47B8(player, data);
-    }
-}
 
 /** Fix Ice Blast / Grenade Spell selection (originally by MusicalProgrammer) */
 RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Data* fsa) {
@@ -275,13 +125,13 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                         disallowSelection = FALSE;
 
                         // Allow spell to be disabled via cmdmenu while targetting (to return to melee)
-                        if (arg1->unk87C != -1) {
+                        if (arg1->unk87C == BIT_Spell_Projectile) {
                             arg1->unk87C = -1;
                             break;
                         }
 
                         // These bits must be cleared or else spell aiming will not be properly cancelled
-                        // if the z-lock target is removed for any reason.
+                        // if the z-lock target is removed in some cases.
                         // TODO: figure out what exactly this is doing and why (0x400000 is set when aiming, but
                         //       not from holding Z. 0x1000 is toggled when pressing Z i think?)
                         arg1->flags &= ~0x401000;
@@ -292,6 +142,13 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                         break;
                     }
                 }
+            }
+            // @recomp: Don't allow switching to non-aimed spells while aiming a spell. If this is allowed,
+            //          you can get into a buggy state with two spells equipped at the same time or a weirder
+            //          state with no spells equipped but still be able to fire the last aimed spell.
+            else if (fsa->animState == PLAYER_ASTATE_Aiming_Spell) {
+                gDLL_6_AMSFX->vtbl->play(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+                break;
             }
 
             //@recomp: change conditions for reaching here (see above)
@@ -503,7 +360,7 @@ RECOMP_HOOK_RETURN_DLL(dll_210_control) void playerSoundDebouncing(Object* self)
 }
 
 /** Stop spells from unequipping themselves whenever you do an action (originally by MusicalProgrammer) */
-void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
+RECOMP_PATCH void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
     Object* temp_s2;
     s32 temp_s3;
     s32 var_s4;
@@ -561,7 +418,10 @@ void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
                 ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func8(temp_s2);
             }
             if (temp_s3 != 0) {
-                arg1->unk87C = -1;
+                // @recomp: Don't disable forcefield or illusion when stowing weapon
+                if (arg1->unk87C != BIT_Spell_Forcefield && arg1->unk87C != BIT_Spell_Illusion) {
+                    arg1->unk87C = -1;
+                }
                 arg1->unk878 = 3;
                 var_s4 = 1;
             }
@@ -678,7 +538,10 @@ RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2
                 objData->unk8A8 = 0;
             }
             if (func_80025140(self, -0.015f, arg2, 0) != 0) {
-                objData->unk87C = -1;
+                // @recomp: Don't disable forcefield or illusion when stowing weapon
+                if (objData->unk87C != BIT_Spell_Forcefield && objData->unk87C != BIT_Spell_Illusion) {
+                    objData->unk87C = -1;
+                }
                 objData->unk878 = 3;
                 var_s2 = new_var;
             }
@@ -2720,4 +2583,28 @@ RECOMP_HOOK_DLL(dll_210_control) void play_as_fox(Object* self) {
         }
         break;
     }
+}
+
+RECOMP_PATCH s32 dll_210_func_18E10(Object* player, ObjFSA_Data* fsa, f32 arg2) {
+    Player_Data *objdata = player->data;
+
+    if (fsa->unk33D != 1) {
+        return -1;
+    }
+
+    if (objdata->unk878 == 1 || objdata->unk878 == 2) {
+        return 0;
+    }
+
+    if (fsa->unk310 & 0x8000) {
+        return 0x3C;
+    }
+
+    if (fsa->unk310 & 0x4000) {
+        // @recomp: Don't allow dodge rolling to cancel spells
+        joy_disable_buttons(0, B_BUTTON);
+        return 0x3E;
+    }
+
+    return 0;
 }
