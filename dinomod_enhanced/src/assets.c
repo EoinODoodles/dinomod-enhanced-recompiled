@@ -541,6 +541,7 @@ PRAGMA_IGNORE_POP()
 #define BOULDER_BIT DINOMOD_BIT_920_SH_BoulderBlownUp
 #define RIVER_BIT DINOMOD_BIT_921_SH_RiverUnblocked
 #define VINES_BIT DINOMOD_BIT_922_SH_Well_LilyPondVinesUnblocked
+#define BOULDER_SEQ_BIT DINOMOD_BIT_92C_SH_River_Seq_Has_Played
 
 static void swapstone_hollow_additions(void) {
     ReAssetID mapID = reasset_base_id(MAP_SWAPSTONE_HOLLOW);
@@ -562,11 +563,11 @@ static void swapstone_hollow_additions(void) {
                 .z = 1413.7
             },
             .gamebitPlay = BIT_SP_Exiting_Shop,
-            .gamebitPlayed = NO_GAMEBIT,
+            .gamebitHasPlayed = NO_GAMEBIT,
             .yaw = 0,
             .playbackOptions = 8,
             .seqIndex = 9,
-            .unk22 = 1,
+            .replayActorMask = 1,
             .warpID = 0
         };
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &objSeq, sizeof(objSeq));
@@ -601,41 +602,21 @@ static void swapstone_hollow_additions(void) {
     //Add SHBoulders blocking the waterfall near Rocky 
     //(One for each side of the opening, to give the illusion that you're seeing the back of the boulder)
     {
-        typedef struct {
-            Vec3f coords;
-            u16 scale;
-            s16 yaw;
-            s16 pitch;
-            s16 roll;
-        } SHBoulders;
-
-        SHBoulders boulderData[2] = {
-            {VEC3F(2410.9, -654.8, 956.3), 146, DEGREES_TO_ANGLE8(34.3f), DEGREES_TO_ANGLE8(0.9f), 0},
-            {VEC3F(2383.0, -642.7, 922.0), 141, DEGREES_TO_ANGLE8(21.0f), 0, 0},
+        SHboulder_Setup boulders[2] = {
+            {COORDS_SETUP(2410.9, -654.8, 956.3), .scale = 146, .yaw = DEGREES_TO_ANGLE8(34.3f), .pitch = DEGREES_TO_ANGLE8(0.9f), .invincible = FALSE, .debris = FALSE}, //Inner side (Rocky's pond)
+            {COORDS_SETUP(2383.0, -642.7, 922.0), .scale = 141, .yaw = DEGREES_TO_ANGLE8(21.0f), .pitch = 0,                       .invincible = TRUE,  .debris = TRUE},  //Outer side
         };
-        u8 count = ARRAYCOUNT(boulderData);
 
-        //Insert the new objects
-        for (s32 i = 0; i < count; i++) {
-            SHboulder_Setup boulder = {
-                .base = {
-                    .objId = OBJ_SHboulder,
-                    .actExclusions1 = ~MAP_ACT(1),
-                    .loadFlags = OBJSETUP_LOAD_MAIN,
-                    .fadeFlags = OBJSETUP_FADE_CAMERA,
-                    .loadDistance = 140,
-                    .fadeDistance = 140,
-                    .x = boulderData[i].coords.x,
-                    .y = boulderData[i].coords.y,
-                    .z = boulderData[i].coords.z
-                },
-                .scale = boulderData[i].scale,
-                .yaw = boulderData[i].yaw,
-                .pitch = boulderData[i].pitch,
-                .roll = boulderData[i].roll,
-                .gamebitGone = BOULDER_BIT
-            };
-            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &boulder, sizeof(boulder));
+        for (s32 i = 0, count = ARRAYCOUNT(boulders); i < count; i++) {
+            SHboulder_Setup* boulder = &boulders[i];
+            boulder->base.objId = OBJ_SHboulder;
+            boulder->base.actExclusions1 = ~MAP_ACT(1);
+            boulder->base.loadFlags = OBJSETUP_LOAD_MAIN;
+            boulder->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+            boulder->base.loadDistance = 170;
+            boulder->base.fadeDistance = 170;
+            boulder->gamebitGone = BOULDER_BIT;
+            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), boulder, sizeof(SHboulder_Setup));
         }
     }
 
@@ -759,6 +740,31 @@ static void swapstone_hollow_additions(void) {
         sharpClaw->y = -658.742f;
         sharpClaw->z = 2183.488f;
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &sharpClaw_Setup, sizeof(sharpClaw_Setup));
+    }
+
+    //Add a SHseqobject to play a custom sequence
+    {
+        SeqObj_Setup objSeq = {
+            .base = {
+                .objId = OBJ_SHseqobject,
+                .actExclusions1 = 0,
+                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                .fadeFlags = OBJSETUP_FADE_MAIN,
+                .mapObjGroup = 0,
+                .fadeDistance = 0xFF,
+                .x = 2432,
+                .y = -532,
+                .z = 888
+            },
+            .gamebitPlay = BOULDER_BIT,
+            .gamebitHasPlayed = BOULDER_SEQ_BIT,
+            .yaw = 0,
+            .playbackOptions = SEQOBJ_OPTIONS_AutoHasPlayed_Set_After_Sequence, //wait until end of sequence to set gamebit
+            .seqIndex = 10,
+            .replayActorMask = 1,
+            .warpID = 0
+        };
+        reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &objSeq, sizeof(objSeq));
     }
 
     //Add HITS lines to help pen the SharpClaw in
@@ -905,6 +911,46 @@ static void swapstone_hollow_additions(void) {
         }
     }
 
+    //Add WaveAnimators to the waterfall basin (in a special objectGroup just for the sequence)
+    {
+        typedef struct {
+        /*00*/ ObjSetup base;
+        /*18*/ s16 unk18;
+        /*1A*/ s16 gamebitActivate;
+        /*1C*/ u8 frequencyZ;
+        /*1D*/ u8 frequencyX;
+        /*1E*/ u8 amplitude;
+        /*1F*/ s8 verticalOffset;
+        /*20*/ u8 animatorID;
+        /*21*/ u8 period; //Always set to 60?
+        /*22*/ u8 unk22;  //Always set to 6?
+        /*23*/ u8 vertexColourEffect; //0: lava, 1: water, 2: orange
+        } WaveAnimator_Setup;
+
+        WaveAnimator_Setup waveAnimatorData[] = {
+            {COORDS_SETUP(321.844, -1002.904, 1052.198), .frequencyX = 0, .frequencyZ = 1, .animatorID = 3},
+            {COORDS_SETUP(321.844, -1002.904, 1052.198), .frequencyX = 0, .frequencyZ = 1, .animatorID = 4},
+        };
+
+        for (int i = 0, end = ARRAYCOUNT(waveAnimatorData); i < end; i++) {
+            WaveAnimator_Setup* wAnim = &waveAnimatorData[i];
+            wAnim->base.objId = OBJ_WaveAnimator;
+            wAnim->base.actExclusions1 = 0;
+            wAnim->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+            wAnim->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+            wAnim->base.mapObjGroup = 20;
+            wAnim->base.fadeDistance = 140;
+            wAnim->amplitude = 3;
+            wAnim->verticalOffset = -12,
+            wAnim->period = 35;
+            wAnim->unk22 = 6;
+            wAnim->vertexColourEffect = 1; //water
+            reasset_map_objects_set(mapID, 
+                reasset_auto_id(dinomodNs), wAnim, sizeof(WaveAnimator_Setup)
+            );
+        }
+    }
+
     {
         // Add a distract node next to the sleeping log trader thorntail so that tricky
         // can correctly use distract to wake them up. The distract option is vanilla but
@@ -932,6 +978,39 @@ static void swapstone_hollow_additions(void) {
         };
 
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &distractNode, sizeof(distractNode));
+    }
+
+    //Revert the SHboulder blocking Willow Grove back to being a ThornTail (it used be one in older patches) to avoid confusion,
+    //since the player might try carrying a barrel to it and be confused about why it can't be destroyed
+    //TODO: config for this? 
+    {
+        //Add a ThornTail (a custom sleeping one)
+        {
+            typedef struct {
+            /*00*/ ObjSetup base;
+            /*18*/ u8 thornTailIndex;
+            /*19*/ u8 yaw;          //@recomp: custom param
+            /*1A*/ s16 gamebitAway; //@recomp: ThornTail doesn't show up when set
+            } SHthorntail_Setup;
+
+            SHthorntail_Setup thornTail = {
+                .base = {
+                    .objId = OBJ_SHthorntail,
+                    .actExclusions1 = ~MAP_ACT(1),
+                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .mapObjGroup = 9,
+                    .fadeDistance = 100,
+                    .x = 3145.765625, 
+                    .y = -789,
+                    .z = -188.720
+                },
+                .thornTailIndex = 4,    //Custom ThornTail
+                .yaw = DEGREES_TO_ANGLE8(180),
+                .gamebitAway = BIT_1E6, //Willow Grove open, maybe the ThornTail wandered off to explore it?
+            };
+            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &thornTail, sizeof(thornTail));
+        }
     }
 
     {
@@ -976,12 +1055,12 @@ static void swapstone_hollow_modifications(void) {
         reasset_objects_set(objects_shboulder_id, REASSET_BASE_NAMESPACE, objects_shboulder, objects_shboulder_end - objects_shboulder);
     }
 
-    //Edit the SHboulder blocking Willow Grove, so it can't be destroyed
+    //Delete the SHboulder blocking Willow Grove (reverting to a ThornTail like in older patches, 
+    //to avoid confusion where players might carry the explosive barrel over to it)
+    //TODO: config for this, choosing between boulder/ThornTail/something else?
     {
-        SHboulder_Setup *boulder = (SHboulder_Setup*)reasset_map_objects_get(sHollow, 
-            reasset_base_id(0x307F3), NULL);
-        boulder->scale = 177;
-        boulder->invincible = TRUE;
+        ReAssetID shBoulderWillowGrove = reasset_base_id(0x307F3);
+        reasset_map_objects_delete(sHollow, shBoulderWillowGrove);
     }
 
     // Move river sfx TriggerPoints into obj group 11
@@ -1047,6 +1126,26 @@ static void swapstone_hollow_modifications(void) {
         DLL506_Setup* plantSpore = reasset_map_objects_get(sHollow, reasset_base_id(0x34DF5), NULL);
         plantSpore->unk20 = BIT_SH_Move_Thorntail_Blocking_Swapstone; // 0x8D4
     }
+
+    // Edit TriggerCylinder around Rocky, so it unsets the "Exiting the Shop" gamebit
+    {
+        Trigger_Setup *trigger = reasset_map_objects_get(
+            sHollow, reasset_base_id(0xbe040a9), NULL);
+        trigger->commands[1].id = TRG_CMD_BITS;
+        trigger->commands[1].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
+        trigger->commands[1].param1 = (BIT_SP_Exiting_Shop >> 8);
+        trigger->commands[1].param2 = (BIT_SP_Exiting_Shop);
+    }
+
+    // Edit TriggerPlane approaching Rocky, so it unsets the "Exiting the Shop" gamebit too (just in case)
+    {
+        Trigger_Setup *trigger = reasset_map_objects_get(
+            sHollow, reasset_base_id(0x34732), NULL);
+        trigger->commands[7].id = TRG_CMD_BITS;
+        trigger->commands[7].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
+        trigger->commands[7].param1 = (BIT_SP_Exiting_Shop >> 8);
+        trigger->commands[7].param2 = (BIT_SP_Exiting_Shop);
+    }
 }
 
 static void swapstone_hollow_well_additions(void) {
@@ -1083,7 +1182,7 @@ static void swapstone_hollow_well_additions(void) {
                 .base = {
                     .objId = OBJ_SHvines,
                     .actExclusions1 = 0,
-                    .loadFlags = OBJSETUP_LOAD_LEVEL,
+                    .loadFlags = OBJSETUP_LOAD_MAIN,
                     .fadeFlags = OBJSETUP_FADE_CAMERA,
                     .loadDistance = 255, //Needs to be visible from quite far away due to the long approach from the ice floe river
                     .fadeDistance = 255,
@@ -1107,10 +1206,10 @@ static void swapstone_hollow_well_additions(void) {
             .base = {
                 .objId = OBJ_HitAnimator,
                 .actExclusions1 = 0,
-                .loadFlags = OBJSETUP_LOAD_LEVEL,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
                 .fadeFlags = OBJSETUP_FADE_CAMERA,
-                .loadDistance = 140,
-                .fadeDistance = 140,
+                .loadDistance = 100,
+                .fadeDistance = 100,
                 .x = 979.246,
                 .y = -1041.493,
                 .z = 609.779
@@ -1130,10 +1229,10 @@ static void swapstone_hollow_well_additions(void) {
             .base = {
                 .objId = OBJ_HitAnimator,
                 .actExclusions1 = 0,
-                .loadFlags = OBJSETUP_LOAD_LEVEL,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
                 .fadeFlags = OBJSETUP_FADE_CAMERA,
-                .loadDistance = 140,
-                .fadeDistance = 140,
+                .loadDistance = 100,
+                .fadeDistance = 100,
                 .x = 979.246,
                 .y = -1049.981,
                 .z = 609.779

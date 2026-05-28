@@ -11,6 +11,7 @@
 #include "common.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
+#include "game/gamebits.h"
 #include "sys/map_enums.h"
 #include "sys/menu.h"
 #include "sys/newshadows.h"
@@ -86,34 +87,6 @@ extern Object *_bss_210[4];
 extern s16 _bss_220[2];
 extern ObjFSA_StateCallback _bss_224[1];
 
-typedef void (*func_1D04C)(Object *obj, s32);
-static func_1D04C player_func_1D04C; 
-static void func_1D04C_hijack(Object *self, s32);
-
-RECOMP_HOOK_DLL(dll_210_ctor) void player_ctor_hook(DLLFile *dll) {
-    player_func_1D04C = dinomod_hijack_dll_export(dll, 61, func_1D04C_hijack);
-}
-
-RECOMP_HOOK_RETURN_DLL(dll_210_dtor) void player_dtor_hook() {
-    player_func_1D04C = NULL;
-}
-
-static void func_1D04C_hijack(Object *self, s32 a1) {
-    // @recomp: Ignore func_1D04C calls if in Galadon fight (removes forced z-targeting)
-    Object **objectList;
-    s32 count;
-
-    objectList = obj_get_all_of_type(4, &count);
-
-    for (s32 i = 0; i < count; i++) {
-        if (objectList[i]->id == OBJ_DIM_Boss) {
-            return;
-        }
-    }
-
-    player_func_1D04C(self, a1);
-}
-
 /** Fix Ice Blast / Grenade Spell selection (originally by MusicalProgrammer) */
 RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Data* fsa) {
     Object* outSender;
@@ -140,14 +113,45 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                         gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 58);
                         arg1->flags |= 0x400000;
                     }
-                //If not in aiming state, and not in a state that's allowed to lead into the aiming state, reject spell selection
-                } else if (fsa->animState != 58){
-                    gDLL_6_AMSFX->vtbl->play(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
-                    break; //@recomp;
+                } else {
+                    // @recomp: Check for additional cases for whether the spell can be selected
+                    _Bool disallowSelection = TRUE;
+                    if (fsa->animState == PLAYER_ASTATE_Aiming_Spell) {
+                        // Spell can be swapped while aiming
+                        disallowSelection = FALSE;
+                    } else if (messageArgument == BIT_Spell_Projectile && fsa->target != NULL 
+                                && /*is a target we can attack*/fsa->unk33D == 1) {
+                        // The projectile spell can be equipped while targetting
+                        disallowSelection = FALSE;
+
+                        // Allow spell to be disabled via cmdmenu while targetting (to return to melee)
+                        if (arg1->unk87C == BIT_Spell_Projectile) {
+                            arg1->unk87C = -1;
+                            break;
+                        }
+
+                        // These bits must be cleared or else spell aiming will not be properly cancelled
+                        // if the z-lock target is removed in some cases.
+                        // TODO: figure out what exactly this is doing and why (0x400000 is set when aiming, but
+                        //       not from holding Z. 0x1000 is toggled when pressing Z i think?)
+                        arg1->flags &= ~0x401000;
+                    }
+
+                    if (disallowSelection) {
+                        gDLL_6_AMSFX->vtbl->play(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+                        break;
+                    }
                 }
             }
+            // @recomp: Don't allow switching to non-aimed spells while aiming a spell. If this is allowed,
+            //          you can get into a buggy state with two spells equipped at the same time or a weirder
+            //          state with no spells equipped but still be able to fire the last aimed spell.
+            else if (fsa->animState == PLAYER_ASTATE_Aiming_Spell) {
+                gDLL_6_AMSFX->vtbl->play(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+                break;
+            }
 
-            //@recomp: change conditions for reaching here
+            //@recomp: change conditions for reaching here (see above)
             dll_210_func_6DD8(player, arg1, messageArgument);
             break;
         case 0xE0000:
@@ -356,7 +360,7 @@ RECOMP_HOOK_RETURN_DLL(dll_210_control) void playerSoundDebouncing(Object* self)
 }
 
 /** Stop spells from unequipping themselves whenever you do an action (originally by MusicalProgrammer) */
-void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
+RECOMP_PATCH void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
     Object* temp_s2;
     s32 temp_s3;
     s32 var_s4;
@@ -414,7 +418,10 @@ void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
                 ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func8(temp_s2);
             }
             if (temp_s3 != 0) {
-                arg1->unk87C = -1;
+                // @recomp: Don't disable forcefield or illusion when stowing weapon
+                if (arg1->unk87C != BIT_Spell_Forcefield && arg1->unk87C != BIT_Spell_Illusion) {
+                    arg1->unk87C = -1;
+                }
                 arg1->unk878 = 3;
                 var_s4 = 1;
             }
@@ -531,7 +538,10 @@ RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2
                 objData->unk8A8 = 0;
             }
             if (func_80025140(self, -0.015f, arg2, 0) != 0) {
-                objData->unk87C = -1;
+                // @recomp: Don't disable forcefield or illusion when stowing weapon
+                if (objData->unk87C != BIT_Spell_Forcefield && objData->unk87C != BIT_Spell_Illusion) {
+                    objData->unk87C = -1;
+                }
                 objData->unk878 = 3;
                 var_s2 = new_var;
             }
@@ -845,6 +855,7 @@ RECOMP_PATCH s32 dll_210_func_B4E0(Object* player, ObjFSA_Data* fsa, f32 deltaTi
         gDLL_6_AMSFX->vtbl->play(player, SOUND_6B4_Basket_Carry, 0x61, NULL, NULL, 0, NULL);
 
         //@recomp: override carry position offset value for specific objects 
+        // TODO: this patch should be done in the actual barrel DLLs
         //(usually sent as message by carried object)
         heldObject = objdata->unk868;
         if (heldObject){
@@ -964,7 +975,7 @@ RECOMP_PATCH s32 dll_210_func_125BC(Object *self, ObjFSA_Data *fsa, f32 updateRa
     return 0;
 }
 
-/** Fix Sabre floating around when he rides SnowHorns, stop projectile spell activating on dismount (originally by MusicalProgrammer) */
+/** Fix Sabre floating around when he rides SnowHorns (originally by MusicalProgrammer) */
 RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2) {
     Player_Data* objData2;
     Object* steed;
@@ -981,11 +992,6 @@ RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2
     objData2 = self->data;
     objData->unk0.unk4.mode = 0;
     objData->unk0.animExitAction = dll_210_func_14B70;
-
-    //@recomp: prevent Projectile Spell equip
-    objData->unk834 = 0;
-    objData->flags &= 0xFF00;
-
     func_800267A4(self);
     steed = objData2->vehicle;
     if (steed == NULL) {
@@ -1179,7 +1185,6 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     return 0;
 }
 
-/** Prevent Projectile Spell from triggering after dismounting log (originally by MusicalProgrammer) */
 RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) {
     Object* vehicle;
     s32 dismountSide;
@@ -1206,7 +1211,6 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
         if (temp_v0 != 0) { return temp_v0; }
     }
 
-    objdata->unk834 = 0; //@recomp
     func_800267A4(player);
     player->velocity.f[1] = 0.0f;
     if (fsa->enteredAnimState != 0) {
@@ -1900,6 +1904,42 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
     return spC8;
 }
 
+RECOMP_PATCH void dll_210_func_1AAD8(Object* player, ObjFSA_Data *fsa) {
+    Object* temp_a0;
+    s16* temp_v0;
+    s32 i;
+    Player_Data* temp_s0;
+
+    temp_s0 = player->data;
+
+    // @recomp: Don't uneqiup weapon if targetting (and target is still valid)
+    if (fsa->target != NULL && fsa->unk33D == 1) {
+        return;
+    }
+
+    temp_s0->unk87C = -1;
+    temp_s0->flags &= ~0x400;
+    temp_a0 = player->linkedObject;
+    ((DLL_Unknown*)temp_a0->dll)->vtbl->func[14].withThreeArgs((s32)temp_a0, 0, (s32)player);
+    if (temp_s0->unk848 != 0) {
+        gDLL_6_AMSFX->vtbl->stop(temp_s0->unk848);
+        temp_s0->unk848 = 0;
+    }
+    if (gDLL_2_Camera->vtbl->get_dll_ID() != DLL_ID_CAMNORMAL) {
+        gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, 0, 1, 0, NULL, 120, 0xFF);
+    }
+    for (i = 0; i < 4; i++) {
+        temp_a0 = _bss_210[i];
+        if (temp_a0 != 0) {
+            obj_destroy_object(temp_a0);
+            _bss_210[i] = 0;
+        }
+    }
+    temp_v0 = func_80034804(player, 9);
+    temp_v0[1] = 0;
+    temp_v0[0] = 0;
+}
+
 static s16 iceblast_timer = 0;
 
 /** - Don't default to Projectile Spell (originally by MusicalProgrammer) 
@@ -2525,7 +2565,7 @@ RECOMP_HOOK_DLL(dll_210_control) void play_as_fox(Object* self) {
         //Fox only shows up while Sabre's using the Illusion Spell
         if ((objData->unk8BF == 0) && (self->modelInstIdx == 2)) {
             self->modelInstIdx = 0;
-        } else if ((objData->unk8BF != 0) && (self->modelInstIdx != 2)) {
+        } else if ((objData->unk8BF == 1) && (self->modelInstIdx != 2)) {
             self->modelInstIdx = 2;
         }
         break;
@@ -2535,5 +2575,42 @@ RECOMP_HOOK_DLL(dll_210_control) void play_as_fox(Object* self) {
             self->modelInstIdx = 2;
         }
         break;
+    }
+}
+
+RECOMP_PATCH s32 dll_210_func_18E10(Object* player, ObjFSA_Data* fsa, f32 arg2) {
+    Player_Data *objdata = player->data;
+
+    if (fsa->unk33D != 1) {
+        return -1;
+    }
+
+    if (objdata->unk878 == 1 || objdata->unk878 == 2) {
+        return 0;
+    }
+
+    if (fsa->unk310 & 0x8000) {
+        return 0x3C;
+    }
+
+    if (fsa->unk310 & 0x4000) {
+        // @recomp: Don't allow dodge rolling to cancel spells
+        joy_disable_buttons(0, B_BUTTON);
+        return 0x3E;
+    }
+
+    return 0;
+}
+
+RECOMP_HOOK_DLL(dll_210_func_11A0) void dll_210_func_11A0_hook(Object* player, Player_Data* arg1, f32 arg2) {
+    // Reset timer for holding Z to aim spell if Z is not held. This avoids entering the aiming
+    // state when doing things like dismounting a vehicle if Z was held when initially mounting.
+    //
+    // Note: This is a more general issue with how the player DLL reads controller inputs. It's possible
+    // for button releases to be missed when riding a vehicle due to the change in how the player DLL
+    // handles input buffering while on a vehicle.
+    if (!(joy_get_buttons_buffered(arg1->unk884, *_bss_1AA) & Z_TRIG)) {
+        arg1->flags &= ~0x1000; // clear Z held flag
+        arg1->unk834 = 0.0f;
     }
 }

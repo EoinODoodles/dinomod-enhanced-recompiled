@@ -16,6 +16,7 @@
 #include "game/objects/interaction_arrow.h"
 #include "game/objects/inventory_items.h"
 #include "game/objects/object_id.h"
+#include "sys/camera.h"
 #include "sys/fonts.h"
 #include "sys/gfx/model.h"
 #include "sys/joypad.h"
@@ -2783,6 +2784,29 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     #endif
 }
 
+/**
+  * Hides the active spell/sidekick-command icons if an important sequence is playing.
+  */
+static void cmdmenu_hide_active_spell_sidekick_command_during_sequences() {
+    Player_Data* playerData;
+    Object* player = get_player();
+    if (!player || !player->data) {
+        return;
+    }
+
+    playerData = player->data;
+
+    //Check if the letterbox is active, and the player is either in a sequence or locked
+    if (camera_get_letterbox() && (
+            (player->stateFlags & OBJSTATE_IN_SEQ) ||                                       //Player involved in sequence
+            (!(player->stateFlags & OBJSTATE_IN_SEQ) && (playerData->flags & 0x200000))     //Player not in sequence, but locked
+        )
+    ) {
+        rsOpacityActiveSpell = 0;
+        rsOpacityActiveSideCommand = 0;
+    }
+}
+
 /** 
   * - Fix sidekick icon appearing half-way through fading out from exiting Items/Spells page.
   * - Optionally move/fade the Active Spell/Sidekick Command icons to avoid clashing with the inventory.
@@ -2800,7 +2824,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     s32 sideCommandIndex;
     s32 tileCount;
     u8 iconOpacity;
-    u8 pageIcon;
+    u8 pageIcon = 0;
     s8 offsetX;
     s8 offsetY;
     Object* sidekick;
@@ -2830,6 +2854,9 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
     gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0, -SCREEN_WIDTH * 4, 0);
     #endif
+
+    // @recomp: Hide the active Spell/Sidekick-command icons if an important sequence is playing
+    cmdmenu_hide_active_spell_sidekick_command_during_sequences();
 
     //Draw active spell icon
     {
@@ -3184,7 +3211,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
 
         //Get page icon (Bag/SpellBook/Kyte/Tricky)
         if (dInventoryShow || 
-            dInventoryOpacity > 0 || //@recomp: stop sidekick icon appearing halfway through fading out bag/book icon 
+            dInventoryOpacity == MAX_OPACITY || 
             (dInventoryOpacity != 0 && dOpacitySidekickMeter == 0)
         ) {
             switch (sInventoryPageID) {
@@ -3220,14 +3247,14 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             }
         } else {
             //Show sidekick's icon when the sidekick meter should be visible
-            //@bug: can suddenly switch to sidekick icon halfway through fading out from bag/book
-            if (dOpacitySidekickMeter != 0) {
-                pageIcon = CMDMENU_TEX_42_Tricky;
+            //@bug: can suddenly switch to sidekick icon halfway through fading out from bag
+            if ((dOpacitySidekickMeter != 0) && (sidekick != NULL)) {
                 if (sidekick != NULL && sidekick->id == OBJ_Kyte) {
                     pageIcon = CMDMENU_TEX_54_Kyte;
                     iconOpacity = dOpacitySidekickMeter;
                 } else {
                     offsetY = 3;
+                    pageIcon = CMDMENU_TEX_42_Tricky;
                     iconOpacity = dOpacitySidekickMeter;
                 }
             } else {
@@ -3236,7 +3263,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
         }
 
         //Draw page icon
-        if (iconOpacity) {
+        if (iconOpacity && pageIcon) {
             dInventoryPageIcon = tex_load_deferred(dTextableIDs[pageIcon]);
             rcp_screen_full_write(
                 gdl, 
@@ -3554,9 +3581,10 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
     //(@recomp: animate opacity even when sidekick's missing, so it doesn't get stuck)
     {
         //Handle the meter's opacity
-        if (((sInventoryPageID == CMDMENU_PAGE_7_Sidekick_Tricky || sInventoryPageID == CMDMENU_PAGE_8_Sidekick_Kyte) && dInventoryOpacity) || 
-            (sStatsChangeTimers.sidekickBlueFood >= 0.0f) ||
-            cmdmenu_should_sidekick_meter_appear_over_food_items(sidekick) //@recomp: optionally show meter while relevant food selected on Items page
+        if (sidekick && sStats.sidekickMaxFood && //@recomp: don't fade in when sidekick is missing, or sidekick data not loaded
+            (((sInventoryPageID == CMDMENU_PAGE_7_Sidekick_Tricky || sInventoryPageID == CMDMENU_PAGE_8_Sidekick_Kyte) && dInventoryOpacity) || 
+            ((sStatsChangeTimers.sidekickBlueFood >= 0.0f)) ||
+            cmdmenu_should_sidekick_meter_appear_over_food_items(sidekick)) //@recomp: optionally show meter while relevant food selected on Items page
         ) {
             /* Fade in while the sidekick's inventory page is open, 
                or when the sidekick's blue food count has recently changed */

@@ -1,0 +1,37 @@
+# "The river flows to Diamond Bay"
+
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x80
+  objectID: 0xFFFF # Self (SHthorntail)
+# Actor 1
+- uid: 0x0
+  settings: 0x5780
+  objectID: 0x0 # Sabre
+
+# @dinomod: Adjust seq duration and timings
+
+curves:
+# Curve 0
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 200 } # SETDURATION @ 0
+  - { type: 3, delay: 10, params: 0x0 } # OVERRIDE @ 0
+  # @dinomod: Actually play voice line
+  - { type: 6, delay: 0, params: 0xE568 } # SFX @ 10
+  - { type: 13, delay: 190, params: 0xA08B } # ENVFX @ 6 (SUBTITLES, 0x8B)
+  - { type: 11, delay: 0, params: 1 } # CODE @ 200
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+# Curve 1
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 200 } # SETDURATION @ 0
+  - { type: 3, delay: 200, params: 0x0 } # OVERRIDE @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 200
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # @dinomod: Let Sabre actually be animated
+    # ANIM_SPEED
+  - { channel: 9, time: 0, value: 12.5, interp: 0, weight: 0 }

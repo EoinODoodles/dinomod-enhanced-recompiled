@@ -20,15 +20,16 @@ extern Texture* dTexElectricity;
 
 /** Removes progress-breaking debug code that automatically granted the player CloudRunner Fortress' SpellStone (originally by MusicalProgrammer) */
 RECOMP_PATCH void DFP_LevelControl_setup(Object* self, ObjSetup *setup, s32 arg2) {
-    u8 mapSetup;
+    u8 act;
 
     obj_add_object_type(self, OBJTYPE_LevelControl);
     dTexElectricity = tex_load_deferred(1132);
     self->animCallback = DFP_LevelControl_anim_callback;
-    gDLL_29_Gplay->vtbl->set_act(self->mapID, 1);
-    mapSetup = gDLL_29_Gplay->vtbl->get_act(self->mapID);
+    // @recomp: Don't reset DFP act on setup
+    //gDLL_29_Gplay->vtbl->set_act(self->mapID, 1);
+    act = gDLL_29_Gplay->vtbl->get_act(self->mapID);
 
-    switch (mapSetup) { 
+    switch (act) { 
         case 0:
             func_80000860(self, self, 261, 0);
             func_80000860(self, self, 262, 0);

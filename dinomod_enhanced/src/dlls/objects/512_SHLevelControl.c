@@ -14,13 +14,18 @@
 
 #include "recomp/dlls/objects/512_SHLevelControl_recomp.h"
 
+static _Bool player_has_spellstone(void) {
+    return (main_get_bits(BIT_SpellStone_DIM_Activated) && !main_get_bits(BIT_877))
+        || (main_get_bits(BIT_SpellStone_WC) && !main_get_bits(BIT_DB_Unlock_Act_Three))
+        || (main_get_bits(BIT_SpellStone_DR)); // Note: Don't revert to non-spellstone state after DR
+}
+
 static void dinomod_river_control(void) {
     _Bool boulderBlownUp = main_get_bits(DINOMOD_BIT_920_SH_BoulderBlownUp);
     // TODO: temporary, link boulder bit to river bit. we can separate these if a seq is made for fixing the river
     main_set_bits(DINOMOD_BIT_921_SH_RiverUnblocked, boulderBlownUp);
 
     _Bool riverUnblocked = main_get_bits(DINOMOD_BIT_921_SH_RiverUnblocked);
-    _Bool dimSpellStoneActivated = main_get_bits(BIT_SpellStone_DIM_Activated);
 
     // Link custom object groups to the normal groups used to cull objects around the river.
     // We'll show the custom groups only if at least one of these are active.
@@ -33,7 +38,7 @@ static void dinomod_river_control(void) {
     
     // Enable obj group for river related objects that should only load if the player has access to Diamond Bay
     gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_SWAPSTONE_HOLLOW, 12, 
-        (riverObjGroupActive && riverUnblocked && dimSpellStoneActivated) ? 1 : 0);
+        (riverObjGroupActive && riverUnblocked && player_has_spellstone()) ? 1 : 0);
 }
 
 #define VINE_AREA_MIN_X -7744
@@ -65,6 +70,14 @@ static void dinomod_well_control(void) {
                 main_set_bits(DINOMOD_BIT_922_SH_Well_LilyPondVinesUnblocked, TRUE);
             }
         }
+    }
+}
+
+RECOMP_HOOK_DLL(SHLevelControl_setup) void SHLevelControl_setup_hook(Object *self, ObjSetup *setup, s32 arg2) {
+    // Wake up trader Thorntail automatically if DIM SpellStone was obtained as a hint to the player
+    // that they should explore the burrows and (hopefully) find the explosive barrel.
+    if (main_get_bits(BIT_SpellStone_DIM_Activated)) {
+        main_set_bits(BIT_14, 1);
     }
 }
 
