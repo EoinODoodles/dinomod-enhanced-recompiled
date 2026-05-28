@@ -46,13 +46,14 @@ def build_gametext():
 
     # Base
     base_patches = [p for p in ASSETS_DIR.joinpath("GAMETEXT/base").rglob("*.spec")]
+    base_recomp_patches = [p for p in ASSETS_DIR.joinpath("GAMETEXT/base_recomp").rglob("*.spec")]
 
     with open(base_tab, "rb") as base_tab_file, \
          open(base_bin, "rb") as base_bin_file:
         gametext = GameTextBinParser().parse(base_tab_file, base_bin_file)
     
     spec_parser = GameTextSpecParser()
-    for patch in base_patches:
+    for patch in base_patches + base_recomp_patches:
         with open(patch, "r", encoding="utf-8") as spec_file:
             patch_gametext = spec_parser.parse(spec_file)
         gametext.apply_patch(patch_gametext)
