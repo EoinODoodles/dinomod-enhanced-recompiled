@@ -2785,13 +2785,13 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
 }
 
 /**
-  * Hides the active spell/sidekick-command icons if an important sequence is playing.
+  * Used to hide the active spell/sidekick-command icons or the sidekick meter while an important sequence is playing.
   */
-static void cmdmenu_hide_active_spell_sidekick_command_during_sequences() {
+static _Bool cmdmenu_is_important_sequence_playing() {
     Player_Data* playerData;
     Object* player = get_player();
     if (!player || !player->data) {
-        return;
+        return FALSE;
     }
 
     playerData = player->data;
@@ -2802,9 +2802,10 @@ static void cmdmenu_hide_active_spell_sidekick_command_during_sequences() {
             (!(player->stateFlags & OBJSTATE_IN_SEQ) && (playerData->flags & 0x200000))     //Player not in sequence, but locked
         )
     ) {
-        rsOpacityActiveSpell = 0;
-        rsOpacityActiveSideCommand = 0;
+        return TRUE;
     }
+
+    return FALSE;
 }
 
 /** 
@@ -2856,7 +2857,10 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     #endif
 
     // @recomp: Hide the active Spell/Sidekick-command icons if an important sequence is playing
-    cmdmenu_hide_active_spell_sidekick_command_during_sequences();
+    if (cmdmenu_is_important_sequence_playing()) {
+        rsOpacityActiveSpell = 0;
+        rsOpacityActiveSideCommand = 0;
+    };
 
     //Draw active spell icon
     {
@@ -3580,10 +3584,14 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
     //Draw the sidekick food meter 
     //(@recomp: animate opacity even when sidekick's missing, so it doesn't get stuck)
     {
+        //@recomp: check if an important sequence is playing
+        _Bool isSequencePlaying = cmdmenu_is_important_sequence_playing();
+
         //Handle the meter's opacity
-        if (sidekick && sStats.sidekickMaxFood && //@recomp: don't fade in when sidekick is missing, or sidekick data not loaded
-            (((sInventoryPageID == CMDMENU_PAGE_7_Sidekick_Tricky || sInventoryPageID == CMDMENU_PAGE_8_Sidekick_Kyte) && dInventoryOpacity) || 
-            ((sStatsChangeTimers.sidekickBlueFood >= 0.0f)) ||
+        if (sidekick && sStats.sidekickMaxFood &&                //@recomp: don't fade in when sidekick is missing, or sidekick data not loaded
+            !(isSequencePlaying && (dInventoryOpacity == 0)) &&  //@recomp: fade out during important sequences if the inventory's hidden (i.e. still show up during Tricky's tutorial)
+            (((sInventoryPageID == CMDMENU_PAGE_7_Sidekick_Tricky || sInventoryPageID == CMDMENU_PAGE_8_Sidekick_Kyte) && dInventoryOpacity) || //Fade in if sidekick's inventory page open
+            ((sStatsChangeTimers.sidekickBlueFood >= 0.0f)) ||   //Fade in if sidekick's energy level changed
             cmdmenu_should_sidekick_meter_appear_over_food_items(sidekick)) //@recomp: optionally show meter while relevant food selected on Items page
         ) {
             /* Fade in while the sidekick's inventory page is open, 
