@@ -707,6 +707,7 @@ RECOMP_PATCH void thorntail_sleepy_setup(Object *self, SHthorntail_Data *objdata
         objdata->talkSeqsCount = 1;
         objdata->flags &= ~THORNTAILFLAG_RotateTalkSeqs;
     } else if (main_get_bits(BIT_Talked_to_Rocky)) {
+        // Sad about the river
         objdata->talkSeqs = &arentLikeTheyUsedToSeq;
         objdata->talkSeqsCount = 1;
         objdata->flags &= ~THORNTAILFLAG_RotateTalkSeqs;
@@ -719,11 +720,11 @@ RECOMP_PATCH void thorntail_elder_init(Object *self, SHthorntail_Data *objdata, 
     thorntail_sleepy_init(self, objdata, setup);
     // @recomp: Change talk seqs depending on game state
     if (!main_get_bits(DINOMOD_BIT_921_SH_RiverUnblocked)) {
-        // Usual "the sharpclaw drained our driver"
+        // Usual "the SharpClaw drained our river"
         objdata->talkSeqs = sElderTalkSeqs;
         objdata->talkSeqsCount = ARRAYCOUNT(sElderTalkSeqs);
     } else {
-        // "The river flows to diamond bay"
+        // "The river flows to Diamond Bay"
         objdata->talkSeqs = &theRiverFlowsSeq;
         objdata->talkSeqsCount = 1;
         objdata->flags &= ~THORNTAILFLAG_RotateTalkSeqs;
@@ -769,7 +770,10 @@ RECOMP_PATCH void thorntail_trader_act1_control(Object *self, SHthorntail_Data *
     thorntail_common_control(self, objdata, setup);
 
     // @recomp: Cancel distract after waking up from using distract
-    if (objdata->state == THORNTAILSTATE_WakingUp && (objdata->flags & THORNTAILFLAG_ModAnimDone) && objdata->wakingFromDistract) {
+    if (objdata->state == THORNTAILSTATE_WakingUp 
+            && (objdata->flags & THORNTAILFLAG_ModAnimDone) 
+            && ((DLL_ISidekick*)sidekick->dll)->vtbl->func24(sidekick) != 0
+            && objdata->wakingFromDistract) {
         ((DLL_ISidekick*)sidekick->dll)->vtbl->func21(sidekick, 0, 0);
         objdata->wakingFromDistract = FALSE;
     }
