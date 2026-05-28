@@ -34,6 +34,11 @@ curves:
   - { type: 11, delay: 0, params: 1 } # CODE
   - { code_type: 6, val1: 0x1B, val2: 8 } # 6 (ENABLE_OBJ_GROUP)
 
+  # Enable objectGroups 6,7 (objects by the river)
+  - { type: 11, delay: 0, params: 2 } # CODE
+  - { code_type: 6, val1: 0x1B, val2: 6 } # 6 (ENABLE_OBJ_GROUP)
+  - { code_type: 6, val1: 0x1B, val2: 7 } # 6 (ENABLE_OBJ_GROUP)
+
   #Camera shake 
   # (NOTE: normally requires player to be close by, but we don't know where player will be
   # because they could shoot the barrel from quite far away. To deal with this, the camera shake 
@@ -56,6 +61,11 @@ curves:
   - { type: 0, delay: 0, params: 612 } # SETTIME @ 0
   - { type: 11, delay: 0, params: 1 } # CODE @ 1754
   - { code_type: 6, val1: 0x1E, val2: 0x0 } # 6 (DISABLE_LETTERBOX)
+
+  # Disable objectGroups 6,7 (objects by the river)
+  - { type: 11, delay: 0, params: 2 } # CODE
+  - { code_type: 6, val1: 0x1C, val2: 6 } # 6 (ENABLE_OBJ_GROUP)
+  - { code_type: 6, val1: 0x1C, val2: 7 } # 6 (ENABLE_OBJ_GROUP)
 
   # Disable objectGroup 7 (waterfall texscrolls)
   - { type: 11, delay: 0, params: 1 } # CODE @ 171
