@@ -156,6 +156,8 @@ static ReAssetNamespace dinomodNs;
 static ReAssetID shBarrelIndexID;
 static ReAssetID shBarrelcreatorIndexID;
 
+s32 UID_SH_BurrowsSharpClaw = 0x10000;
+
 REASSET_ON_INIT void dinomod_reasset_on_init(void) {
     dinomodNs = reasset_namespace("dinomod");
 
@@ -775,7 +777,7 @@ static void swapstone_hollow_additions(void) {
             // sharpClaw->x = 2467.278f; sharpClaw->y = -658.742f; sharpClaw->z = 2183.488f;
             sharpClaw->x = 2370.327f; sharpClaw->y = -674.900f; sharpClaw->z = 2259.521f;
 
-            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &sharpClaw_Setup, sizeof(sharpClaw_Setup));
+            reasset_map_objects_set(mapID, reasset_id(dinomodNs, UID_SH_BurrowsSharpClaw), &sharpClaw_Setup, sizeof(sharpClaw_Setup));
         }
     }
 
