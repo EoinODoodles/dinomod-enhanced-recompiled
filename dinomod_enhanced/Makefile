@@ -17,12 +17,13 @@ LDFLAGS  := -nostdlib -T $(LDSCRIPT) -Map $(BUILD_DIR)/mod.map --unresolved-symb
 C_SRCS := $(wildcard src/*.c)
 C_SRCS += $(wildcard src/core/*.c)
 C_SRCS += $(wildcard src/custom/*.c)
+C_SRCS += $(wildcard src/custom/dlls/*.c)
 C_SRCS += $(wildcard src/dlls/engine/*.c)
 C_SRCS += $(wildcard src/dlls/objects/*.c)
 C_OBJS := $(addprefix $(BUILD_DIR)/, $(C_SRCS:.c=.o))
 C_DEPS := $(addprefix $(BUILD_DIR)/, $(C_SRCS:.c=.d))
 
-BUILD_DIRS := $(BUILD_DIR) $(BUILD_DIR)/src $(BUILD_DIR)/src/core $(BUILD_DIR)/src/custom \
+BUILD_DIRS := $(BUILD_DIR) $(BUILD_DIR)/src $(BUILD_DIR)/src/core $(BUILD_DIR)/src/custom $(BUILD_DIR)/src/custom/dlls \
 	          $(BUILD_DIR)/src/dlls $(BUILD_DIR)/src/dlls/engine $(BUILD_DIR)/src/dlls/objects
 
 $(TARGET): $(C_OBJS) $(LDSCRIPT)

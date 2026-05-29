@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PR/ultratypes.h"
+
 enum CustomObjID {
     OBJ_KPspellstone = 1460,
     OBJ_KPLift1 = 1461,
@@ -17,3 +19,8 @@ enum CustomObjID {
     OBJ_CCTabletPickup = 1412,
     OBJ_AnimBlackEyePod = 1393
 };
+
+// objects created with ReAsset:
+
+extern s32 OBJ_SHbarrel;
+extern s32 OBJ_SHbarrelcreator;

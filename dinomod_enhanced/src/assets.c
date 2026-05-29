@@ -3,6 +3,10 @@
 #include "recomputils.h"
 #include "reasset.h"
 
+#include "custom/dlls/SHbarrel.h"
+#include "custom/dlls/SHbarrelcreator.h"
+#include "custom_object_ids.h"
+#include "custom_objsetups.h"
 #include "compression_util.h"
 #include "common_objsetups.h"
 #include "configs.h"
@@ -59,6 +63,9 @@ INCBIN(objects_purple_mushroom, "objects_0571 023B SHrocketmushroo.bin");
 
 INCBIN(objects_shseqobject,     "objects_0561_SHseqobject.bin");
 INCBIN(objects_shboulder,       "objects_0583 0247 SHboulder.bin");
+
+INCBIN(objects_shbarrel,        "SHbarrel.bin");
+INCBIN(objects_shbarrelcreator, "SHbarrelcreator.bin");
 
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 
@@ -141,10 +148,21 @@ REASSET_ON_FST_SET_LOW_PRIORITY void dinomod_on_reasset_fst_set(void) {
     INCFST(WARPTAB_BIN, WARPTAB, bin)
 }
 
+s32 OBJ_SHbarrel = 1466;
+s32 OBJ_SHbarrelcreator = 1467;
+
 static ReAssetNamespace dinomodNs;
+
+static ReAssetID shBarrelIndexID;
+static ReAssetID shBarrelcreatorIndexID;
+
+s32 UID_SH_BurrowsSharpClaw = 0x10000;
 
 REASSET_ON_INIT void dinomod_reasset_on_init(void) {
     dinomodNs = reasset_namespace("dinomod");
+
+    shBarrelIndexID = reasset_id(dinomodNs, OBJ_SHbarrel);
+    shBarrelcreatorIndexID = reasset_id(dinomodNs, OBJ_SHbarrelcreator);
 }
 
 typedef struct {
@@ -708,20 +726,11 @@ static void swapstone_hollow_additions(void) {
             }
         }
 
-        //Add DFbarrelcreator for blowing up the boulder after Tricky learns Flame
+        //Add SHbarrelcreator for blowing up the boulder after Tricky learns Flame
         {
-            typedef struct {
-                ObjSetup base;
-                u8 searchDistance;   // Creates a barrel if none are found inside this radius (stored divided by 4)
-                u8 yaw : 4;          // @recomp: Yaw for the barrels created
-                u8 barrelHealth : 2; // @recomp: Optional health value for the barrel that's created
-                u8 delay : 2;        // @recomp: Optional waiting time between barrels
-                s16 gamebitStop;     // Stops creating barrels if this gamebit is set
-            } DFBarrelCreator_Setup;
-
-            DFBarrelCreator_Setup barrel = {
+            SHBarrelcreator_Setup barrel = {
                 .base = {
-                    .objId = OBJ_DFbarrelcreator,
+                    .objId = OBJ_SHbarrelcreator,
                     .actExclusions1 = ~MAP_ACT(1),
                     .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
                     .fadeFlags = OBJSETUP_FADE_CAMERA,
@@ -733,31 +742,29 @@ static void swapstone_hollow_additions(void) {
                 },
                 .searchDistance = 0xFF,
                 .gamebitStop = BOULDER_BIT,
-                .barrelHealth = 3,
-                .delay = 2,
-                .yaw = DEGREES_TO_ANGLE8(288) >> 4
+                .yaw = (-13000) >> 8
             };
-            reasset_map_objects_set(mapID, reasset_id(dinomodNs, 0x100000), &barrel, sizeof(barrel));
+            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &barrel, sizeof(barrel));
         }
 
         //Add a SharpClaw guarding the barrel
         {
             u8 sharpClaw_Setup[] = {
-                0x00, 0x11, 0x0E, 0x00, 
-                0x00, 0x00, 0x7F, 0x60,
-                0x00, 0x00, 0x00, 0x00, 
-                0x00, 0x00, 0x00, 0x00, 
-                0x00, 0x00, 0x00, 0x00, 
-                0x00, 0x00, 0x00, 0x00, 
+                /*00*/ 0x00, 0x11, 0x0E, 0x00, 
+                /*04*/ 0x00, 0x00, 0x7F, 0x60,
+                /*08*/ 0x00, 0x00, 0x00, 0x00, 
+                /*0C*/ 0x00, 0x00, 0x00, 0x00, 
+                /*10*/ 0x00, 0x00, 0x00, 0x00, 
+                /*14*/ 0x00, 0x00, 0x00, 0x00, 
 
-                0xFF, 0xFF, 0xFF, 0xFF, 
-                0xFF, 0xFF, 0x00, 0x00, 
-                0x00, 0x00, 0x00, 0x01, 
-                0x00, 0x00, 0x00, 0x03, 
-                0x00, 0x0E, 0x00, 0x00, 
-                0x00, 0x48, 0xFF, 0x01, 
-                0xFF, 0xFF, 0x06, 0x00, 
-                0x00, 0x00, 0x00, 0x00 
+                /*18*/ 0xFF, 0xFF, 0xFF, 0xFF, 
+                /*1C*/ 0xFF, 0xFF, 0x00, 0x00, 
+                /*20*/ 0x00, 0x00, 0x00, 0x01, 
+                /*24*/ 0x00, 0x00, 0x00, 0x03, 
+                /*28*/ 0x00, 0x0E, 0x00, 0x00, 
+                /*2C*/ 0x00, 0x48, 0xFF, 0x01, 
+                /*30*/ 0xFF, 0xFF, 0x06, 0x00, 
+                /*34*/ 0x00, 0x00, 0x00, 0x00 
             };
 
             ObjSetup* sharpClaw = (ObjSetup*)sharpClaw_Setup;
@@ -770,7 +777,7 @@ static void swapstone_hollow_additions(void) {
             // sharpClaw->x = 2467.278f; sharpClaw->y = -658.742f; sharpClaw->z = 2183.488f;
             sharpClaw->x = 2370.327f; sharpClaw->y = -674.900f; sharpClaw->z = 2259.521f;
 
-            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &sharpClaw_Setup, sizeof(sharpClaw_Setup));
+            reasset_map_objects_set(mapID, reasset_id(dinomodNs, UID_SH_BurrowsSharpClaw), &sharpClaw_Setup, sizeof(sharpClaw_Setup));
         }
     }
 
@@ -1773,7 +1780,36 @@ static void discovery_falls_hit_edits(void) {
     }
 }
 
+static void custom_objects(void) {
+    // SHbarrel
+    {
+        ReAssetID shBarrelID = reasset_auto_id(dinomodNs);
+        reasset_objects_set(shBarrelID, dinomodNs, objects_shbarrel, objects_shbarrel_end - objects_shbarrel);
+        reasset_object_indices_set(shBarrelIndexID, shBarrelID);
+    }
+
+    // SHbarrelcreator
+    {
+        ReAssetID shBarrelcreatorID = reasset_auto_id(dinomodNs);
+        reasset_objects_set(shBarrelcreatorID, dinomodNs, objects_shbarrelcreator, objects_shbarrelcreator_end - objects_shbarrelcreator);
+        reasset_object_indices_set(shBarrelcreatorIndexID, shBarrelcreatorID);
+    }
+}
+
+static void custom_dlls(void) {
+    // SHbarrel
+    reasset_dlls_set(reasset_id(dinomodNs, 0x824C), DLL_BANK_OBJECTS, 
+        /*exportCount*/ 7, (void*)SHbarrel_ctor, (void*)SHbarrel_dtor, &DLL_SHbarrel_vtbl);
+
+    // SHbarrelcreator
+    reasset_dlls_set(reasset_id(dinomodNs, 0x824D), DLL_BANK_OBJECTS, 
+        /*exportCount*/ 7, (void*)SHbarrelcreator_ctor, (void*)SHbarrelcreator_dtor, &DLL_SHbarrelcreator_vtbl);
+}
+
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
+    custom_objects();
+    custom_dlls();
+
     walled_city_additions();
     warlock_mountain_platform_additions();
     swapstone_hollow_additions();
@@ -1805,4 +1841,10 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     // df_modifications();
     diamond_bay_modifications();
     discovery_falls_hit_edits();
+}
+
+REASSET_ON_RESOLVE void dinomod_reasset_on_resolve(void) {
+    ReAssetResolveMap objIndexResolveMap = reasset_object_indices_get_resolve_map();
+    OBJ_SHbarrel = reasset_resolve_map_lookup(objIndexResolveMap, shBarrelIndexID);
+    OBJ_SHbarrelcreator = reasset_resolve_map_lookup(objIndexResolveMap, shBarrelcreatorIndexID);
 }
