@@ -3,13 +3,16 @@
 
 #include "dlls/engine/54_pickup.h"
 #include "dlls/objects/210_player.h"
+#include "dlls/objects/541_DIMexplosion.h"
 #include "game/objects/interaction_arrow.h"
 #include "game/objects/object.h"
+#include "game/objects/object_id.h"
 #include "player_util.h"
 #include "recomputils.h"
 #include "sys/main.h"
 #include "sys/math.h"
 #include "sys/objects.h"
+#include "sys/objhits.h"
 #include "sys/objprint.h"
 #include "sys/objtype.h"
 #include "dll.h"
@@ -26,6 +29,8 @@ typedef struct {
     u8 prevInWater;
     u8 inWater;
     u8 inDeepWater;
+    u8 damage;
+    s32 ticksSinceDetonation; 
     f32 waterY;
     f32 bumpCooldown;
     f32 waterRippleCooldown;
@@ -41,6 +46,7 @@ static void SHbarrel_setup(Object* self, SHBarrel_Setup* setup, s32 reset) {
     obj_add_object_type(self, OBJTYPE_Barrel);
 
     self->srt.yaw = setup->yaw << 8;
+    self->opacity = 0;
 
     gDLL_54_pickup->vtbl->setup(self, (Pickup*)self->data, 33);
     gDLL_54_pickup->vtbl->set_dont_save(self->data, TRUE);
@@ -259,11 +265,90 @@ static void SHbarrel_collision(Object* self, SHbarrel_Data* objdata, s32 pickupS
         self->parent);
 }
 
+static void SHbarrel_handle_damage(Object* self, SHbarrel_Data* objdata) {
+    //Check for damage, return early if nothing damaged the barrel
+    s32 hitDamage;
+    s32 damageType = func_80025F40(self, NULL, NULL, &hitDamage);
+    if (damageType == 0) {
+        return;
+    }
+
+    // Don't blow up instantly if the player accidentally hits it with their sword
+    if ((damageType == Damage_Type_Explosion) || (damageType == Damage_Type_Projectile)) {
+        objdata->damage += 3;
+    } else {
+        objdata->damage += 1;
+    }
+
+    //When damaged, play an impact sound
+    gDLL_6_AMSFX->vtbl->play(self, SOUND_372_Crate_Struck, MAX_VOLUME, NULL, NULL, 0, NULL);
+
+    if (objdata->damage < 3) {
+        return;
+    }
+
+    //Explode!
+    {
+        // e x p a n d
+        func_8002683C(self, 
+            self->def->hitbox_flagsB6 + 35, 
+            self->def->unk94 - 35, 
+            self->def->unk96 + 35
+        );
+
+        func_80026940(self, 40);
+        func_80026128(self, Damage_Type_Explosion, 4, 0);
+        
+        DIMExplosion_Setup* explosion = obj_alloc_setup(sizeof(DIMExplosion_Setup), OBJ_DIMExplosion);
+        explosion->base.x = self->srt.transl.x;
+        explosion->base.y = self->srt.transl.y;
+        explosion->base.z = self->srt.transl.z;
+        obj_create((ObjSetup*)explosion, OBJINIT_STANDALONE | OBJINIT_FLAG4, self->mapID, -1, self->parent);
+        
+        gDLL_17_partfx->vtbl->spawn(self, PARTICLE_355, NULL, 0, -1, NULL);
+        gDLL_17_partfx->vtbl->spawn(self, PARTICLE_352, NULL, 0, -1, NULL);
+
+        if (objdata->inWater) {
+            gDLL_24_Waterfx->vtbl->set_circular_ripple_scale(FALSE, 0.06f);
+            gDLL_24_Waterfx->vtbl->spawn_circular_ripple(self->globalPosition.x, objdata->waterY, self->globalPosition.z, 0, 0.0f, 2);
+            gDLL_24_Waterfx->vtbl->set_circular_ripple_scale(TRUE, 0.0f);
+        }
+    }
+
+    objdata->ticksSinceDetonation = 1;
+}
+
 static void SHbarrel_control(Object* self) {
     SHbarrel_Data* objdata = self->data;
 
     if (objdata->waterRippleCooldown > 0.0f) {
         objdata->waterRippleCooldown -= gUpdateRateF;
+    }
+
+    // Fade in
+    if ((self->opacity < OBJECT_OPACITY_MAX) && (objdata->ticksSinceDetonation == 0)) {
+        const s32 fadeSpeed = 5;
+        if ((gUpdateRate * fadeSpeed) < (OBJECT_OPACITY_MAX - self->opacity)) {
+            self->opacity += gUpdateRate * fadeSpeed;
+        } else {
+            self->opacity = OBJECT_OPACITY_MAX;
+        }
+    }
+
+    // Handle post detonation
+    if (objdata->ticksSinceDetonation > 0) {
+        if (objdata->ticksSinceDetonation == 1) {
+            func_800267A4(self);
+            self->unkAF |= ARROW_FLAG_8_No_Targetting;
+        }
+
+        objdata->ticksSinceDetonation += gUpdateRate;
+
+        if (objdata->ticksSinceDetonation >= (60 * 4)) {
+            obj_destroy_object(self);
+        }
+
+        return;
     }
 
     s32 pickupState = gDLL_54_pickup->vtbl->get_state(self->data);
@@ -276,6 +361,7 @@ static void SHbarrel_control(Object* self) {
     switch (pickupState) {
         case PICKUP_NotHeld:
             SHbarrel_physics(self, objdata);
+            SHbarrel_handle_damage(self, objdata);
             // Don't allow pickup while in deep water
             self->unkAF &= ~ARROW_FLAG_8_No_Targetting;
             if (objdata->inDeepWater) {
@@ -323,7 +409,9 @@ static void SHbarrel_control(Object* self) {
 static void SHbarrel_update(Object* self) {}
 
 static void SHbarrel_print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** vtxs, Triangle** pols, s8 visibility) {
-    if (gDLL_54_pickup->vtbl->should_print(self, visibility)) {
+    SHbarrel_Data* objdata = self->data;
+
+    if (objdata->ticksSinceDetonation == 0 && gDLL_54_pickup->vtbl->should_print(self, visibility)) {
         draw_object(self, gdl, mtxs, vtxs, pols, 1.0f);
     }
 }
