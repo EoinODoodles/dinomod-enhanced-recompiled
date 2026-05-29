@@ -398,14 +398,18 @@ RECOMP_PATCH void thorntail_common_control(Object* self, SHthorntail_Data* objda
             
             // @recomp: Don't try to find a fallback node, otherwise anyone other than the trader will navigate
             //          through a wall into the SwapStone area. This matches what default.dol does.
-            // objdata->targetCurve = thorntail_find_closest_curve(self->srt.transl.x, self->srt.transl.y, self->srt.transl.z, THORNTAILCURVE_0);
-            // if (objdata->targetCurve != NULL) {
-            //     objdata->prevCurve = objdata->currentCurve;
-            //     objdata->flags &= ~THORNTAILFLAG_AtTarget;
-            // }
-
-            // @recomp: Instead of a fallback node, flip the curve selector in an attempt to get unstuck
-            objdata->unk4E0 = objdata->unk4E0 == 8 ? 9 : 8;
+            //          ...Except for the log trader, which actually needs this logic since his curve network isn't a loop
+            //          and subtype 0 is for his network specifically.
+            if (setup->thorntail == THORNTAIL_2_Log_Trader) {
+                objdata->targetCurve = thorntail_find_closest_curve(self->srt.transl.x, self->srt.transl.y, self->srt.transl.z, THORNTAILCURVE_0);
+                if (objdata->targetCurve != NULL) {
+                    objdata->prevCurve = objdata->currentCurve;
+                    objdata->flags &= ~THORNTAILFLAG_AtTarget;
+                }
+            } else {
+                // @recomp: Instead of a fallback node, flip the curve selector in an attempt to get unstuck
+                objdata->unk4E0 = objdata->unk4E0 == 8 ? 9 : 8;
+            }
         }
         objdata->flags &= ~THORNTAILFLAG_GoToNextNode;
     }
