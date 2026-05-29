@@ -23,8 +23,13 @@ typedef struct {
         f32 hitsTestRadii[1];
         Vec3f hitsPrevPos[1];
     } collider;
+    u8 prevInWater;
+    u8 inWater;
     u8 inDeepWater;
+    f32 waterY;
     f32 bumpCooldown;
+    f32 waterRippleCooldown;
+    f32 prevYVelocity;
 } SHbarrel_Data;
 
 void SHbarrel_ctor(void *dll) { }
@@ -88,7 +93,7 @@ static void SHbarrel_player_push(Object* self, SHbarrel_Data* objdata) {
         self->velocity.z += vec.z;
 
         // Bump barrel vertically when pushed
-        if (self->velocity.y >= 0.0f && objdata->bumpCooldown <= 0.0f) {
+        if (self->velocity.y >= 0.0f && playerSpeed > 0.1f && objdata->bumpCooldown <= 0.0f) {
             self->velocity.y += 0.1f;
             objdata->bumpCooldown = 30.0f;
         }
@@ -103,15 +108,16 @@ static void SHbarrel_physics(Object* self, SHbarrel_Data* objdata) {
     Func_80057F1C_Struct** collisionInfo;
     f32 minDiffMagnitude;
     f32 yDiff;
-    s32 inWater = FALSE;
 
     if (objdata->bumpCooldown > 0.0f) {
         objdata->bumpCooldown -= gUpdateRateF;
     }
 
-    // TODO: this is super framerate dependent...
-
+    objdata->inWater = FALSE;
     objdata->inDeepWater = FALSE;
+    objdata->waterY = -100000.0f;
+
+    // TODO: this is super framerate dependent...
 
     //Float on water
     {
@@ -139,6 +145,7 @@ static void SHbarrel_physics(Object* self, SHbarrel_Data* objdata) {
                     
                     if (diffMagnitude < minDiffMagnitude) {
                         delta = yDiff;
+                        objdata->waterY = collisionInfo[i]->unk0[0];
                     }
                 } else {
                     if (!floorFound && collisionInfo[i]->unk0[0] < (self->srt.transl.y + 5.0f) && collisionInfo[i]->unk0[2] > 0.707f) {
@@ -157,10 +164,10 @@ static void SHbarrel_physics(Object* self, SHbarrel_Data* objdata) {
                 // Let player push barrel while in water
                 if (floorFound && floorDist > 0.0f) {
                     SHbarrel_player_push(self, objdata);
-                    inWater = TRUE;
+                    objdata->inWater = TRUE;
                 } else if (delta < -2.0f) {
                     // Hit the floor but still reasonably underwater, don't count as beached
-                    inWater = TRUE;
+                    objdata->inWater = TRUE;
                 }
 
                 if (floorDist > 25.0f) {
@@ -170,7 +177,7 @@ static void SHbarrel_physics(Object* self, SHbarrel_Data* objdata) {
         }
 
         // Damp xz velocity
-        if (inWater) {
+        if (objdata->inWater) {
             self->velocity.x *= 0.85f;
             self->velocity.z *= 0.85f;
         } else {
@@ -255,6 +262,10 @@ static void SHbarrel_collision(Object* self, SHbarrel_Data* objdata, s32 pickupS
 static void SHbarrel_control(Object* self) {
     SHbarrel_Data* objdata = self->data;
 
+    if (objdata->waterRippleCooldown > 0.0f) {
+        objdata->waterRippleCooldown -= gUpdateRateF;
+    }
+
     s32 pickupState = gDLL_54_pickup->vtbl->get_state(self->data);
     if (pickupState == PICKUP_Held) {
         // Hacky, better to do this in the player DLL some day
@@ -272,6 +283,25 @@ static void SHbarrel_control(Object* self) {
             } else {
                 self->unkAF &= ~ARROW_FLAG_10_Greyed_Out;
             }
+            // Water ripples
+            if (objdata->inWater) {
+                // Spawn a movement ripple when being pushed fast enough
+                Vec3f xzVelocity = { self->velocity.x, 0.0f, self->velocity.z };
+                f32 speed = VECTOR_MAGNITUDE(xzVelocity);
+                if (speed > 0.5f && objdata->waterRippleCooldown <= 0.0f) {
+                    objdata->waterRippleCooldown = 3.0f;
+
+                    s32 angle = arctan2_f(-self->velocity.x, -self->velocity.z);
+                    gDLL_24_Waterfx->vtbl->spawn_movement_ripple(self->globalPosition.x, objdata->waterY, self->globalPosition.z, angle, 0.0f);
+                }
+
+                // Do a splash
+                if ((self->velocity.y < 0.0f && objdata->prevYVelocity >= 0.0f) || !objdata->prevInWater) {
+                    gDLL_24_Waterfx->vtbl->set_circular_ripple_scale(FALSE, 0.03f);
+                    gDLL_24_Waterfx->vtbl->spawn_circular_ripple(self->globalPosition.x, objdata->waterY, self->globalPosition.z, 0, 0.0f, 3);
+                    gDLL_24_Waterfx->vtbl->set_circular_ripple_scale(TRUE, 0.0f);
+                }
+            }
             break;
         case PICKUP_Held:
         default:
@@ -279,8 +309,13 @@ static void SHbarrel_control(Object* self) {
             self->velocity.x = 0.0f;
             self->velocity.y = 0.0f;
             self->velocity.z = 0.0f;
+
+            objdata->waterRippleCooldown = 0.0f;
             break;
     }
+
+    objdata->prevYVelocity = self->velocity.y;
+    objdata->prevInWater = objdata->inWater;
 
     SHbarrel_collision(self, objdata, pickupState);
 }
