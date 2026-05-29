@@ -63,6 +63,8 @@ INCBIN(objects_shboulder,       "objects_0583 0247 SHboulder.bin");
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 
 #define COORDS_SETUP(coordX, coordY, coordZ) .base.x = coordX, .base.y = coordY, .base.z = coordZ
+#define TRIGGER_YAW(degrees) ((u8)((float)degrees*0x10/90.0f + 0.5f)) //Yaw for TriggerPlanes etc. (other axes use DEGREES_TO_ANGLE8)
+#define TRIGGER_SCALE(scaleFloat) ((u8)(scaleFloat*0x10 + 0.5f))
 
 #define INCFST(fileID, filename, ext) \
     INCBIN(fst_assets_##filename##_##ext, "assets/" #filename "."#ext); \
@@ -672,70 +674,137 @@ static void swapstone_hollow_additions(void) {
 
     }
 
-    //Add DFbarrelcreator for blowing up the boulder after Tricky learns Flame
+    //Add an ObjectGroup (#21) for the reflection pool cave
     {
-        typedef struct {
-            ObjSetup base;
-            u8 searchDistance;   // Creates a barrel if none are found inside this radius (stored divided by 4)
-            u8 yaw : 4;          // @recomp: Yaw for the barrels created
-            u8 barrelHealth : 2; // @recomp: Optional health value for the barrel that's created
-            u8 delay : 2;        // @recomp: Optional waiting time between barrels
-            s16 gamebitStop;     // Stops creating barrels if this gamebit is set
-        } DFBarrelCreator_Setup;
+        #define OBJGROUP_REFLECTION_POOL 21
 
-        DFBarrelCreator_Setup barrel = {
-            .base = {
-                .objId = OBJ_DFbarrelcreator,
-                .actExclusions1 = ~MAP_ACT(1),
-                .loadFlags = OBJSETUP_LOAD_MAIN,
-                .fadeFlags = OBJSETUP_FADE_CAMERA,
-                .loadDistance = 140,
-                .fadeDistance = 140,
-                .x = 2244.0f,
-                .y = -676.0f,
-                .z = 2299.0f
-            },
-            .searchDistance = 0xFF,
-            .gamebitStop = BOULDER_BIT,
-            .barrelHealth = 3,
-            .delay = 2,
-            .yaw = DEGREES_TO_ANGLE8(288) >> 4
-        };
-        reasset_map_objects_set(mapID, reasset_id(dinomodNs, 0x100000), &barrel, sizeof(barrel));
+        //Add two TriggerPlanes for loading/unloading the group (two to cover different approach routes)
+        {
+            Trigger_Setup groupPlanes[] = {
+                {COORDS_SETUP(2690.560, -628,     1920),     .rotationY = TRIGGER_YAW(180), .sizeX = TRIGGER_SCALE(0.521)},
+                {COORDS_SETUP(2939.537, -636.972, 2104.399), .rotationY = TRIGGER_YAW(83),  .sizeX = TRIGGER_SCALE(0.521)},
+            };
+
+            for (int i = 0, end = ARRAYCOUNT(groupPlanes); i < end; i++) {
+                Trigger_Setup* plane = &groupPlanes[i];
+                plane->base.objId = OBJ_TriggerPlane,
+                plane->base.loadFlags = OBJSETUP_LOAD_MAIN,
+                plane->base.fadeFlags = OBJSETUP_FADE_MAIN,
+                plane->base.loadDistance = 0x40,
+                plane->base.fadeDistance = 0x40,
+
+                plane->commands[0].condition = CMD_COND_IN | CMD_COND_RE_ENTER;
+                plane->commands[0].id = TRG_CMD_ENABLE_OBJ_GROUP;
+                plane->commands[0].param2 = OBJGROUP_REFLECTION_POOL;
+
+                plane->commands[1].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;
+                plane->commands[1].id = TRG_CMD_DISABLE_OBJ_GROUP;
+                plane->commands[1].param2 = OBJGROUP_REFLECTION_POOL;
+
+                plane->sizeY = 0x10;
+                plane->sizeZ = 0x10;
+
+                reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), plane, sizeof(Trigger_Setup));
+            }
+        }
+
+        //Add DFbarrelcreator for blowing up the boulder after Tricky learns Flame
+        {
+            typedef struct {
+                ObjSetup base;
+                u8 searchDistance;   // Creates a barrel if none are found inside this radius (stored divided by 4)
+                u8 yaw : 4;          // @recomp: Yaw for the barrels created
+                u8 barrelHealth : 2; // @recomp: Optional health value for the barrel that's created
+                u8 delay : 2;        // @recomp: Optional waiting time between barrels
+                s16 gamebitStop;     // Stops creating barrels if this gamebit is set
+            } DFBarrelCreator_Setup;
+
+            DFBarrelCreator_Setup barrel = {
+                .base = {
+                    .objId = OBJ_DFbarrelcreator,
+                    .actExclusions1 = ~MAP_ACT(1),
+                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .mapObjGroup = OBJGROUP_REFLECTION_POOL,
+                    .fadeDistance = 140,
+                    .x = 2244.0f,
+                    .y = -676.0f,
+                    .z = 2299.0f
+                },
+                .searchDistance = 0xFF,
+                .gamebitStop = BOULDER_BIT,
+                .barrelHealth = 3,
+                .delay = 2,
+                .yaw = DEGREES_TO_ANGLE8(288) >> 4
+            };
+            reasset_map_objects_set(mapID, reasset_id(dinomodNs, 0x100000), &barrel, sizeof(barrel));
+        }
+
+        //Add a SharpClaw guarding the barrel
+        {
+            u8 sharpClaw_Setup[] = {
+                0x00, 0x11, 0x0E, 0x00, 
+                0x00, 0x00, 0x7F, 0x60,
+                0x00, 0x00, 0x00, 0x00, 
+                0x00, 0x00, 0x00, 0x00, 
+                0x00, 0x00, 0x00, 0x00, 
+                0x00, 0x00, 0x00, 0x00, 
+
+                0xFF, 0xFF, 0xFF, 0xFF, 
+                0xFF, 0xFF, 0x00, 0x00, 
+                0x00, 0x00, 0x00, 0x01, 
+                0x00, 0x00, 0x00, 0x03, 
+                0x00, 0x0E, 0x00, 0x00, 
+                0x00, 0x48, 0xFF, 0x01, 
+                0xFF, 0xFF, 0x06, 0x00, 
+                0x00, 0x00, 0x00, 0x00 
+            };
+
+            ObjSetup* sharpClaw = (ObjSetup*)sharpClaw_Setup;
+            sharpClaw->objId = OBJ_ClubSharpClaw;
+            sharpClaw->actExclusions1 = ~MAP_ACT(1);
+            sharpClaw->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+            sharpClaw->fadeFlags = OBJSETUP_FADE_CAMERA;
+            sharpClaw->mapObjGroup = OBJGROUP_REFLECTION_POOL;
+            sharpClaw->fadeDistance = 140;
+            // sharpClaw->x = 2467.278f; sharpClaw->y = -658.742f; sharpClaw->z = 2183.488f;
+            sharpClaw->x = 2370.327f; sharpClaw->y = -674.900f; sharpClaw->z = 2259.521f;
+
+            reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &sharpClaw_Setup, sizeof(sharpClaw_Setup));
+        }
     }
 
-    //Add a SharpClaw guarding the barrel
+    //Add HITS lines to help pen the SharpClaw in
     {
-        u8 sharpClaw_Setup[] = {
-            0x00, 0x11, 0x0E, 0x00, 
-            0x00, 0x00, 0x7F, 0x60,
-            0x00, 0x00, 0x00, 0x00, 
-            0x00, 0x00, 0x00, 0x00, 
-            0x00, 0x00, 0x00, 0x00, 
-            0x00, 0x00, 0x00, 0x00, 
+        ReAssetID blockIDReflectionPool = reasset_base_id(358 - sHollowBlocksBase);
 
-            0xFF, 0xFF, 0xFF, 0xFF, 
-            0xFF, 0xFF, 0x00, 0x00, 
-            0x00, 0x00, 0x00, 0x01, 
-            0x00, 0x00, 0x00, 0x00, 
-            0x00, 0x0E, 0x00, 0x00, 
-            0x00, 0x48, 0xFF, 0x01, 
-            0xFF, 0xFF, 0x06, 0x00, 
-            0x00, 0x00, 0x00, 0x00 
+        Vec3f points[] = {
+            VEC3F(415, -680, 331),
+            VEC3F(437, -680, 376),
+            VEC3F(480, -680, 379),
+            VEC3F(519, -680, 319),
+            VEC3F(500, -680, 278),
+            VEC3F(443, -680, 304),
         };
+        for (int i = 0, count = ARRAYCOUNT(points); i < count; i++) {
+            HitsLine line = {
+                .Ax = points[i].x,
+                .Ay = points[i].y,
+                .Az = points[i].z,
 
-        ObjSetup* sharpClaw = (ObjSetup*)sharpClaw_Setup;
-        sharpClaw->objId = OBJ_ClubSharpClaw;
-        sharpClaw->actExclusions1 = ~MAP_ACT(1);
-        sharpClaw->loadFlags = OBJSETUP_LOAD_MAIN;
-        sharpClaw->fadeFlags = OBJSETUP_FADE_CAMERA;
-        sharpClaw->loadDistance = 140;
-        sharpClaw->fadeDistance = 140;
-        sharpClaw->x = 2467.278f;
-        sharpClaw->y = -658.742f;
-        sharpClaw->z = 2183.488f;
-        reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &sharpClaw_Setup, sizeof(sharpClaw_Setup));
-    }
+                .Bx = points[(i + 1) % count].x,
+                .By = points[(i + 1) % count].y,
+                .Bz = points[(i + 1) % count].z,
+
+                .heightA = 80,
+                .heightB = 80,
+
+                .settingsA = 0xb,
+                .settingsB = 0x01,
+            };
+            reasset_hits_set(shTrkblk, blockIDReflectionPool, reasset_auto_id(14 + i), REASSET_BASE_NAMESPACE, &line);
+        }
+    }    
 
     //Add a SHseqobject to play a custom sequence
     {
@@ -760,43 +829,6 @@ static void swapstone_hollow_additions(void) {
             .warpID = 0
         };
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &objSeq, sizeof(objSeq));
-    }
-
-    //Add HITS lines to help pen the SharpClaw in
-    {
-        ReAssetID blockIDReflectionPool = reasset_base_id(358 - sHollowBlocksBase);
-        HitsLine line1 = {
-            .Ax = 442,
-            .Ay = -675,
-            .Az = 299,
-
-            .Bx = 481,
-            .By = -674,
-            .Bz = 391,
-
-            .heightA = 0x28,
-            .heightB = 0x28,
-
-            .settingsA = 0xb,
-            .settingsB = 0x01,
-        };
-        reasset_hits_set(shTrkblk, blockIDReflectionPool, reasset_auto_id(14), REASSET_BASE_NAMESPACE, &line1);
-        HitsLine line2 = {
-            .Ax = 640,
-            .Ay = -656,
-            .Az = 217,
-
-            .Bx = 640,
-            .By = -656,
-            .Bz = 164,
-
-            .heightA = 0x28,
-            .heightB = 0x28,
-
-            .settingsA = 0xb,
-            .settingsB = 0x01,
-        };
-        reasset_hits_set(shTrkblk, blockIDReflectionPool, reasset_auto_id(15), REASSET_BASE_NAMESPACE, &line2);
     }
 
     //Add HitAnimators for removing tangible parts of the water
