@@ -1806,6 +1806,68 @@ static void custom_dlls(void) {
         /*exportCount*/ 7, (void*)SHbarrelcreator_ctor, (void*)SHbarrelcreator_dtor, &DLL_SHbarrelcreator_vtbl);
 }
 
+/** Give WCTrex hit spheres similar to KT_Rex so they can actually do damage. */
+static void add_wctrex_hit_spheres(void) {
+    ReAssetID id = reasset_base_id(100);
+
+    u32 size;
+    void *data = reasset_models_get(id, &size);
+    data = dinomod_model_decompress(data, size, &size);
+    u32 oldSize = size;
+    {
+        u32 newSize = size + (sizeof(HitSphere) * 3);
+        void *newdata = recomp_alloc(newSize);
+        bcopy(data, newdata, oldSize);
+        bzero((u8*)newdata + oldSize, newSize - oldSize);
+        recomp_free(data);
+        data = newdata;
+        size = newSize;
+    }
+
+    Model* model = (Model*)((u8*)data + 0xC);
+    model->hitSpheres = (HitSphere*)(oldSize - 0xC);
+    model->hitSphereCount = 3;
+
+    HitSphere* sphere;
+
+    // Note: These could probably be placed/size better
+    // Mouth
+    sphere = &((HitSphere*)((u8*)model + (u32)model->hitSpheres))[0];
+    sphere->jointIndex = 26;
+    sphere->unk2 = 160; // radius
+    sphere->x = 0;
+    sphere->y = 0;
+    sphere->z = 0;
+    sphere->unkA = 0;
+    sphere->unkC = 0; // index
+    sphere->unkD = 0; // group
+
+    // Left foot
+    sphere = &((HitSphere*)((u8*)model + (u32)model->hitSpheres))[1];
+    sphere->jointIndex = 15;
+    sphere->unk2 = 130; // radius
+    sphere->x = 0;
+    sphere->y = 15;
+    sphere->z = 0;
+    sphere->unkA = 0;
+    sphere->unkC = 1; // index
+    sphere->unkD = 1; // group
+
+    // Right foot
+    sphere = &((HitSphere*)((u8*)model + (u32)model->hitSpheres))[2];
+    sphere->jointIndex = 9;
+    sphere->unk2 = 130; // radius
+    sphere->x = 0;
+    sphere->y = 15;
+    sphere->z = 0;
+    sphere->unkA = 0;
+    sphere->unkC = 2; // index
+    sphere->unkD = 2; // group
+
+    reasset_models_set(id, REASSET_BASE_NAMESPACE, data, size);
+    recomp_free(data);
+}
+
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     custom_objects();
     custom_dlls();
@@ -1841,6 +1903,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     // df_modifications();
     diamond_bay_modifications();
     discovery_falls_hit_edits();
+    add_wctrex_hit_spheres();
 }
 
 REASSET_ON_RESOLVE void dinomod_reasset_on_resolve(void) {

@@ -357,7 +357,7 @@ static void SHbarrel_control(Object* self) {
         SHbarrel_drop_if_player_underwater(self);
     }
 
-    pickupState = gDLL_54_pickup->vtbl->control(self);
+    pickupState = gDLL_54_pickup->vtbl->control(self, &objdata->pickup);
     switch (pickupState) {
         case PICKUP_NotHeld:
             SHbarrel_physics(self, objdata);
