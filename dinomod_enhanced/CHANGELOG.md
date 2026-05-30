@@ -20,7 +20,7 @@
 - Restored older item collection jingle.
 - Fixed sidekick hunger meters.
 - Weapons now ignore intangible terrain like light beams.
-- CapeClaw Sand Worm Boss crash fix.
+- Cape Claw Sand Worm Boss crash fix.
 - Dragon Rock pushcart fixes.
 - CClightfoot model swap (show normal LightFoot instead of chief).
 - DIM2/Galadon music action fixes.
