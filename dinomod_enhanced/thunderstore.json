@@ -1,6 +1,6 @@
 {
   "name": "DinomodEnhanced",
-  "description": "A work-in-progress mod porting over Dinomod Enhanced's ROM fixes to recomp.",
+  "description": "Enhancements and fixes for the December 2000 prototype.",
   "version_number": "0.9.0",
   "website_url": "https://github.com/EoinODoodles/dinomod-enhanced-recompiled",
   "dependencies": []

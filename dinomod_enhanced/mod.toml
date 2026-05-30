@@ -2,9 +2,13 @@
 id = "dinomod_enhanced"
 display_name = "Dinomod Enhanced"
 description =  """
-A work-in-progress mod porting over Dinomod Enhanced's ROM fixes to recomp.
+Enhancements and fixes for the December 2000 prototype of Dinosaur Planet.
+
+This mod ports over (and expands on) the fan-made community ROM patch of the same name. The patches are developed by multiple contributors and fix a large number of the prototype's bugs and progression blockers, allowing much more of the game to be explored and even completed!
+
+Consider checking out the mod configuration to enable optional enhancements and accessibility options.
 """
-short_description = "WIP port of Dinomod Enhanced patches"
+short_description = "Enhancements and fixes for the December 2000 prototype"
 
 version = "0.9.0"
 authors = [ "Banjeoin", "jeebs2kx", "LaminGaming", "MusicalProgrammer", "Shinx121", "nuggs" ]
