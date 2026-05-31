@@ -54,7 +54,7 @@ RECOMP_PATCH void func_80033B68(Object* obj, HeadAnimation* arg1, f32 arg2) {
     s32 var_v0;
 
     //@recomp: checks if the object is a SnowHorn, and returns early if the SnowHorn is asleep
-    if (obj->group == 40){
+    if (obj->controlNo == OBJCONTROL_SnowHorn){
         if (obj->curModAnimId == MODANIM_SnowHorn_Sleep_Intro ||
             obj->curModAnimId == MODANIM_SnowHorn_Sleep){
             return;
@@ -93,7 +93,7 @@ RECOMP_PATCH void func_80032A08(Object* obj, HeadAnimation* headAnimator) {
     u8 currentFrame;
 
     //@recomp: checks if the object is a SnowHorn, and returns early if the SnowHorn is asleep
-    if (obj->group == 40){
+    if (obj->controlNo == OBJCONTROL_SnowHorn){
         if (obj->curModAnimId == MODANIM_SnowHorn_Sleep_Intro ||
             obj->curModAnimId == MODANIM_SnowHorn_Sleep){
             return;

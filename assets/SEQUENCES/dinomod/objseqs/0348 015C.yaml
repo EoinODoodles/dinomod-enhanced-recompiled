@@ -1,39 +1,41 @@
+#Galadon Intro
+
 actors:
 # Actor 0
 - uid: 0x0
   settings: 0x8
   unk5: 0x0
-  objectID: -1
+  objectID: -1 #Self
 # Actor 1
 - uid: 0x0
   settings: 0x90
   unk5: 0x0
-  objectID: -2
+  objectID: -2 #Camera
 # Actor 2
 - uid: 0x0
   settings: 0xD0
   unk5: 0x0
-  objectID: 0x0
+  objectID: 0x0 #Sabre
 # Actor 3
 - uid: 0x0
   settings: 0xD0
   unk5: 0x0
-  objectID: 0x24
+  objectID: 0x24 #Tricky
 # Actor 4
 - uid: 0x0
   settings: 0xD0
   unk5: 0x0
-  objectID: 0x200
+  objectID: 0x200 #Galadon
 # Actor 5
 - uid: 0x0
   settings: 0xD0
   unk5: 0x0
-  objectID: 0xA
+  objectID: 0xA #SpellStone
 # Actor 6
 - uid: 0x0
   settings: 0x50
   unk5: 0x0
-  objectID: 0x157
+  objectID: 0x157 #LevelName
 
 curves:
 # Curve 0
@@ -168,37 +170,42 @@ curves:
   - { channel: 0xE, time: 2214, value: 65.0, interp: 0, weight: 0 }
 # Curve 2
 - events:
-  - { type: 0x0, delay: 0, params: 0x0 }
-  - { type: 0xFF, delay: 0, params: 0x8A6 }
-  - { type: 0x3, delay: 0, params: 0x0 }
-  - { type: 0x7, delay: 0, params: 0x0 }
-  - { type: 0xB, delay: 0, params: 0x1 }
-  - { type: 0x0, delay: 1, params: 0x5C6 }
-  - { type: 0x0, delay: 0, params: 0x1E3 }
-  - { type: 0x1, delay: 0, params: 0x0 }
-  - { type: 0x2, delay: 7, params: 0x2 }
-  - { type: 0x4, delay: 0, params: 0x2C1F }
-  - { type: 0x0, delay: 0, params: 0x40E }
-  - { type: 0x1, delay: 3, params: 0x0 }
-  - { type: 0x2, delay: 174, params: 0x0 }
-  - { type: 0xB, delay: 0, params: 0x1 }
-  - { type: 0x0, delay: 0, params: 0x5C6 }
-  - { type: 0x0, delay: 0, params: 0x76D }
-  - { type: 0x4, delay: 101, params: 0x2C13 }
-  - { type: 0x2, delay: 23, params: 0x220 }
-  - { type: 0x4, delay: 12, params: 0xD19 }
-  - { type: 0xD, delay: 1, params: 0x8001 }
-  - { type: 0xD, delay: 3, params: 0x8002 }
-  - { type: 0xD, delay: 1, params: 0x8001 }
-  - { type: 0xD, delay: 34, params: 0x8000 }
-  - { type: 0x2, delay: 72, params: 0x0 }
-  - { type: 0xB, delay: 24, params: 0x1 }
-  - { type: 0x0, delay: 9, params: 0x2 }
-  - { type: 0xB, delay: 37, params: 0x1 }
-  - { type: 0x0, delay: 0, params: 0x606 }
-  - { type: 0x4, delay: 5, params: 0xB20 }
-  - { type: 0xB, delay: 0, params: 0x1 }
-  - { type: 0x0, delay: 0, params: 0x6 }
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 2214 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 7, delay: 0, params: 0x0 } # GROUND_MODE @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 0
+  - { code_type: 6, val1: 0x17, val2: 0x1 } # 6 (SET_MODEL)
+  - { type: 0, delay: 0, params: 483 } # SETTIME @ 0
+  - { type: 1, delay: 0, params: 0x0 } # MOVEMODE @ 483
+  - { type: 2, delay: 7, params: 0x2 } # ANIM @ 483
+  - { type: 4, delay: 0, params: 0x2C1F } # VTXANIM @ 490
+  - { type: 0, delay: 0, params: 1038 } # SETTIME @ 490
+  - { type: 1, delay: 3, params: 0x0 } # MOVEMODE @ 1038
+  - { type: 2, delay: 174, params: 0x0 } # ANIM @ 1041
+  - { type: 0, delay: 0, params: 1901 } # SETTIME @ 1215
+  - { type: 4, delay: 101, params: 0x2C13 } # VTXANIM @ 1901
+  - { type: 2, delay: 23, params: 0x220 } # ANIM @ 2002
+  - { type: 4, delay: 12, params: 0xD19 } # VTXANIM @ 2025
+  - { type: 13, delay: 1, params: 0x8001 } # ENVFX @ 2037 (BLINK, 0x1)
+  - { type: 13, delay: 3, params: 0x8002 } # ENVFX @ 2038 (BLINK, 0x2)
+  - { type: 13, delay: 1, params: 0x8001 } # ENVFX @ 2041 (BLINK, 0x1)
+  - { type: 13, delay: 34, params: 0x8000 } # ENVFX @ 2042 (BLINK, 0x0)
+  - { type: 2, delay: 72, params: 0x0 } # ANIM @ 2076
+  - { type: 11, delay: 24, params: 1 } # CODE @ 2148
+  - { code_type: 2, val1: 0x0, val2: 0x9 } # SET (MESSAGE)
+  - { type: 11, delay: 37, params: 1 } # CODE @ 2172
+  - { code_type: 6, val1: 0x18, val2: 0x0 } # 6 (24)
+  - { type: 4, delay: 5, params: 0xB20 } # VTXANIM @ 2209
+
+    # Delay swapping back to gameplay model until after Sabre's jaw animates
+    # (TODO: maybe remove this later once the jaw sequence joint mapping for 
+    # Sabre's gameplay model has been fixed in Objects.bin)
+  - { type: 11, delay: 0, params: 1 } # CODE @ 1215
+  - { code_type: 6, val1: 0x17, val2: 0x0 } # 6 (SET_MODEL)
+
+  - { type: 11, delay: 0, params: 1 } # CODE @ 2214
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
   keyframes:
   - { channel: 0x0, time: 526, value: -11.29201889038086, interp: 0, weight: 8 }
   - { channel: 0x0, time: 1282, value: 0.0, interp: 0, weight: 0 }

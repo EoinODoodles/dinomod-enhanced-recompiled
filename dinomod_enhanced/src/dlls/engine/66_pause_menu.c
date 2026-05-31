@@ -225,7 +225,7 @@ RECOMP_PATCH s32 pausemenu_update1(void) {
                 gDLL_6_AMSFX->vtbl->play(0, 2931, 0x7F, 0, 0, 0, 0);
                 menu_set(MENU_GAMEPLAY);
                 unpause();
-                joy_set_button_mask(0, A_BUTTON | B_BUTTON);
+                joy_disable_buttons(0, A_BUTTON | B_BUTTON);
             } else {
                 gDLL_6_AMSFX->vtbl->play(0, 2930, 0x7F, 0, 0, 0, 0);
                 gameSavedMessageTimer = 0;
@@ -240,7 +240,7 @@ RECOMP_PATCH s32 pausemenu_update1(void) {
         } else if (action == PICMENU_ACTION_BACK) {
             menu_set(MENU_GAMEPLAY);
             unpause();
-            joy_set_button_mask(0, A_BUTTON | B_BUTTON);
+            joy_disable_buttons(0, A_BUTTON | B_BUTTON);
         }
 
     } else if (pauseScreenState == PAUSE_MENU_GAME_SAVED) {

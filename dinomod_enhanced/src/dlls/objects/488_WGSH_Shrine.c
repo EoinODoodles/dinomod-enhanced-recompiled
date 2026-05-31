@@ -78,7 +78,7 @@ RECOMP_PATCH void dll_488_control(Object *self) {
             }
         }
     } else {
-        temp_v0_4 = obj_get_nearest_type_to(OBJTYPE_16, sp48, &sp3C);
+        temp_v0_4 = obj_get_nearest_type_to(OBJTYPE_Door, sp48, &sp3C);
         if ((temp_v0_4 != NULL) && (sp3C < 300.0f) && (sp3C > 100.0f)) {
             temp_fv1 = temp_v0_4->srt.transl.z - sp48->srt.transl.z;
             if (temp_fv1 <= 0.0f) {
@@ -171,7 +171,7 @@ RECOMP_PATCH void dll_488_control(Object *self) {
             }
             // @recomp: Set spirit bits and WM act (original patch by MusicalProgrammer)
             main_set_bits(BIT_Spirit_Bits, 6);
-            gDLL_29_Gplay->vtbl->set_map_setup(MAP_WARLOCK_MOUNTAIN, 7);
+            gDLL_29_Gplay->vtbl->set_act(MAP_WARLOCK_MOUNTAIN, 7);
             main_set_bits(BIT_1D2, 0);
             main_set_bits(BIT_DB_Entered_Shrine_2, 0);
             objdata->unk13 = 5;

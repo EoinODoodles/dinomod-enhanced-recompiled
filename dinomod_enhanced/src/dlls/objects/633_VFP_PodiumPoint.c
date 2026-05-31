@@ -16,7 +16,7 @@ extern void VFP_PodiumPoint_func_1B8(Object* self);
 RECOMP_PATCH void VFP_PodiumPoint_control(Object* self) {
     u8 mapSetupID;
 
-    mapSetupID = gDLL_29_Gplay->vtbl->get_map_setup(self->mapID);
+    mapSetupID = gDLL_29_Gplay->vtbl->get_act(self->mapID);
     switch (mapSetupID) {
     default:
         data_0 = 0x123;

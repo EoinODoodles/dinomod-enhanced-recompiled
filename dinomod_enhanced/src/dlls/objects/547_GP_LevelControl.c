@@ -49,7 +49,7 @@ RECOMP_PATCH void GP_LevelControl_setup(Object *self, ObjSetup *setup, s32 arg2)
     objdata = self->data;
     objdata->unk4 = 0;
 
-    switch (gDLL_29_Gplay->vtbl->get_map_setup(self->mapID)) {
+    switch (gDLL_29_Gplay->vtbl->get_act(self->mapID)) {
     case 1:
         main_set_bits(BIT_GP_Sharpclaw_Jetbike_Cutscene2, 1);
         break;

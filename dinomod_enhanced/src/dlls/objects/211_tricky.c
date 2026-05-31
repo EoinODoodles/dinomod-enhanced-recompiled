@@ -3,7 +3,9 @@
 #include "dll_util.h"
 #include "sidekick_util.h"
 
+#include "sys/curves.h"
 #include "sys/dll.h"
+#include "sys/main.h"
 #include "sys/objects.h"
 
 #include "recomp/dlls/objects/211_Tricky_recomp.h"
@@ -62,5 +64,37 @@ RECOMP_PATCH void dll_211_func_940C(Object *self, void *state) {
             obj_destroy_object(*ptr);
             *ptr = NULL;
         }
+    }
+}
+
+/** "Make Tricky get stuck less... HOPEFULLY". Originally by MusicalProgrammer */
+RECOMP_PATCH void dll_211_func_8974(Object* arg0, UnkCurvesStruct* arg1, f32 arg2) {
+    f32 square;
+    f32 var_fs0;
+    f32 distanceSquared;
+    s32 i;
+    
+    distanceSquared = (arg2 * gUpdateRateF) * 1.5f;
+    square = distanceSquared * distanceSquared;
+    distanceSquared = vec3_distance_xz_squared((Vec3f *) (&arg1->unk68), &arg0->srt.transl);
+    
+    if (arg1->unk80 != 0){
+        var_fs0 = -2.0f;
+    } else {
+        var_fs0 = 2.0f;
+    }
+    
+    for (i = 0; i < 5; i++){
+        if (square < distanceSquared){
+            break;
+        }
+        func_800053B0(arg1, var_fs0);
+        // @recomp: Do... whatever this does
+        // TODO: no seriously what does this do
+        if (arg1->unk0 == 1.0f) {
+            recomp_printf("[dll_211_func_8974] unk0 1.0f -> 0.99609375f\n");
+            arg1->unk0 = 0.99609375f;
+        }
+        distanceSquared = vec3_distance_xz_squared((Vec3f *) (&arg1->unk68), &arg0->srt.transl);
     }
 }

@@ -242,25 +242,3 @@ RECOMP_PATCH void CamControl_lock_icon_tick(void) {
     }    
     arrow->srt.yaw += sIconRotateSpeed * gUpdateRate;
 }
-
-RECOMP_PATCH void CamControl_set_target_flag_2(s32 enable) {
-    // @recomp: Return early if in Galadon fight (removes forced z-targeting)
-    {
-        Object **objectList;
-        s32 count;
-
-        objectList = obj_get_all_of_type(OBJTYPE_4, &count);
-
-        for (s32 i = 0; i < count; i++) {
-            if (objectList[i]->id == OBJ_DIM_Boss) {
-                return;
-            }
-        }
-    }
-
-    if (enable) {
-        sCamData->targetFlags |= 2;
-    } else {
-        sCamData->targetFlags &= ~2;
-    }
-}

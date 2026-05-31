@@ -16,6 +16,7 @@
 #include "game/objects/interaction_arrow.h"
 #include "game/objects/inventory_items.h"
 #include "game/objects/object_id.h"
+#include "sys/camera.h"
 #include "sys/fonts.h"
 #include "sys/gfx/model.h"
 #include "sys/joypad.h"
@@ -51,8 +52,6 @@ static u8 rsShowActiveSideCommand = FALSE;      //Whether to show/hide the Activ
 
 #define DEBUG_INVENTORY_SCROLLING FALSE
 #define DEBUG_SIDEKICK_METER FALSE
-
-#define HANDLE_NOCLIP_MOD_YIELD TRUE
 
 #define INVENTORY_LERP_SPEED (1.0f/((f32)(MENU_HEIGHT_OPEN >> 2)))
 
@@ -345,33 +344,6 @@ typedef enum {
     PlayerStats_FLAG_Update_Snapshot = 1
 } CmdMenuPlayerStatsFlags;
 
-//TODO: add to decomp header and remove?
-typedef enum {
-    INVENTORY_FOOD_0_Green_Apple, 
-    INVENTORY_FOOD_1_Red_Apple,   
-    INVENTORY_FOOD_2_Brown_Apple, 
-    INVENTORY_FOOD_3_Fish,        
-    INVENTORY_FOOD_4_Smoked_Fish, 
-    INVENTORY_FOOD_5_Dino_Egg,    
-    INVENTORY_FOOD_6_Moldy_Meat,  
-    INVENTORY_FOOD_7_Green_Bean,  
-    INVENTORY_FOOD_8_Red_Bean,    
-    INVENTORY_FOOD_9_Brown_Bean,  
-    INVENTORY_FOOD_10_Blue_Bean,  
-    INVENTORY_FOOD_11_Foodbag_S,
-    INVENTORY_FOOD_12_Foodbag_M,
-    INVENTORY_FOOD_13_Foodbag_L
-}  PlayerFoodbagIndices;
-
-//TODO: add to decomp header and remove?
-typedef enum {
-    INVENTORY_FOOD_ACTION_Eat,              
-    INVENTORY_FOOD_ACTION_Place,            
-    INVENTORY_FOOD_ACTION_Give,             
-    INVENTORY_FOOD_ACTION_Setting_Eat_First,
-    INVENTORY_FOOD_ACTION_Setting_Eat_Later
-}  PlayerFoodbagActionIndices;
-
 extern s8 dInventoryShow;
 extern s8 sInventoryScrollOffset;
 extern s8 dInventoryMoveSpeed;
@@ -395,7 +367,7 @@ extern s16 dTutorialBoxX;
 extern s16 dTutorialBoxOpacity;
 extern s16 dTutorialBoxTextOpacity;
 extern Texture* dInventoryPageIcon;
-extern s8 sJoyButtonMask;
+extern s8 sJoyDisabledButtons;
 extern s16 dInventoryMovesQueued;
 extern u8 dInventoryIsScrolling;
 extern u8 sForceStatsDisplay;
@@ -932,7 +904,38 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
 
     //Draw character icon
     {
+        _Bool rConfigFoxIcon = recomp_get_config_u32("cmdmenu_icons_fox");
+        static s16 rsIllusionOpacity;
+        static u8 rsIllusionIcon = 0;
+        ModelInstance* modelInst;
+        u8 showFoxIcon = FALSE;
+        u8 opacity;
+
+        //@recomp: Check if the Illusion Spell is showing the Fox model
+        if (rConfigFoxIcon && (player->id == OBJ_Sabre)) {
+            if ((player->modelInstIdx == 2) && 
+                (modelInst = player->modelInsts[player->modelInstIdx]) && 
+                ((modelInst->model->modelId == 9) || (modelInst->model->modelId == 10)) //Check if it's either Fox model
+            ) {
+                showFoxIcon = TRUE;
+            } else {
+                showFoxIcon = FALSE;
+            }
+        }
+
         statsOpacity = ((u8)sOpacityHealth < (u8)sOpacityMagic) ? (u8)sOpacityMagic : (u8)sOpacityHealth;
+
+        //@recomp: if the character portrait's currently hidden and it needs to be swapped, swap it immediately off-screen
+        if (rConfigFoxIcon && (statsOpacity < 20)) {
+            rsIllusionOpacity = MAX_OPACITY;
+
+            if (showFoxIcon && (rsIllusionIcon == Illusion_Icon_Sabre)) {
+                rsIllusionIcon = Illusion_Icon_Fox;
+            } else if (!showFoxIcon && (rsIllusionIcon == Illusion_Icon_Fox)) {
+                rsIllusionIcon = Illusion_Icon_Sabre;
+            }
+        }
+
         if (statsOpacity) {
             if (player->id == OBJ_Krystal) {
                 offsetX = 0;
@@ -945,23 +948,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
             }
 
             //@recomp: handle optional Sabre icon behaviour
-            if ((player->id == OBJ_Sabre) && recomp_get_config_u32("cmdmenu_icons_fox")) {
-                static s16 rsIllusionOpacity = MAX_OPACITY;
-                static u8 rsIllusionIcon = 0;
-                ModelInstance* modelInst;
-                u8 showFoxIcon;
-                u8 opacity;
-
-                //Check if the Illusion Spell is showing the Fox model
-                if ((player->modelInstIdx == 2) && 
-                    (modelInst = player->modelInsts[player->modelInstIdx]) && 
-                    ((modelInst->model->modelId == 9) || (modelInst->model->modelId == 10)) //Check if it's either Fox model
-                ) {
-                    showFoxIcon = TRUE;
-                } else {
-                    showFoxIcon = FALSE;
-                }
-
+            if (rConfigFoxIcon && (player->id == OBJ_Sabre)) {
                 //Change to Fox icon when Sabre's using the Illusion Spell
                 if (showFoxIcon) {
                     if (rsIllusionIcon == Illusion_Icon_Sabre) {
@@ -1532,20 +1519,7 @@ s8 cmdmenu_new_get_next_category_right(Object* player, Object* sidekick, s8* rMo
 static u16 cmdmenu_get_extended_disabled_buttons() {
     u8 rNewControls = recomp_get_config_u32("cmdmenu_new_controls");  //whether to use new controls
     u8 rDControls = recomp_get_config_u32("cmdmenu_d_controls") > DPAD_OFF; //whether D-pad can navigate
-    u16 joyButtonMaskExtended = sJoyButtonMask;
-
-    #if HANDLE_NOCLIP_MOD_YIELD
-    Object* player;
-    if (rDControls) {
-        player = get_player();
-        if (player && 
-            (joy_get_buttons(0) & L_TRIG) && 
-            (player->opacity == 128) && (player->curModAnimId == 112)
-        ) {
-            joyButtonMaskExtended |= (U_JPAD | D_JPAD);
-        }
-    }
-    #endif
+    u16 joyButtonMaskExtended = sJoyDisabledButtons;
 
     //@recomp: handle optional new controls
     if (rNewControls && (joyButtonMaskExtended & D_CBUTTONS)) {
@@ -1606,7 +1580,7 @@ RECOMP_PATCH void cmdmenu_update2(void) {
 
     //@recomp: set button mask
     if (rDControls) {
-        joy_set_button_mask(0, rJoyButtonMaskExtended | ALL_MENUOPEN_D_PAD);
+        joy_disable_buttons(0, rJoyButtonMaskExtended | ALL_MENUOPEN_D_PAD);
     }
 
     player = get_player();
@@ -1621,11 +1595,11 @@ RECOMP_PATCH void cmdmenu_update2(void) {
     sJoyHeldButtons = joy_get_buttons(0); //D-right holds not needed anyway
 
     if (player->stateFlags & OBJSTATE_IN_SEQ) {
-        joy_set_button_mask(0, rAllMenuOpenButtons);
+        joy_disable_buttons(0, rAllMenuOpenButtons);
         sJoyPressedButtons &= ~(R_TRIG | rAllMenuOpenButtons);
         sJoyHeldButtons &= ~(R_TRIG | rAllMenuOpenButtons);
     } else if (rJoyButtonMaskExtended != 0) {
-        joy_set_button_mask(0, rJoyButtonMaskExtended);
+        joy_disable_buttons(0, rJoyButtonMaskExtended);
         sJoyPressedButtons &= ~rJoyButtonMaskExtended;
         sJoyHeldButtons &= ~rJoyButtonMaskExtended;
     }
@@ -1645,7 +1619,7 @@ RECOMP_PATCH void cmdmenu_update2(void) {
             //C-down: Sidekick Commands
             newPageIndex = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[newPageIndex].items, TRUE)) {
-                joy_set_button_mask(0, rMenuDown);
+                joy_disable_buttons(0, rMenuDown);
                 dNextPageCategory = CMDMENU_CATEGORY_2_Sidekick;
                 sInventoryPageID = newPageIndex;
             }
@@ -1653,14 +1627,14 @@ RECOMP_PATCH void cmdmenu_update2(void) {
             //C-right: Items
             newPageIndex = player->id == OBJ_Krystal ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[newPageIndex].items, FALSE)) {
-                joy_set_button_mask(0, rMenuRight);
+                joy_disable_buttons(0, rMenuRight);
                 dNextPageCategory = CMDMENU_CATEGORY_3_Items;
                 sInventoryPageID = newPageIndex;
             }
         } else if ((sJoyPressedButtons & rMenuLeft) && (dPageCategory != CMDMENU_CATEGORY_4_Spells)) {
             //C-left: Magic Spells
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[CMDMENU_PAGE_6_Spells].items, FALSE)) {
-                joy_set_button_mask(0, rMenuLeft);
+                joy_disable_buttons(0, rMenuLeft);
                 dNextPageCategory = CMDMENU_CATEGORY_4_Spells;
                 sInventoryPageID = CMDMENU_PAGE_6_Spells;
             }
@@ -1691,7 +1665,7 @@ RECOMP_PATCH void cmdmenu_update2(void) {
             //C-down while Closed: Open on Sidekick Commands
             newPageIndex = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[newPageIndex].items, TRUE)) {
-                joy_set_button_mask(0, rMenuDown);
+                joy_disable_buttons(0, rMenuDown);
                 dNextPageCategory = CMDMENU_CATEGORY_2_Sidekick;
                 sInventoryPageID = newPageIndex;
             }
@@ -1699,25 +1673,25 @@ RECOMP_PATCH void cmdmenu_update2(void) {
             //C-right while Closed: Open on Items
             newPageIndex = player->id == OBJ_Krystal ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[newPageIndex].items, FALSE)) {
-                joy_set_button_mask(0, rMenuRight);
+                joy_disable_buttons(0, rMenuRight);
                 dNextPageCategory = CMDMENU_CATEGORY_3_Items;
                 sInventoryPageID = newPageIndex;
             }
         } else if ((!rIsInventoryOpen) && (sJoyPressedButtons & rMenuLeft) && (dPageCategory != CMDMENU_CATEGORY_4_Spells)) {
             //C-left while Closed: Open on Magic Spells
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[CMDMENU_PAGE_6_Spells].items, FALSE)) {
-                joy_set_button_mask(0, rMenuLeft);
+                joy_disable_buttons(0, rMenuLeft);
                 dNextPageCategory = CMDMENU_CATEGORY_4_Spells;
                 sInventoryPageID = CMDMENU_PAGE_6_Spells;
             }
         } else if (rIsInventoryOpen && (sJoyPressedButtons & rMenuLeft) && cmdmenu_new_get_next_category_right(player, sidekick, &rMoveToCategory, &rMoveToPage)) {
             //C-left while Open: go to previous category
-            joy_set_button_mask(0, rMenuLeft);
+            joy_disable_buttons(0, rMenuLeft);
             dNextPageCategory = rMoveToCategory;
             sInventoryPageID = rMoveToPage;
         } else if (rIsInventoryOpen && (sJoyPressedButtons & rMenuRight) && cmdmenu_new_get_next_category_left(player, sidekick, &rMoveToCategory, &rMoveToPage)) {
             //C-right while Open: go to next category
-            joy_set_button_mask(0, rMenuRight);
+            joy_disable_buttons(0, rMenuRight);
             dNextPageCategory = rMoveToCategory;
             sInventoryPageID = rMoveToPage;
         } else if (sUsedItemPageID != EXIT) {
@@ -1837,8 +1811,8 @@ RECOMP_PATCH void cmdmenu_update2(void) {
         }
     }
 
-    joy_set_button_mask(0, rAllMenuOpenButtons);
-    sJoyButtonMask = 0;
+    joy_disable_buttons(0, rAllMenuOpenButtons);
+    sJoyDisabledButtons = 0;
 }
 
 #define NEW_CONTROLS_CONTINUOUS_SCROLL_WAIT 30
@@ -1894,9 +1868,9 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
 
     //Lock/unlock accessing the C-button scroll menu
     if (player->stateFlags & OBJSTATE_IN_SEQ) {
-        joy_set_button_mask(0, (rCControls * (ALL_MENUOPEN_C_BUTTONS | U_CBUTTONS)) | (rDControls * (ALL_MENUOPEN_D_PAD | U_JPAD)));
+        joy_disable_buttons(0, (rCControls * (ALL_MENUOPEN_C_BUTTONS | U_CBUTTONS)) | (rDControls * (ALL_MENUOPEN_D_PAD | U_JPAD)));
     } else if (rJoyButtonMaskExtended != 0) {
-        joy_set_button_mask(0, rJoyButtonMaskExtended);
+        joy_disable_buttons(0, rJoyButtonMaskExtended);
     }
 
     //Get button presses (or simulated ones, for tutorial sequences)
@@ -1953,7 +1927,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
 
     //@recomp: disable C-up while inventory open (to prevent entering 1st-person while navigating up)
     if (rNewControls && (dInventoryShow > 0)) {
-        joy_set_button_mask(0, rJoyButtonMaskExtended | rMenuUp);
+        joy_disable_buttons(0, rJoyButtonMaskExtended | rMenuUp);
     }
 
     //Play item use sound if needed
@@ -2185,7 +2159,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
         sInventoryFrameCounter = 0;
         dInventoryMovesQueued = 0;
     } else {
-        joy_set_button_mask(0, A_BUTTON | B_BUTTON);
+        joy_disable_buttons(0, A_BUTTON | B_BUTTON);
     }
 
     *pageSelectionIndex = sMenuSelectedItemIdx;
@@ -2810,6 +2784,30 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     #endif
 }
 
+/**
+  * Used to hide the active spell/sidekick-command icons or the sidekick meter while an important sequence is playing.
+  */
+static _Bool cmdmenu_is_important_sequence_playing() {
+    Player_Data* playerData;
+    Object* player = get_player();
+    if (!player || !player->data) {
+        return FALSE;
+    }
+
+    playerData = player->data;
+
+    //Check if the letterbox is active, and the player is either in a sequence or locked
+    if (camera_get_letterbox() && (
+            (player->stateFlags & OBJSTATE_IN_SEQ) ||                                       //Player involved in sequence
+            (!(player->stateFlags & OBJSTATE_IN_SEQ) && (playerData->flags & 0x200000))     //Player not in sequence, but locked
+        )
+    ) {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 /** 
   * - Fix sidekick icon appearing half-way through fading out from exiting Items/Spells page.
   * - Optionally move/fade the Active Spell/Sidekick Command icons to avoid clashing with the inventory.
@@ -2827,7 +2825,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     s32 sideCommandIndex;
     s32 tileCount;
     u8 iconOpacity;
-    u8 pageIcon;
+    u8 pageIcon = 0;
     s8 offsetX;
     s8 offsetY;
     Object* sidekick;
@@ -2857,6 +2855,12 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
     gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0, -SCREEN_WIDTH * 4, 0);
     #endif
+
+    // @recomp: Hide the active Spell/Sidekick-command icons if an important sequence is playing
+    if (cmdmenu_is_important_sequence_playing()) {
+        rsOpacityActiveSpell = 0;
+        rsOpacityActiveSideCommand = 0;
+    };
 
     //Draw active spell icon
     {
@@ -3211,7 +3215,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
 
         //Get page icon (Bag/SpellBook/Kyte/Tricky)
         if (dInventoryShow || 
-            dInventoryOpacity > 0 || //@recomp: stop sidekick icon appearing halfway through fading out bag/book icon 
+            dInventoryOpacity == MAX_OPACITY || 
             (dInventoryOpacity != 0 && dOpacitySidekickMeter == 0)
         ) {
             switch (sInventoryPageID) {
@@ -3247,14 +3251,14 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             }
         } else {
             //Show sidekick's icon when the sidekick meter should be visible
-            //@bug: can suddenly switch to sidekick icon halfway through fading out from bag/book
-            if (dOpacitySidekickMeter != 0) {
-                pageIcon = CMDMENU_TEX_42_Tricky;
+            //@bug: can suddenly switch to sidekick icon halfway through fading out from bag
+            if ((dOpacitySidekickMeter != 0) && (sidekick != NULL)) {
                 if (sidekick != NULL && sidekick->id == OBJ_Kyte) {
                     pageIcon = CMDMENU_TEX_54_Kyte;
                     iconOpacity = dOpacitySidekickMeter;
                 } else {
                     offsetY = 3;
+                    pageIcon = CMDMENU_TEX_42_Tricky;
                     iconOpacity = dOpacitySidekickMeter;
                 }
             } else {
@@ -3263,7 +3267,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
         }
 
         //Draw page icon
-        if (iconOpacity) {
+        if (iconOpacity && pageIcon) {
             dInventoryPageIcon = tex_load_deferred(dTextableIDs[pageIcon]);
             rcp_screen_full_write(
                 gdl, 
@@ -3580,10 +3584,15 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
     //Draw the sidekick food meter 
     //(@recomp: animate opacity even when sidekick's missing, so it doesn't get stuck)
     {
+        //@recomp: check if an important sequence is playing
+        _Bool isSequencePlaying = cmdmenu_is_important_sequence_playing();
+
         //Handle the meter's opacity
-        if (((sInventoryPageID == CMDMENU_PAGE_7_Sidekick_Tricky || sInventoryPageID == CMDMENU_PAGE_8_Sidekick_Kyte) && dInventoryOpacity) || 
-            (sStatsChangeTimers.sidekickBlueFood >= 0.0f) ||
-            cmdmenu_should_sidekick_meter_appear_over_food_items(sidekick) //@recomp: optionally show meter while relevant food selected on Items page
+        if (sidekick && sStats.sidekickMaxFood &&                //@recomp: don't fade in when sidekick is missing, or sidekick data not loaded
+            !(isSequencePlaying && (dInventoryOpacity == 0)) &&  //@recomp: fade out during important sequences if the inventory's hidden (i.e. still show up during Tricky's tutorial)
+            (((sInventoryPageID == CMDMENU_PAGE_7_Sidekick_Tricky || sInventoryPageID == CMDMENU_PAGE_8_Sidekick_Kyte) && dInventoryOpacity) || //Fade in if sidekick's inventory page open
+            ((sStatsChangeTimers.sidekickBlueFood >= 0.0f)) ||   //Fade in if sidekick's energy level changed
+            cmdmenu_should_sidekick_meter_appear_over_food_items(sidekick)) //@recomp: optionally show meter while relevant food selected on Items page
         ) {
             /* Fade in while the sidekick's inventory page is open, 
                or when the sidekick's blue food count has recently changed */

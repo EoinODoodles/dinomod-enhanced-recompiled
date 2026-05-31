@@ -55,33 +55,18 @@ void rotate_point_by_angle_2D(f32 x, f32 y, f32* ox, f32* oy, s16 theta){
     *oy = x*sinTheta + y*cosTheta;
 }
 
-/*
- * Debug print a matrix to the screen.
- */
-void matrix_diPrintf(MtxF *mtx) {
-    //TODO: improve screen alignment/spacing between elements?
-    diPrintf("\n");
-    diPrintf("%4s    %4s     %4s   %4s\n", "aX", "aY", "aZ", "t");
-    for (u8 j = 0; j < 4; j++) {
-        for (u8 i = 0; i < 4; i++) {
-            diPrintf("%6s    ", f2s(mtx->m[i][j]));
-        }
-        diPrintf("\n");
-    }
+f32 cosf(f32 angle) {
+    return sinf((M_PI_F/2) + angle);
 }
 
-/*
- * Log a matrix.
- */
-void matrix_recomp_printf(MtxF *mtx) {
-    recomp_printf("\n");
-    recomp_printf("%-6s\t%-6s\t%-6s\t%-6s\n", "aX", "aY", "aZ", "t");
-    for (u8 j = 0; j < 4; j++) {
-        for (u8 i = 0; i < 4; i++) {
-            recomp_printf("%-6s\t", f2s(mtx->m[i][j]));
-        }
-        recomp_printf("\n");
-    }
+/** Converts an angle from degrees into radians */
+f32 degrees_to_radians(f32 degrees) {
+    return degrees * (M_PI_F/180.0f);
+}
+
+/** Converts an angle from radians into degrees */
+f32 radians_to_degrees(f32 radians) {
+    return radians * (180.0f / M_PI_F);
 }
 
 /** Converts from the game's 16-bit angle system to degrees */
@@ -112,6 +97,42 @@ s32 radians_to_angle16(f32 radians) {
     return angle16;
 }
 
+/**
+  * Calculates the cross product of two vectors.
+  * The out vector can be one of the input vectors, since a temporary vector is used.
+  */
+void vec3_cross(Vec3f* vA, Vec3f* vB, Vec3f* vO) {
+    Vec3f result;
+
+    result.x = vA->y * vB->z - vA->z * vB->y;
+    result.y = vA->z * vB->x - vA->x * vB->z;
+    result.z = vA->x * vB->y - vA->y * vB->x;
+
+    vO->x = result.x;
+    vO->y = result.y;
+    vO->z = result.z;
+}
+
+/*
+ * Debug print a vector to the screen.
+ */
+void vec3_diPrintf(Vec3f* v) {
+    diPrintf("%s   ", f2s(v->x));
+    diPrintf("%s   ", f2s(v->y));
+    diPrintf("%s   ", f2s(v->z));
+    diPrintf("\n");
+}
+
+/*
+ * Log a vector.
+ */
+void vec3_recomp_printf(Vec3f* v) {
+    recomp_printf("%-6s\t", f2s(v->x));
+    recomp_printf("%-6s\t", f2s(v->y));
+    recomp_printf("%-6s",   f2s(v->z));
+    recomp_printf("\n");
+}
+
 /** 
   * Does 4x4 matrix multiplication! 
   * The out matrix can be one of the input matrices, since a temporary matrix is used. 
@@ -134,6 +155,35 @@ void matrix_multiply(MtxF* mA, MtxF* mB, MtxF* mO) {
         for (u8 i = 0; i < 4; i++) {
             mO->m[i][j] = out.m[i][j];
         }
+    }
+}
+
+/*
+ * Debug print a matrix to the screen.
+ */
+void matrix_diPrintf(MtxF *mtx) {
+    //TODO: improve screen alignment/spacing between elements?
+    diPrintf("\n");
+    diPrintf("%4s    %4s     %4s   %4s\n", "aX", "aY", "aZ", "t");
+    for (u8 j = 0; j < 4; j++) {
+        for (u8 i = 0; i < 4; i++) {
+            diPrintf("%6s    ", f2s(mtx->m[i][j]));
+        }
+        diPrintf("\n");
+    }
+}
+
+/*
+ * Log a matrix.
+ */
+void matrix_recomp_printf(MtxF *mtx) {
+    recomp_printf("\n");
+    recomp_printf("%-6s\t%-6s\t%-6s\t%-6s\n", "aX", "aY", "aZ", "t");
+    for (u8 j = 0; j < 4; j++) {
+        for (u8 i = 0; i < 4; i++) {
+            recomp_printf("%-6s\t", f2s(mtx->m[i][j]));
+        }
+        recomp_printf("\n");
     }
 }
 

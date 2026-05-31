@@ -277,7 +277,7 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
 RECOMP_PATCH void SCbeacon_free(Object* self, s32 arg1) {
     gDLL_14_Modgfx->vtbl->func5(self);
     gDLL_13_Expgfx->vtbl->func5(self);
-    obj_free_object_type(self, OBJTYPE_48);
+    obj_free_object_type(self, OBJTYPE_KyteTarget);
 
     //@recomp: soundHandles
     SCbeacon_flame_sounds_stop(self);

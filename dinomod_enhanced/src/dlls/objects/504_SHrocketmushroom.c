@@ -25,7 +25,7 @@
 #include "dlls/engine/17_partfx.h"
 #include "dlls/objects/503_SHkillermushroom.h"
 
-#include "recomp/dlls/_asm/504_recomp.h"
+#include "recomp/dlls/objects/504_SHrocketmushroom_recomp.h"
 
 typedef struct {
     ObjSetup base;
@@ -77,25 +77,6 @@ typedef struct {
     f32 animSpeed;
     u8 flags;
 } SHrocketmushroom_AnimData;
-
-//TODO: replace after decomp update
-#define dAnimData data_0 
-#define SHrocketmushroom_setup dll_504_setup
-#define SHrocketmushroom_control dll_504_control
-#define SHrocketmushroom_print dll_504_print
-#define SHrocketmushroom_get_data_size dll_504_get_data_size
-#define SHrocketmushroom_handle_state_1_hidden dll_504_func_5C8
-#define SHrocketmushroom_handle_state_2_growing dll_504_func_70C
-#define SHrocketmushroom_handle_state_3_launch_spore dll_504_func_86C
-#define SHrocketmushroom_handle_state_4_damaged dll_504_func_970
-#define SHrocketmushroom_handle_state_0_idle dll_504_func_A40
-#define SHrocketmushroom_set_state dll_504_func_B08
-#define SHrocketmushroom_create_spore dll_504_func_B78
-#define SHrocketmushroom_explode dll_504_func_CF8
-#define SHrocketmushroom_reset dll_504_func_104C
-#define SHrocketmushroom_is_player_far_away dll_504_func_114C
-#define SOUND_8A1_Spore_Launched 0x8A1
-#define SOUND_8A3_Rocket_Mushroom_Grow 0x8A3
 
 /*0x0*/ extern SHrocketmushroom_AnimData dAnimData[5];
 

@@ -1,16 +1,20 @@
 #include "PR/os.h"
 #include "PR/ultratypes.h"
+#include "common_objsetups.h"
 #include "modding.h"
 #include "recomputils.h"
 #include "recompconfig.h"
 
 #include "old_pickup_sfx_bank.h"
 
+#include "game/gamebits.h"
+#include "game/objects/object_id.h"
 #include "libnaudio/n_libaudio.h"
 #include "libnaudio/n_sndplayer.h"
 #include "mp3/mp3.h"
 #include "sys/acache.h"
 #include "sys/fs.h"
+#include "sys/main.h"
 #include "sys/map.h"
 #include "sys/mpeg.h"
 #include "sys/asset_thread.h"
@@ -18,6 +22,7 @@
 #include "sys/fs.h"
 #include "sys/memory.h"
 #include "dll.h"
+#include "sys/objects.h"
 #include "types.h"
 
 enum RecompPickupJingle {
@@ -230,4 +235,136 @@ RECOMP_PATCH u32 amsfx_play(Object* obj, u16 soundID, u8 volume, u32* soundHandl
         sSndSlots[handle].flags |= SOUNDSLOT_PLAYING;
     }
     return handle;
+}
+
+RECOMP_PATCH void amsfx_water_falls_control(void) {
+    Object* player;
+    s32 i;
+    f32 distance;
+    u32 lowVolume;
+    u32 highVolume;
+    u8 mapID;
+    Vec3f* camera;
+
+    player = get_player();
+    mapID = map_world_xz_to_map_id(player->srt.transl.x, player->srt.transl.z);
+    if ((mapID != sWaterfallsLastMap) || (sWaterfallFlags & AMSFX_WATERFALLS_REFRESH)) {
+        amsfx_water_falls_find_sprays();
+        sWaterfallsLastMap = mapID;
+        sWaterfallFlags &= ~AMSFX_WATERFALLS_REFRESH;
+    }
+    // @recomp: Still run if there are no sprays
+    // if (sWaterFallSprayCount == 0) {
+    //     return;
+    // }
+
+    camera = (Vec3f*)get_camera();
+    highVolume = 0;
+    lowVolume = 0;
+    for (i = 0; i < sWaterFallSprayCount; i++) {
+        distance = vec3_distance(camera + 1, &sWaterFallSprays[i].pos);
+        if (distance < sWaterFallSprays[i].unkC) {
+            lowVolume += MAX_VOLUME - (u8)((u32)((distance / sWaterFallSprays[i].unkC) * MAX_VOLUME_F));
+        }
+        if (distance < sWaterFallSprays[i].unkE) {
+            highVolume += MAX_VOLUME - (u8)((u32)((distance / sWaterFallSprays[i].unkE) * MAX_VOLUME_F));
+        }
+    }
+    if (sWaterfallFlags & AMSFX_WATERFALLS_LOWER_HIGH) {
+        highVolume >>= 1;
+    }
+    if (sWaterfallFlags & AMSFX_WATERFALLS_LOWER_LOW) {
+        lowVolume >>= 1;
+    }
+    if (sWaterfallFlags & AMSFX_WATERFALLS_LOWER_HIGH2) {
+        highVolume >>= 1;
+    }
+    if (sWaterfallFlags & AMSFX_WATERFALLS_LOWER_LOW2) {
+        lowVolume >>= 1;
+    }
+    if (highVolume > MAX_VOLUME) {
+        highVolume = MAX_VOLUME;
+    }
+    if (lowVolume > MAX_VOLUME) {
+        lowVolume = MAX_VOLUME;
+    }
+    // @recomp: Partially rewrite to handle fading out when no more sprays exist rather than abruptly stopping
+    if (lowVolume == 0 && sWaterfallLowVolume == 0) {
+        if (sWaterfallLowHandle != 0) {
+            amsfx_stop(sWaterfallLowHandle);
+            sWaterfallLowHandle = 0;
+        }
+    } else {
+        if (sWaterfallLowHandle == 0) {
+            sWaterfallLowVolume = 1;
+            amsfx_play(NULL, SOUND_986_Waterfall_Low_Loop, sWaterfallLowVolume, &sWaterfallLowHandle, "game/amsfx.c", 1016, "");
+        }
+        // @bug: framerate dependent
+        if (lowVolume < sWaterfallLowVolume) {
+            sWaterfallLowVolume -= 1;
+        } else {
+            sWaterfallLowVolume += 1;
+        }
+        amsfx_set_vol(sWaterfallLowHandle, sWaterfallLowVolume);
+    }
+    if (highVolume == 0 && sWaterfallHighVolume == 0) {
+        if (sWaterfallHighHandle != 0) {
+            amsfx_stop(sWaterfallHighHandle);
+            sWaterfallHighHandle = 0;
+        }
+    } else {
+        if (sWaterfallHighHandle == 0) {
+            sWaterfallHighVolume = 1;
+            amsfx_play(NULL, SOUND_987_Waterfall_High_Loop, sWaterfallHighVolume, &sWaterfallHighHandle, "game/amsfx.c", 1036, "");
+        }
+        // @bug: framerate dependent
+        if (highVolume < sWaterfallHighVolume) {
+            sWaterfallHighVolume -= 1;
+        } else {
+            sWaterfallHighVolume += 1;
+        }
+        amsfx_set_vol(sWaterfallHighHandle, sWaterfallHighVolume);
+    }
+}
+
+/** When searching for WaterFallSpray objects, ignore any that are switched off via a gamebit */
+RECOMP_PATCH s32 amsfx_water_falls_find_sprays(void) {
+    Object* player;
+    s32 offset;
+    ObjSetup* setup;
+    s32 setupListLength;
+
+    player = get_player();
+    if (player == NULL) {
+        return TRUE;
+    }
+    
+    setup = map_world_xz_to_map_obj_setup_list(player->srt.transl.x, player->srt.transl.z, &setupListLength);
+    if (setup == NULL) {
+        return TRUE;
+    }
+
+    offset = 0;
+    sWaterFallSprayCount = 0;
+    while (setupListLength > offset && sWaterFallSprayCount < MAX_WATER_FALL_SPRAY) {
+        if (setup->objId == OBJ_WaterFallSpray) {
+            //@recomp: ignore the WaterFallSpray object if it's switched off via its gamebit
+            WaterFallSpray_Setup* spraySetup = (WaterFallSpray_Setup*)setup;
+            if ((spraySetup->gamebit <= NO_GAMEBIT + 1) || //the WaterFallSpray doesn't use a gamebit, so it's always on
+                (   (spraySetup->invertGamebit && main_get_bits(spraySetup->gamebit))   ||  //switched on when gamebit set
+                    (!spraySetup->invertGamebit && !main_get_bits(spraySetup->gamebit))     //switched on when gamebit unset
+                )
+            ) {
+                sWaterFallSprays[sWaterFallSprayCount].pos.x = setup->x;
+                sWaterFallSprays[sWaterFallSprayCount].pos.y = setup->y;
+                sWaterFallSprays[sWaterFallSprayCount].pos.z = setup->z;
+                sWaterFallSprays[sWaterFallSprayCount].unkC = spraySetup->unk21 * 16;
+                sWaterFallSprays[sWaterFallSprayCount].unkE = spraySetup->unk22 * 16;
+                sWaterFallSprayCount++;
+            }
+        }
+        offset += setup->quarterSize << 2;
+        setup = (ObjSetup*)((u8*)setup + (setup->quarterSize << 2));
+    }
+    return FALSE;
 }

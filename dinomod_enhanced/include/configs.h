@@ -47,4 +47,9 @@ typedef enum {
     DIM_TENT_CINDERS_ON_PERSIST     //DIMTents leave behind a charred frame, which stays around
 } DIMTentModes;
 
+typedef enum {
+    PLAY_AS_SABRE_WITH_FOX_AS_ILLUSION,     //Play as Sabre, aside from Illusion Spell (which shows Fox as a little swapped homage to the prototype's behaviour)
+    PLAY_AS_FOX_ALWAYS                      //Play as Fox regardless of Illusion Spell
+} PlayAsFoxModes;
+
 #define INFO_POPUP_DURATION 300

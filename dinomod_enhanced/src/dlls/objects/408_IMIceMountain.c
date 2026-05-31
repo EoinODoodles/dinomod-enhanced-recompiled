@@ -97,7 +97,7 @@ RECOMP_PATCH void IMIceMountain_do_act1(Object *self) {
         break;
     case STATE_Race_Won:
         if (objdata->flags & IMICEMOUNTAIN_FLAG_1) {
-            gDLL_29_Gplay->vtbl->set_map_setup(self->mapID, 2);
+            gDLL_29_Gplay->vtbl->set_act(self->mapID, 2);
             gDLL_29_Gplay->vtbl->set_obj_group_status(self->mapID, IM_ObjGroup3_Cave_Jetbikes_SharpClaw, 0);
             gDLL_29_Gplay->vtbl->set_obj_group_status(self->mapID, IM_ObjGroup4_Cave_Jetbikes_SharpClaw, 0);
             gDLL_29_Gplay->vtbl->set_obj_group_status(self->mapID, IM_ObjGroup6_Track_Icicles, 0);

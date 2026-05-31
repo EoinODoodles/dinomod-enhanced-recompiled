@@ -1,23 +1,30 @@
-#include "modding.h"
-#include "recompconfig.h"
-#include "recomputils.h"
+#include "configs.h"
 #include "dll_util.h"
 #include "math_util.h"
+#include "modding.h"
 #include "object_util.h"
+#include "player_util.h"
+#include "recompconfig.h"
+#include "recomputils.h"
 #include "sidekick_util.h"
 
 #include "common.h"
+#include "game/objects/object.h"
+#include "game/objects/object_id.h"
+#include "game/gamebits.h"
 #include "sys/map_enums.h"
 #include "sys/menu.h"
+#include "sys/newshadows.h"
 #include "sys/objanim.h"
+#include "sys/objects.h"
 #include "sys/objtype.h"
 #include "sys/objmsg.h"
 #include "sys/objlib.h"
+#include "sys/print.h"
 #include "sys/segment_53F00.h"
 #include "sys/gfx/model.h"
 #include "sys/gfx/animseq.h"
 #include "dll.h"
-
 #include "dlls/objects/common/vehicle.h"
 #include "dlls/objects/common/group48.h"
 #include "dlls/objects/common/foodbag.h"
@@ -80,34 +87,6 @@ extern Object *_bss_210[4];
 extern s16 _bss_220[2];
 extern ObjFSA_StateCallback _bss_224[1];
 
-typedef void (*func_1D04C)(Object *obj, s32);
-static func_1D04C player_func_1D04C; 
-static void func_1D04C_hijack(Object *self, s32);
-
-RECOMP_HOOK_DLL(dll_210_ctor) void player_ctor_hook(DLLFile *dll) {
-    player_func_1D04C = dinomod_hijack_dll_export(dll, 61, func_1D04C_hijack);
-}
-
-RECOMP_HOOK_RETURN_DLL(dll_210_dtor) void player_dtor_hook() {
-    player_func_1D04C = NULL;
-}
-
-static void func_1D04C_hijack(Object *self, s32 a1) {
-    // @recomp: Ignore func_1D04C calls if in Galadon fight (removes forced z-targeting)
-    Object **objectList;
-    s32 count;
-
-    objectList = obj_get_all_of_type(4, &count);
-
-    for (s32 i = 0; i < count; i++) {
-        if (objectList[i]->id == OBJ_DIM_Boss) {
-            return;
-        }
-    }
-
-    player_func_1D04C(self, a1);
-}
-
 /** Fix Ice Blast / Grenade Spell selection (originally by MusicalProgrammer) */
 RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Data* fsa) {
     Object* outSender;
@@ -134,14 +113,45 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                         gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 58);
                         arg1->flags |= 0x400000;
                     }
-                //If not in aiming state, and not in a state that's allowed to lead into the aiming state, reject spell selection
-                } else if (fsa->animState != 58){
-                    gDLL_6_AMSFX->vtbl->play(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
-                    break; //@recomp;
+                } else {
+                    // @recomp: Check for additional cases for whether the spell can be selected
+                    _Bool disallowSelection = TRUE;
+                    if (fsa->animState == PLAYER_ASTATE_Aiming_Spell) {
+                        // Spell can be swapped while aiming
+                        disallowSelection = FALSE;
+                    } else if (messageArgument == BIT_Spell_Projectile && fsa->target != NULL 
+                                && /*is a target we can attack*/fsa->unk33D == 1) {
+                        // The projectile spell can be equipped while targetting
+                        disallowSelection = FALSE;
+
+                        // Allow spell to be disabled via cmdmenu while targetting (to return to melee)
+                        if (arg1->unk87C == BIT_Spell_Projectile) {
+                            arg1->unk87C = -1;
+                            break;
+                        }
+
+                        // These bits must be cleared or else spell aiming will not be properly cancelled
+                        // if the z-lock target is removed in some cases.
+                        // TODO: figure out what exactly this is doing and why (0x400000 is set when aiming, but
+                        //       not from holding Z. 0x1000 is toggled when pressing Z i think?)
+                        arg1->flags &= ~0x401000;
+                    }
+
+                    if (disallowSelection) {
+                        gDLL_6_AMSFX->vtbl->play(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+                        break;
+                    }
                 }
             }
+            // @recomp: Don't allow switching to non-aimed spells while aiming a spell. If this is allowed,
+            //          you can get into a buggy state with two spells equipped at the same time or a weirder
+            //          state with no spells equipped but still be able to fire the last aimed spell.
+            else if (fsa->animState == PLAYER_ASTATE_Aiming_Spell) {
+                gDLL_6_AMSFX->vtbl->play(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+                break;
+            }
 
-            //@recomp: change conditions for reaching here
+            //@recomp: change conditions for reaching here (see above)
             dll_210_func_6DD8(player, arg1, messageArgument);
             break;
         case 0xE0000:
@@ -350,7 +360,7 @@ RECOMP_HOOK_RETURN_DLL(dll_210_control) void playerSoundDebouncing(Object* self)
 }
 
 /** Stop spells from unequipping themselves whenever you do an action (originally by MusicalProgrammer) */
-void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
+RECOMP_PATCH void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
     Object* temp_s2;
     s32 temp_s3;
     s32 var_s4;
@@ -377,7 +387,7 @@ void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
             if (player->animProgressLayered > 0.59f) {
                 arg1->unk8A8 = 2;
             }
-            if ((temp_s2 != NULL) && (player->animProgressLayered > 0.7f) && (temp_s2->group == GROUP_UNK48)) {
+            if ((temp_s2 != NULL) && (player->animProgressLayered > 0.7f) && (temp_s2->controlNo == OBJCONTROL_Weapon)) {
                 ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func7(temp_s2, 0.15f);
             }
             if (temp_s3 != 0) {
@@ -386,7 +396,7 @@ void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
             }
             break;
         case 13:
-            if ((temp_s2 != NULL) && (temp_s2->group == GROUP_UNK48)) {
+            if ((temp_s2 != NULL) && (temp_s2->controlNo == OBJCONTROL_Weapon)) {
                 ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func7(temp_s2, 1.0f);
             }
             arg1->unk8A8 = 2;
@@ -404,17 +414,20 @@ void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2) {
             if (player->animProgressLayered < 0.24f) {
                 arg1->unk8A8 = 0;
             }
-            if ((temp_s2 != NULL) && (player->animProgressLayered < 0.7f) && (temp_s2->group == GROUP_UNK48)) {
+            if ((temp_s2 != NULL) && (player->animProgressLayered < 0.7f) && (temp_s2->controlNo == OBJCONTROL_Weapon)) {
                 ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func8(temp_s2);
             }
             if (temp_s3 != 0) {
-                arg1->unk87C = -1;
+                // @recomp: Don't disable forcefield or illusion when stowing weapon
+                if (arg1->unk87C != BIT_Spell_Forcefield && arg1->unk87C != BIT_Spell_Illusion) {
+                    arg1->unk87C = -1;
+                }
                 arg1->unk878 = 3;
                 var_s4 = 1;
             }
             break;
         case 14:
-            if (temp_s2->group == GROUP_UNK48) {
+            if (temp_s2->controlNo == OBJCONTROL_Weapon) {
                 ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func8(temp_s2);
             }
             // arg1->unk87C = -1; //@recomp: don't unequip spells
@@ -525,7 +538,10 @@ RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2
                 objData->unk8A8 = 0;
             }
             if (func_80025140(self, -0.015f, arg2, 0) != 0) {
-                objData->unk87C = -1;
+                // @recomp: Don't disable forcefield or illusion when stowing weapon
+                if (objData->unk87C != BIT_Spell_Forcefield && objData->unk87C != BIT_Spell_Illusion) {
+                    objData->unk87C = -1;
+                }
                 objData->unk878 = 3;
                 var_s2 = new_var;
             }
@@ -839,6 +855,7 @@ RECOMP_PATCH s32 dll_210_func_B4E0(Object* player, ObjFSA_Data* fsa, f32 deltaTi
         gDLL_6_AMSFX->vtbl->play(player, SOUND_6B4_Basket_Carry, 0x61, NULL, NULL, 0, NULL);
 
         //@recomp: override carry position offset value for specific objects 
+        // TODO: this patch should be done in the actual barrel DLLs
         //(usually sent as message by carried object)
         heldObject = objdata->unk868;
         if (heldObject){
@@ -958,7 +975,7 @@ RECOMP_PATCH s32 dll_210_func_125BC(Object *self, ObjFSA_Data *fsa, f32 updateRa
     return 0;
 }
 
-/** Fix Sabre floating around when he rides SnowHorns, stop projectile spell activating on dismount (originally by MusicalProgrammer) */
+/** Fix Sabre floating around when he rides SnowHorns (originally by MusicalProgrammer) */
 RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2) {
     Player_Data* objData2;
     Object* steed;
@@ -975,11 +992,6 @@ RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2
     objData2 = self->data;
     objData->unk0.unk4.mode = 0;
     objData->unk0.animExitAction = dll_210_func_14B70;
-
-    //@recomp: prevent Projectile Spell equip
-    objData->unk834 = 0;
-    objData->flags &= 0xFF00;
-
     func_800267A4(self);
     steed = objData2->vehicle;
     if (steed == NULL) {
@@ -1012,7 +1024,7 @@ RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2
         }
     }
     if (objData2->unk770 & 1) {
-        ((DLL_IVehicle*)steed->dll)->vtbl->func15(steed, &sp40, &sp34);
+        ((DLL_IVehicle*)steed->dll)->vtbl->get_player_anim(steed, &sp40, &sp34);
         sp38 = (sp40 * 1023.0f);
         if (sp38 < 0) {
             sp38 = -sp38;
@@ -1033,21 +1045,154 @@ RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2
         func_80024DD0(self, 1, 0, sp3C * 1023.0f);
         func_80025140(self, objData->unk0.animTickDelta, arg2, 0);
     }
-    if (((DLL_IVehicle*)steed->dll)->vtbl->func10(steed, self) != 0) {
+    if (((DLL_IVehicle*)steed->dll)->vtbl->can_dismount(steed, self) != 0) {
         return 0x27;
     }
     return 0;
 }
 
-/** Prevent Projectile Spell from triggering after dismounting log (originally by MusicalProgrammer) */
+/** 
+ * Use a correctly sized mod anim array for BWLog. In the vanilla Dec 2000 build, this array is too short and causes
+ * the anims for hopping on/off the log to read out of bounds and interpret other memory as mod anim indices. This build
+ * doesn't seem to have actual anims for hopping on/off logs so this patch uses similar anims used for other vehicles.
+ */
+RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) {
+    static s16 recomp_betterBWLogAnims_Krystal[] = { 
+        0x1b, 0x1d, // idle/rowing anims (same as vanilla)
+        0x0453, 0x0454, // meant for rolling? (these are for logs)
+        0x1b, 0x1b,
+        0x367, 0x366, // anims for hopping on log (these are not actually for logs but it looks better than nothing)
+        0xf6, 0xf7, // anims for hopping off log (still not for logs, i think these are for hopping off bigger dinos)
+        0xffff, 0xffff
+    };
+    static s16 recomp_betterBWLogAnims_Sabre[] = { 
+        0x1b, 0x1d,
+        0x0453, 0x0454,
+        0x1b, 0x1b,
+        0x366, 0x365, // note: the IDs for the same anims here are slightly different for sabre
+        0xf6, 0xf7,
+        0xffff, 0xffff
+    };
+    s32 pad;
+    s32 mountSide;
+    ObjectShadow* temp_v0_3;
+    Object* vehicle;
+    Vec3f sp74;
+    Vec3f sp68;
+    f32 sp64;
+    f32 sp60;
+    f32 sp5C;
+    Vec3f sp50;
+    Player_Data* objdata;
+    s8 v0;
+    s16 sp48;
+    ModelInstance* sp44;
+
+    objdata = player->data;
+    vehicle = objdata->vehicle;
+    {
+        s32 temp_v0 = dll_210_func_EFB4(player, fsa, arg2);
+        if (temp_v0 != 0) { return temp_v0; }
+    }
+    // @fake
+    //if (((!fsa) && (!fsa)) && (!fsa)) {}
+    if (fsa->enteredAnimState != 0) {
+        fsa->unk270 = PLAYER_ASTATE_Vehicle_Getting_On;
+    }
+    func_800267A4(player);
+    player->velocity.f[1] = 0.0f;
+    if (fsa->enteredAnimState != 0) {
+        objdata->unk8A9 = 1;
+        switch (vehicle->id) {
+        case OBJ_IMSnowBike:
+        case OBJ_CRSnowBike:
+            objdata->unk76C = _data_158;
+            objdata->unk770 = 3;
+            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMSLIDE, 1, 0, 0, NULL, 0, 0xFF);
+            break;
+        case OBJ_DR_CloudRunner:
+            objdata->unk76C = _data_170;
+            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMDRAKOR, 1, 0, 0, NULL, 0, 0xFF);
+            break;
+        case OBJ_BWLog:
+            // @recomp: Use custom mod anim list
+            objdata->unk76C = player->id == OBJ_Krystal ? recomp_betterBWLogAnims_Krystal : recomp_betterBWLogAnims_Sabre;
+            objdata->unk770 = 3;
+            gDLL_2_Camera->vtbl->change_mode(0, 0x29);
+            break;
+        case OBJ_DR_EarthWarrior:
+            objdata->unk76C = _data_170;
+            objdata->unk770 = 4;
+            gDLL_2_Camera->vtbl->change_mode(0, 0x69);
+            break;
+        default:
+            objdata->unk76C = _data_170;
+            objdata->unk770 = 4;
+            gDLL_2_Camera->vtbl->change_mode(0, 0x1D);
+            break;
+        }
+        mountSide = ((DLL_IVehicle*)vehicle->dll)->vtbl->get_mount_side(vehicle);
+        ((DLL_IVehicle*)vehicle->dll)->vtbl->set_mount_state(vehicle, VEHICLE_Mounting);
+        switch (mountSide) {
+            case 1:
+                v0 = 6;
+                break;
+            case 2:
+            default:
+                v0 = 7;
+                break;
+        }
+        player->srt.yaw = vehicle->srt.yaw;
+        func_80023D30(player, objdata->unk76C[v0], 0.0f, 4U);
+        sp44 = player->modelInsts[player->modelInstIdx];
+        func_8001A3FC(sp44, 0U, 0, 0.0f, player->srt.scale, &sp74, &sp48);
+        func_8001A3FC(sp44, 0U, 0, 1.0f, player->srt.scale, &sp68, &sp48);
+        ((DLL_IVehicle*)vehicle->dll)->vtbl->get_rider_position(vehicle, &sp5C, &sp60, &sp64);
+        // @recomp: HACK: the mod anims used in this patch for hopping on the log plays too low, so
+        //          artificially raise the point we lerp to a little bit (is there a better way to do this?).
+        if (vehicle->id == OBJ_BWLog) {
+            sp60 += 8.0f;
+        }
+        sp5C -= player->srt.transl.f[0];
+        sp60 -= player->srt.transl.f[1];
+        sp64 -= player->srt.transl.f[2];
+        objdata->unk738.f[0] = player->srt.transl.f[0];
+        objdata->unk738.f[1] = player->srt.transl.f[1];
+        objdata->unk738.f[2] = player->srt.transl.f[2];
+        objdata->unk744.f[0] = sp5C;
+        objdata->unk744.f[1] = sp60 - sp68.f[1];
+        objdata->unk744.f[2] = sp64;
+        player->srt.flags |= OBJFLAG_MANUAL_PREV_POSITIONS;
+        player->shadow->flags |= OBJ_SHADOW_FLAG_FADE_OUT;
+        fsa->animTickDelta = 0.022f;
+    }
+    player->srt.transl.f[0] = objdata->unk738.f[0] + (player->animProgress * objdata->unk744.x);
+    player->srt.transl.f[1] = objdata->unk738.f[1] + (player->animProgress * objdata->unk744.y);
+    player->srt.transl.f[2] = objdata->unk738.f[2] + (player->animProgress * objdata->unk744.z);
+    ((DLL_IVehicle*)vehicle->dll)->vtbl->get_camera_position(vehicle, &sp5C, &sp60, &sp64);
+    sp50.z = ((sp5C - objdata->unk738.x) * player->animProgress) + objdata->unk738.x;
+    sp50.y = ((sp60 - objdata->unk738.y) * player->animProgress) + objdata->unk738.y;
+    sp50.x = ((sp64 - objdata->unk738.z) * player->animProgress) + objdata->unk738.z;
+    gDLL_2_Camera->vtbl->reposition_player(sp50.z, sp50.y, sp50.x);
+    if ((fsa->enteredAnimState == 0) && (fsa->unk33A != 0)) {
+        func_80023D30(player, *objdata->unk76C, 0.0f, 1);
+        ((DLL_IVehicle*)vehicle->dll)->vtbl->set_mount_state(vehicle, VEHICLE_Mounted);
+        if (vehicle->id == 0x22) {
+            return 0x26;
+        }
+        return 0x25;
+    }
+    return 0;
+}
+
 RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) {
-    Object* temp_s2;
-    s32 spA0;
+    Object* vehicle;
+    s32 dismountSide;
     f32 temp;
     s32 var_v0_2;
     Vec3f sp8C;
     Vec3f sp80;
-    Player_Data* temp_s1;
+    Player_Data* objdata;
     f32 sp78;
     f32 sp74;
     f32 sp70;
@@ -1059,26 +1204,30 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     if (fsa->enteredAnimState != 0) {
         fsa->unk270 = PLAYER_ASTATE_Vehicle_Getting_Off;
     }
-    temp_s1 = player->data;
-    temp_s2 = temp_s1->vehicle;
+    objdata = player->data;
+    vehicle = objdata->vehicle;
     {
         s32 temp_v0 = dll_210_func_EFB4(player, fsa, arg2);
         if (temp_v0 != 0) { return temp_v0; }
     }
 
-    temp_s1->unk834 = 0; //@recomp
     func_800267A4(player);
     player->velocity.f[1] = 0.0f;
     if (fsa->enteredAnimState != 0) {
-        ((DLL_IVehicle*)temp_s2->dll)->vtbl->func9(temp_s2, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z);
-        if ((temp_s2->id == OBJ_IMSnowBike) || (temp_s2->id == OBJ_CRSnowBike)) {
+        ((DLL_IVehicle*)vehicle->dll)->vtbl->get_rider_position(vehicle, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z);
+        // @recomp: HACK: the mod anims used in this patch for hopping off the log plays too low, so
+        //          artificially raise the point we lerp from a little bit.
+        if (vehicle->id == OBJ_BWLog) {
+            player->srt.transl.y += 8.0f;
+        }
+        if ((vehicle->id == OBJ_IMSnowBike) || (vehicle->id == OBJ_CRSnowBike)) {
             gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, 0, 1, 0, NULL, 100, 0xFF);
         } else {
             gDLL_2_Camera->vtbl->change_mode(0, 1);
         }
-        spA0 = ((DLL_IVehicle*)temp_s2->dll)->vtbl->func11(temp_s2);
-        ((DLL_IVehicle*)temp_s2->dll)->vtbl->func14(temp_s2, 3);
-        switch (spA0) {
+        dismountSide = ((DLL_IVehicle*)vehicle->dll)->vtbl->get_dismount_side(vehicle);
+        ((DLL_IVehicle*)vehicle->dll)->vtbl->set_mount_state(vehicle, VEHICLE_Dismounting);
+        switch (dismountSide) {
             case 1:
             var_v0_2 = 8;
             break;
@@ -1087,10 +1236,10 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
             var_v0_2 = 9;
             break;
         }
-        player->srt.yaw = temp_s2->srt.yaw;
+        player->srt.yaw = vehicle->srt.yaw;
         player->srt.pitch = 0;
         player->srt.roll = 0;
-        func_80023D30(player, temp_s1->unk76C[var_v0_2], 0.0f, 1U);
+        func_80023D30(player, objdata->unk76C[var_v0_2], 0.0f, 1U);
         sp50 = player->modelInsts[player->modelInstIdx];
         func_8001A3FC(sp50, 0U, 0, 0.0f, player->srt.scale, &sp8C, &sp54.yaw);
         func_8001A3FC(sp50, 0U, 0, 1.0f, player->srt.scale, &sp80, &sp54.yaw);
@@ -1102,17 +1251,17 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
         sp80.f[2] += player->srt.transl.f[2];
         player->srt.transl.f[1] -= sp8C.f[1];
         temp_fv0 = gDLL_27->vtbl->func_DF4(player, sp80.f[0], player->srt.transl.f[1], sp80.f[2], 20.0f);
-        temp_s1->unk738.x = sp80.f[0];
-        temp_s1->unk738.y = temp_fv0;
-        temp_s1->unk738.z = sp80.f[2];
-        temp_s1->unk744.y = player->srt.transl.f[1] - temp_s1->unk738.y;
-        temp_s1->unk750 = spA0;
+        objdata->unk738.x = sp80.f[0];
+        objdata->unk738.y = temp_fv0;
+        objdata->unk738.z = sp80.f[2];
+        objdata->unk744.y = player->srt.transl.f[1] - objdata->unk738.y;
+        objdata->unk750 = dismountSide;
         player->srt.flags &= ~OBJFLAG_MANUAL_PREV_POSITIONS;
         player->curModAnimIdLayered = -1;
         fsa->animTickDelta = 0.016f;
     }
     temp_fv0 = (1.0f - player->animProgress);
-    player->srt.transl.y = temp_s1->unk738.y + (temp_s1->unk744.y * temp_fv0);
+    player->srt.transl.y = objdata->unk738.y + (objdata->unk744.y * temp_fv0);
     sp54.transl.x = temp_fv0;
     sp4C = func_80034804(player, 5);
     temp_fv0 = sp54.transl.x;
@@ -1120,31 +1269,31 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     sp4C++;
     sp4C--;
     if (sp4C != NULL) {
-        sp4C[0] = temp_s2->srt.pitch * temp_fv0;
-        sp4C[2] = temp_s2->srt.roll * temp_fv0;
+        sp4C[0] = vehicle->srt.pitch * temp_fv0;
+        sp4C[2] = vehicle->srt.roll * temp_fv0;
     }
-    ((DLL_IVehicle*)temp_s2->dll)->vtbl->func12(temp_s2, &sp70, &sp74, &sp78);
-    gDLL_2_Camera->vtbl->reposition_player(((temp_s1->unk738.x - sp70) * player->animProgress) + sp70, ((temp_s1->unk738.y - sp74) * player->animProgress) + sp74, temp= ((temp_s1->unk738.z - sp78) * player->animProgress) + sp78);
+    ((DLL_IVehicle*)vehicle->dll)->vtbl->get_camera_position(vehicle, &sp70, &sp74, &sp78);
+    gDLL_2_Camera->vtbl->reposition_player(((objdata->unk738.x - sp70) * player->animProgress) + sp70, ((objdata->unk738.y - sp74) * player->animProgress) + sp74, temp= ((objdata->unk738.z - sp78) * player->animProgress) + sp78);
     if ((fsa->enteredAnimState == 0) && (fsa->unk33A != 0)) {
         if (sp4C != NULL) {
             sp4C[0] = 0;
             sp4C[2] = 0;
         }
         player->shadow->flags &= ~OBJ_SHADOW_FLAG_FADE_OUT;
-        player->globalPosition.x = temp_s1->unk7EC.x;
-        player->globalPosition.z = temp_s1->unk7EC.z;
+        player->globalPosition.x = objdata->unk7EC.x;
+        player->globalPosition.z = objdata->unk7EC.z;
         inverse_transform_point_by_object(player->globalPosition.x, 0.0f, player->globalPosition.z, player->srt.transl.f, &sp54.scale, &player->srt.transl.z, player->parent);
-        if (temp_s1->unk750 == 1) {
+        if (objdata->unk750 == 1) {
             player->srt.yaw += 0x4000;
         } else {
             player->srt.yaw -= 0x4000;
         }
         func_80023D30(player, 0, 0.0f, 1U);
         func_80024DD0(player, 0, 0, 0);
-        ((DLL_IVehicle*)temp_s2->dll)->vtbl->func14(temp_s2, 0);
-        dll_210_func_7260(player, (Player_Data* ) temp_s1);
+        ((DLL_IVehicle*)vehicle->dll)->vtbl->set_mount_state(vehicle, VEHICLE_NoRider);
+        dll_210_func_7260(player, (Player_Data* ) objdata);
         func_8002674C(player);
-        temp_s1->vehicle = NULL;
+        objdata->vehicle = 0;
         return -1;
     }
     return 0;
@@ -1237,8 +1386,8 @@ RECOMP_PATCH s32 dll_210_func_18630(Object* self, ObjFSA_Data* fsa, f32 arg2) {
             }
         }
     } else {
-        if (weapon->group == GROUP_UNK48) {
-            ((DLL_Unknown *)weapon->dll)->vtbl->func[11].withOneArg((s32)weapon);
+        if (weapon->controlNo == OBJCONTROL_Weapon) {
+            ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func11(weapon);
         }
         sp47 = 1;
         objData->flags &= ~0x40;
@@ -1267,7 +1416,7 @@ RECOMP_PATCH s32 dll_210_func_18630(Object* self, ObjFSA_Data* fsa, f32 arg2) {
         if (self->objhitInfo != NULL) {
             self->objhitInfo->unk61 = 0;
         }
-        if (weapon->group == GROUP_UNK48) {
+        if (weapon->controlNo == OBJCONTROL_Weapon) {
             ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func12(weapon, 1);
             ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func13(weapon, (&objData->unk3B4[objData->unk8A1])->unk30);
             ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func18(weapon, (&objData->unk3B4[objData->unk8A1])->unk1C, (&objData->unk3B4[objData->unk8A1])->unk20);
@@ -1581,7 +1730,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                     objdata->unk72C.x = objdata->unk7EC.x;
                     objdata->unk72C.y = objdata->unk7EC.y;
                     objdata->unk72C.z = objdata->unk7EC.z;
-                    ((DLL_IVehicle*)vehicle->dll)->vtbl->func14(vehicle, 2);
+                    ((DLL_IVehicle*)vehicle->dll)->vtbl->set_mount_state(vehicle, VEHICLE_Mounted);
                     arg0->srt.flags |= OBJFLAG_MANUAL_PREV_POSITIONS;
                     arg0->shadow->flags |= OBJ_SHADOW_FLAG_FADE_OUT;
                     arg2->unk7A &= ~0x4;
@@ -1611,7 +1760,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                 gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAMNORMAL, 4, 0, 0);
                 vehicle = objdata->vehicle;
                 if (vehicle != NULL) {
-                    ((DLL_IVehicle*)vehicle->dll)->vtbl->func14(vehicle, 0);
+                    ((DLL_IVehicle*)vehicle->dll)->vtbl->set_mount_state(vehicle, VEHICLE_NoRider);
                     arg0->srt.flags &= ~OBJFLAG_MANUAL_PREV_POSITIONS;
                     arg0->shadow->flags &= ~OBJ_SHADOW_FLAG_FADE_OUT;
                     vehicle = NULL;
@@ -1698,7 +1847,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                 break;
             case 16:
                 sp60 = 400.0f;
-                tempObj = obj_get_nearest_type_to(OBJTYPE_MOBILE_MAP, arg0, &sp60);
+                tempObj = obj_get_nearest_type_to(OBJTYPE_MobileMap, arg0, &sp60);
                 if (tempObj != NULL) {
                     func_8005B5B8(arg0, tempObj, 1);
                 }
@@ -1747,12 +1896,48 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
         }
     }
     if ((objdata->vehicle != NULL) && 
-        (((DLL_IVehicle*)objdata->vehicle->dll)->vtbl->func13(objdata->vehicle) == 2)) {
+        (((DLL_IVehicle*)objdata->vehicle->dll)->vtbl->get_mount_state(objdata->vehicle) == VEHICLE_Mounted)) {
         arg2->unk7A &= ~0x3;
     }
     ((void (*)(Object*, Player_Data*, f32)) objdata->unk3BC)(arg0, objdata, gUpdateRateF);
     dll_210_func_1BC0(arg0, objdata);
     return spC8;
+}
+
+RECOMP_PATCH void dll_210_func_1AAD8(Object* player, ObjFSA_Data *fsa) {
+    Object* temp_a0;
+    s16* temp_v0;
+    s32 i;
+    Player_Data* temp_s0;
+
+    temp_s0 = player->data;
+
+    // @recomp: Don't uneqiup weapon if targetting (and target is still valid)
+    if (fsa->target != NULL && fsa->unk33D == 1) {
+        return;
+    }
+
+    temp_s0->unk87C = -1;
+    temp_s0->flags &= ~0x400;
+    temp_a0 = player->linkedObject;
+    ((DLL_Unknown*)temp_a0->dll)->vtbl->func[14].withThreeArgs((s32)temp_a0, 0, (s32)player);
+    if (temp_s0->unk848 != 0) {
+        gDLL_6_AMSFX->vtbl->stop(temp_s0->unk848);
+        temp_s0->unk848 = 0;
+    }
+    if (gDLL_2_Camera->vtbl->get_dll_ID() != DLL_ID_CAMNORMAL) {
+        gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, 0, 1, 0, NULL, 120, 0xFF);
+    }
+    for (i = 0; i < 4; i++) {
+        temp_a0 = _bss_210[i];
+        if (temp_a0 != 0) {
+            obj_destroy_object(temp_a0);
+            _bss_210[i] = 0;
+        }
+    }
+    temp_v0 = func_80034804(player, 9);
+    temp_v0[1] = 0;
+    temp_v0[0] = 0;
 }
 
 static s16 iceblast_timer = 0;
@@ -2238,5 +2423,194 @@ RECOMP_HOOK_DLL(dll_210_func_60A8) void dll_210_func_60A8_hook(Object *self, Obj
             temp_v0[1] = 0;
             temp_v0[2] = 0;
         }
+    }
+}
+
+extern void dll_210_func_363C(Object* player, Player_Data* arg1, Gfx** arg2, Mtx** arg3, Vertex** arg4);
+extern void dll_210_func_3B40(Object* player, Gfx** arg1, Mtx** arg2, Vertex** arg3, Triangle** arg4);
+extern void dll_210_func_8EA4(Object* player, Player_Data* arg1, Object* vehicle, Gfx** arg3, Mtx** arg4, Vertex** arg5, Triangle** arg6, s32 arg7);
+
+/** 
+  * Stores the player's hand coords in the player's print function, while model matrices are readable. 
+  * Coords only stored while the player's carrying Tricky's toy ball, since that's what they're used for.
+  */
+static Vec3f rsHandRLastCoords;
+
+RECOMP_PATCH void dll_210_print(Object* player, Gfx** arg1, Mtx** arg2, Vertex** arg3, Triangle** arg4, s8 arg5) {
+    Object* sp8C;
+    s32 pad;
+    Player_Data* data;
+    ModelInstance* sp80;
+    f32 sp7C;
+    f32 sp78;
+    f32 sp74;
+    f32 sp70;
+    f32 sp6C;
+    f32 sp68;
+    f32 scaleBefore;
+    s32 pad2;
+    s32 pad3;
+
+    data = player->data;
+    sp80 = player->modelInsts[player->modelInstIdx];
+    if (arg5 == -1 || !(data->flags & 0x4001)) {
+        if ((data->vehicle != NULL) && ((player->stateFlags & OBJSTATE_IN_SEQ) || data->unk0.animState == PLAYER_ASTATE_Vehicle_Riding || data->unk0.animState == PLAYER_ASTATE_Log_Riding)) {
+            dll_210_func_8EA4(player, data, data->vehicle, arg1, arg2, arg3, arg4, 1);
+        }
+        if (data->unk8BE == 1) {
+            dll_210_func_3B40(player, arg1, arg2, arg3, arg4);
+        }
+        gDLL_16->vtbl->func1(player);
+        if (data->vehicle != NULL && ((player->stateFlags & OBJSTATE_IN_SEQ) || data->unk0.animState == PLAYER_ASTATE_Vehicle_Riding || data->unk0.animState == PLAYER_ASTATE_Log_Riding)) {
+            ((DLL_IVehicle*)data->vehicle->dll)->vtbl->handle_rider_scale(data->vehicle, player->def->scale);
+        }
+        if (data->unk818 > 0.0f) {
+            func_80036FBC(0xC8U, 0U, 0U, data->unk81C);
+        }
+        player->srt.transl.y += data->unk83C;
+        draw_object(player, arg1, arg2, arg3, arg4, 1.0f);
+        player->srt.transl.y -= data->unk83C;
+        if (data->vehicle != NULL && ((player->stateFlags & OBJSTATE_IN_SEQ) || data->unk0.animState == PLAYER_ASTATE_Vehicle_Riding || data->unk0.animState == PLAYER_ASTATE_Log_Riding)) {
+            func_80034FF0(NULL);
+        }
+        if (arg5 != 0) {
+            dll_210_func_363C(player, data, arg1, arg2, arg3);
+        }
+        func_80032238(player, 4, 2, &data->unk39C);
+        func_80031F6C(player, 9, &data->unk7EC.x, &data->unk7EC.y, &data->unk7EC.z, 0);
+
+        //@recomp: store coords of player's hands while carrying Tricky's ball
+        if (data->unk708 && data->unk708->id == OBJ_SidekickBall) {
+            func_80031F6C(player, 0,
+                &rsHandRLastCoords.x,
+                &rsHandRLastCoords.y,
+                &rsHandRLastCoords.z,
+                0
+            );
+        }
+
+        if (sp80->unk34 & 8) {
+            sp8C = data->unk850;
+            if (sp8C != NULL && (data->flags & 4)) {
+                scaleBefore = sp8C->srt.scale;
+                sp8C->srt.scale /= player->srt.scale;
+                pad = player->opacityWithFade;
+                if (pad > OBJECT_OPACITY_MAX) {
+                    pad = OBJECT_OPACITY_MAX;
+                }
+                func_80035AF4(arg1, arg2, arg3, arg4, player, sp80, 0, 0, sp8C, 6, player->opacityWithFade > OBJECT_OPACITY_MAX ? OBJECT_OPACITY_MAX : player->opacityWithFade);
+                sp8C->srt.scale = scaleBefore;
+            }
+        }
+
+        if (data->unk0.animState == PLAYER_ASTATE_Block_Pushing) {
+            func_80031F6C(player, 7, &data->unk680.unk1C, &data->unk680.unk20, &data->unk680.unk24, 0);
+        }
+
+        //Handle held object (baskets etc.)
+        if (data->unk868 != NULL && data->unk868->unkE0 == 1) {
+            func_80031F6C(player, 6, &sp7C, &sp78, &sp74, 0);
+            func_80031F6C(player, 7, &sp70, &sp6C, &sp68, 0);
+            sp7C = (sp7C + sp70) * 0.5f;
+            sp78 = (sp78 + sp6C) * 0.5f;
+            sp74 = (sp74 + sp68) * 0.5f;
+
+            sp7C -= fsin16_precise(player->srt.yaw) * data->unk86C;
+            sp74 -= fcos16_precise(player->srt.yaw) * data->unk86C;
+            data->unk868->srt.transl.x = sp7C;
+            data->unk868->srt.transl.y = sp78;
+            data->unk868->srt.transl.z = sp74;
+            data->unk868->srt.yaw = player->srt.yaw;
+            data->unk868->dll->vtbl->print(data->unk868, arg1, arg2, arg3, arg4, -1);
+        }
+
+        shadows_update_dynamic_tex(player, arg1, arg2, arg3, arg4);
+    }
+}
+
+/* 
+ * Retrieves the worldSpace coords of the player's right hand.
+ * Used by a patch for Tricky's ball (so it's thrown from the player's hand!)
+ */ 
+void player_get_hand_coords(Vec3f* v) {
+    v->x = rsHandRLastCoords.x;
+    v->y = rsHandRLastCoords.y;
+    v->z = rsHandRLastCoords.z;
+}
+
+// #define DEBUG_ILLUSION_SPELL
+
+/** Option to always play as Fox instead of Sabre */
+RECOMP_HOOK_DLL(dll_210_control) void play_as_fox(Object* self) {
+    u8 config = recomp_get_config_u32("play_as_fox");
+
+    if (!self || (self->id != OBJ_Sabre)) {
+        return;
+    }
+
+    Player_Data* objData = self->data;
+    if (!objData) {
+        return;
+    }
+
+    #ifdef DEBUG_ILLUSION_SPELL
+    diPrintf("Config: %d\n", config);
+    diPrintf("Illusion state: %d\n", objData->unk8BF);
+    diPrintf("modelInstIdx: %d\n", self->modelInstIdx);
+    #endif
+
+    switch (config) {
+    default:
+    case PLAY_AS_SABRE_WITH_FOX_AS_ILLUSION:
+        //Fox only shows up while Sabre's using the Illusion Spell
+        if ((objData->unk8BF == 0) && (self->modelInstIdx == 2)) {
+            self->modelInstIdx = 0;
+        } else if ((objData->unk8BF == 1) && (self->modelInstIdx != 2)) {
+            self->modelInstIdx = 2;
+        }
+        break;
+
+    case PLAY_AS_FOX_ALWAYS:
+        if (self->modelInstIdx != 2) {
+            self->modelInstIdx = 2;
+        }
+        break;
+    }
+}
+
+RECOMP_PATCH s32 dll_210_func_18E10(Object* player, ObjFSA_Data* fsa, f32 arg2) {
+    Player_Data *objdata = player->data;
+
+    if (fsa->unk33D != 1) {
+        return -1;
+    }
+
+    if (objdata->unk878 == 1 || objdata->unk878 == 2) {
+        return 0;
+    }
+
+    if (fsa->unk310 & 0x8000) {
+        return 0x3C;
+    }
+
+    if (fsa->unk310 & 0x4000) {
+        // @recomp: Don't allow dodge rolling to cancel spells
+        joy_disable_buttons(0, B_BUTTON);
+        return 0x3E;
+    }
+
+    return 0;
+}
+
+RECOMP_HOOK_DLL(dll_210_func_11A0) void dll_210_func_11A0_hook(Object* player, Player_Data* arg1, f32 arg2) {
+    // Reset timer for holding Z to aim spell if Z is not held. This avoids entering the aiming
+    // state when doing things like dismounting a vehicle if Z was held when initially mounting.
+    //
+    // Note: This is a more general issue with how the player DLL reads controller inputs. It's possible
+    // for button releases to be missed when riding a vehicle due to the change in how the player DLL
+    // handles input buffering while on a vehicle.
+    if (!(joy_get_buttons_buffered(arg1->unk884, *_bss_1AA) & Z_TRIG)) {
+        arg1->flags &= ~0x1000; // clear Z held flag
+        arg1->unk834 = 0.0f;
     }
 }

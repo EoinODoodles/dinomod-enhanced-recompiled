@@ -142,7 +142,7 @@ RECOMP_PATCH s32 mainmenu_update1(void) {
 
     //@recomp: when only the "Press Start" text is displayed, don't play a sound when pressing B (since it doesn't do anything) 
     if (showDPLogo == FALSE) {
-        joy_set_button_mask(0, B_BUTTON);
+        joy_disable_buttons(0, B_BUTTON);
     }
 
     //Transitioning to different page once timer runs out

@@ -2,7 +2,7 @@
 
 #include "PR/ultratypes.h"
 #include "PR/gbi.h"
-#include "dlls/engine/53.h"
+#include "dlls/engine/53_movelib.h"
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/332_FXEmit.h"
 #include "game/objects/object.h"
@@ -75,7 +75,7 @@ enum KDModAnims {
 /*0x0*/ extern Texture *sHealthBarTextures[2];
 /*0x8*/ extern TextureTile _bss_8[2][2];
 /*0x38*/ extern s32 sHealthBarAlpha;
-/*0x40*/ extern u8 _bss_40[0x4c0];
+/*0x40*/ extern MoveLibData _bss_40;
 
 extern void KamerianBoss_enable_hit_sphere(s32 hitSphereIdx);
 extern void KamerianBoss_disable_hit_sphere(s32 hitSphereIdx);
@@ -430,16 +430,16 @@ RECOMP_PATCH void KamerianBoss_control(Object *self) {
         }
         if ((objdata->hatchOpened) && (objdata->player != NULL)) {
             if (!objdata->loadedTempDLL) {
-                u16 sp8C[3] = {0x0002, 0x0000, 0x0000}; // _data_10
-                u16 sp84[3] = {0x0018, 0x0014, 0x0008}; // _data_18
+                s16 sp8C[3] = {0x0002, 0x0000, 0x0000}; // _data_10
+                s16 sp84[3] = {0x0018, 0x0014, 0x0008}; // _data_18
                 create_temp_dll(53);
-                ((DLL_53*)gTempDLLInsts[1])->vtbl->func2(self, _bss_40, -18000, 9800, 3);
-                ((DLL_53*)gTempDLLInsts[1])->vtbl->func6(_bss_40, &sp84, &sp84, 3);
-                _bss_40[0x4A9] |= 8;
+                ((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func2(self, &_bss_40, -18000, 9800, 3);
+                ((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func6(&_bss_40, sp84, sp84, 3);
+                _bss_40.unk4A9 |= 8;
                 objdata->loadedTempDLL = TRUE;
             }
-            ((DLL_53*)gTempDLLInsts[1])->vtbl->func1(_bss_40, objdata->player);
-            ((DLL_53*)gTempDLLInsts[1])->vtbl->func0(self, _bss_40);
+            ((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func1(&_bss_40, objdata->player);
+            ((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func0(self, &_bss_40);
         }
     }
 }
@@ -496,7 +496,7 @@ RECOMP_PATCH void KamerianBoss_print(Object *self, Gfx **gdl, Mtx **mtxs, Vertex
         // Head lookat
         if (objdata->loadedTempDLL) {
             // @recomp: Fix look-at origin joint ID (original patch by MusicalProgrammer)
-            ((DLL_53*)gTempDLLInsts[1])->vtbl->func3(self, _bss_40, 12);
+            ((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func3(self, &_bss_40, 12);
         }
     }
 }

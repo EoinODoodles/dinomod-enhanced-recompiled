@@ -59,7 +59,7 @@ RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
         main_set_bits(BIT_CFExplodeTunnel_Trigger_31B6F, 1);
         main_set_bits(BIT_WM_Setup5_Sabre_Dock_Pushed_Crate_Onto_GuardClaw, 0);
 
-        guardClaw = obj_get_nearest_type_to(OBJTYPE_4, self, &distance);
+        guardClaw = obj_get_nearest_type_to(OBJTYPE_Baddie, self, &distance);
         if (guardClaw != NULL) {
             //@bug: may potentially delete a Skeetla instead, since they're also objType4
             obj_destroy_object(guardClaw);
@@ -70,7 +70,7 @@ RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
 
     //Search through the objects, and delete the hall's SharpClaw and GuardClaw
     if (main_get_bits(BIT_WM_Setup5_Sabre_Hall_Delete_Claws)) {
-        objects = obj_get_all_of_type(OBJTYPE_4, &count);
+        objects = obj_get_all_of_type(OBJTYPE_Baddie, &count);
         for (i = 0; i < count; i++) {
             someObjsetup = objects[i]->setup;
             if ((someObjsetup->uID == 0x296E) ||    //SharpClaw

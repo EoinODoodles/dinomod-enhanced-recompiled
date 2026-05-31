@@ -121,7 +121,7 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
             objdata->unk19 = 1;
         }
     } else {
-        temp_v0_5 = obj_get_nearest_type_to(OBJTYPE_16, player, &sp40);
+        temp_v0_5 = obj_get_nearest_type_to(OBJTYPE_Door, player, &sp40);
         if ((temp_v0_5 != NULL) && (sp40 < 300.0f) && (sp40 > 100.0f)) {
             sp3C = temp_v0_5->srt.transl.z - player->srt.transl.z;
             if (sp3C <= 0.0f) {
@@ -199,7 +199,7 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
             }
             if (objdata->unk10 <= 0) {
                 objdata->unk15 = 7;
-                temp_v0_8 = obj_get_all_of_type(OBJTYPE_18, &sp34);
+                temp_v0_8 = obj_get_all_of_type(OBJTYPE_Pickup, &sp34);
                 while (sp34 != 0) {
                     obj_destroy_object(temp_v0_8[sp34 - 1]);
                     sp34--;
@@ -241,7 +241,7 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
             main_set_bits(BIT_Spirit_Bits, 7);
             // @recomp: Set SwapStone Circle setup
             main_set_bits(BIT_SC_Map_Setup, 7); // TODO: doesnt SC do this on its own?
-            gDLL_29_Gplay->vtbl->set_map_setup(MAP_WARLOCK_MOUNTAIN, 8);
+            gDLL_29_Gplay->vtbl->set_act(MAP_WARLOCK_MOUNTAIN, 8);
             // @recomp: Clear bit 0x5AD (prevent giant Krystal)
             main_set_bits(0x5AD, 0);
             break;
