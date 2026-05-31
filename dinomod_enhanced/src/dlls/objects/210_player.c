@@ -28,6 +28,7 @@
 #include "dlls/objects/common/vehicle.h"
 #include "dlls/objects/common/group48.h"
 #include "dlls/objects/common/foodbag.h"
+#include "dlls/objects/common/dinocaller.h"
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/277_iceblast.h"
 
@@ -76,6 +77,10 @@ extern void dll_210_func_1D8B8(Object* player);
 extern void dll_210_func_1DB6C(Object* arg0, f32 arg1);
 extern void dll_210_func_1DC48(Object* player);
 extern Object *dll_210_func_1DD94(Object* player, s32 arg1);
+extern s32 dll_210_func_7E6C(Object* player, Player_Data* arg1, ObjFSA_Data* fsa, Player_Data3B4* arg3, f32 arg4, s32 arg5);
+extern s32 dll_210_func_7BC4(Object* player, Player_Data* arg1, UNUSED Player_Data3B4* arg2, UnkArg4* arg3);
+extern void dll_210_func_1DAB0(Object* player);
+extern s32 dll_210_func_18E80(Object* player, ObjFSA_Data* fsa, f32 arg2);
 
 extern s8 _bss_0;
 extern s16 _bss_2;
@@ -83,6 +88,7 @@ extern ObjFSA_StateCallback _bss_58[81];
 extern ObjFSA_StateCallback _bss_19C[1];
 extern u8 _bss_1AA[0x2];
 extern f32 _bss_1AC;
+extern s16 _bss_200;
 extern Object *_bss_210[4];
 extern s16 _bss_220[2];
 extern ObjFSA_StateCallback _bss_224[1];
@@ -108,6 +114,11 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                 //If player is standing/turning/walking, enter aiming state
                 if (dll_210_func_24FC(player, fsa)) {
                     camDLLID = gDLL_2_Camera->vtbl->get_dll_ID();
+                    // @recomp: Don't allow combat spell selection if in first person
+                    if (camDLLID == DLL_ID_CAM1STPERSON) {
+                        gDLL_6_AMSFX->vtbl->play(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+                        break;
+                    }
                     if ((camDLLID != DLL_ID_CAMTALK2) && (camDLLID != DLL_ID_CAMTALK1)) {
                         gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMTALK2, 1, 0, 0, NULL, 60, 0xFF);
                         gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 58);
@@ -2609,8 +2620,195 @@ RECOMP_HOOK_DLL(dll_210_func_11A0) void dll_210_func_11A0_hook(Object* player, P
     // Note: This is a more general issue with how the player DLL reads controller inputs. It's possible
     // for button releases to be missed when riding a vehicle due to the change in how the player DLL
     // handles input buffering while on a vehicle.
-    if (!(joy_get_buttons_buffered(arg1->unk884, *_bss_1AA) & Z_TRIG)) {
+    //
+    // Additionally, clear Z held while targetting. Entering Z-hold aim instantly after losing
+    // a target can cause a variety of issues. In theory, we could fix those issues instead but
+    // since players tend to hold Z for targetting, they're not intending on entering aim right
+    // after the lock so this is fine.
+    if (!(joy_get_buttons_buffered(arg1->unk884, *_bss_1AA) & Z_TRIG) || arg1->unk0.target != NULL) {
         arg1->flags &= ~0x1000; // clear Z held flag
         arg1->unk834 = 0.0f;
     }
+}
+
+RECOMP_PATCH s32 dll_210_func_BA38(Object* player, ObjFSA_Data* fsa, f32 arg2) {
+    Player_Data *v1objdata = player->data;
+    Player_Data* spC4;
+    u32 sp90[12]; // Should be Player_Data3B4 but I can't get it to match with that.
+    s8 temp_v0_4;
+    s8 sp8E;
+    s16 sp8C;
+    Object* sp88;
+    Object* dinoCaller;
+    f32 callerMaxRange = 200.0f;
+    s32 camDLLID;
+    s32 sp38[17] = {
+        0x0166, 0x0167, 0x0256, 0x036e, 0x037f, 0x0380, 0x0381, 0x0543, 
+        0x0544, 0x0545, 0x0546, 0x012e, 0x0169, 0x01d0, 0x01d6, 0x01ed, 
+        0x01fd
+    };
+
+    spC4 = v1objdata;
+    if (v1objdata->unk834 > 20.0f) {
+        if (v1objdata->unk8BB != 0) {
+            camDLLID = gDLL_2_Camera->vtbl->get_dll_ID();
+            if ((camDLLID != DLL_ID_CAMTALK2) && (camDLLID != DLL_ID_CAMTALK1) 
+                    // @recomp: Don't allow going into z-hold aim mode if in first person or z-locked
+                    && (camDLLID != DLL_ID_CAM1STPERSON) && (fsa->target == NULL)) {
+                //goto dummy_label_865524; dummy_label_865524: ;
+                gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMTALK2, 1, 0, 0, NULL, 60, 0xFF);
+                v1objdata->flags &= ~0x400000;
+                return 0x3B;
+            }
+        }
+        v1objdata->unk834 = 20.0f;
+    }
+    if (v1objdata->unk708 != NULL && v1objdata->unk708->id == 0x112) {
+        // @fake
+        //dummy_label_995066: ;
+        if (fsa->unk310 & 0x8000) {
+            return 0x30;
+        }
+        return 0;
+    }
+
+    temp_v0_4 = dll_210_func_7E6C(player, v1objdata, fsa, (Player_Data3B4 *) sp90, arg2, -0x81);
+    if (temp_v0_4 == -1) {
+        v1objdata->unk8B5 = -1;
+        v1objdata->unk8B6 = 0U;
+    } else if (temp_v0_4 == v1objdata->unk8B5) {
+        v1objdata->unk8B6++;
+        if (v1objdata->unk8B6 > 0xC8) {
+            v1objdata->unk8B6 = 0xC8;
+        }
+    } else {
+        v1objdata->unk8B5 = temp_v0_4;
+        v1objdata->unk8B6 = 0U;
+    }
+    switch (v1objdata->unk8B5) {
+    case 0:
+        if (fsa->unk4.unk25C & 0x10) {
+            return 0x18;
+        }
+    default:
+        break;
+    case 12:
+        if (fsa->unk4.unk25C & 0x10) {
+            return 0x1C;
+        }
+        break;
+    case 4:
+        _bss_200 = -1;
+        return 0x14;
+    case 5:
+        _bss_200 = -1;
+        return 0x13;
+    case 8:
+        return -0x29;
+    case 18:
+        return 0x29;
+    case 9:
+        return -0xB;
+    case 10:
+        return 0x12;
+    case 14:
+        if (v1objdata->unk8B6 >= 0xD) {
+            return 0x28;
+        }
+        break;
+    case 15:
+        if (v1objdata->unk8B6 >= 0xD) {
+            return 0xB;
+        }
+        break;
+    case 13:
+        return 0x23;
+    case 7:
+        _bss_200 = -1;
+        if (dll_210_func_7BC4(player, v1objdata, (Player_Data3B4 *) sp90, &v1objdata->unk6B0) == 1) {
+            return -0x2C;
+        }
+        break;
+    }
+
+    if (gDLL_1_cmdmenu->vtbl->was_any_item_used()) {
+        if (gDLL_1_cmdmenu->vtbl->was_this_item_used(BIT_Horn_of_Truth)) {
+            joy_disable_buttons(0, A_BUTTON);
+            if ((main_get_bits(BIT_3DC) != 0) && (main_get_bits(BIT_Tricky_Dug_Up_Horn_of_Truth_Pad) != 0)) {
+                main_set_bits(BIT_Play_Summoning_SnowHorn_with_Horn_of_Truth, 1);
+                main_set_bits(BIT_3D8, 1);
+            } else {
+                dinoCaller = obj_get_nearest_type_to(OBJTYPE_DinoCallSpot, player, &callerMaxRange);
+                if (dinoCaller != NULL) {
+                    ((DLL_IDinoCaller*)dinoCaller->dll)->vtbl->call(dinoCaller);
+                }
+                gDLL_3_Animation->vtbl->start_obj_sequence(7, player, -1);
+            }
+            return 0;
+        }
+        sp8E = 0;
+        if (player->id != 0) {
+            if (gDLL_1_cmdmenu->vtbl->was_this_item_used(BIT_Krystal_Fireflies)) {
+                sp8E = 0xA;
+            }
+        } else {
+            if (gDLL_1_cmdmenu->vtbl->was_this_item_used(BIT_Sabre_Fireflies)) {
+                if (main_get_bits(BIT_7E2) != 0) {
+                    sp8E = 0xA;
+                } else {
+                    // @fake
+                    // if (1) {}
+                    // if (1) {}
+                    sp8E = 0xA;
+                    main_set_bits(BIT_7E2, 1);
+                }
+            }
+        }
+        if (sp8E) {
+            dll_210_func_1DAB0(player);
+            gDLL_3_Animation->vtbl->start_obj_sequence(sp8E, player, -1);
+            gDLL_1_cmdmenu->vtbl->pages_clear_last_selected_index();
+            return 0;
+        }
+    }
+    
+    if (gDLL_1_cmdmenu->vtbl->get_subpage_gamebit() == BIT_Foodbag_Give) {
+        sp8C = gDLL_1_cmdmenu->vtbl->was_used_item_in_gamebit_array(sp38, 0x10);
+        if (sp8C != -1 && (player->unkC4 == NULL)) {
+            joy_disable_buttons(0, A_BUTTON);
+            player->unkE0 = sp8C;
+            sp8C = ((DLL_Unknown*)v1objdata->foodbag->dll)->vtbl->func[16].withOneArgS32(sp8C);
+            sp88 = gDLL_2_Camera->vtbl->get_highlighted_object();
+            if ((sp88 != NULL) && ((sp88->def->lockdata->flags & 0xF) == 3)) {
+                gDLL_3_Animation->vtbl->set_variable_obj(sp8C, sp88, 1);
+                gDLL_3_Animation->vtbl->start_obj_sequence(2, player, -1);
+                player->unkC4 = sp88;
+                *_data_18 = -1;
+                *_data_14 = 0;
+                player->unkDC = 3;
+            }
+        }
+    }
+    if (spC4->unk808 != 0.0f) {
+        return 0x4A;
+    }
+    if (spC4->unk8A4 != 0) {
+        return 0x4B;
+    }
+    if (spC4->unk8A8 != 0) {
+        if (fsa->unk310 & 0x4000) {
+            spC4->unk8A9 = 0;
+        }
+        camDLLID = dll_210_func_18E80(player, fsa, arg2);
+        if (camDLLID != 0) {
+            return camDLLID;
+        }
+    } else {
+        goto dummy_label_938436; dummy_label_938436: ;
+        if ((fsa->unk310 & 0x8000) && (spC4->unk708 == NULL)) {
+            spC4->unk8A9 = 4;
+            return 0x3D;
+        }
+    }
+    return 0;
 }
