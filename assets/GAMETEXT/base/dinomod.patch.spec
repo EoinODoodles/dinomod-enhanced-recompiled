@@ -1699,7 +1699,7 @@ FILE,524
 
 FILE,526
 4012 -255 "You would not believe what we had to do to get this!"
-2032 -247 "Aahhh\, Yes."
+2032 -247 "Aahhh\, yes."
 3696 "I forgot to tell you about the CLANNAD-ack."
 5283 "I had a run in with him a few years back\," 0 "but I managed to freeze him in a waterfall."
 2350 "I hope you gave him my greetings."
