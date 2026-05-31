@@ -312,7 +312,7 @@ FILE,44
 3282 -243 "Goodbye\, Sabre... Good luck."
 
 FILE,45
-3369 -243 "Fairwell\, Sabre... I'll see you soon."
+3369 -243 "Farewell\, Sabre... I'll see you soon."
 
 FILE,46
 4602 -247 "Cross the river and enter DarkIce Mines."
