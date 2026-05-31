@@ -629,7 +629,7 @@ FILE,126
 3869 -51 "Hurry! The storm is getting worse."
 
 FILE,130
-3580 -243 "Have you woken the SwapStone yet."
+3580 -243 "Have you woken the SwapStone yet?"
 
 FILE,133
 3580 -243 "Why\, if it isn't the young EarthWalker."
