@@ -1,7 +1,7 @@
 LANG,0
 
 FILE,2
-6000 -247 "Chomp Chomp Hmmm... That tastes great." 0 "Hurry up\, boy. You're a bit slow\, aren't you?"
+6000 -247 "(Chomp Chomp) Hmmm... That tastes great." 0 "Hurry up\, boy. You're a bit slow\, aren't you?"
 
 FILE,3
 0 "HEEL| Returns your Sidekick| back to you"
@@ -520,7 +520,7 @@ FILE,91
 5375 -51 "You've got lots of time to do that\," 0 "let me show you how the swap works."
 
 FILE,92
-2206 -231 "Grrrrrr grrrrrr" 0 -255 "Sssh\, keep quiet."
+2206 -231 "Grrrrrr... Grrrrrr..." 0 -255 "Sssh\, keep quiet."
 1754 "He's on his own."
 1272 "Maybe we can sneak by."
 940 "Tricky!!"
@@ -584,7 +584,7 @@ FILE,109
 3039 "then we'll pay your mother a visit."
 
 FILE,114
-4282 -231 "Aaaaahh\, That hit the spot."
+4282 -231 "Aaaaahh\, that hit the spot."
 2956 "Tell you what\, young 'un\, I'll help you out."
 9622
 1830 "Here you are\, my boy."
