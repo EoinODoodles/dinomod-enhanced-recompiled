@@ -1,3 +1,7 @@
+## v0.9.1
+- Fixed various issues with holding Z while exiting Z-targeting.
+- Aimed spells can no longer be selected while in first person (fixes a camera issue).
+
 ## v0.9.0
 
 ### New
