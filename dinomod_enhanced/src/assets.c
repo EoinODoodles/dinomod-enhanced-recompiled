@@ -19,6 +19,7 @@
 
 #include "PR/ultratypes.h"
 #include "dlls/objects/common/collectable.h"
+#include "dlls/engine/33_BaddieControl.h"
 #include "dlls/objects/325_trigger.h"
 #include "dlls/objects/418_DFriverflow.h"
 #include "game/objects/object.h"
@@ -1868,6 +1869,21 @@ static void add_wctrex_hit_spheres(void) {
     recomp_free(data);
 }
 
+static void vfp_modifications(void) {
+    ReAssetID vfp = reasset_base_id(MAP_VOLCANO_FORCE_POINT_TEMPLE);
+    
+    // Shrink vision range of VFP ScorpionRobots as they see waaaaaaaaaay too far and end up shooting through walls.
+    // This edit is pretty subjective.
+    {
+        Baddie_Setup* scorpRobo;
+
+        scorpRobo = reasset_map_objects_get(vfp, reasset_base_id(0x41852), NULL);
+        scorpRobo->unk29 = 320 / 8;
+        scorpRobo = reasset_map_objects_get(vfp, reasset_base_id(0x41851), NULL);
+        scorpRobo->unk29 = 320 / 8;
+    }
+}
+
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     custom_objects();
     custom_dlls();
@@ -1904,6 +1920,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     diamond_bay_modifications();
     discovery_falls_hit_edits();
     add_wctrex_hit_spheres();
+    vfp_modifications();
 }
 
 REASSET_ON_RESOLVE void dinomod_reasset_on_resolve(void) {
