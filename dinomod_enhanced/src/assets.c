@@ -1884,6 +1884,21 @@ static void vfp_modifications(void) {
     }
 }
 
+static void nw_modifications(void) {
+    ReAssetID nw = reasset_base_id(MAP_SNOWHORN_WASTES);
+    
+    // Fix NWMultiSeq so Garunda Te cutscene won't loop if gamebit 0 is set
+    {
+        NWMultiSeq_Setup *multiseq = reasset_map_objects_get(nw, reasset_base_id(0x32D52), NULL);
+        // Set bit/seq indices to -1 (instead of 0) so the cutscene won't replay
+        // the first seq is bit 0 is set (there's only 6 seqs for this cutscene).
+        multiseq->unk28[6] = -1;
+        multiseq->unk28[7] = -1;
+        multiseq->unk40[6] = -1;
+        multiseq->unk40[7] = -1;
+    }
+}
+
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     custom_objects();
     custom_dlls();
@@ -1921,6 +1936,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     discovery_falls_hit_edits();
     add_wctrex_hit_spheres();
     vfp_modifications();
+    nw_modifications();
 }
 
 REASSET_ON_RESOLVE void dinomod_reasset_on_resolve(void) {
