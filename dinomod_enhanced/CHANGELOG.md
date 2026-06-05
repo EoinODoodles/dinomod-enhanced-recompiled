@@ -2,6 +2,7 @@
 - Fixed an issue where the Garunda Te SpellStone guardian cutscene could repeat the first segment a couple times.
 - Fixed an issue where NPC head lookat would be reversed after visiting the shop.
 - Fixed a rare case where the Projectile Spell would not be unequipped if a Z-target was broken in a specific way.
+- Fixed issue where already completed tasks could re-enter the recently completed task list.
 - `ScorpionRobot`:
     - Now actually fires a laser when attacking.
     - Correctly enters damage recoil state when attacked.
