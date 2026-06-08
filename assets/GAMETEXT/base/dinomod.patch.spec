@@ -271,7 +271,7 @@ FILE,24
 3000 -55 "Thanks\, Krystal. Because of you" 0 "I no longer suffer from vertigo."
 
 FILE,25
-2334 -119 "Guard!"
+2334 -119 "Guard?"
 1711 -119 "Guard!"
 3281 -119 "Is all the CloudRunners' gold on-board?"
 5352 -227 "No\, sir\, we're still removing it" 0 "from the Treasure Room."
