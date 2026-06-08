@@ -1206,7 +1206,7 @@ FILE,300
 0 "TALK TO CHIEF LIGHTFOOT"
 
 FILE,302
-0 "GOT PASSED THE SHARPCLAWS AND THEIR BARRELS!"
+0 "GOT PAST THE SHARPCLAWS AND THEIR BARRELS"
 0 "DODGE THE BARRELS AND USE THE KEY"
 
 FILE,305
@@ -1297,7 +1297,7 @@ FILE,515
 
 FILE,516
 1868 -175 "Oh no."
-3532 "AAAaa" -174 "aa" -173 "aa" -172 "a..." 0 -35 "AAAaaa" -34 "aa" -33 "aa" -18 "a..."
+3532 "AAAaa" -174 "aa" -173 "aa" -172 "h..." 0 -35 "AAAaaa" -34 "aa" -33 "aa" -18 "h..."
 3367 -175 "[splash]"
 4500 -35 "[groans]"
 3357 -243 "Hurry\, grab his belt!"
