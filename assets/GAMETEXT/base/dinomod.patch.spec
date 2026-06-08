@@ -950,8 +950,8 @@ FILE,227
 5520 -51 "I will throw them into this cave\, and you" 0 "have to collect them within my time limit."
 
 FILE,228
-1945 -243 "Aaaaa Haa HAAA!"
-4689 -51 "Not so good this time\, aye." 0 "I'll keep what you didn't collect."
+1945 -243 "Aaaaah haa HAAA!"
+4689 -51 "Not so good this time\, aye?" 0 "I'll keep what you didn't collect."
 
 FILE,230
 2581 -227 "Your final challenge!"
