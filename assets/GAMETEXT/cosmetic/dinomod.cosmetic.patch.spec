@@ -1415,7 +1415,7 @@ FILE,526
 3696 "I forgot to tell you about the CLANNAD-ack."
 5283 "I had a run in with him a few years back\," 0 "but I managed to freeze him in a waterfall."
 2350 "I hope you gave him my greetings."
-2113 -227 "Father\, Father!!"
+2113 -227 "Father\, father!!"
 4000 -247 "Belina!"
 3771 -227 "I'm sorry\, Father\, I made a big mistake."
 5101 -247 "No\, I am sorry. You did the right thing."
