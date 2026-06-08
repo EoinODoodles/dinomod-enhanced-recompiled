@@ -1643,7 +1643,7 @@ FILE,604
 1524 -95 "Get that hidden!"
 
 FILE,605
-1495 -255 "Shhhh."
+1495 -255 "Shhhh..."
 3910
 2379 -227 "Step on switch!"
 4980
