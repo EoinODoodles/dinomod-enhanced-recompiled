@@ -436,9 +436,14 @@ FILE,68
 1829 "We'll take care of him."
 2540 "Go patrol the main chamber."
 
+FILE,69
+1856 -255 "Father?"
+585
+1899 "Father!"
+
 FILE,70
 2286 -255 "Can you hear me?"
-1880 "It's me Sabre."
+1880 "It's me\, Sabre!"
 2252
 2064 -3 "... My son ..."
 
