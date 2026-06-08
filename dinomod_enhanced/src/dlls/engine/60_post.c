@@ -35,7 +35,7 @@ extern GameTextChunk *splashGametext;
 extern Texture *sTexDolbyBig;
 extern Texture *sTexDolbySmall;
 
-static char dinomod_enhanced_message[] = "(Dinomod Enhanced: Recompiled - v0.9.1)";
+static char dinomod_enhanced_message[] = "(Dinomod Enhanced: Recompiled - v0.9.2)";
 
 /** Option to skip directly to Game Select on boot-up (to speed up testing things when working on mods) */
 RECOMP_PATCH void dll_60_update2(void) {

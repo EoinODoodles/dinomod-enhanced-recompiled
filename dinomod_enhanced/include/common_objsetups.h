@@ -188,3 +188,16 @@ typedef struct {
 /*18*/ s8 yaw;
 /*19*/ s8 spawnLogDisabled;
 } DFdockpoint_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ s16 unk18[8];
+/*28*/ s16 unk28[8];
+/*38*/ u8 unk38;
+/*39*/ u8 unk39;
+/*3A*/ u8 unk3A;
+/*3B*/ u8 unk3B;
+/*3C*/ s16 preemptTime;
+/*3E*/ u8 _unk3E[0x40 - 0x3E];
+/*40*/ s8 unk40[8];
+} NWMultiSeq_Setup;

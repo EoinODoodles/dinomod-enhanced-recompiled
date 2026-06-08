@@ -19,6 +19,7 @@
 
 #include "PR/ultratypes.h"
 #include "dlls/objects/common/collectable.h"
+#include "dlls/engine/33_BaddieControl.h"
 #include "dlls/objects/325_trigger.h"
 #include "dlls/objects/418_DFriverflow.h"
 #include "game/objects/object.h"
@@ -1868,6 +1869,36 @@ static void add_wctrex_hit_spheres(void) {
     recomp_free(data);
 }
 
+static void vfp_modifications(void) {
+    ReAssetID vfp = reasset_base_id(MAP_VOLCANO_FORCE_POINT_TEMPLE);
+    
+    // Shrink vision range of VFP ScorpionRobots as they see waaaaaaaaaay too far and end up shooting through walls.
+    // This edit is pretty subjective.
+    {
+        Baddie_Setup* scorpRobo;
+
+        scorpRobo = reasset_map_objects_get(vfp, reasset_base_id(0x41852), NULL);
+        scorpRobo->unk29 = 320 / 8;
+        scorpRobo = reasset_map_objects_get(vfp, reasset_base_id(0x41851), NULL);
+        scorpRobo->unk29 = 320 / 8;
+    }
+}
+
+static void nw_modifications(void) {
+    ReAssetID nw = reasset_base_id(MAP_SNOWHORN_WASTES);
+    
+    // Fix NWMultiSeq so Garunda Te cutscene won't loop if gamebit 0 is set
+    {
+        NWMultiSeq_Setup *multiseq = reasset_map_objects_get(nw, reasset_base_id(0x32D52), NULL);
+        // Set bit/seq indices to -1 (instead of 0) so the cutscene won't replay
+        // the first seq is bit 0 is set (there's only 6 seqs for this cutscene).
+        multiseq->unk28[6] = -1;
+        multiseq->unk28[7] = -1;
+        multiseq->unk40[6] = -1;
+        multiseq->unk40[7] = -1;
+    }
+}
+
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     custom_objects();
     custom_dlls();
@@ -1904,6 +1935,8 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     diamond_bay_modifications();
     discovery_falls_hit_edits();
     add_wctrex_hit_spheres();
+    vfp_modifications();
+    nw_modifications();
 }
 
 REASSET_ON_RESOLVE void dinomod_reasset_on_resolve(void) {

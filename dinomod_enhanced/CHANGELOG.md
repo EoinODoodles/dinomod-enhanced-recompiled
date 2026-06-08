@@ -1,3 +1,23 @@
+## v0.9.2
+- Fixed an issue where the Garunda Te SpellStone guardian cutscene could repeat the first segment a couple times.
+- Fixed an issue where NPC head lookat would be reversed after visiting the shop.
+- Fixed a rare case where the Projectile Spell would not be unequipped if a Z-target was broken in a specific way.
+- Fixed issue where already completed tasks could re-enter the recently completed task list.
+- `ScorpionRobot`:
+    - Now actually fires a laser when attacking.
+    - Correctly enters damage recoil state when attacked.
+    - No longer deals damage on touch while standing still or dead.
+    - Stops targeting the player if they are dead.
+    - VFP entrance robos no longer get flung into a wall by the nearby crates.
+    - No longer ignores terrain (e.g. the DFP ramp).
+    - Animation jank fixes (spinning (partial fix), turning).
+    - Fixed case where you could Z-target a defeated robo.
+    - Added some explosion particles on death (similar to big robo).
+- `BigScorpionRobot`:
+    - Fixed rotation desync.
+    - Fixed jank with repeated turning animations.
+    - Stops targeting the player if they are dead.
+
 ## v0.9.1
 - Fixed various issues with holding Z while exiting Z-targeting.
 - Aimed spells can no longer be selected while in first person (fixes a camera issue).
@@ -5,10 +25,12 @@
 ## v0.9.0
 
 ### New
+- The SwapStone Hollow river is now correctly drained at the start of the game (talk to the Thorntail for advice!).
 - The Projectile Spell can now be used while Z-targeting.
 - Collectable pickup now shows the item in a little pop-up.
 - Restored SwapStone Circle beacon/tumbleweed gameplay.
 - Restored water "movement" ripple fx (a water effect used by some objects that is disabled in the December 2000 build).
+- Walled City T. rexes now make use of their unused attack animations.
 - New mod options:
     - Play as Fox option.
     - New accessibility options for button-mashing gameplay.
@@ -17,7 +39,6 @@
     - Magic Gems: option to use a leftover fancier bounce calculation.
     - Option to restore some mushroom animations, states, and models.
     - Other miscellaneous options: check out the 'Configure' page to see the new list!
-- ... And some more surprises!
 
 ### ROM patch ports
 - The game now boots to the Rolling Demo/main menu (many thanks to nuggs!).
@@ -38,6 +59,7 @@
 - Sabre's intro and Tricky's tutorial cutscenes can now be skipped.
 - Log roll action is now disabled by default (can be re-enabled in mod options).
 - The log now behaves more like how it was intended for Cape Claw and Discovery Falls.
+- Mount/dismount animations for the log now use reasonable animations used by other vehicles rather than completely unrelated animations (actual anims for the log don't exist). 
 - Dragon Rock EarthWarrior call pad is now disabled before saving the EarthWarrior.
 - Immediate animation switching when stowing weapons while walking.
 
@@ -65,6 +87,9 @@
 - Test of Magic `flybaddie`s now work as intended.
 - The player is no longer invisible while standing on the ice in the DIM river.
 - Fixed DFP wheel flames (regression from previous patch).
+- Fixed issue with Sabre's jaw animation during the Galadon intro cutscene.
+- Fixed Dragon Rock EarthWarrior becoming unridable if summoned after they despawned.
+- ...And more small fixes!
 
 ## v0.8.0
 - Ported most patches from the January 26th, 2025 build of Dinomod Enhanced, including *all* progression-related patches.

@@ -170,6 +170,12 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                 fsa->target = 0;
                 fsa->unk33D = 0;
                 gDLL_2_Camera->vtbl->set_target_object(NULL);
+
+                // @recomp: Unequip projectile spell when target is defeated. Normally this isn't necessary,
+                //          but we made it possible to equip the projectile spell during z-lock.
+                if (arg1->unk87C == BIT_Spell_Projectile) {
+                    arg1->unk87C = -1;
+                }
             }
             break;
         case 0x60003:

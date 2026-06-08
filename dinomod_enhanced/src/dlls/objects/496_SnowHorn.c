@@ -117,15 +117,16 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
             
             frostWeed = obj_get_nearest_type_to(OBJTYPE_Baddie, self, 0);
             setup = (SnowHorn_Setup*)self->setup;
-            if (frostWeed && (frostWeed->id == OBJ_Tumbleweed2 || 
-                (FROSTWEED_TWIGS_ACCEPTED && frostWeed->id == OBJ_Tumbleweed2twig)) &&  //@recomp: option of accepting FrostWeed twigs as well
-                vec3_distance_xz_squared(&self->globalPosition, &frostWeed->globalPosition) < setup->unkRadius * setup->unkRadius) {
+            if (frostWeed 
+                    //@recomp: option of accepting FrostWeed twigs as well
+                    && (frostWeed->id == OBJ_Tumbleweed2 || (FROSTWEED_TWIGS_ACCEPTED && frostWeed->id == OBJ_Tumbleweed2twig)) 
+                    && vec3_distance_xz_squared(&self->globalPosition, &frostWeed->globalPosition) < setup->unkRadius * setup->unkRadius) {
                 if (!((DLL_227_Tumbleweed*)frostWeed->dll)->vtbl->is_gravitating(frostWeed)) {
                     ((DLL_227_Tumbleweed*)(frostWeed->dll))->vtbl->gravitate_towards_point(frostWeed, &objdata->playerPositionCopy);
                     objdata->frostWeed = frostWeed;
-                    if (0){
-                        objdata->garundaTe_weedsEaten = FROSTWEED_MAX_OVERRIDE;
-                    }
+                    // if (0){
+                    //     objdata->garundaTe_weedsEaten = FROSTWEED_MAX_OVERRIDE;
+                    // }
                     objdata->garundaTe_weedsEaten++;
                     if (objdata->garundaTe_weedsEaten > FROSTWEED_MAX_OVERRIDE) {
                         objdata->garundaTe_weedsEaten = FROSTWEED_MAX_OVERRIDE;
@@ -182,6 +183,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
     }
     
     if (objdata->flags >= 2 && objdata->flags < 5) {
+        // @recomp: Add target count to printf
         diPrintf("noweeds=%d/%d\n", objdata->garundaTe_weedsEaten, FROSTWEED_MAX_OVERRIDE);
     }
 }
