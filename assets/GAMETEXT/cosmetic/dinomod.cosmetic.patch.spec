@@ -1003,7 +1003,7 @@ FILE,193
 1841 "Nice lady\, your mother."
 2654 -255 "She said you'd know something about a SpellStone."
 979
-3561 -247 "A SpellStone! Hmmmm..."
+3561 -247 "A SpellStone? Hmmmm..."
 2751 "My name is Garunda Te."
 2012 "I am a SpellStone Guardian."
 
