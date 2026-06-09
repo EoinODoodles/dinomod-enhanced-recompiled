@@ -1867,7 +1867,7 @@ FILE,585
 0 "The SharpClaws keep them hidden in"
 0 "crates and baskets."
 0 "  "
-0 "Walk over them to collect and they'll"
+0 "Walk over them to collect them and they'll"
 0 "recharge your energy!"
 
 FILE,586
