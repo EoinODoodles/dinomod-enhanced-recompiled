@@ -1,3 +1,6 @@
+## v0.9.3
+- Fixed SwapStone Hollow river log not appearing after activating the Dragon Rock SpellStone.
+
 ## v0.9.2
 - Fixed an issue where the Garunda Te SpellStone guardian cutscene could repeat the first segment a couple times.
 - Fixed an issue where NPC head lookat would be reversed after visiting the shop.
