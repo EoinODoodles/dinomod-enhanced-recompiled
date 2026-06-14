@@ -17,7 +17,11 @@
 static _Bool player_has_spellstone(void) {
     return (main_get_bits(BIT_SpellStone_DIM_Activated) && !main_get_bits(BIT_877))
         || (main_get_bits(BIT_SpellStone_WC) && !main_get_bits(BIT_DB_Unlock_Act_Three))
-        || (main_get_bits(BIT_SpellStone_DR)); // Note: Don't revert to non-spellstone state after DR
+        || (main_get_bits(BIT_7CC)); // Note: DR SpellStone has no hide bit, instead it gets unset after VFP act 3
+}
+
+static _Bool player_is_postgame(void) {
+    return main_get_bits(BIT_7AF); // Drakor defeated bit
 }
 
 static void dinomod_river_control(void) {
@@ -38,7 +42,7 @@ static void dinomod_river_control(void) {
     
     // Enable obj group for river related objects that should only load if the player has access to Diamond Bay
     gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_SWAPSTONE_HOLLOW, 12, 
-        (riverObjGroupActive && riverUnblocked && player_has_spellstone()) ? 1 : 0);
+        (riverObjGroupActive && riverUnblocked && (player_has_spellstone() || player_is_postgame())) ? 1 : 0);
 }
 
 #define VINE_AREA_MIN_X -7744
