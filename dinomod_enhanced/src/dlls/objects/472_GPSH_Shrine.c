@@ -2,7 +2,7 @@
 
 #include "PR/ultratypes.h"
 #include "PR/gbi.h"
-#include "types.h"
+#include "dlls/objects/210_player.h"
 #include "game/objects/object.h"
 #include "game/gamebits.h"
 #include "sys/gfx/animseq.h"
@@ -20,6 +20,7 @@
 #include "sys/print.h"
 #include "sys/segment_1460.h"
 #include "dll.h"
+#include "types.h"
 
 #include "recomp/dlls/objects/472_GPSH_Shrine_recomp.h"
 
@@ -238,8 +239,8 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
             // @recomp: Change test completion flag
             main_set_bits(0x266, 1);
             // @recomp: Set spirit bit
-            main_set_bits(BIT_Spirit_Bits, 7);
-            // @recomp: Set SwapStone Circle setup
+            ((DLL_210_Player*)player->dll)->vtbl->set_spirit_bits(player, PLAYER_SPIRIT_8, TRUE);
+            // @recomp: Set SwapStone Circle act
             main_set_bits(BIT_SC_Map_Setup, 7); // TODO: doesnt SC do this on its own?
             gDLL_29_Gplay->vtbl->set_act(MAP_WARLOCK_MOUNTAIN, 8);
             // @recomp: Clear bit 0x5AD (prevent giant Krystal)

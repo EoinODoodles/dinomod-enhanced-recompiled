@@ -3,6 +3,7 @@
 #include "PR/gbi.h"
 #include "PR/ultratypes.h"
 #include "dlls/engine/6_amsfx.h"
+#include "dlls/objects/210_player.h"
 #include "game/gamebits.h"
 #include "game/objects/object.h"
 #include "sys/gfx/animseq.h"
@@ -279,7 +280,7 @@ RECOMP_PATCH int dll_466_func_C50(Object* self, Object *arg1, AnimObj_Data* arg2
                 case 9:
                     // @recomp: Beating ToF will set flag allowing 3rd Spirit be deposited when WM is reached. 
                     //          (original patch by jeebs2kx)
-                    main_set_bits(BIT_Spirit_Bits, 0x4);
+                    ((DLL_210_Player*)player->dll)->vtbl->set_spirit_bits(player, PLAYER_SPIRIT_3, TRUE);
                     // TODO: is this ok to keep?
                     main_set_bits(BIT_DB_Entered_Shrine_2, 1);
                     break;

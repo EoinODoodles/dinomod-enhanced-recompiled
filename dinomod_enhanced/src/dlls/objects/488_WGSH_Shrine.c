@@ -170,7 +170,7 @@ RECOMP_PATCH void dll_488_control(Object *self) {
                 main_set_bits(BIT_Shrine_Do_Exit_Warp, 1);
             }
             // @recomp: Set spirit bits and WM act (original patch by MusicalProgrammer)
-            main_set_bits(BIT_Spirit_Bits, 6);
+            ((DLL_210_Player*)sp48->dll)->vtbl->set_spirit_bits(sp48, PLAYER_SPIRIT_7, TRUE);
             gDLL_29_Gplay->vtbl->set_act(MAP_WARLOCK_MOUNTAIN, 7);
             main_set_bits(BIT_1D2, 0);
             main_set_bits(BIT_DB_Entered_Shrine_2, 0);

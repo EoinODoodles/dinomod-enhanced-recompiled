@@ -2,6 +2,7 @@
 
 #include "PR/ultratypes.h"
 #include "PR/gbi.h"
+#include "dlls/objects/210_player.h"
 #include "game/gamebits.h"
 #include "sys/gfx/animseq.h"
 #include "sys/dll.h"
@@ -232,6 +233,8 @@ RECOMP_PATCH void dll_481_control(Object *self) {
             main_set_bits(BIT_SP_Replay_Disk_WM, 1);
             // @recomp: Set WM setup to 8 instead (original patch by MusicalProgrammer)
             gDLL_29_Gplay->vtbl->set_act(MAP_WARLOCK_MOUNTAIN, 8);
+            // @recomp: Set spirit bit
+            ((DLL_210_Player*)player->dll)->vtbl->set_spirit_bits(player, PLAYER_SPIRIT_5, TRUE);
             break;
         case 6:
             if (main_get_bits(BIT_5C2) == 0) {
