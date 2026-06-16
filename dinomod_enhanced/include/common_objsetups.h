@@ -201,3 +201,13 @@ typedef struct {
 /*3E*/ u8 _unk3E[0x40 - 0x3E];
 /*40*/ s8 unk40[8];
 } NWMultiSeq_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ s8 rotation; // yaw >> 8
+/*19*/ s8 triggerCondition;
+/*1A*/ s16 triggerRange;
+/*1C*/ s16 seqno; // object seq index
+/*1E*/ s16 conditionBit; // if not -1, bit that determines if the seqpoint is enabled. required value depends on the trigger condition
+/*20*/ s16 triggeredBit; // if not -1, this bit is set to 1 once seqpoint is triggered. prevents re-trigger if bit is already 1
+} WL_seqpoint_Setup;

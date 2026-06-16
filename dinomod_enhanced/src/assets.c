@@ -349,6 +349,18 @@ static void warlock_mountain_platform_modifications(void) {
     line->animatorID = 8;
 }
 
+static void warlock_mountain_modifications(void) {
+    ReAssetID wm = reasset_base_id(MAP_WARLOCK_MOUNTAIN);
+
+    // Clear triggered bit field from dinomod WL_seqpoint for spirit 7. This bit won't get set anyway due
+    // to the seq warp changing the map before WL_seqpoint gets a chance to set it. We've changed the bit
+    // for this anyway for recomp.
+    {
+        WL_seqpoint_Setup* spirit7Seqpoint = reasset_map_objects_get(wm, reasset_base_id(0x45661), NULL);
+        spirit7Seqpoint->triggeredBit = -1;
+    }
+}
+
 static void dragon_rock_upper_modifications(void) {
     ReAssetID drTop = reasset_base_id(MAP_DRAGON_ROCK_TOP);
 
@@ -1897,6 +1909,13 @@ static void nw_modifications(void) {
         multiseq->unk40[6] = -1;
         multiseq->unk40[7] = -1;
     }
+
+    // Change the bit the blue SnowHorn hit animator looks for (this is a custom dinomod map obj). We're giving it
+    // a custom bit since the rom patches are accidentically using a CC vis anim bit.
+    {
+        HitAnimator_Setup* blueSnowHornHitAnim = reasset_map_objects_get(nw, reasset_base_id(0x412E1), NULL);
+        blueSnowHornHitAnim->gamebitActivate = DINOMOD_BIT_92D_Blue_SnowHorn_HitAnimator;
+    }
 }
 
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
@@ -1919,6 +1938,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
 
     shrine_fxemit_modifications();
     warlock_mountain_platform_modifications();
+    warlock_mountain_modifications();
     swapstone_hollow_modifications();
     swapstone_hollow_well_modifications();
     cc_lightfoot_patch();
