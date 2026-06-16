@@ -68,7 +68,7 @@ RECOMP_PATCH void dll_211_func_940C(Object *self, void *state) {
 }
 
 /** "Make Tricky get stuck less... HOPEFULLY". Originally by MusicalProgrammer */
-RECOMP_PATCH void dll_211_func_8974(Object* arg0, UnkCurvesStruct* arg1, f32 arg2) {
+RECOMP_PATCH void dll_211_func_8974(Object* self, UnkCurvesStruct* arg1, f32 arg2) {
     f32 square;
     f32 var_fs0;
     f32 distanceSquared;
@@ -76,7 +76,7 @@ RECOMP_PATCH void dll_211_func_8974(Object* arg0, UnkCurvesStruct* arg1, f32 arg
     
     distanceSquared = (arg2 * gUpdateRateF) * 1.5f;
     square = distanceSquared * distanceSquared;
-    distanceSquared = vec3_distance_xz_squared((Vec3f *) (&arg1->unk68), &arg0->srt.transl);
+    distanceSquared = vec3_distance_xz_squared((Vec3f *) (&arg1->unk68), &self->srt.transl);
     
     if (arg1->unk80 != 0){
         var_fs0 = -2.0f;
@@ -88,13 +88,13 @@ RECOMP_PATCH void dll_211_func_8974(Object* arg0, UnkCurvesStruct* arg1, f32 arg
         if (square < distanceSquared){
             break;
         }
-        func_800053B0(arg1, var_fs0);
+        curves_func_800053B0(arg1, var_fs0);
         // @recomp: Do... whatever this does
         // TODO: no seriously what does this do
         if (arg1->unk0 == 1.0f) {
             recomp_printf("[dll_211_func_8974] unk0 1.0f -> 0.99609375f\n");
             arg1->unk0 = 0.99609375f;
         }
-        distanceSquared = vec3_distance_xz_squared((Vec3f *) (&arg1->unk68), &arg0->srt.transl);
+        distanceSquared = vec3_distance_xz_squared((Vec3f *) (&arg1->unk68), &self->srt.transl);
     }
 }

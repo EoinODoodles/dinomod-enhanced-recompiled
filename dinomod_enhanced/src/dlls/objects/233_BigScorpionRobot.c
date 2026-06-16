@@ -46,7 +46,7 @@ enum BigScorpionRobotStates {
 };
 
 extern s32 BigScorpionRobot_is_obj_in_range(Object* self, Object* obj, f32 range);
-extern void BigScorpionRobot_func_B88(BigScorpionRobot_Data* objdata);
+extern void BigScorpionRobot_ramp_down_spin_speed(BigScorpionRobot_Data* objdata);
 
 RECOMP_PATCH s32 BigScorpionRobot_state_0_idle(Object* self, ObjFSA_Data* fsa, f32 updateRate) {
     Baddie* baddie = self->data;
@@ -143,6 +143,6 @@ RECOMP_PATCH s32 BigScorpionRobot_state_2_attacking(Object* self, ObjFSA_Data* f
         objdata->enteredState = 1;
         fsa->target = NULL;
     }
-    BigScorpionRobot_func_B88(objdata);
+    BigScorpionRobot_ramp_down_spin_speed(objdata);
     return 0;
 }

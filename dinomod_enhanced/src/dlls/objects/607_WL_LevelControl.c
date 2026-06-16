@@ -41,7 +41,7 @@ RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
         main_set_bits(BIT_Spell_Illusion, 1);
 
         //Restore some magic and make sure the player has the 4th Spirit
-        ((DLL_210_Player*)player->dll)->vtbl->func39(player, SPIRIT_INDEX(4), TRUE);
+        ((DLL_210_Player*)player->dll)->vtbl->set_spirit_bits(player, PLAYER_SPIRIT_4, TRUE);
         ((DLL_210_Player*)player->dll)->vtbl->add_magic(player, 20);
 
         main_set_bits(BIT_WM_Setup5_Sabre_Dock_Pushed_Crate_Onto_GuardClaw, 0);

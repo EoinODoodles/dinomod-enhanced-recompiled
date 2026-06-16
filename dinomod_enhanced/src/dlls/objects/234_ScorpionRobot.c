@@ -59,8 +59,8 @@ enum ScorpionRobotStates {
 /*0x20*/ extern ObjFSA_StateCallback sAIStateCallbacks[1];
 
 extern s32 ScorpionRobot_is_obj_in_range(Object* self, Object* obj, f32 range);
-extern void ScorpionRobot_func_AA0(ScorpionRobot_Data* objdata);
-extern void ScorpionRobot_func_B00(ScorpionRobot_Data* objdata);
+extern void ScorpionRobot_ramp_up_spin_speed(ScorpionRobot_Data* objdata);
+extern void ScorpionRobot_ramp_down_spin_speed(ScorpionRobot_Data* objdata);
 
 RECOMP_PATCH void ScorpionRobot_setup(Object* self, Baddie_Setup* setup, s32 reset) {
     u8 baddieFlags;
@@ -265,10 +265,10 @@ RECOMP_PATCH s32 ScorpionRobot_state_0_spinning(Object* self, ObjFSA_Data* fsa, 
         temp_fs0 = sp54->unk68.x - self->srt.transl.x;
         temp_fa1 = sp54->unk68.z - self->srt.transl.z;
         temp = 10.0f / sqrtf(SQ(temp_fs0) + SQ(temp_fa1));
-        if (((func_800053B0(sp54, temp) != 0) || (sp54->unk10 != 0)) 
+        if (((curves_func_800053B0(sp54, temp) != 0) || (sp54->unk10 != 0)) 
                 && (gDLL_26_Curves->vtbl->func_4704(sp54) != 0) 
                 && (gDLL_26_Curves->vtbl->func_4288(baddie->unk3F8, self, 500.0f, data_24, -1) != 0)) {
-            baddie->unk3B2  &= ~8;
+            baddie->unk3B2 &= ~8;
             gDLL_18_objfsa->vtbl->set_anim_state(self, fsa, SCORP_ROBO_STATE_1_WaitForPlayer);
             objdata->enteredState = 1;
             return 0;
@@ -316,7 +316,7 @@ RECOMP_PATCH s32 ScorpionRobot_state_0_spinning(Object* self, ObjFSA_Data* fsa, 
         objdata->enteredState = 1;
         fsa->target = player;
     }
-    ScorpionRobot_func_AA0(objdata);
+    ScorpionRobot_ramp_up_spin_speed(objdata);
     return 0;
 }
 
@@ -425,7 +425,7 @@ RECOMP_PATCH s32 ScorpionRobot_state_3_attacking(Object* self, ObjFSA_Data* fsa,
         objdata->enteredState = 1;
         fsa->target = NULL;
     }
-    ScorpionRobot_func_B00(objdata);
+    ScorpionRobot_ramp_down_spin_speed(objdata);
     return 0;
 }
 
@@ -451,7 +451,7 @@ RECOMP_PATCH s32 ScorpionRobot_state_5_damage_recoil(Object* self, ObjFSA_Data* 
         gDLL_18_objfsa->vtbl->set_anim_state(self, fsa, SCORP_ROBO_STATE_3_Attacking);
         objdata->enteredState = 1;
     }
-    ScorpionRobot_func_B00(objdata);
+    ScorpionRobot_ramp_down_spin_speed(objdata);
     return 0;
 }
 
@@ -479,7 +479,7 @@ RECOMP_PATCH s32 ScorpionRobot_state_6_dying(Object* self, ObjFSA_Data* fsa, f32
         objdata->enteredState = 1;
         fsa->target = NULL;
     }
-    ScorpionRobot_func_B00(objdata);
+    ScorpionRobot_ramp_down_spin_speed(objdata);
     return 0;
 }
 
@@ -515,6 +515,6 @@ RECOMP_PATCH s32 ScorpionRobot_state_7_dead(Object* self, ObjFSA_Data* fsa, f32 
     } else {
         self->opacity = 0;
     }
-    ScorpionRobot_func_B00(objdata);
+    ScorpionRobot_ramp_down_spin_speed(objdata);
     return 0;
 }

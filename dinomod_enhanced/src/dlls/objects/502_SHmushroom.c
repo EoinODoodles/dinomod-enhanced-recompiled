@@ -361,7 +361,7 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 
 		//Show Find command option when sidekick nearby
 		if (objData->pursuerDistance < objSetup->alertRange) {
-			((DLL_ISidekick*)sidekick->dll)->vtbl->func14(sidekick, Sidekick_Command_INDEX_1_Find);
+			((DLL_ISidekick*)sidekick->dll)->vtbl->enable_command(sidekick, Sidekick_Command_INDEX_1_Find);
 		}
 	}
 

@@ -664,7 +664,7 @@ RECOMP_PATCH s32 SidekickToy_tick_flight(Object* self) {
         } else {
             if (speed < 0.3f) {
                 //Come to a stop if the ground is mostly flat
-                if (gDLL_25->vtbl->func_12FC(self->srt.transl.f)) {
+                if (gDLL_25->vtbl->func_12FC(&self->srt.transl)) {
                     //@recomp: restore the ball's interaction radii
                     ball_update_interaction_distances(self, objdata, FALSE);
 
