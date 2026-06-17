@@ -1,5 +1,9 @@
 ## v0.9.3
 - Fixed SwapStone Hollow river log not appearing after activating the Dragon Rock SpellStone.
+- The invisible wall behind the blue SnowHorn now correctly disappears when it's time to enter the NW shrine.
+- GP and WG shrines now set the correct spirit bits.
+- NW shrine now actually gives a spirit.
+- Fixed `WL_seqpoint` anim callback message loop.
 
 ## v0.9.2
 - Fixed an issue where the Garunda Te SpellStone guardian cutscene could repeat the first segment a couple times.
