@@ -360,12 +360,20 @@ RECOMP_PATCH int WL_seqpoint_anim_callback(Object* actor, Object* animObj, AnimO
                 break;
             }
             break;
-        // @recomp: Disable Blue SnowHorn hit after GP spirit release
+        // @recomp: Disable Blue SnowHorn hit after GP spirit release and clear spirit
         case 29:
             switch (animObjData->messages[i]) {
             case 4:
                 main_set_bits(DINOMOD_BIT_92D_Blue_SnowHorn_HitAnimator, 1);
                 ((DLL_210_Player*)player->dll)->vtbl->set_spirit_bits(player, PLAYER_SPIRIT_8, FALSE);
+                break;
+            }
+            break;
+        // @recomp: Clear spirit after NW spirit release
+        case 30:
+            switch (animObjData->messages[i]) {
+            case 4:
+                ((DLL_210_Player*)player->dll)->vtbl->set_spirit_bits(player, PLAYER_SPIRIT_5, FALSE);
                 break;
             }
             break;
