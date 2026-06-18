@@ -211,3 +211,15 @@ typedef struct {
 /*1E*/ s16 conditionBit; // if not -1, bit that determines if the seqpoint is enabled. required value depends on the trigger condition
 /*20*/ s16 triggeredBit; // if not -1, this bit is set to 1 once seqpoint is triggered. prevents re-trigger if bit is already 1
 } WL_seqpoint_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ u8 yaw;
+/*19*/ u8 unk19;
+/*1A*/ s8 warpID;
+/*1B*/ s8 objectSeqIndex;
+/*1C*/ s8 unk1C;
+/*1D*/ s8 unk1D;
+/*1E*/ s8 dist;
+/*20*/ s16 gamebit;
+} WarpPoint_Setup;

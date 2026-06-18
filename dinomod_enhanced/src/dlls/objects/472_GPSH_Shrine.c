@@ -160,6 +160,10 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
                 gDLL_14_Modgfx->vtbl->func7(&objdata->unkC);
                 objdata->unkC = -1;
                 main_set_bits(BIT_5AF, 0);
+                // @recomp: Shut door while test is active (normally the trigger planes will clear this bit but the
+                //          way they are positioned makes it possible to get the door stuck open. we can't let the
+                //          player back into the hallway because it will mess up the object creators if they go too far).
+                main_set_bits(BIT_5AA, 0);
             }
             break;
         case 1:
@@ -200,11 +204,13 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
             }
             if (objdata->unk10 <= 0) {
                 objdata->unk15 = 7;
+                // @recomp: Tell player to drop held item before we delete it (otherwise the player DLL will crash)
+                ((DLL_210_Player*)player->dll)->vtbl->func11(player, NULL);
                 temp_v0_8 = obj_get_all_of_type(OBJTYPE_Pickup, &sp34);
                 while (sp34 != 0) {
                     obj_destroy_object(temp_v0_8[sp34 - 1]);
                     sp34--;
-                    if ((!objdata) && (!objdata)){} // @fake
+                    //if ((!objdata) && (!objdata)){} // @fake
                 }
                 gDLL_3_Animation->vtbl->start_obj_sequence(2, self, -1);
             } else {
@@ -243,8 +249,9 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
             // @recomp: Set SwapStone Circle act
             main_set_bits(BIT_SC_Map_Setup, 7); // TODO: doesnt SC do this on its own?
             gDLL_29_Gplay->vtbl->set_act(MAP_WARLOCK_MOUNTAIN, 8);
-            // @recomp: Clear bit 0x5AD (prevent giant Krystal)
+            // @recomp: Clear bit 0x5AD and 0x5B1 (prevent giant Krystal)
             main_set_bits(0x5AD, 0);
+            main_set_bits(0x5B1, 0);
             break;
         case 7:
             objdata->unk15 = 0;
@@ -263,8 +270,7 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
             main_set_bits(BIT_14A, 0);
             main_set_bits(BIT_14B, 0);
             main_set_bits(BIT_14B, 0);
-            // @recomp: Stop a crash after the lose cutscene ends
-            //main_set_bits(BIT_5AF, 1);
+            main_set_bits(BIT_5AF, 1);
             main_set_bits(BIT_148, 0);
             break;
         }

@@ -1918,6 +1918,46 @@ static void nw_modifications(void) {
     }
 }
 
+static void gpsh_modifications(void) {
+    ReAssetID gpsh = reasset_base_id(MAP_SHRINE_GOLDEN_PLAINS);
+
+    // Set warp ID for completing the Test of Knowledge (and generally just fix the WarpPoint)
+    {
+        WarpPoint_Setup* completionWarp = reasset_map_objects_get(gpsh, reasset_base_id(0x2C8D), NULL);
+        completionWarp->base.objId = OBJ_WarpPoint; // WM_WarpPoint -> WarpPoint (same DLL, but the other shrines use WarpPoint)
+        completionWarp->warpID = 31; // go to GP -> GPSH transporter
+        completionWarp->unk1C = 0; // this is an exit warp (why is this 1 normally?? you never warp to here?)
+        completionWarp->unk1D = 2; // warp only when bit is set (the bit is correctly 0xFD but the condition field is wrong)
+    }
+
+    // Edit trigger planes so the player cannot go back into the entrance hall while the test is active.
+    // Bit 0x129 will be 0 while the test is active and 1 otherwise (except after completion where it remains 0
+    // but the warp will take the player out of the shrine anyway so it's OK).
+    {
+        Trigger_Setup* trigger;
+
+        trigger = reasset_map_objects_get(gpsh, reasset_base_id(0x32974), NULL);
+        trigger->conditionBitFlagIDs[0] = 0x129;
+
+        trigger = reasset_map_objects_get(gpsh, reasset_base_id(0x32975), NULL);
+        trigger->conditionBitFlagIDs[0] = 0x129;
+    }
+
+    // Fix flybaddie creators fade distance so the flybaddies (which inherit the distance) are correctly visible.
+    // The third creator is actually correct, so just fix the other two.
+    {
+        ObjSetup* creator;
+
+        creator = reasset_map_objects_get(gpsh, reasset_base_id(0x32951), NULL);
+        creator->loadDistance = 254;
+        creator->fadeDistance = 254;
+
+        creator = reasset_map_objects_get(gpsh, reasset_base_id(0x32952), NULL);
+        creator->loadDistance = 254;
+        creator->fadeDistance = 254;
+    }
+}
+
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     custom_objects();
     custom_dlls();
@@ -1957,6 +1997,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     add_wctrex_hit_spheres();
     vfp_modifications();
     nw_modifications();
+    gpsh_modifications();
 }
 
 REASSET_ON_RESOLVE void dinomod_reasset_on_resolve(void) {
