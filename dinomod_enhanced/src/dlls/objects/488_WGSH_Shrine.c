@@ -32,6 +32,13 @@ typedef struct {
 
 extern void dll_488_func_FEC(Object *self);
 
+static _Bool recomp_sFirstTick = TRUE;
+
+RECOMP_HOOK_DLL(dll_488_ctor) void dll_488_ctor_hook(void) {
+    // Reset custom static data
+    recomp_sFirstTick = TRUE;
+}
+
 RECOMP_PATCH void dll_488_control(Object *self) {
     WGSH_Shrine_Data *objdata;
     Object *sp48;
@@ -44,6 +51,14 @@ RECOMP_PATCH void dll_488_control(Object *self) {
     objdata = self->data;
     sp48 = get_player();
     sp3C = 1000.0f;
+
+    // @recomp: Give the player some magic upon entering the shrine, similar to DFSH
+    // TODO: consider removing this patch once there's a way to get magic in Willlow Grove
+    if (recomp_sFirstTick) {
+        ((DLL_210_Player*)sp48->dll)->vtbl->add_magic(sp48, 20);
+        recomp_sFirstTick = FALSE;
+    }
+
     dll_488_func_FEC(self);
     main_set_bits(BIT_DB_Entered_Shrine_2, 1);
     if (objdata->unk6 != 0) {
@@ -114,6 +129,11 @@ RECOMP_PATCH void dll_488_control(Object *self) {
                 dll_unload(sp44);
                 main_set_bits(BIT_DB_Entered_Shrine_1, 0);
                 gDLL_14_Modgfx->vtbl->func7(&objdata->unkC);
+                // @recomp: Shut door while test is active (normally the trigger planes will clear this bit but the
+                //          way they are positioned makes it possible to get the door stuck open.
+                //          Also for some reason, the door bit is also what decides whether the shrine grants a spirit,
+                //          so we *really* need this shut.
+                main_set_bits(BIT_1D1, 0);
             }
         default:
             return;
@@ -121,6 +141,9 @@ RECOMP_PATCH void dll_488_control(Object *self) {
             if (objdata->unk14 == 1) {
                 objdata->unk13 = 2;
                 objdata->unk2 = 0xA0;
+                // @recomp: Refill magic upon test start
+                // TODO: consider removing this patch if a way to increase max magic and stock up before the shrine is added
+                ((DLL_210_Player*)sp48->dll)->vtbl->add_magic(sp48, 25);
                 return;
             }
             break;

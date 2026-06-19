@@ -1,10 +1,13 @@
 ## v0.9.3
 - Fixed SwapStone Hollow river log not appearing after activating the Dragon Rock SpellStone.
 - The invisible wall behind the blue SnowHorn now correctly disappears when it's time to enter the NW shrine.
-- Fixed softlock where Test of Knowledge pickups would no longer spawn after failing the test.
+- Fixed softlock where the Test of Knowledge pickups would no longer spawn after failing the test.
 - Fixed crash that occurred if the player was holding an item when the Test of Knowledge timer ran out.
-- The Test of Knowledge door is now correctly locked while the test is active.
 - The player is now correctly warped out of the Test of Knowledge after completing the test.
+- The player now has their magic refilled when entering the Test of Magic and when starting the test.
+- Fixed issue where the Test of Sacrifice would instantly fail if the player had previously failed the test and returned to retry it.
+- MMP, WC, CC, WG, and NW shrine transporters now work correctly (the player can leave the shrine before starting the test if needed).
+- CC, WG, and GP shrine doors are now correctly locked while the test is active.
 - GP and WG shrines now set the correct spirit bits.
 - NW shrine now actually gives a spirit.
 - Fixed `WL_seqpoint` anim callback message loop.

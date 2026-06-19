@@ -1958,6 +1958,83 @@ static void gpsh_modifications(void) {
     }
 }
 
+static void mmsh_modifications(void) {
+    ReAssetID mmsh = reasset_base_id(MAP_SHRINE_MOON_MOUNTAIN_PASS);
+
+    // Fix transporter so the player can leave
+    {
+        Transporter_Setup* transporter = reasset_map_objects_get(mmsh, reasset_base_id(0xC5D), NULL);
+        transporter->gamebit = -1; // 0 -> -1 (so it's always enabled)
+        transporter->warpID = 73; // 77 -> 73 (MMP shrine transporter)
+    }
+}
+
+static void ecsh_modifications(void) {
+    ReAssetID ecsh = reasset_base_id(MAP_SHRINE_WALLED_CITY);
+
+    // Fix transporter so the player can leave
+    {
+        Transporter_Setup* transporter = reasset_map_objects_get(ecsh, reasset_base_id(0xC5D), NULL);
+        transporter->gamebit = -1; // 0 -> -1 (so it's always enabled)
+    }
+}
+
+static void ccsh_modifications(void) {
+    ReAssetID ccsh = reasset_base_id(MAP_SHRINE_CAPE_CLAW);
+
+    // Edit trigger planes so the player cannot go back into the entrance hall while the test is active.
+    // Bit 0x129 will be 0 while the test is active and 1 otherwise (except after completion where it remains 0
+    // but the warp will take the player out of the shrine anyway so it's OK).
+    {
+        Trigger_Setup* trigger;
+
+        trigger = reasset_map_objects_get(ccsh, reasset_base_id(0x32F01), NULL);
+        trigger->conditionBitFlagIDs[0] = 0x129;
+
+        trigger = reasset_map_objects_get(ccsh, reasset_base_id(0x32F02), NULL);
+        trigger->conditionBitFlagIDs[0] = 0x129;
+    }
+
+    // Fix transporter so the player can leave
+    {
+        Transporter_Setup* transporter = reasset_map_objects_get(ccsh, reasset_base_id(0xC5D), NULL);
+        transporter->gamebit = -1; // 0 -> -1 (so it's always enabled)
+    }
+}
+
+static void wgsh_modifications(void) {
+    ReAssetID wgsh = reasset_base_id(MAP_SHRINE_WILLOW_GROVE);
+
+    // Edit trigger planes so the player cannot go back into the entrance hall while the test is active.
+    // Bit 0x129 will be 0 while the test is active and 1 otherwise (except after completion where it remains 0
+    // but the warp will take the player out of the shrine anyway so it's OK).
+    {
+        Trigger_Setup* trigger;
+
+        trigger = reasset_map_objects_get(wgsh, reasset_base_id(0x32893), NULL);
+        trigger->conditionBitFlagIDs[0] = 0x129;
+
+        trigger = reasset_map_objects_get(wgsh, reasset_base_id(0x32894), NULL);
+        trigger->conditionBitFlagIDs[0] = 0x129;
+    }
+
+    // Fix transporter so the player can leave
+    {
+        Transporter_Setup* transporter = reasset_map_objects_get(wgsh, reasset_base_id(0xC5D), NULL);
+        transporter->gamebit = -1; // 0 -> -1 (so it's always enabled)
+    }
+}
+
+static void nwsh_modifications(void) {
+    ReAssetID nwsh = reasset_base_id(MAP_SHRINE_SNOWHORN_WASTES);
+
+    // Fix transporter so the player can leave
+    {
+        Transporter_Setup* transporter = reasset_map_objects_get(nwsh, reasset_base_id(0xC5D), NULL);
+        transporter->gamebit = 0x129; // 0 -> 0x129 (so it's enabled while the test isn't active)
+    }
+}
+
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     custom_objects();
     custom_dlls();
@@ -1998,6 +2075,11 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     vfp_modifications();
     nw_modifications();
     gpsh_modifications();
+    mmsh_modifications();
+    ecsh_modifications();
+    ccsh_modifications();
+    wgsh_modifications();
+    nwsh_modifications();
 }
 
 REASSET_ON_RESOLVE void dinomod_reasset_on_resolve(void) {

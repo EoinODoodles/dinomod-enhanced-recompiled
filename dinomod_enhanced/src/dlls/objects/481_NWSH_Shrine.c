@@ -241,6 +241,10 @@ RECOMP_PATCH void dll_481_control(Object *self) {
                 main_set_bits(BIT_5C2, 1);
             }
             main_set_bits(BIT_5C6, 0);
+            // @recomp: Go to noop state so we don't keep setting bit 0x5C2, otherwise the warppoint
+            //          will still be active when the player returns to the shrine to try again, which
+            //          will immediately kick the player back out. 
+            objdata->unk12 = 9;
             break;
         }
     }
