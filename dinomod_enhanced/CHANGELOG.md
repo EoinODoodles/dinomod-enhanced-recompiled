@@ -1,4 +1,5 @@
 ## v0.9.3
+- New mod option to make spell aiming not be fixed in place while firing the Projectile or Grenade spell.
 - Fixed SwapStone Hollow river log not appearing after activating the Dragon Rock SpellStone.
 - The invisible wall behind the blue SnowHorn now correctly disappears when it's time to enter the NW shrine.
 - Fixed softlock where the Test of Knowledge pickups would no longer spawn after failing the test.

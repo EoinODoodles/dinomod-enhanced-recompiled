@@ -32,6 +32,15 @@
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/277_iceblast.h"
 
+enum RecompSpellAimFireLockOption {
+    RECOMP_SPELL_AIM_FIRE_LOCK_OFF,
+    RECOMP_SPELL_AIM_FIRE_LOCK_ON
+};
+
+static _Bool recomp_should_lock_aim_while_firing(void) {
+    return recomp_get_config_u32("spell_aim_fire_lock") == RECOMP_SPELL_AIM_FIRE_LOCK_ON;
+}
+
 #include "recomp/dlls/objects/210_player_recomp.h"
 
 #define DEBUG_MESSAGES FALSE
@@ -2338,11 +2347,53 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
         }
         break;
     case 0x43F:
+        // @recomp: Don't lock aim while firing, if option is enabled
+        if (!recomp_should_lock_aim_while_firing() && fsa->target == NULL) {
+            if (*_bss_220 == BIT_Spell_Grenade) {
+                var_fa0 = fsa->yAnalogInput / 50.0f;
+                if (var_fa0 < -1.45f) {
+                    var_fa0 = -1.45f;
+                } else if (var_fa0 > 1.45f) {
+                    var_fa0 = 1.45f;
+                }
+            } else {
+                var_fa0 = fsa->yAnalogInput / 60.0f;
+                if (var_fa0 < -1.0f) {
+                    var_fa0 = -1.0f;
+                } else if (var_fa0 > 1.0f) {
+                    var_fa0 = 1.0f;
+                }
+            }
+            var_fa0 -= objdata->unk830;
+            objdata->unk830 += var_fa0 * 0.1f * deltaTime;
+            dz = fsa->xAnalogInput / 60.0f;
+            if (dz < -1.0f) {
+                dz = -1.0f;
+            } else if (dz > 1.0f) {
+                dz = 1.0f;
+            }
+            dz -= objdata->unk82C;
+            objdata->unk82C += dz * 0.1f * deltaTime;
+            if (objdata->unk82C > 0.0f) {
+                dz = objdata->unk82C - 0.75f;
+                if (dz < 0.0f) {
+                    dz = 0.0f;
+                }
+            } else {
+                dz = objdata->unk82C + 0.75f;
+                if (dz > 0.0f) {
+                    dz = 0.0f;
+                }
+            }
+            player->srt.yaw = (player->srt.yaw + (dz * -1000.0f));
+        }
         if (objdata->unk830 > 0.0f) {
             func_80025540(player, 0x44B, objdata->unk830 * 1023.0f);
         } else {
             func_80025540(player, 0x44A, -objdata->unk830 * 1023.0f);
         }
+        // @recomp: Update bone even while firing, so it's correct if the aim lock is disabled
+        func_80034804(player, 9)[1] = objdata->unk82C * -10240.0f;
         objdata->flags &= ~0x400;
         if ((fsa->target == NULL) && (dll_210_func_1A9D4(player, &objdata->aimX, &objdata->aimY, &objdata->aimZ, objdata->unk82C, objdata->unk830) != 0)) {
             objdata->flags |= 0x400;

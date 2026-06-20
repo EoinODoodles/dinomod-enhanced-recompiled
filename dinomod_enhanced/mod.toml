@@ -344,6 +344,19 @@ options = [ "Disabled", "Enabled" ]
 default = "Disabled"
 
 [[manifest.config_options]]
+id = "spell_aim_fire_lock"
+name = "Spell Aiming: Fixed While Firing"
+description = '''
+Whether spell aim should be fixed in place while firing the Projectile or Grenade spell.
+
+- Off: Star Fox Adventures behavior. Aim can continue to be moved even during the firing animation.
+- On: Vanilla Dinosaur Planet behavior. Aim will be fixed at the angle it was in at the time of firing, until the firing animation is finished.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
 id = "iceblast_cost"
 name = "Ice Blast Spell: Reduced Magic Cost"
 description = '''
