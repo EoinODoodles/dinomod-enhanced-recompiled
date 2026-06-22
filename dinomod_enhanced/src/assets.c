@@ -377,6 +377,19 @@ static void dragon_rock_upper_modifications(void) {
     callpad->gamebitEnabled = 0x656;
 }
 
+static void dragon_rock_bottom_modifications(void) {
+    ReAssetID drBot = reasset_base_id(MAP_DRAGON_ROCK_BOTTOM);
+
+    // Increase barrel load distance so it doesn't despawn before the pressure pads, otherwise the pad will go back
+    // up and the player will be unable to activate all three at the same time. Note that this is really only an issue
+    // for the pad by the lake with the turrent in the middle. The other pads have load distances similar to the barrel
+    // and despawn fast enough to not have a chance to go back up.
+    {
+        ObjSetup* cfBarrel = reasset_map_objects_get(drBot, reasset_base_id(0x34AD3), NULL);
+        cfBarrel->loadDistance = 127;
+    }
+}
+
 /** Change the fade settings of the GP_ShrinePillar so they're visible across Golden Plains 
   * (they're fairly low-poly, should be grand even on N64!) */
 static void golden_plains_modifications(void) {
@@ -2064,6 +2077,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     golden_plains_modifications();
     walled_city_modifications();
     dragon_rock_upper_modifications();
+    dragon_rock_bottom_modifications();
     golden_plains_modifications();
     // golden_plains_fuel_modifications();
     music_actions_patch();

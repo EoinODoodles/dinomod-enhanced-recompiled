@@ -2,6 +2,7 @@
 - New mod option to make spell aiming not be fixed in place while firing the Projectile or Grenade spell.
 - Fixed SwapStone Hollow river log not appearing after activating the Dragon Rock SpellStone.
 - The invisible wall behind the blue SnowHorn now correctly disappears when it's time to enter the NW shrine.
+- Fixed issue where the barrel by the rock in Dragon Rock would unload too early and not keep one of the pressure pads down.
 - Fixed softlock where the Test of Knowledge pickups would no longer spawn after failing the test.
 - Fixed crash that occurred if the player was holding an item when the Test of Knowledge timer ran out.
 - The player is now correctly warped out of the Test of Knowledge after completing the test.
