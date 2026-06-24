@@ -1,12 +1,10 @@
 
 #include "modding.h"
-#include "recomputils.h"
 
-#include "sys/gfx/animseq.h"
+#include "game/gamebits.h"
+#include "sys/dll.h"
 #include "sys/gfx/modgfx.h"
 #include "sys/main.h"
-#include "sys/objtype.h"
-#include "sys/objanim.h"
 #include "sys/rand.h"
 #include "dll.h"
 #include "dlls/engine/27.h"
@@ -108,19 +106,277 @@ enum IMSnowBikeFlags {
     SNOWBIKEFLAG_IS_CPU = 0x20 // is SharpClaw
 };
 
+extern Vec3f _data_90[];
 extern DLL_IModgfx *_data_A8;
 
 extern SRT _bss_8;
 
+extern void dll_711_func_1760(Object *self);
 extern void dll_711_func_1F54(Object *self, IMSnowBike_Data *objdata, IMSnowBike_Data_2AC *arg2, f32 updateRate, s32 arg4);
 extern void dll_711_func_2BA0(Object *self, IMSnowBike_Data *objdata, IMSnowBike_Data_2AC *arg2, f32 updateRate, s32 arg4);
+extern void dll_711_func_33B4(Object *self, IMSnowBike_Data_2E0 *arg1, u8 port, s32 buffer);
 extern void dll_711_func_3430(Object *self, IMSnowBike_Data *objdata, MtxF *a2, s32 a3, s32 a4, s32 a5);
+extern void dll_711_func_34E4(Object *self, IMSnowBike_Data *objdata);
 extern void dll_711_func_3780(Object *self, IMSnowBike_Data *objdata, DLL27_Data *arg2);
+extern s32 dll_711_func_3A34(Object *arg0, void *arg1, IMSnowBike_Data *arg2, IMSnowBike_Data_2E0 *arg3);
+extern void dll_711_func_3C30(Object *self, IMSnowBike_Data *objdata);
+extern void dll_711_func_3D4C(Object *self, IMSnowBike_Data *objdata, f32 arg2, s32 arg3, s32 *arg5, u8 arg6);
 
 RECOMP_HOOK_DLL(dll_711_setup) void dll_711_setup_hook(Object *self, IMSnowBike_Setup *setup, s32 arg2) {
     IMSnowBike_Data *objdata = (IMSnowBike_Data*)self->data;
     objdata->recompPrevPos = self->srt.transl;
     objdata->recompCounter = 0;
+}
+
+// Reset recomp position delta counter after a sequence has ended
+RECOMP_PATCH void dll_711_control(Object *self) {
+    IMSnowBike_Data *objdata;
+    IMSnowBike_Setup *setup;
+    Object *player;
+    f32 spB8;
+    MtxF sp78;
+    f32 sp74;
+    f32 sp70;
+    f32 sp6C;
+    f32 temp_fv0;
+    f32 temp_fv1;
+    s32 i;
+    s32 _pad1;
+    s32 _pad2;
+    s32 sp54;
+    IMSnowBike_Data_2AC *sp44;
+    IMSnowBike_Data_2E0 *sp40;
+    
+    objdata = self->data;
+    setup = (IMSnowBike_Setup*)self->setup;
+    sp44 = &objdata->unk2AC;
+    sp40 = &objdata->unk2E0;
+    spB8 = 0.0f;
+    if ((objdata->flags & SNOWBIKEFLAG_1)) {
+        return;
+    }
+    if (main_get_bits(setup->unk1E) != 0) {
+        objdata->flags |= SNOWBIKEFLAG_1;
+        return;
+    }
+    if (self->polyhits != NULL) {
+        if (objdata->unk3DE == 0) {
+            if (self->objhitInfo->unk5A != 8) {
+                self->objhitInfo->unk9F = 2;
+                self->objhitInfo->unk5A = 8;
+                func_80026B84(self);
+                return;
+            }
+        } else {
+            if (self->objhitInfo->unk5A != 1) {
+                self->objhitInfo->unk9E = 1;
+                self->objhitInfo->unk5A = 1;
+                return;
+            }
+        }
+    }
+
+    player = get_player();
+    self->unkAF |= 8;
+    objdata->unk39C = self->srt.transl.x;
+    objdata->unk3A0 = self->srt.transl.y;
+    objdata->unk3A4 = self->srt.transl.z;
+
+    if (objdata->flags & SNOWBIKEFLAG_10) {
+        objdata->flags = objdata->flags & ~SNOWBIKEFLAG_10;
+        if (!(objdata->flags & SNOWBIKEFLAG_IS_CPU)) {
+            sp44->unkC.x = 0.0f;
+            sp44->unkC.y = 0.0f;
+            sp44->unkC.z = -2.0f;
+            objdata->unk3C8 = 0;
+            objdata->unk3CA = 0;
+            objdata->unk3E0 = 0;
+            objdata->unk3D2 = 0;
+            objdata->unk3CC = self->srt.yaw;
+            objdata->unk3CE = self->srt.pitch;
+            objdata->unk3D0 = self->srt.roll;
+            dll_711_func_3C30(self, objdata);
+        }
+
+        //@recomp: reset counter after returning from a sequence, so that the position delta doesn't become very large
+        // when a sequence moves the speeder bike (e.g. at the end of Ice Mountain's start-of-race sequence)
+        objdata->recompCounter = 0;
+    }
+    switch (objdata->unk3DE) {
+    case 0:
+        if (!(objdata->flags & SNOWBIKEFLAG_IS_CPU)) {
+            self->objhitInfo->unk5B = 0;
+            self->objhitInfo->unk5C = 0;
+            objdata->unk3DB = 0;
+            if ((setup->unk1A == -1) || (main_get_bits(setup->unk1A) != 0)) {
+                self->unkAF &= ~0x10;
+            } else {
+                self->unkAF |= 0x10;
+            }
+            if ((player != NULL) && (vec3_distance(&player->globalPosition, &self->globalPosition) < 50.0f)) {
+                dll_711_func_3430(self, objdata, &sp78, 0, 1, 1);
+                vec3_transform(&sp78, _data_90[0].x, _data_90[0].y, _data_90[0].z, &sp74, &sp70, &sp6C);
+                temp_fv0 = player->srt.transl.x - sp74;
+                temp_fv1 = player->srt.transl.z - sp6C;
+                if ((SQ(temp_fv0) + SQ(temp_fv1)) < 100.0f) {
+                    self->unkAF &= ~0x8;
+                    objdata->unk3DB = 2;
+                } else {
+                    vec3_transform(&sp78, _data_90[1].x, _data_90[1].y, _data_90[1].z, &sp74, &sp70, &sp6C);
+                    temp_fv0 = player->srt.transl.x - sp74;
+                    temp_fv1 = player->srt.transl.z - sp6C;
+                    if ((SQ(temp_fv0) + SQ(temp_fv1)) < 100.0f) {
+                        self->unkAF &= ~0x8;
+                        objdata->unk3DB = 1;
+                    }
+                }
+            }
+        }
+        if (objdata->unk3B8 != 0) {
+            gDLL_6_AMSFX->vtbl->stop(objdata->unk3B8);
+            objdata->unk3B8 = 0;
+        }
+        if (objdata->unk3BC != 0) {
+            gDLL_6_AMSFX->vtbl->stop(objdata->unk3BC);
+            objdata->unk3BC = 0;
+        }
+        if (objdata->unk3C0 != 0) {
+            gDLL_6_AMSFX->vtbl->stop(objdata->unk3C0);
+            objdata->unk3C0 = 0;
+        }
+        if (objdata->unk2F4 != NULL) {
+            dll_unload(objdata->unk2F4);
+            objdata->unk2F4 = NULL;
+        }
+        if (objdata->unk2F8 != NULL) {
+            dll_unload(objdata->unk2F8);
+            objdata->unk2F8 = NULL;
+            return;
+        }
+        break;
+    case 1:
+        break;
+    case 2:
+        if (!(objdata->flags & SNOWBIKEFLAG_8)) {
+            objdata->unk18.unk10 = -1;
+            objdata->unk18.unk14 = -1;
+            objdata->unk18.unk18 = -1;
+            objdata->unk18.unk1C = 0;
+            if (main_get_bits(BIT_IM_Race_Started) != 0) {
+                objdata->flags |= SNOWBIKEFLAG_8;
+            } else {
+                objdata->flags &= ~SNOWBIKEFLAG_8;
+            }
+            if (objdata->flags & SNOWBIKEFLAG_8) {
+                if (objdata->flags & SNOWBIKEFLAG_IS_CPU) {
+                    dll_711_func_1760(self);
+                } else {
+                    gDLL_4_Race->vtbl->func3(self, &objdata->unk18, 0);
+                }
+                gDLL_4_Race->vtbl->func9(&objdata->unk18);
+            }
+        } else if (main_get_bits(BIT_IM_Race_Ended) != 0) {
+            objdata->flags &= ~SNOWBIKEFLAG_8;
+        }
+        dll_711_func_34E4(self, objdata);
+        if (objdata->flags & SNOWBIKEFLAG_IS_CPU) {
+            if (objdata->flags & SNOWBIKEFLAG_8) {
+                if (map_world_coords_to_block_index(self->srt.transl.x, self->srt.transl.y, self->srt.transl.z) >= 0) {
+                    if (objdata->flags & SNOWBIKEFLAG_2) {
+                        sp54 = gDLL_4_Race->vtbl->func5(&objdata->unk0, &objdata->unk18, 2.8f * gUpdateRateF, 1, 1, 0);
+                        gDLL_4_Race->vtbl->func4(self, &objdata->unk18);
+                        gDLL_4_Race->vtbl->func10(&objdata->unk18);
+                        if (sp54 == 0) {
+                            self->srt.yaw = arctan2_f(self->srt.transl.x - objdata->unk0.transl.x, self->srt.transl.z - objdata->unk0.transl.z);
+                            self->srt.transl.x = objdata->unk0.transl.x;
+                            self->srt.transl.y = objdata->unk0.transl.y;
+                            self->srt.transl.z = objdata->unk0.transl.z;
+                            sp44->unkC.x = 0.0f;
+                            sp44->unkC.y = 0.0f;
+                            sp44->unkC.z = -2.0f;
+                            objdata->unk3C8 = 0;
+                            objdata->unk3CA = 0;
+                            objdata->unk3E0 = 0;
+                            objdata->unk3D2 = 0;
+                            objdata->unk3CC = self->srt.yaw;
+                            objdata->unk3CE = self->srt.pitch;
+                            objdata->unk3D0 = self->srt.roll;
+                            dll_711_func_3C30(self, objdata);
+                            func_80058680(self, self->srt.transl.x, self->srt.transl.y, self->srt.transl.z, &spB8, 0);
+                            self->srt.transl.y -= spB8;
+                            objdata->flags &= ~SNOWBIKEFLAG_2;
+                        }
+                        return;
+                    } else if (dll_711_func_3A34(self, objdata, objdata, &objdata->unk2E0) != 0) {
+                        return;
+                    }
+                } else {
+                    sp54 = gDLL_4_Race->vtbl->func5(&objdata->unk0, &objdata->unk18, 2.8f * gUpdateRateF, 1, 1, 0);
+                    gDLL_4_Race->vtbl->func4(self, &objdata->unk18);
+                    gDLL_4_Race->vtbl->func10(&objdata->unk18);
+                    if (sp54 == 0) {
+                        self->srt.yaw = arctan2_f(self->srt.transl.x - objdata->unk0.transl.x, self->srt.transl.z - objdata->unk0.transl.z);
+                        self->srt.transl.x = objdata->unk0.transl.x;
+                        self->srt.transl.y = objdata->unk0.transl.y;
+                        self->srt.transl.z = objdata->unk0.transl.z;
+                        objdata->flags |= SNOWBIKEFLAG_2;
+                    }
+                    return;
+                }
+            } else {
+                return;
+            }
+        } else {
+            self->objhitInfo->unk5B = 0xA;
+            self->objhitInfo->unk5C = 0xA;
+        }
+        
+        if (!(objdata->flags & SNOWBIKEFLAG_IS_CPU)) {
+            if (objdata->flags & SNOWBIKEFLAG_8) {
+                objdata->unk3C4 = gDLL_4_Race->vtbl->func4(self, &objdata->unk18);
+                gDLL_4_Race->vtbl->func10(&objdata->unk18);
+                objdata->unk3DF = gDLL_4_Race->vtbl->func12(&objdata->unk18);
+            }
+            for (i = 0; i < gUpdateRate; i++) {
+                dll_711_func_33B4(self, sp40, 0, i);
+                dll_711_func_1F54(self, objdata, sp44, gUpdateRateF, (i + 1) == gUpdateRate);
+                objdata->unk3C8 += (s16) (((f32) -objdata->unk2E0.turnInput * 60.0f) - (f32) objdata->unk3C8) >> 4;
+                objdata->unk3CA += (s16) (((f32) -objdata->unk2E0.turnInput * 105.0f) - (f32) objdata->unk3CA) >> 4;
+                self->srt.yaw = objdata->unk3CC + objdata->unk3C8;
+                self->srt.roll = objdata->unk3D0 + objdata->unk3CA;
+            }
+        } else {
+            for (i = 0; i < gUpdateRate; i++) {
+                dll_711_func_2BA0(self, objdata, sp44, gUpdateRateF, (i + 1) == gUpdateRate);
+                objdata->unk3C8 += (s16) (((f32) -objdata->unk2E0.turnInput * 60.0f) - (f32) objdata->unk3C8) >> 4;
+                objdata->unk3CA += (s16) (((f32) -objdata->unk2E0.turnInput * 105.0f) - (f32) objdata->unk3CA) >> 4;
+                self->srt.yaw = objdata->unk3CC + objdata->unk3C8;
+                self->srt.roll = objdata->unk3D0 + objdata->unk3CA;
+            }
+        }
+        if (!(objdata->flags & SNOWBIKEFLAG_IS_CPU)) {
+            dll_711_func_3D4C(self, objdata, objdata->unk2AC.unkC.z, sp40->thrustInput, &sp40->unk10, 7);
+            return;
+        }
+        if (objdata->unk3B4 != 0) {
+            gDLL_6_AMSFX->vtbl->stop(objdata->unk3B4);
+            objdata->unk3B4 = 0;
+        }
+        if (objdata->unk3B8 != 0) {
+            gDLL_6_AMSFX->vtbl->stop(objdata->unk3B8);
+            objdata->unk3B8 = 0;
+        }
+        if (objdata->unk3BC != 0) {
+            gDLL_6_AMSFX->vtbl->stop(objdata->unk3BC);
+            objdata->unk3BC = 0;
+        }
+        if (objdata->unk3C0 != 0) {
+            gDLL_6_AMSFX->vtbl->stop(objdata->unk3C0);
+            objdata->unk3C0 = 0;
+        }
+        
+        break;
+    }
 }
 
 // @recomp: Remove problematic speed adjustment. The changes to dll_711_func_1F54 conflict with this.
