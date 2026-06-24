@@ -97,7 +97,7 @@ typedef struct {
   * elevation when the player's movements cause BLOCKS models to load in around the SharpClaw, snapping them onto the wrong part of the mesh.
   * They would continue trying to get to the next curve node, driving directly into the wall!
   *
-  * This is fixed by storing the previous race checkpoint's Y value, for the SharpClaw use while driving through an unloaded section of track.
+  * This is fixed by storing the previous race checkpoint's Y value, for the SharpClaw to use while driving through an unloaded section of track.
   */
 RECOMP_PATCH s32 CRSnowBike_func_0(Object* self, CRSnowBike_Data* data, f32 arg2) {
     RaceCheckpointSetup* checkpointSetup;
