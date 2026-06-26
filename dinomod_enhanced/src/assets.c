@@ -2060,8 +2060,57 @@ REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     diamond_bay_additions();
 }
 
+/** Fixes probems in the seqJoint jointID mapping for each of Sabre's models */
+static void sabre_seqjoints_patch(void) {
+    ReAssetID objectIndex;
+    ObjDef *objDef;
+    u8* seqJointDef;
+
+    //Get OBJECTS.bin entry
+    {
+        reasset_object_indices_get(
+            reasset_base_id(0), 
+            &objectIndex
+        );
+
+        objDef = reasset_objects_get(objectIndex, NULL);
+        if (!objDef) {
+            return;
+        }
+    }
+
+    if ((u32)objDef->pSequenceBones == 0) {
+        return;
+    }
+
+    seqJointDef = (u8*)((u32)objDef + (u32)objDef->pSequenceBones);
+
+    //Iterate over the seqJointDefs, and tweak relevant seqJointIDs' model jointIDs
+    for (u32 i = 0, seqJointID; i < objDef->numSequenceBones; i++) {
+        seqJointID = seqJointDef[0];
+        seqJointDef++; 
+
+        switch (seqJointID) {
+        case 1: //Jaw seqJoint
+            seqJointDef[0] = 0x13; //gameplay model
+            break;
+        case 4: //Ear R seqJoint
+            seqJointDef[0] = 0x12; //gameplay model
+            seqJointDef[1] = 0x12; //cutscene model
+            break;
+        case 5: //Ear L seqJoint
+            seqJointDef[0] = 0x11; //gameplay model
+            seqJointDef[1] = 0x13; //cutscene model
+            break;
+        }
+
+        seqJointDef += objDef->numModels;
+    }
+}
+
 REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     music_actions_patch();
+    sabre_seqjoints_patch();
     collectables_animobj_patch();
     cmdmenu_icons_patch();
     purple_mushroom_patch();
