@@ -1138,7 +1138,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                 TILE_WRITE_TRANSLUCENT | TILE_WRITE_POINT_FILT
             );
 
-            sprintf(playerScarabCountText, "%d", (int)sStats.playerScarabCount);
+            snprintf(playerScarabCountText, sizeof(playerScarabCountText), "%d", (int)sStats.playerScarabCount);
             font_window_set_coords(3, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
             font_window_use_font(3, FONT_DINO_SUBTITLE_FONT_1);
             font_window_set_bg_colour(3, 0, 0, 0, 0);
