@@ -5,6 +5,8 @@
 #include "sys/thread.h"
 #include "macros.h"
 
+#include "core/joypad.h"
+
 // @recomp: Make menu movements framerate independent
 RECOMP_PATCH void joy_controller_thread_entry(void* arg) {
     ControllersSnapshot* currSnap;
@@ -129,4 +131,10 @@ RECOMP_PATCH void joy_controller_thread_entry(void* arg) {
                 break;
         }
     }
+}
+
+/* Ignore joystick inputs */
+void joy_disable_stick(int port) {
+    gMenuJoyXSign[gVirtualContPortMap[port]] = 0;
+    gMenuJoyYSign[gVirtualContPortMap[port]] = 0;
 }

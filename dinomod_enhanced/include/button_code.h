@@ -2,7 +2,6 @@
 
 #include "recomputils.h"
 #include "PR/ultratypes.h"
-#include "common.h"
 
 /** A handler for checking whether the player entered a specific sequence of button presses */
 typedef struct {

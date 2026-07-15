@@ -1,5 +1,6 @@
 #include "button_code.h"
 #include "macros.h"
+#include "sys/joypad.h"
 
 /** 
   * Initialises the ButtonCode handler.

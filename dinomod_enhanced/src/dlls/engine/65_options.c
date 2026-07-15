@@ -25,6 +25,9 @@
 #include "sys/rcp.h"
 #include "types.h"
 
+#include "core/joypad.h"
+#include "button_code.h"
+
 #include "recomp/dlls/_asm/65_recomp.h"
 
 static s32 rsDimOpacity = 0;
@@ -1515,4 +1518,70 @@ RECOMP_PATCH void options_goto_cheats_page(void) {
     }
     
     sRedrawFrames = 2;
+}
+
+static void dinomod_setup_standard_resolution(void) {
+    extern void func_8001440C(s32 arg0);
+
+    main_set_bits(BIT_44F, 0);
+    gDLL_29_Gplay->vtbl->load_game_options();
+
+    vi_init(1, get_ossched(), FALSE);
+    track_set_z_buffer_on(1);
+    track_set_sky_on(1);
+
+    func_8001440C(1);
+}
+
+static void dinomod_goto_old_title_screen_menu(void) {
+    dinomod_setup_standard_resolution();
+    menu_set(MENU_11);
+}
+
+/* Add a secret way of accessing the old Title Screen and Level Select */
+RECOMP_HOOK_DLL(options_update1) void options_secret_code_goto_old_menus(void) {
+    /* L V L S */
+    static u16 rsCheatCode[] = {
+        L_TRIG,
+        D_JPAD,
+        L_TRIG,
+        START_BUTTON
+    };
+    static ButtonCode rsOldMenusCheat;
+    static s32 rsTransitionTimer = 0;
+
+    //Set up button code
+    if (rsOldMenusCheat.initialised == FALSE) {
+        button_code_setup(
+            &rsOldMenusCheat, 
+            rsCheatCode, 
+            ARRAYCOUNT(rsCheatCode)
+        );
+    }
+
+    //Button sequence entered
+    if (!rsOldMenusCheat.finished && button_code_entered(&rsOldMenusCheat)) {
+        gDLL_6_AMSFX->vtbl->play(NULL, 
+            SOUND_5EB_Magic_Refill_Chime, 
+            MAX_VOLUME, 0, 0, 0, 0
+        );
+
+        rsTransitionTimer = 1;
+        gDLL_28_ScreenFade->vtbl->fade(60, SCREEN_FADE_BLACK);
+
+        joy_disable_buttons(0, START_BUTTON | A_BUTTON);
+    }    
+
+    if (rsTransitionTimer > 0) {
+        rsTransitionTimer += gUpdateRate;
+
+        //Block buttons and joystick during fadeout
+        joy_disable_buttons(0, START_BUTTON | A_BUTTON);
+        joy_disable_stick(0);
+
+        if (rsTransitionTimer > 70) {
+            rsTransitionTimer = 0;
+            dinomod_goto_old_title_screen_menu();
+        }
+    }
 }
