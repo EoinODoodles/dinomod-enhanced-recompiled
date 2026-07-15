@@ -307,7 +307,7 @@ static void ball_handle_water_behaviour(Object* self){
     }
 
     #ifdef DEBUG_TOY
-    diPrintf("Ball velocityY: %s\n", f2s(self->velocity.y));
+    diPrintf("Ball velocityY: %f\n", &self->velocity.y);
     #endif
 
     //Don't allow arrow interaction when ball and player are both in the water

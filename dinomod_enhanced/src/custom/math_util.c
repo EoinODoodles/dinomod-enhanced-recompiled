@@ -1,10 +1,12 @@
 #include "recomputils.h"
 #include "math_util.h"
-#include "string_util.h"
+
 #include "PR/ultratypes.h"
 #include "macros.h"
 #include "sys/math.h"
 #include "sys/print.h"
+
+#include "core/print.h"
 
 /** Linear interpolation from a start value to an end value, blending between them using a tValue (from 0 to 1). */
 f32 lerp_float(f32 tValue, f32 start, f32 end){
@@ -117,9 +119,9 @@ void vec3_cross(Vec3f* vA, Vec3f* vB, Vec3f* vO) {
  * Debug print a vector to the screen.
  */
 void vec3_diPrintf(Vec3f* v) {
-    diPrintf("%s   ", f2s(v->x));
-    diPrintf("%s   ", f2s(v->y));
-    diPrintf("%s   ", f2s(v->z));
+    diPrintf("%f   ", &v->x);
+    diPrintf("%f   ", &v->y);
+    diPrintf("%f   ", &v->z);
     diPrintf("\n");
 }
 
@@ -127,9 +129,9 @@ void vec3_diPrintf(Vec3f* v) {
  * Log a vector.
  */
 void vec3_recomp_printf(Vec3f* v) {
-    recomp_printf("%-6s\t", f2s(v->x));
-    recomp_printf("%-6s\t", f2s(v->y));
-    recomp_printf("%-6s",   f2s(v->z));
+    recomp_printf("%-6f\t", v->x);
+    recomp_printf("%-6f\t", v->y);
+    recomp_printf("%-6f",   v->z);
     recomp_printf("\n");
 }
 
@@ -162,15 +164,21 @@ void matrix_multiply(MtxF* mA, MtxF* mB, MtxF* mO) {
  * Debug print a matrix to the screen.
  */
 void matrix_diPrintf(MtxF *mtx) {
-    //TODO: improve screen alignment/spacing between elements?
+    _Bool fixedWidthAllPre = de_print_get_fixedwidth_all();
+
+    de_print_set_fixedwidth_all(TRUE);
+
     diPrintf("\n");
-    diPrintf("%4s    %4s     %4s   %4s\n", "aX", "aY", "aZ", "t");
+    diPrintf(" %-6s %-6s %-6s %-6s\n", "aX", "aY", "aZ", "T");
     for (u8 j = 0; j < 4; j++) {
         for (u8 i = 0; i < 4; i++) {
-            diPrintf("%6s    ", f2s(mtx->m[i][j]));
+            f32 temp = mtx->m[i][j];
+            diPrintf("%-6f", &temp);
         }
         diPrintf("\n");
     }
+
+    de_print_set_fixedwidth_all(fixedWidthAllPre);
 }
 
 /*
@@ -181,7 +189,7 @@ void matrix_recomp_printf(MtxF *mtx) {
     recomp_printf("%-6s\t%-6s\t%-6s\t%-6s\n", "aX", "aY", "aZ", "t");
     for (u8 j = 0; j < 4; j++) {
         for (u8 i = 0; i < 4; i++) {
-            recomp_printf("%-6s\t", f2s(mtx->m[i][j]));
+            recomp_printf("%-6f\t", mtx->m[i][j]);
         }
         recomp_printf("\n");
     }
@@ -238,9 +246,12 @@ void rotation_from_matrix(MtxF* mtx, s16* yaw, s16* pitch, s16* roll, f32 normal
     CIRCLE_WRAP(outRoll);
 
     #ifdef DEBUG_EULER_EXTRACT
-    diPrintf("extractYaw   (degrees): %s\n", f2s(angle16_to_degrees(outYaw)));
-    diPrintf("extractPitch (degrees): %s\n", f2s(angle16_to_degrees(outPitch)));
-    diPrintf("extractRoll  (degrees): %s\n", f2s(angle16_to_degrees(outRoll)));
+    f32 yawDegrees = angle16_to_degrees(outYaw);
+    f32 pitchDegrees = angle16_to_degrees(outYaw);
+    f32 rollDegrees = angle16_to_degrees(outYaw);
+    diPrintf("extractYaw   (degrees): %f\n", &yawDegrees);
+    diPrintf("extractPitch (degrees): %f\n", &pitchDegrees);
+    diPrintf("extractRoll  (degrees): %f\n", &rollDegrees);
     #endif
 
     *yaw   = outYaw;
