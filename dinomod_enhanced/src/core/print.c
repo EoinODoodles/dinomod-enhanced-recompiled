@@ -40,7 +40,7 @@ extern s32 diPrintf_func_80061210(Gfx **gdl, char *buffer);
 extern void diPrintfRenderBackground(Gfx **gdl, u32 ulx, u32 uly, u32 lrx, u32 lry);
 extern s32 diPrintfRenderChar(Gfx**gdl, s32 asciiVal);
 
-static _Bool rsFixedWidthAll = TRUE;
+static _Bool rsFixedWidthAll = FALSE;
 
 /* Allows diPrintf to use fixed width mode for all characters */
 void de_print_set_fixedwidth_all(_Bool enable) {
@@ -158,7 +158,7 @@ RECOMP_PATCH s32 diPrintf_func_80061210(Gfx** gdl, char* buffer) {
             xOffset = diPrintfRenderChar(gdl, bufferValue);
         }
 
-        if (rsFixedWidthAll || //@recomp
+        if ((rsFixedWidthAll && bufferValue != '\n') || //@recomp
             (D_800BEAE4 != 0 && bufferValue >= 0x20 && bufferValue < 0x80)
         ) {
             xOffset = 7;

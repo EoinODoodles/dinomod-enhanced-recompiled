@@ -169,11 +169,11 @@ void matrix_diPrintf(MtxF *mtx) {
     de_print_set_fixedwidth_all(TRUE);
 
     diPrintf("\n");
-    diPrintf(" %-6s %-6s %-6s %-6s\n", "aX", "aY", "aZ", "T");
+    diPrintf("%-7s %-7s %-7s %-7s\n", "aX", "aY", "aZ", "T");
     for (u8 j = 0; j < 4; j++) {
         for (u8 i = 0; i < 4; i++) {
             f32 temp = mtx->m[i][j];
-            diPrintf("%-6f", &temp);
+            diPrintf("%-7f", &temp);
         }
         diPrintf("\n");
     }
