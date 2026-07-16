@@ -15,3 +15,4 @@ typedef struct {
 void button_code_setup(ButtonCode* handler, u16* buttonSequence, u8 buttonSequenceLength);
 void button_code_print(ButtonCode* code);
 int button_code_entered(ButtonCode* code);
+int button_code_reset(ButtonCode* code);

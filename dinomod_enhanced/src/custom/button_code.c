@@ -98,7 +98,7 @@ void button_code_print(ButtonCode* code) {
 }
 
 /**
-  * Checks if the button sequence was completed (if so returns TRUE),
+  * Checks if the button sequence was completed (if so returns TRUE)
   */
 int button_code_entered(ButtonCode* code) {
     u16 buttonsPressed;
@@ -127,4 +127,19 @@ int button_code_entered(ButtonCode* code) {
     }
 
     return 0;
+}
+
+/**
+  * Resets a button code handler, so the code can be entered another time.
+  */
+int button_code_reset(ButtonCode* code) {
+    if (!code || 
+        !code->initialised || !code->sequence || code->sequenceLength == 0
+    ) {
+        return 0;
+    }
+
+    code->position = 0;
+    code->finished = FALSE;
+    return 1;
 }

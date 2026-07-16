@@ -1559,19 +1559,7 @@ RECOMP_HOOK_DLL(options_update1) void options_secret_code_goto_old_menus(void) {
         );
     }
 
-    //Button sequence entered
-    if (!rsOldMenusCheat.finished && button_code_entered(&rsOldMenusCheat)) {
-        gDLL_6_AMSFX->vtbl->play(NULL, 
-            SOUND_5EB_Magic_Refill_Chime, 
-            MAX_VOLUME, 0, 0, 0, 0
-        );
-
-        rsTransitionTimer = 1;
-        gDLL_28_ScreenFade->vtbl->fade(60, SCREEN_FADE_BLACK);
-
-        joy_disable_buttons(0, START_BUTTON | A_BUTTON);
-    }    
-
+    //Handle fadeout transition
     if (rsTransitionTimer > 0) {
         rsTransitionTimer += gUpdateRate;
 
@@ -1583,5 +1571,22 @@ RECOMP_HOOK_DLL(options_update1) void options_secret_code_goto_old_menus(void) {
             rsTransitionTimer = 0;
             dinomod_goto_old_title_screen_menu();
         }
+
+        return;
     }
+
+    //Check if the button sequence was entered
+    if (!rsOldMenusCheat.finished && button_code_entered(&rsOldMenusCheat)) {
+        gDLL_6_AMSFX->vtbl->play(NULL, 
+            SOUND_5EB_Magic_Refill_Chime, 
+            MAX_VOLUME, 0, 0, 0, 0
+        );
+        
+        rsTransitionTimer = 1;
+        gDLL_28_ScreenFade->vtbl->fade(60, SCREEN_FADE_BLACK);
+        
+        joy_disable_buttons(0, START_BUTTON | A_BUTTON);
+
+        button_code_reset(&rsOldMenusCheat);
+    }    
 }
