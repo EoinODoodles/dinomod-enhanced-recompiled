@@ -186,10 +186,10 @@ void matrix_diPrintf(MtxF *mtx) {
  */
 void matrix_recomp_printf(MtxF *mtx) {
     recomp_printf("\n");
-    recomp_printf("%-6s\t%-6s\t%-6s\t%-6s\n", "aX", "aY", "aZ", "t");
+    recomp_printf("%-10s %-10s %-10s %-10s \n", "aX", "aY", "aZ", "T");
     for (u8 j = 0; j < 4; j++) {
         for (u8 i = 0; i < 4; i++) {
-            recomp_printf("%-6f\t", mtx->m[i][j]);
+            recomp_printf("%-10.3f ", mtx->m[i][j]);
         }
         recomp_printf("\n");
     }
