@@ -3,6 +3,7 @@
 #include "dll_util.h"
 #include "sidekick_util.h"
 
+#include "dlls/engine/26_curves.h"
 #include "sys/curves.h"
 #include "sys/dll.h"
 #include "sys/main.h"
@@ -76,9 +77,9 @@ RECOMP_PATCH void dll_211_func_8974(Object* self, UnkCurvesStruct* arg1, f32 arg
     
     distanceSquared = (arg2 * gUpdateRateF) * 1.5f;
     square = distanceSquared * distanceSquared;
-    distanceSquared = vec3_distance_xz_squared((Vec3f *) (&arg1->unk68), &self->srt.transl);
+    distanceSquared = vec3_distance_xz_squared((Vec3f *) (&arg1->unk0.unk68), &self->srt.transl);
     
-    if (arg1->unk80 != 0){
+    if (arg1->unk0.unk80 != 0){
         var_fs0 = -2.0f;
     } else {
         var_fs0 = 2.0f;
@@ -88,13 +89,13 @@ RECOMP_PATCH void dll_211_func_8974(Object* self, UnkCurvesStruct* arg1, f32 arg
         if (square < distanceSquared){
             break;
         }
-        curves_func_800053B0(arg1, var_fs0);
+        curves_func_800053B0(&arg1->unk0, var_fs0);
         // @recomp: Do... whatever this does
         // TODO: no seriously what does this do
-        if (arg1->unk0 == 1.0f) {
+        if (arg1->unk0.unk0 == 1.0f) {
             recomp_printf("[dll_211_func_8974] unk0 1.0f -> 0.99609375f\n");
-            arg1->unk0 = 0.99609375f;
+            arg1->unk0.unk0 = 0.99609375f;
         }
-        distanceSquared = vec3_distance_xz_squared((Vec3f *) (&arg1->unk68), &self->srt.transl);
+        distanceSquared = vec3_distance_xz_squared((Vec3f *) (&arg1->unk0.unk68), &self->srt.transl);
     }
 }

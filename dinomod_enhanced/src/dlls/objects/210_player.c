@@ -12,6 +12,7 @@
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
 #include "game/gamebits.h"
+#include "sys/joypad.h"
 #include "sys/map_enums.h"
 #include "sys/menu.h"
 #include "sys/newshadows.h"
@@ -128,9 +129,9 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                         gDLL_6_AMSFX->vtbl->play(player, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
                         break;
                     }
-                    if ((camDLLID != DLL_ID_CAMTALK2) && (camDLLID != DLL_ID_CAMTALK1)) {
-                        gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMTALK2, 1, 0, 0, NULL, 60, 0xFF);
-                        gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, 58);
+                    if ((camDLLID != DLL_ID_CAMSPELLAIM) && (camDLLID != DLL_ID_CAMSEQ)) {
+                        gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMSPELLAIM, TRUE, 0, 0, NULL, 60, Cam_Ease_All);
+                        gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, PLAYER_ASTATE_Aiming_Spell);
                         arg1->flags |= 0x400000;
                     }
                 } else {
@@ -788,9 +789,9 @@ RECOMP_PATCH s32 dll_210_func_AE34(Object* player, ObjFSA_Data* fsa, f32 arg2) {
         func_80023D30(player, objdata->modAnims[objdata->unk8C0], animProgress, 0);
     }
 
-        temp_fv0 = (f32)fsa->unk4.relativeFloorPitchSmooth / 0x2000;
+    temp_fv0 = (f32)fsa->unk4.relativeFloorPitchSmooth / 0x2000;
     if (1.0f < temp_fv0) { 
-temp_fv0 = 1.0f; 
+        temp_fv0 = 1.0f; 
     } else if (temp_fv0 < -1.0f) {
         temp_fv0 = -1.0f;
     }
@@ -1142,11 +1143,11 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) 
         case OBJ_CRSnowBike:
             objdata->unk76C = _data_158;
             objdata->unk770 = 3;
-            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMSLIDE, 1, 0, 0, NULL, 0, 0xFF);
+            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMSLIDE, TRUE, 0, 0, NULL, 0, Cam_Ease_All);
             break;
         case OBJ_DR_CloudRunner:
             objdata->unk76C = _data_170;
-            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMDRAKOR, 1, 0, 0, NULL, 0, 0xFF);
+            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMCLOUDRUNNER, TRUE, 0, 0, NULL, 0, Cam_Ease_All);
             break;
         case OBJ_BWLog:
             // @recomp: Use custom mod anim list
@@ -1255,7 +1256,7 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
             player->srt.transl.y += 8.0f;
         }
         if ((vehicle->id == OBJ_IMSnowBike) || (vehicle->id == OBJ_CRSnowBike)) {
-            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, 0, 1, 0, NULL, 100, 0xFF);
+            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 100, Cam_Ease_All);
         } else {
             gDLL_2_Camera->vtbl->change_mode(0, 1);
         }
@@ -1820,7 +1821,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                     gDLL_2_Camera->vtbl->change_mode(0, 0x69);
                     gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAMNORMAL, 4, 0, 0);
                 } else if ((vehicle != NULL) && (vehicle->id == OBJ_DR_CloudRunner)) {
-                    gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAMDRAKOR, 0, 0, 0);
+                    gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAMCLOUDRUNNER, 0, 0, 0);
                 } else {
                     gDLL_2_Camera->vtbl->change_mode(0, 0x1D);
                     gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAMNORMAL, 4, 0, 0);
@@ -1960,7 +1961,7 @@ RECOMP_PATCH void dll_210_func_1AAD8(Object* player, ObjFSA_Data *fsa) {
         temp_s0->unk848 = 0;
     }
     if (gDLL_2_Camera->vtbl->get_dll_ID() != DLL_ID_CAMNORMAL) {
-        gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, 0, 1, 0, NULL, 120, 0xFF);
+        gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 120, Cam_Ease_All);
     }
     for (i = 0; i < 4; i++) {
         temp_a0 = _bss_210[i];
@@ -2442,8 +2443,8 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
         func_80023D30(player, 0x449, 0.0f, 0);
         fsa->animTickDelta = 0.04f;
         camDLLID = gDLL_2_Camera->vtbl->get_dll_ID();
-        if ((camDLLID != DLL_ID_CAMNORMAL) && (camDLLID != DLL_ID_CAMTALK1)) {
-            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, 0, 1, 0, NULL, 60, 0xFE);
+        if ((camDLLID != DLL_ID_CAMNORMAL) && (camDLLID != DLL_ID_CAMSEQ)) {
+            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 60, Cam_Ease_All & ~Cam_Ease_Yaw);
         }
     }
     if (fsa->target != NULL) {
@@ -2717,11 +2718,11 @@ RECOMP_PATCH s32 dll_210_func_BA38(Object* player, ObjFSA_Data* fsa, f32 arg2) {
     if (v1objdata->unk834 > 20.0f) {
         if (v1objdata->unk8BB != 0) {
             camDLLID = gDLL_2_Camera->vtbl->get_dll_ID();
-            if ((camDLLID != DLL_ID_CAMTALK2) && (camDLLID != DLL_ID_CAMTALK1) 
+            if ((camDLLID != DLL_ID_CAMSPELLAIM) && (camDLLID != DLL_ID_CAMSEQ)
                     // @recomp: Don't allow going into z-hold aim mode if in first person or z-locked
                     && (camDLLID != DLL_ID_CAM1STPERSON) && (fsa->target == NULL)) {
                 //goto dummy_label_865524; dummy_label_865524: ;
-                gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMTALK2, 1, 0, 0, NULL, 60, 0xFF);
+                gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMSPELLAIM, TRUE, 0, 0, NULL, 60, Cam_Ease_All);
                 v1objdata->flags &= ~0x400000;
                 return 0x3B;
             }

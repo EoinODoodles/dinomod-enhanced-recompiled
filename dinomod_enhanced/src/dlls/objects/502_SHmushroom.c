@@ -259,8 +259,8 @@ RECOMP_PATCH void SHmushroom_setup(Object* self, SHmushroom_Setup* setup, s32 ar
 	) {
 		objData->flags |= SHmushroom_FLAG_Follow_Curve;
 		gDLL_26_Curves->vtbl->func_4288(&objData->curves, self, 1000.0f, &curveEndpoint, -1);
-		self->srt.transl.x = objData->curves.unk68.x;
-		self->srt.transl.z = objData->curves.unk68.z;
+		self->srt.transl.x = objData->curves.unk0.unk68.x;
+		self->srt.transl.z = objData->curves.unk0.unk68.z;
 	}
 
 	objData->curvesDelta = 5.0f;

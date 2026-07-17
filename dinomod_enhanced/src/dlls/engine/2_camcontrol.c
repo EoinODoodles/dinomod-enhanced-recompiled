@@ -25,8 +25,7 @@ typedef enum {
     LockIcon_STATE_Lock_On = 4
 } LockIcon_States;
 
-extern CamControl_Data sCamDataStruct;
-extern CamControl_Data* sCamData;
+extern Cam* sCam;
 
 extern s32 sActiveID;          //Active module: DLL ID
 extern s32 sActiveLoadedIndex; //Active module: The loaded index of the camera module DLL currently in use
@@ -90,7 +89,7 @@ RECOMP_PATCH void CamControl_lock_icon_tick(void) {
     #endif
 
     arrow = sLockIcon;
-    hlObject = sCamData->highlight;
+    hlObject = sCam->highlight;
     player = get_player();
     
     if (menu_get_current() == MENU_TITLE_SCREEN) {
@@ -102,7 +101,7 @@ RECOMP_PATCH void CamControl_lock_icon_tick(void) {
         return;
     }
     
-    sCamData->targetFlags &= ~ARROW_FLAG_4_Highlighted;
+    sCam->targetFlags &= ~ARROW_FLAG_4_Highlighted;
     
     if ((player == NULL) || (player->stateFlags & OBJSTATE_IN_SEQ)) {
         sIconState = LockIcon_STATE_Hidden;
@@ -128,7 +127,7 @@ RECOMP_PATCH void CamControl_lock_icon_tick(void) {
         //Highlight the target object when in range
         if ((SQ(dx) + SQ(dz) < distSquared) && ((dy > -100.0f) && (dy < 100.0f))) {
             hlObject->unkAF |= ARROW_FLAG_4_Highlighted;
-            sCamData->targetFlags |= 4;
+            sCam->targetFlags |= 4;
         }
         
         //Update target Object's interaction flags when A button pressed
@@ -168,8 +167,8 @@ RECOMP_PATCH void CamControl_lock_icon_tick(void) {
             gDLL_6_AMSFX->vtbl->play(hlObject, SOUND_72E_Lock_Disengage, MAX_VOLUME, 0, 0, 0, 0);
             sIconState = LockIcon_STATE_Vanish;
         } else {
-            //Automatically lock-on (during Ship Battle?)
-            if (sActiveID == DLL_ID_CAMSHIPBATTLE1) {
+            //Automatically lock-on
+            if (sActiveID == DLL_ID_CAMLOCKON) {
                 gDLL_6_AMSFX->vtbl->play(hlObject, SOUND_72D_Lock_On, MAX_VOLUME, 0, 0, 0, 0);
                 sIconState = LockIcon_STATE_Lock_On;
                 sIconRapidTimer = 60; //icon spins extra quickly for 1st second
@@ -190,7 +189,7 @@ RECOMP_PATCH void CamControl_lock_icon_tick(void) {
             break;
         }
         
-        if (sActiveID != DLL_ID_CAMSHIPBATTLE1) {
+        if (sActiveID != DLL_ID_CAMLOCKON) {
             sIconState = LockIcon_STATE_Highlighted;
         }
         

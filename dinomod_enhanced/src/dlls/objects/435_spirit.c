@@ -26,7 +26,7 @@ RECOMP_PATCH void Spirit_setup(Object* self, AnimObj_Setup* objSetup, s32 arg2) 
     
     objData->base.eventGamebit = objSetup->unk1A;
     objData->base.unk7A = -1;
-    objData->base.unk24 = 1.0f / ((u8)objSetup->unk24 + 1.0f);
+    objData->base.unk24 = 1.0f / ((u8)objSetup->camEaseDuration + 1.0f);
     objData->base.unk28 = -1;
     
     temp_v0 = self->unkDC;
