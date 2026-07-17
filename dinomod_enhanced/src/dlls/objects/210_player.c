@@ -788,15 +788,23 @@ RECOMP_PATCH s32 dll_210_func_AE34(Object* player, ObjFSA_Data* fsa, f32 arg2) {
         func_80023D30(player, objdata->modAnims[objdata->unk8C0], animProgress, 0);
     }
 
-    // calculations here are absolutely useless but requires to match
-    temp_fv0 = (f32)fsa->unk4.relativeFloorPitchSmooth / 0x2000;
-    if (1.0f < temp_fv0) { temp_fv0 = 1.0f; }
-    else if (temp_fv0 < -1.0f) { temp_fv0 = -1.0f; }
-
-    if (0.0f > temp_fv0) {
-        // @fake
-        if (fsa->unk278 && fsa->unk278) {}
+        temp_fv0 = (f32)fsa->unk4.relativeFloorPitchSmooth / 0x2000;
+    if (1.0f < temp_fv0) { 
+temp_fv0 = 1.0f; 
+    } else if (temp_fv0 < -1.0f) {
+        temp_fv0 = -1.0f;
     }
+    if (temp_fv0 > 0.0f) {
+        temp_t3 = 1;
+    } else {
+        temp_t3 = 0;
+    }
+    if (temp_fv0 < 0.0f) {
+        temp_fv0 = -temp_fv0;
+    }
+    //if (temp_fv0){} // @fake
+    // @recomp: Restore animation blend call for uphill/downhill walk anim variations
+    func_80025540(player, objdata->modAnims[objdata->unk8C0 + temp_t3 + 1], temp_fv0 * 1023.0f);
 
     if (!func_8002493C(player, fsa->unk278, &fsa->animTickDelta)){
         diPrintf("krystal.c: objGetAnimChange Error\n");
