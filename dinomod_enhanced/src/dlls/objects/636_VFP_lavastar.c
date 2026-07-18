@@ -34,14 +34,14 @@ RECOMP_PATCH void VFP_lavastar_control(Object* self) {
     setup = (VFP_lavastar_Setup*)self->setup;
     self->srt.transl.y += gUpdateRateF * objdata->speed;
     if ((setup->base.y + 1200.0f) < self->srt.transl.y) {
-        objdata->speed = rand_next(5, 20) * 0.1f;
+        objdata->speed = mathRnd(5, 20) * 0.1f;
         self->srt.transl.y = setup->base.y;
     }
-    if (rand_next(0, 3) == 0) {
+    if (mathRnd(0, 3) == 0) {
         sDLL_182->vtbl->func0(self, 0, NULL, 4, -1, NULL);
     }
     // @recomp: Disable lavastar sound. It appears to be a blank sound and plays every frame. (originally by MusicalProgrammer)
     // if (objdata->soundHandle == 0) {
-    //     gDLL_6_AMSFX->vtbl->play(self, SOUND_AAE, MAX_VOLUME, &objdata->soundHandle, NULL, 0, NULL);
+    //     dll_amSfx->Play(self, SOUND_AAE, MAX_VOLUME, &objdata->soundHandle, NULL, 0, NULL);
     // }
 }

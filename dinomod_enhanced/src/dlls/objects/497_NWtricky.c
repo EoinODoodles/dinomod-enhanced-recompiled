@@ -57,16 +57,16 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
     GroundAnimator_Setup *gaSetup;
 
     objdata = self->data;
-    tricky = get_sidekick();
+    tricky = objGetSidekick();
     if (tricky == NULL) {
         return;
     }
 
     switch (objdata->state) {
     case STATE_0_Initial:
-        if (main_get_bits(BIT_SnowHorn_Tutorial_Defeated_SharpClaw)) {
-            main_set_bits(BIT_8, 1);
-            main_set_bits(BIT_Tricky_Unlocked_Sidekick_Commands, 1);
+        if (mainGetBits(BIT_SnowHorn_Tutorial_Defeated_SharpClaw)) {
+            mainSetBits(BIT_8, 1);
+            mainSetBits(BIT_Tricky_Unlocked_Sidekick_Commands, 1);
             objdata->state = STATE_2_Learning_Sidekick_Commands;
         } else if (((DLL_ISidekick*)tricky->dll)->vtbl->func24(tricky) != 0) {
             objdata->state = STATE_1_Chased_by_SharpClaw;
@@ -75,17 +75,17 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
         break;
 
     case STATE_1_Chased_by_SharpClaw:
-        if (main_get_bits(BIT_SnowHorn_Tutorial_Defeated_SharpClaw)) {
+        if (mainGetBits(BIT_SnowHorn_Tutorial_Defeated_SharpClaw)) {
             ((DLL_ISidekick*)tricky->dll)->vtbl->func21(tricky, 0, 0);
-            gDLL_6_AMSFX->vtbl->stop_object(tricky);
-            main_set_bits(BIT_4E3, 0);
+            gDLL_6_AMSFX->vtbl->StopObject(tricky);
+            mainSetBits(BIT_4E3, 0);
             objdata->state = STATE_2_Learning_Sidekick_Commands;
         } else {
             //Call out while being chased
             objdata->timer += gUpdateRateF;
             if (objdata->timer >= NWTRICKY_INVERVAL_CALL_FOR_HELP) {
                 objdata->timer -= NWTRICKY_INVERVAL_CALL_FOR_HELP;
-                gDLL_6_AMSFX->vtbl->play(tricky, SOUND_222_NW_Tricky_Sharpclaw_Help, MAX_VOLUME, NULL, NULL, 0, NULL);
+                dll_amSfx->Play(tricky, SOUND_222_NW_Tricky_Sharpclaw_Help, MAX_VOLUME, NULL, NULL, 0, NULL);
             }
         }
         break;
@@ -93,7 +93,7 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
     case STATE_2_Learning_Sidekick_Commands:
         //@recomp: make sure Heel and Find are unlocked (allows skipping Tricky's sequence)
         if (!objdata->doneDemo && cmdmenu_is_button_override_active()) {
-            main_set_bits(BIT_Tricky_Unlocked_Sidekick_Commands, TRUE);
+            mainSetBits(BIT_Tricky_Unlocked_Sidekick_Commands, TRUE);
 
             //Clear tutorial's cmdmenu button overrides
             gDLL_1_cmdmenu->vtbl->set_buttons_override(CMDMENU_CLEAR_BUTTONS_OVERRIDE);
@@ -103,15 +103,15 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
 
         objdata->timer += gUpdateRateF;
         if (objdata->timer >= NWTRICKY_INVERVAL_OFFER_HINT) {
-            if (main_get_bits(BIT_4E3) == 0xFF) {
+            if (mainGetBits(BIT_4E3) == 0xFF) {
                 objdata->timer = 0.0f;
                 if (objdata->sidekickStats->blueFood < 4) {
-                    main_set_bits(BIT_4E3, 1);
-                } else if (!main_get_bits(BIT_SW_Tricky_Toy_Unearthed) && main_get_bits(BIT_Tricky_Unlocked_Sidekick_Commands)) {
-                    player = get_player();
+                    mainSetBits(BIT_4E3, 1);
+                } else if (!mainGetBits(BIT_SW_Tricky_Toy_Unearthed) && mainGetBits(BIT_Tricky_Unlocked_Sidekick_Commands)) {
+                    player = objGetPlayer();
 
                     //Get GroundAnimator object for the hole containing Tricky's ball
-                    trickyballGroundAnimator = func_800211B4(0x1785); //search by uID
+                    trickyballGroundAnimator = objGetObjectByUID(0x1785); //search by uID
 
                     //@recomp: fix missing null check
                     if (trickyballGroundAnimator) {
@@ -121,14 +121,14 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
                     }
 
                     //Offer a hint if Tricky and the player stay at the toy's dig spot for a while
-                    if (gaSetup && (vec3_distance_squared(
+                    if (gaSetup && (vec3DistanceSquared(
                             &trickyballGroundAnimator->globalPosition,
                             &player->globalPosition) <= SQ(gaSetup->unk23)) && 
-                        (vec3_distance_squared(
+                        (vec3DistanceSquared(
                             &player->globalPosition, 
                             &tricky->globalPosition) <= 10000.0f)
                     ) {
-                        gDLL_6_AMSFX->vtbl->play(tricky, SOUND_4BC_Tricky_Dig_EMPTY, MAX_VOLUME, NULL, NULL, 0, NULL);
+                        dll_amSfx->Play(tricky, SOUND_4BC_Tricky_Dig_EMPTY, MAX_VOLUME, NULL, NULL, 0, NULL);
                         gDLL_22_Subtitles->vtbl->func_368(GAMETEXT_0BE_SW_Tricky_Tutorial_Hint);
                     }
                 }
@@ -136,8 +136,8 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
         }
 
         //Unlock Tricky's Ball
-        if (main_get_bits(BIT_SW_Tricky_Ball_Collected)) {
-            main_set_bits(BIT_Tricky_Ball_Unlocked, 1);
+        if (mainGetBits(BIT_SW_Tricky_Ball_Collected)) {
+            mainSetBits(BIT_Tricky_Ball_Unlocked, 1);
         }
         break;
     }
@@ -156,7 +156,7 @@ RECOMP_PATCH int NWtricky_anim_callback(Object *self, Object *animObj, AnimObj_D
     buttonMask = 0;
 
     if (!objdata->doneDemo) {
-        tricky = get_sidekick();
+        tricky = objGetSidekick();
         ((DLL_ISidekick*)tricky->dll)->vtbl->enable_command(tricky, Sidekick_Command_INDEX_1_Find);
         ((DLL_ISidekick*)tricky->dll)->vtbl->enable_command(tricky, Sidekick_Command_INDEX_2_Distract);
         ((DLL_ISidekick*)tricky->dll)->vtbl->enable_command(tricky, Sidekick_Command_INDEX_3_Guard);
@@ -173,7 +173,7 @@ RECOMP_PATCH int NWtricky_anim_callback(Object *self, Object *animObj, AnimObj_D
             }
             break;
         case NWtricky_DEMO_STATE_Show_Inventory:
-            pressedButtons = joy_get_pressed_raw(0); //@recomp
+            pressedButtons = joyGetPressedRaw(0); //@recomp
             STUBBED_PRINTF("menu cbuttons %d\n", pressedButtons);
             for (i = 0; i < animObjData->messageCount; i++) {
                 if (animObjData->messages[i] == 4) {
@@ -194,7 +194,7 @@ RECOMP_PATCH int NWtricky_anim_callback(Object *self, Object *animObj, AnimObj_D
                     buttonMask = A_BUTTON; // simulate A press
             }
 
-            buttonMask |= joy_get_pressed_raw(0) & A_BUTTON;
+            buttonMask |= joyGetPressedRaw(0) & A_BUTTON;
 
             if (buttonMask & A_BUTTON) {
                 objdata->doneDemo = TRUE;

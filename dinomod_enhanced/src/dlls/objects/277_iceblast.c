@@ -23,7 +23,7 @@ RECOMP_PATCH void iceblast_control(Object* self) {
     Player_Data* playerData;
     int reduceIceBlastCost = recomp_get_config_u32("iceblast_cost");
 
-    player = get_player();
+    player = objGetPlayer();
     objdata = self->data;
     if (!player) {
         return;
@@ -65,7 +65,7 @@ RECOMP_PATCH void iceblast_control(Object* self) {
         if (weapon->id == OBJ_sword)
             transform.pitch -= 0x8000;
         
-        rotate_vec3(&transform, self->velocity.f);
+        mathRotateRPY(&transform, self->velocity.f);
         self->srt.transl.x = weapon->globalPosition.x;
         self->srt.transl.y = weapon->globalPosition.y;
         self->srt.transl.z = weapon->globalPosition.z;
@@ -89,5 +89,5 @@ RECOMP_PATCH void iceblast_control(Object* self) {
 
 // Hide debug cubes
 RECOMP_PATCH void iceblast_print(Object* self, Gfx** gfx, Mtx** mtx, Vertex** vtx, Triangle** pols, s32 visibility) {
-    // draw_object(self, gfx, mtx, vtx, pols, 1.0f);
+    // objprintDrawModel(self, gfx, mtx, vtx, pols, 1.0f);
 }

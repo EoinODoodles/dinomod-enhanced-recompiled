@@ -79,7 +79,7 @@ RECOMP_PATCH void SPShop_control(Object* self) {
     Object* player;
 
     objData = self->data; //@recomp: get objData
-    player = get_player();
+    player = objGetPlayer();
 
     if (self->unkDC == 0) {
         gDLL_29_Gplay->vtbl->set_obj_group_status(self->mapID, 0, 1);
@@ -95,7 +95,7 @@ RECOMP_PATCH void SPShop_control(Object* self) {
         func_80000860(self, self, 0x1CB, 0);
         func_80000450(self, self, 0x22F, 0, 0, 0);
         func_80000450(self, self, 0x231, 0, 0, 0);
-        main_set_bits(BIT_SP_Entered_Shop, 1);
+        mainSetBits(BIT_SP_Entered_Shop, 1);
         gDLL_5_AMSEQ2->vtbl->set(NULL, 0xF3, 0, 0, 0);
         func_8001EBD0(1);
         self->unkDC = 1;
@@ -110,7 +110,7 @@ RECOMP_PATCH void SPShop_control(Object* self) {
     }
 
     //@recomp: instead of immediately warping away when leaving shop, fade to black then warp
-    if (!objData->doWarp && main_get_bits(BIT_SP_Exiting_Shop)) {
+    if (!objData->doWarp && mainGetBits(BIT_SP_Exiting_Shop)) {
         gDLL_28_ScreenFade->vtbl->fade(20, SCREEN_FADE_BLACK);
         objData->transitionTimer = 35;
         objData->doWarp = TRUE;
@@ -123,9 +123,9 @@ RECOMP_PATCH void SPShop_control(Object* self) {
         gDLL_28_ScreenFade->vtbl->fade_reversed(20, SCREEN_FADE_BLACK);
 
         if (player->id == OBJ_Sabre) {
-            warpPlayer(WARP_SH_ROCKY_PODIUM, FALSE);
+            mapWarpPlayer(WARP_SH_ROCKY_PODIUM, FALSE);
         } else {
-            warpPlayer(WARP_SC_RUBBLE_PODIUM, FALSE);
+            mapWarpPlayer(WARP_SC_RUBBLE_PODIUM, FALSE);
         }
     }
 }

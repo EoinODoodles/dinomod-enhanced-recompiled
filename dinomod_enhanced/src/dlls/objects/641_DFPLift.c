@@ -84,7 +84,7 @@ RECOMP_PATCH void DFPLift_setup(Object *self, DFPLift_Setup *setup, s32 a2) {
 
     if (self->id == OBJ_DFPLift1) {
         // @recomp: Hijack field for use in custom control func
-        objdata->alreadyEnabled = main_get_bits(objdata->gamebitActivated);
+        objdata->alreadyEnabled = mainGetBits(objdata->gamebitActivated);
         // @recomp: Shift DFP lift down a little
         self->srt.transl.y -= 8.0f;
     }
@@ -100,7 +100,7 @@ static void custom_dfplift_control(Object *self) {
     setup = (DFPLift_Setup*)self->setup;
     objdata = (DFPLift_Data*)self->data;
     
-    player = get_player();
+    player = objGetPlayer();
     if (player == NULL) {
         return;
     }
@@ -111,13 +111,13 @@ static void custom_dfplift_control(Object *self) {
 
     switch (objdata->state) {
     case LIFT_STATE_INIT:
-        if ((main_get_bits(objdata->gamebitActivated) != 0) && (objdata->alreadyEnabled != TRUE) && 
-                (vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_INIT_ACTIVATE_RANGE)) {
+        if ((mainGetBits(objdata->gamebitActivated) != 0) && (objdata->alreadyEnabled != TRUE) && 
+                (vec3DistanceXZ(&self->globalPosition, &player->globalPosition) < PLAYER_INIT_ACTIVATE_RANGE)) {
             // activated for the first time
             objdata->state = LIFT_STATE_INIT_DONE;
             gDLL_3_Animation->vtbl->start_obj_sequence(LIFTSEQ_GoUp, self, -1);
         } else if (objdata->alreadyEnabled == TRUE) {
-            if (vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_INIT_ACTIVATE_RANGE) {
+            if (vec3DistanceXZ(&self->globalPosition, &player->globalPosition) < PLAYER_INIT_ACTIVATE_RANGE) {
                 // already activated
                 objdata->state = LIFT_STATE_INIT_DONE;
                 if (setup->base.y < player->srt.transl.y) {
@@ -130,7 +130,7 @@ static void custom_dfplift_control(Object *self) {
         objdata->state = LIFT_STATE_STOPPED;
         break;
     case LIFT_STATE_STOPPED:
-        playerDist = vec3_distance_xz(&self->globalPosition, &player->globalPosition);
+        playerDist = vec3DistanceXZ(&self->globalPosition, &player->globalPosition);
         if (objdata->playerOnLift) {
             // wait for player to be off the lift
             if (playerDist >= PLAYER_ACTIVATE_RANGE) {
@@ -182,19 +182,19 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
     setup = (DFPLift_Setup*)self->setup;
     objdata = (DFPLift_Data*)self->data;
     
-    player = get_player();
+    player = objGetPlayer();
     if (player == NULL) {
         return;
     }
     
     switch (objdata->state) {
     case LIFT_STATE_INIT:
-        if ((main_get_bits(objdata->gamebitActivated) != 0) && (objdata->alreadyEnabled != TRUE) && 
-                (vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_INIT_ACTIVATE_RANGE)) {
+        if ((mainGetBits(objdata->gamebitActivated) != 0) && (objdata->alreadyEnabled != TRUE) && 
+                (vec3DistanceXZ(&self->globalPosition, &player->globalPosition) < PLAYER_INIT_ACTIVATE_RANGE)) {
             // go up with sound
             if (self->srt.transl.y < (setup->base.y + LIFT_UP)) {
                 if (objdata->soundHandle == 0) {
-                    gDLL_6_AMSFX->vtbl->play(self, SOUND_6EC_Mechanical_Hum_Loop, 0x75, &objdata->soundHandle, NULL, 0, NULL);
+                    dll_amSfx->Play(self, SOUND_6EC_Mechanical_Hum_Loop, 0x75, &objdata->soundHandle, NULL, 0, NULL);
                     objdata->playerOnLift = 1;
                 }
                 self->srt.transl.y += gUpdateRateF;
@@ -203,14 +203,14 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                     self->srt.transl.y = (setup->base.y + LIFT_UP);
                     objdata->state = LIFT_STATE_INIT_DONE;
                     if (objdata->soundHandle != 0) {
-                        gDLL_6_AMSFX->vtbl->stop(objdata->soundHandle);
+                        dll_amSfx->Stop(objdata->soundHandle);
                         objdata->soundHandle = 0;
                     }
                 }
                 return;
             }
         } else if (objdata->alreadyEnabled == TRUE) {
-            if (vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_INIT_ACTIVATE_RANGE) {
+            if (vec3DistanceXZ(&self->globalPosition, &player->globalPosition) < PLAYER_INIT_ACTIVATE_RANGE) {
                 // go up without sound
                 if (self->srt.transl.y < (setup->base.y + LIFT_UP)) {
                     self->srt.transl.y += gUpdateRateF;
@@ -234,13 +234,13 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                 objdata->cooldown = 0;
             }
         } else {
-            if (vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_ACTIVATE_RANGE) {
+            if (vec3DistanceXZ(&self->globalPosition, &player->globalPosition) < PLAYER_ACTIVATE_RANGE) {
                 // player is on lift, start moving
                 if (self->srt.transl.y == (setup->base.y + LIFT_UP)) {
                     // at top, start going down
                     objdata->state = LIFT_STATE_GO_DOWN;
                     if (objdata->soundHandle == 0) {
-                        gDLL_6_AMSFX->vtbl->play(self, SOUND_6EC_Mechanical_Hum_Loop, 0x6B, &objdata->soundHandle, NULL, 0, NULL);
+                        dll_amSfx->Play(self, SOUND_6EC_Mechanical_Hum_Loop, 0x6B, &objdata->soundHandle, NULL, 0, NULL);
                         objdata->playerOnLift = TRUE;
                     }
                 // @recomp: Get LIFT_DOWN depending on object ID
@@ -248,7 +248,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                     // at bottom, start going up
                     objdata->state = LIFT_STATE_GO_UP;
                     if (objdata->soundHandle == 0) {
-                        gDLL_6_AMSFX->vtbl->play(self, SOUND_6EC_Mechanical_Hum_Loop, 0x43, &objdata->soundHandle, NULL, 0, NULL);
+                        dll_amSfx->Play(self, SOUND_6EC_Mechanical_Hum_Loop, 0x43, &objdata->soundHandle, NULL, 0, NULL);
                         objdata->playerOnLift = TRUE;
                     }
                 }
@@ -278,21 +278,21 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                 self->srt.transl.y = (setup->base.y - dinomod_get_lift_down(self));
                 objdata->state = LIFT_STATE_STOPPED;
                 if (objdata->soundHandle != 0) {
-                    gDLL_6_AMSFX->vtbl->stop(objdata->soundHandle);
+                    dll_amSfx->Stop(objdata->soundHandle);
                     objdata->soundHandle = 0;
                 }
                 objdata->cooldown = LIFT_COOLDOWN;
             }
-            if ((vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_ACTIVATE_RANGE) && (objdata->playerOnLift == 1)) {
+            if ((vec3DistanceXZ(&self->globalPosition, &player->globalPosition) < PLAYER_ACTIVATE_RANGE) && (objdata->playerOnLift == 1)) {
                 
             }
         } else {
             // already at bottom
             if (objdata->soundHandle != 0) {
-                gDLL_6_AMSFX->vtbl->stop(objdata->soundHandle);
+                dll_amSfx->Stop(objdata->soundHandle);
                 objdata->soundHandle = 0;
             }
-            vec3_distance_xz(&self->globalPosition, &player->globalPosition);
+            vec3DistanceXZ(&self->globalPosition, &player->globalPosition);
             objdata->state = LIFT_STATE_STOPPED;
             objdata->cooldown = LIFT_COOLDOWN;
         }
@@ -307,11 +307,11 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                 objdata->state = LIFT_STATE_STOPPED;
                 objdata->cooldown = LIFT_COOLDOWN;
                 if (objdata->soundHandle != 0) {
-                    gDLL_6_AMSFX->vtbl->stop(objdata->soundHandle);
+                    dll_amSfx->Stop(objdata->soundHandle);
                     objdata->soundHandle = 0;
                 }
             }
-            if ((vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_ACTIVATE_RANGE) && (objdata->playerOnLift == 1)) {
+            if ((vec3DistanceXZ(&self->globalPosition, &player->globalPosition) < PLAYER_ACTIVATE_RANGE) && (objdata->playerOnLift == 1)) {
                 
             }
         } else {
@@ -319,10 +319,10 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
             objdata->state = LIFT_STATE_STOPPED;
             objdata->cooldown = LIFT_COOLDOWN;
             if (objdata->soundHandle != 0) {
-                gDLL_6_AMSFX->vtbl->stop(objdata->soundHandle);
+                dll_amSfx->Stop(objdata->soundHandle);
                 objdata->soundHandle = 0;
             }
-            if ((vec3_distance_xz(&self->globalPosition, &player->globalPosition) < PLAYER_ACTIVATE_RANGE) && (objdata->playerOnLift == 1)) {
+            if ((vec3DistanceXZ(&self->globalPosition, &player->globalPosition) < PLAYER_ACTIVATE_RANGE) && (objdata->playerOnLift == 1)) {
 
             }
         }
@@ -340,12 +340,12 @@ RECOMP_PATCH int DFPLift_func_91C(Object *self, Object *animObj, AnimObj_Data *s
         switch (st->messages[i]) {
             case 1:
                 if (objdata->soundHandle == 0) {
-                    gDLL_6_AMSFX->vtbl->play(self, SOUND_6EC_Mechanical_Hum_Loop, 107, &objdata->soundHandle, NULL, 0, NULL);
+                    dll_amSfx->Play(self, SOUND_6EC_Mechanical_Hum_Loop, 107, &objdata->soundHandle, NULL, 0, NULL);
                 }
                 break;
             case 2:
                 if (objdata->soundHandle != 0) {
-                    gDLL_6_AMSFX->vtbl->stop(objdata->soundHandle);
+                    dll_amSfx->Stop(objdata->soundHandle);
                     objdata->soundHandle = 0;
                 }
                 break;

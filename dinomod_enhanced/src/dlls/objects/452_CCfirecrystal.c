@@ -44,7 +44,7 @@ extern void CCfirecrystal_free(Object* self, s32 arg1);
 /** Check whether the item collection sequence will be shown on collecting the crystal */
 static int fire_crystal_will_tutorial_be_shown() {
     if (GAMEBIT_TUTORIAL > (NO_GAMEBIT + 1)) {
-        return (main_get_bits(GAMEBIT_TUTORIAL) == FALSE);
+        return (mainGetBits(GAMEBIT_TUTORIAL) == FALSE);
     } else {
         return TRUE;
     }
@@ -58,7 +58,7 @@ static void fire_crystal_log_info(Object* self, CCfirecrystal_Setup* objSetup, C
     recomp_printf("Tutorial gamebit: %x\n", GAMEBIT_TUTORIAL);
     recomp_printf("Tutorial animObjID: %d\n", GAMEBIT_TUTORIAL_ANIMOBJ);
     recomp_printf("Show tutorial: %s\n", fire_crystal_will_tutorial_be_shown() ? "YES" : "NO");
-    recomp_printf("Current count: %d\n", main_get_bits(BIT_CC_Fire_Crystal));
+    recomp_printf("Current count: %d\n", mainGetBits(BIT_CC_Fire_Crystal));
     recomp_printf("Icon gamebit: %x\n", GAMEBIT_INVENTORY);
 }
 
@@ -82,7 +82,7 @@ static void fire_crystal_handle_popup(Object* self, CCfirecrystal_Setup* objSetu
     }
 
     //Show the item collection pop-up
-    count = main_get_bits(BIT_CC_Fire_Crystal);
+    count = mainGetBits(BIT_CC_Fire_Crystal);
     if (count) {
         gDLL_1_cmdmenu->vtbl->info_show(
             BIT_CC_Fire_Crystal,
@@ -110,16 +110,16 @@ RECOMP_PATCH void CCfirecrystal_control(Object* self) {
         self->unkE0 -= gUpdateRate * 3;
         if (self->unkE0 <= 0) {
             CCfirecrystal_free(self, 0);
-            obj_destroy_object(self);
+            objFreeObject(self);
             return;
         }
     }
 
-    self->opacity = rand_next(0, 56) + 100;
+    self->opacity = mathRnd(0, 56) + 100;
     
     switch (objData->state) {
     case FireCrystal_State_3_Collected:
-        while (obj_recv_mesg(self, &message, 0, 0)){
+        while (objRecvMesg(self, &message, 0, 0)){
             switch (message) {
             case 0x7000B:
                 objData->state = FireCrystal_State_1_Finished;
@@ -136,12 +136,12 @@ RECOMP_PATCH void CCfirecrystal_control(Object* self) {
         break;
     case FireCrystal_State_0_Collectable:
         //Handle being collected via player interaction
-        if (func_80032538(self) == FALSE) {
+        if (objCheckPlayerInteract(self) == FALSE) {
             break;
         }
 
-        main_set_bits(objSetup->gamebitCollected, 1);
-        main_increment_bits(GAMEBIT_INVENTORY);
+        mainSetBits(objSetup->gamebitCollected, 1);
+        mainIncrementBits(GAMEBIT_INVENTORY);
         objData->state = FireCrystal_State_3_Collected;
         self->unkAF = ARROW_FLAG_8_No_Targetting;
         self->objhitInfo->unk58 = 0x100;
@@ -152,8 +152,8 @@ RECOMP_PATCH void CCfirecrystal_control(Object* self) {
         }
 
         //Have the player scoop up the item, and play a tutorial cutscene if needed
-        obj_send_mesg(
-            get_player(), 
+        objSendMesg(
+            objGetPlayer(), 
             0x7000A, 
             self, 
             (void*)GAMEBIT_TUTORIAL

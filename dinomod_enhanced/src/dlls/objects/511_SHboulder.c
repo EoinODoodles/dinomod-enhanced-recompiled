@@ -21,7 +21,7 @@ typedef struct {
 /** Adds transforms into the setup, and removes boulder if its gamebit is already set */
 RECOMP_PATCH void SHboulder_setup(Object *self, SHboulder_Setup *objSetup, s32 arg2) {
     SHboulder_Data* objData = self->data;//@recomp
-    if (objSetup->gamebitGone != NO_GAMEBIT && main_get_bits(objSetup->gamebitGone)){
+    if (objSetup->gamebitGone != NO_GAMEBIT && mainGetBits(objSetup->gamebitGone)){
         objData->fadeOut = TRUE;
         self->opacity = 0;
     }
@@ -57,10 +57,10 @@ static void SHboulder_create_debris(Object* self, SHboulder_Setup* objSetup) {
     transform.scale = 30;
     transform.transl.z = 10;
     for (i = 0; i < 50; i++){
-        params[0] = rand_next(-30, 30) * 0.02f * 0.7f;
-        params[1] = -rand_next(18, 22) * 0.03f * 0.7f;
-        transform.transl.x = rand_next(-30, 30);
-        transform.transl.y = rand_next(-3, 40);
+        params[0] = mathRnd(-30, 30) * 0.02f * 0.7f;
+        params[1] = -mathRnd(18, 22) * 0.03f * 0.7f;
+        transform.transl.x = mathRnd(-30, 30);
+        transform.transl.y = mathRnd(-3, 40);
         gDLL_17_partfx->vtbl->spawn(self, 0x3F2, &transform, 60, -1, &params);
     }
 }
@@ -98,14 +98,14 @@ RECOMP_PATCH void SHboulder_control(Object* self) {
 
     //@recomp: check if the sequence has played (for the special debris boulder)
     if (objSetup && objSetup->debris) {
-        seqHasPlayed = main_get_bits(DINOMOD_BIT_92C_SH_River_Seq_Has_Played);
+        seqHasPlayed = mainGetBits(DINOMOD_BIT_92C_SH_River_Seq_Has_Played);
     }
 
     //@recomp: check for gamebit
     if (!objData->fadeOut && 
         objSetup && 
         (objSetup->gamebitGone != NO_GAMEBIT) && 
-        main_get_bits(objSetup->gamebitGone)
+        mainGetBits(objSetup->gamebitGone)
     ){
         objData->fadeOut = TRUE;
         if (objSetup->debris) {
@@ -121,7 +121,7 @@ RECOMP_PATCH void SHboulder_control(Object* self) {
     if (objSetup->debris && objData->fadeOut) {
         objData->timer += gUpdateRate;
         if (seqHasPlayed || (objData->timer > 333)) {
-            obj_destroy_object(self);
+            objFreeObject(self);
         }
     }
 
@@ -136,7 +136,7 @@ RECOMP_PATCH void SHboulder_control(Object* self) {
         opacity = self->opacity - gUpdateRate * 4; //@recomp: fix bug in opacity fade
         if (opacity < 0) {
             opacity = 0;
-            obj_destroy_object(self);
+            objFreeObject(self);
         }
         self->opacity = opacity;
         return;
@@ -148,7 +148,7 @@ RECOMP_PATCH void SHboulder_control(Object* self) {
 
         //@recomp: set gamebit on destruction
         if (objSetup && objSetup->gamebitGone != NO_GAMEBIT){
-            main_set_bits(objSetup->gamebitGone, 1);
+            mainSetBits(objSetup->gamebitGone, 1);
         }
     }
 }

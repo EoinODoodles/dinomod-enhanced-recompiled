@@ -18,8 +18,8 @@ RECOMP_PATCH void dll_652_func_364(Object* self) {
     s16 bit1Val;
 
     objdata = (DLL652_Data*)self->data;
-    bit2Val = main_get_bits(objdata->unk2);
-    bit1Val = main_get_bits(objdata->unk0);
+    bit2Val = mainGetBits(objdata->unk2);
+    bit1Val = mainGetBits(objdata->unk0);
     if ((bit1Val == 0) && (bit2Val != 0) && (objdata->unk4 == 0)) {
         self->unkAF &= ~8;
         // @recomp: Accept the correct spellstone (original patch by jeebs2kx)

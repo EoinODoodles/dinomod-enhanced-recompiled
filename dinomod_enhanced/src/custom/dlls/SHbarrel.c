@@ -43,7 +43,7 @@ void SHbarrel_dtor(void *dll) { }
 static void SHbarrel_setup(Object* self, SHBarrel_Setup* setup, s32 reset) {
     SHbarrel_Data* objdata = self->data;
 
-    obj_add_object_type(self, OBJTYPE_Barrel);
+    objAddObjectType(self, OBJTYPE_Barrel);
 
     self->srt.yaw = setup->yaw << 8;
     self->opacity = 0;
@@ -63,7 +63,7 @@ static void SHbarrel_setup(Object* self, SHBarrel_Setup* setup, s32 reset) {
 }
 
 static void SHbarrel_drop_if_player_underwater(Object* self) {
-    Object* player = get_player();
+    Object* player = objGetPlayer();
     if (player == NULL || player->data == NULL) {
         return;
     }
@@ -75,7 +75,7 @@ static void SHbarrel_drop_if_player_underwater(Object* self) {
 }
 
 static void SHbarrel_player_push(Object* self, SHbarrel_Data* objdata) {
-    Object* player = get_player();
+    Object* player = objGetPlayer();
     if (player == NULL) {
         return;
     }
@@ -192,7 +192,7 @@ static void SHbarrel_physics(Object* self, SHbarrel_Data* objdata) {
         }
     }
 
-    obj_move(self, self->velocity.x, self->velocity.y, self->velocity.z);
+    objMove(self, self->velocity.x, self->velocity.y, self->velocity.z);
 }
 
 static void SHbarrel_collision(Object* self, SHbarrel_Data* objdata, s32 pickupState) {
@@ -223,7 +223,7 @@ static void SHbarrel_collision(Object* self, SHbarrel_Data* objdata, s32 pickupS
     }
 
     // Recalculate global position
-    transform_point_by_object(
+    camTransformPointByObject(
         self->srt.transl.x, self->srt.transl.y, self->srt.transl.z, 
         &self->globalPosition.x, &self->globalPosition.y, &self->globalPosition.z, 
         self->parent);
@@ -259,7 +259,7 @@ static void SHbarrel_collision(Object* self, SHbarrel_Data* objdata, s32 pickupS
     }
 
     // Recalculate local position
-    inverse_transform_point_by_object(
+    camInverseTransformPointByObject(
         self->globalPosition.x, self->globalPosition.y, self->globalPosition.z, 
         &self->srt.transl.x, &self->srt.transl.y, &self->srt.transl.z, 
         self->parent);
@@ -281,7 +281,7 @@ static void SHbarrel_handle_damage(Object* self, SHbarrel_Data* objdata) {
     }
 
     //When damaged, play an impact sound
-    gDLL_6_AMSFX->vtbl->play(self, SOUND_372_Crate_Struck, MAX_VOLUME, NULL, NULL, 0, NULL);
+    dll_amSfx->Play(self, SOUND_372_Crate_Struck, MAX_VOLUME, NULL, NULL, 0, NULL);
 
     if (objdata->damage < 3) {
         return;
@@ -299,11 +299,11 @@ static void SHbarrel_handle_damage(Object* self, SHbarrel_Data* objdata) {
         func_80026940(self, 40);
         func_80026128(self, Damage_Type_Explosion, 4, 0);
         
-        DIMExplosion_Setup* explosion = obj_alloc_setup(sizeof(DIMExplosion_Setup), OBJ_DIMExplosion);
+        DIMExplosion_Setup* explosion = objAllocSetup(sizeof(DIMExplosion_Setup), OBJ_DIMExplosion);
         explosion->base.x = self->srt.transl.x;
         explosion->base.y = self->srt.transl.y;
         explosion->base.z = self->srt.transl.z;
-        obj_create((ObjSetup*)explosion, OBJINIT_STANDALONE | OBJINIT_FLAG4, self->mapID, -1, self->parent);
+        objSetupObject((ObjSetup*)explosion, OBJINIT_STANDALONE | OBJINIT_FLAG4, self->mapID, -1, self->parent);
         
         gDLL_17_partfx->vtbl->spawn(self, PARTICLE_355, NULL, 0, -1, NULL);
         gDLL_17_partfx->vtbl->spawn(self, PARTICLE_352, NULL, 0, -1, NULL);
@@ -345,7 +345,7 @@ static void SHbarrel_control(Object* self) {
         objdata->ticksSinceDetonation += gUpdateRate;
 
         if (objdata->ticksSinceDetonation >= (60 * 4)) {
-            obj_destroy_object(self);
+            objFreeObject(self);
         }
 
         return;
@@ -377,7 +377,7 @@ static void SHbarrel_control(Object* self) {
                 if (speed > 0.5f && objdata->waterRippleCooldown <= 0.0f) {
                     objdata->waterRippleCooldown = 3.0f;
 
-                    s32 angle = arctan2_f(-self->velocity.x, -self->velocity.z);
+                    s32 angle = mathAtan2f(-self->velocity.x, -self->velocity.z);
                     gDLL_24_Waterfx->vtbl->spawn_movement_ripple(self->globalPosition.x, objdata->waterY, self->globalPosition.z, angle, 0.0f);
                 }
 
@@ -412,12 +412,12 @@ static void SHbarrel_print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** vtxs, T
     SHbarrel_Data* objdata = self->data;
 
     if (objdata->ticksSinceDetonation == 0 && gDLL_54_pickup->vtbl->should_print(self, visibility)) {
-        draw_object(self, gdl, mtxs, vtxs, pols, 1.0f);
+        objprintDrawModel(self, gdl, mtxs, vtxs, pols, 1.0f);
     }
 }
 
 static void SHbarrel_free(Object* self, s32 onlySelf) {
-    obj_free_object_type(self, OBJTYPE_Barrel);
+    objFreeObjectType(self, OBJTYPE_Barrel);
     gDLL_54_pickup->vtbl->free(self);
 }
 
@@ -430,11 +430,11 @@ static u32 SHbarrel_get_data_size(Object *self, u32 offsetAddr) {
 }
 
 DLL_IObject_Vtbl DLL_SHbarrel_vtbl = {
-    .setup = (void*)SHbarrel_setup,
-    .control = SHbarrel_control,
-    .update = SHbarrel_update,
-    .print = SHbarrel_print,
-    .free = SHbarrel_free,
-    .get_model_flags = SHbarrel_get_model_flags,
-    .get_data_size = SHbarrel_get_data_size
+    .Setup = (void*)SHbarrel_setup,
+    .Control = SHbarrel_control,
+    .Update = SHbarrel_update,
+    .Print = SHbarrel_print,
+    .Free = SHbarrel_free,
+    .GetModelFlags = SHbarrel_get_model_flags,
+    .GetDataSize = SHbarrel_get_data_size
 };

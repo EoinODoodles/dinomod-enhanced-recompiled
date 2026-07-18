@@ -63,12 +63,12 @@ extern void DIMTent_draw_mask(Object* self, Gfx** gdl, Mtx** mtxs, Vtx_t** vtxs,
 // Split the tent's Bridge Cog behaviour out into its own function
 static void DIMTent_createCog(Object* self, DIMTent_Setup* objSetup, DIMTent_Data_Extended* objData) {
     //Check if the Bridge Cog's already collected
-    if (main_get_bits(BIT_DIM_Gear_3)) {
+    if (mainGetBits(BIT_DIM_Gear_3)) {
         return;
     }
 
     //Check if this isn't the tent that should drop the Bridge Cog
-    if (main_get_bits(BIT_DIM_Gear_3_Random_Tent) != (u32)objSetup->tentIndex) {
+    if (mainGetBits(BIT_DIM_Gear_3_Random_Tent) != (u32)objSetup->tentIndex) {
         return;
     }
 
@@ -80,7 +80,7 @@ static void DIMTent_createCog(Object* self, DIMTent_Setup* objSetup, DIMTent_Dat
     //Create the cog
     {
         Collectable_Setup* cogSetup;
-        cogSetup = (Collectable_Setup*)obj_alloc_setup(sizeof(Collectable_Setup), OBJ_DIMBridgeCogCol);
+        cogSetup = (Collectable_Setup*)objAllocSetup(sizeof(Collectable_Setup), OBJ_DIMBridgeCogCol);
         cogSetup->base.x = objSetup->base.x;
         cogSetup->base.y = objSetup->base.y + 8.0f;
         cogSetup->base.z = objSetup->base.z;
@@ -93,7 +93,7 @@ static void DIMTent_createCog(Object* self, DIMTent_Setup* objSetup, DIMTent_Dat
         cogSetup->gamebitCount = NO_GAMEBIT;
         cogSetup->objHitsValue = 5;
         cogSetup->yaw = self->srt.yaw >> 8;
-        obj_create((ObjSetup*)cogSetup, 5, self->mapID, -1, NULL);
+        objSetupObject((ObjSetup*)cogSetup, 5, self->mapID, -1, NULL);
         objData->cogCreated = TRUE;
     }
 }
@@ -109,7 +109,7 @@ RECOMP_PATCH void DIMTent_setup(Object* self, DIMTent_Setup* objSetup, s32 arg2)
     objData->hitPoints = 1;
 
     //Check if already burnt
-    if (main_get_bits(objSetup->gamebitBurnt)) {
+    if (mainGetBits(objSetup->gamebitBurnt)) {
         objData->hitPoints = 0;
         self->objhitInfo->unk58 &= ~1;
         objData->outerOpacity = 0;
@@ -125,7 +125,7 @@ RECOMP_PATCH void DIMTent_setup(Object* self, DIMTent_Setup* objSetup, s32 arg2)
     }
 
     objData->maskSpeed = -sMaskSpeeds[0]; //@recomp: start burning downwards, without briefly burning upwards
-    dModGfxDLL = dll_load_deferred(DLL_ID_165, 1);
+    dModGfxDLL = dllLoad(DLL_ID_165, 1);
 }
 
 /** 
@@ -154,11 +154,11 @@ RECOMP_PATCH void DIMTent_control(Object* self) {
     if (objData->outerOpacity == 0) {
         //@recomp: stop sound loop
         if (objData->soundHandle != 0) {
-            gDLL_6_AMSFX->vtbl->stop(objData->soundHandle);
+            dll_amSfx->Stop(objData->soundHandle);
             objData->soundHandle = 0;
 
             //Play "whoosh" sound as snow evaporates
-            gDLL_6_AMSFX->vtbl->play(self, 0x95B, 0x40, NULL, NULL, 0, NULL);
+            dll_amSfx->Play(self, 0x95B, 0x40, NULL, NULL, 0, NULL);
         }
 
         //Fade out the inner tent
@@ -234,12 +234,12 @@ RECOMP_PATCH void DIMTent_control(Object* self) {
         }
 
         //After being fully damaged, track that the tent has been burnt and start the burning effect
-        main_set_bits(objSetup->gamebitBurnt, 1);
+        mainSetBits(objSetup->gamebitBurnt, 1);
         objData->isBurning = TRUE;
 
         //@recomp: Start burning sound loop
         if (objData->soundHandle == 0) {
-            gDLL_6_AMSFX->vtbl->play(self, SOUND_50b_Fire_Burning_High_Loop, 0x60, &objData->soundHandle, NULL, 0, NULL);
+            dll_amSfx->Play(self, SOUND_50b_Fire_Burning_High_Loop, 0x60, &objData->soundHandle, NULL, 0, NULL);
         }
 
         //Drop the bridge cog if this tent's index matches the random one picked by DIMLevelControl
@@ -279,7 +279,7 @@ RECOMP_PATCH void DIMTent_print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** vt
 
                 //Draw the tent if it hasn't faded out (or if the config option has it persist)
                 if (!((tentConfig == DIM_TENT_CINDERS_ON_FADEOUT) && (objData->innerOpacity == 0))) {
-                    draw_object(self, gdl, mtxs, vtxs, pols, 1.0f);
+                    objprintDrawModel(self, gdl, mtxs, vtxs, pols, 1.0f);
                 }
 
                 //Restore opacity after draw
@@ -310,7 +310,7 @@ RECOMP_PATCH void DIMTent_print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** vt
                 self->opacityWithFade = prevOpacity * (((f32)objData->outerOpacity) / 255.0f);
             }
 
-            draw_object(self, gdl, mtxs, vtxs, pols, 1.0f);
+            objprintDrawModel(self, gdl, mtxs, vtxs, pols, 1.0f);
 
             //Restore opacity after draw
             if (self->opacityWithFade != prevOpacityWithFade) {
@@ -341,11 +341,11 @@ RECOMP_PATCH void DIMTent_draw_mask(Object* self, Gfx** gdl, Mtx** mtxs, Vtx_t**
     maskProgress /= MASK_MAX; //tValue for the mask animation (0 at top, 1 at bottom)
 
     //Set up mesh masking draw configs
-    dl_set_prim_color(gdl, 0xFF, 0xFF, 0xFF, 0x80);
+    dlSetPrimColor(gdl, 0xFF, 0xFF, 0xFF, 0x80);
     gSPLoadGeometryMode(*gdl, G_ZBUFFER | G_SHADE | G_CULL_BACK | G_FOG | G_SHADING_SMOOTH);
-    dl_apply_geometry_mode(gdl);
+    dlApplyGeometryMode(gdl);
     gDPSetCombineLERP(*gdl, TEXEL0, 0, SHADE, 0, TEXEL0, 0, PRIMITIVE, 0, COMBINED, 0, PRIMITIVE, 0, 0, 0, 0, COMBINED);
-    dl_apply_combine(gdl);
+    dlApplyCombine(gdl);
 
     //Position the cube's vertices (forming a section of a pyramid)
     for (i = 0; i < ARRAYCOUNT(sMaskVertCoords); i++) {
@@ -377,7 +377,7 @@ RECOMP_PATCH void DIMTent_draw_mask(Object* self, Gfx** gdl, Mtx** mtxs, Vtx_t**
         G_AD_PATTERN | G_CD_MAGICSQ | G_CK_NONE | G_TC_FILT | G_TF_BILERP | G_TT_NONE | G_TL_TILE | G_TD_CLAMP |
         G_TP_PERSP | G_CYC_2CYCLE | G_PM_NPRIMITIVE, G_AC_NONE | G_ZS_PIXEL | Z_CMP | Z_UPD | IM_RD | CVG_DST_SAVE |
         ZMODE_XLU | FORCE_BL | G_RM_FOG_SHADE_A | GBL_c2(G_BL_CLR_IN, G_BL_0, G_BL_CLR_MEM, G_BL_1MA));
-    dl_apply_other_mode(gdl);
+    dlApplyOtherMode(gdl);
 
     srt.transl.x = self->srt.transl.x;
     srt.transl.y = self->srt.transl.y;
@@ -386,10 +386,10 @@ RECOMP_PATCH void DIMTent_draw_mask(Object* self, Gfx** gdl, Mtx** mtxs, Vtx_t**
     srt.pitch = 0;
     srt.roll = 0;
     srt.scale = 0.05f;
-    camera_setup_object_srt_matrix(gdl, mtxs, &srt, 1, 0, NULL);
+    camSetupObjectSRTMatrix(gdl, mtxs, &srt, 1, 0, NULL);
 
     gSPVertex((*gdl)++, OS_PHYSICAL_TO_K0(initVtx), 8, 0);
-    dl_triangles(gdl, (DLTri*)sMaskTris, ARRAYCOUNT(sMaskTris));
+    dlTriangles(gdl, (DLTri*)sMaskTris, ARRAYCOUNT(sMaskTris));
 
     //Set transform for particles
     srt.transl.x = (30.0f * maskProgress) + 2.0f;
@@ -409,7 +409,7 @@ RECOMP_PATCH void DIMTent_draw_mask(Object* self, Gfx** gdl, Mtx** mtxs, Vtx_t**
 
     //Randomly create snow evaporation particles approaching the end of the burning
     if (objData->maskY > THRESHOLD_SNOW_EVAPORATE) {
-        if (rand_next(0, 2) == 0) {
+        if (mathRnd(0, 2) == 0) {
             gDLL_17_partfx->vtbl->spawn(self, PARTICLE_206, &srt, 4, -1, NULL);
         }
     //Otherwise create fire/smoke/ember particles
@@ -429,12 +429,12 @@ RECOMP_PATCH void DIMTent_free(Object* self, s32 arg1) {
     DIMTent_Data_Extended* objData = self->data; //@recomp
 
     if (dModGfxDLL) {
-        dll_unload(dModGfxDLL);
+        dllFree(dModGfxDLL);
     }
 
     //@recomp: stop sound loop
     if (objData->soundHandle != 0) {
-        gDLL_6_AMSFX->vtbl->stop(objData->soundHandle);
+        dll_amSfx->Stop(objData->soundHandle);
         objData->soundHandle = 0;
     }
 }

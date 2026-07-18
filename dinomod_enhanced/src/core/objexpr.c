@@ -10,7 +10,7 @@ extern struct {
 
 extern s32 D_80091720[];
 
-RECOMP_PATCH s32 func_800334A4(Object* obj, Object* lookat, Vec3f* refPoint, HeadAnimation* anims, s16* arg4, f32 yOffset, s16 arg6, s16 arg7) {
+RECOMP_PATCH s32 objExpr_func_800334A4(Object* obj, Object* lookat, Vec3f* refPoint, HeadAnimation* anims, s16* arg4, f32 yOffset, s16 arg6, s16 arg7) {
     f32 dx;
     f32 dy;
     f32 dz; // fa1
@@ -34,16 +34,16 @@ RECOMP_PATCH s32 func_800334A4(Object* obj, Object* lookat, Vec3f* refPoint, Hea
     dz = refPoint->z - lookat->srt.transl.z;
     dy = (refPoint->y + yOffset) - lookat->srt.transl.y;
     xzDist = sqrtf(SQ(dx) + SQ(dz));
-    sp84[0] = (s16)(u16)arctan2_f(dx, dz) - (obj->srt.yaw & 0xFFFF);
+    sp84[0] = (s16)(u16)mathAtan2f(dx, dz) - (obj->srt.yaw & 0xFFFF);
     CIRCLE_WRAP(sp84[0]);
-    sp84[1] = arg7 - (-arctan2_f(xzDist, dy) & 0xFFFF);
+    sp84[1] = arg7 - (-mathAtan2f(xzDist, dy) & 0xFFFF);
     CIRCLE_WRAP(sp84[1]);
     if (D_800B2E00.unk0_0) {
         sp84[0] -= 0x8000;
         sp84[1] = -sp84[1];
     }
     for (i = 0; i < 10; i++) {
-        bone = func_80034804(obj, D_80091720[i]);
+        bone = objExpr_func_80034804(obj, D_80091720[i]);
         if (bone == NULL) {
             // @recomp: Reset flag that flips the lookat direction. For some reason, this early return does not reset
             //          the flag like the end of the function does. This causes the flag to leak over into other calls
@@ -70,9 +70,9 @@ RECOMP_PATCH s32 func_800334A4(Object* obj, Object* lookat, Vec3f* refPoint, Hea
         }
         if (anims != NULL) {
             anims->headGoalAngle = goal[0];
-            func_80034250(anims, bone);
+            objExpr_func_80034250(anims, bone);
             anims[1].headGoalAngle = goal[1];
-            func_80034518(anims + 1, bone, 10.0f, 500.0f);
+            objExpr_func_80034518(anims + 1, bone, 10.0f, 500.0f);
             anims += 2;
         } else {
             var_t3 = arg4 + 15;

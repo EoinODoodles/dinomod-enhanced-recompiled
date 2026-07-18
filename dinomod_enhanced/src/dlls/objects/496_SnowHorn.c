@@ -9,7 +9,7 @@
 
 #include "recomp/dlls/objects/496_snowhorn_recomp.h"
 
-extern s32 func_80032538(Object* self);
+extern s32 objCheckPlayerInteract(Object* self);
 
 typedef struct {
 /*000*/ s32 *unk0;
@@ -94,7 +94,7 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
             //Calling out to the player periodically
             objdata->unk8 += gUpdateRate;
             if (objdata->unk8 >= 0x3E9) {
-                gDLL_6_AMSFX->vtbl->play(self, SOUND_1E2_Garunda_Te_Will_somebody_get_me_out_of_here, MAX_VOLUME, 0, 0, 0, 0);
+                dll_amSfx->Play(self, SOUND_1E2_Garunda_Te_Will_somebody_get_me_out_of_here, MAX_VOLUME, 0, 0, 0, 0);
                 gDLL_22_Subtitles->vtbl->func_368(0xA);
                 objdata->unk8 = 0;
             }
@@ -103,24 +103,24 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
             }
             break;
         case 1:
-            if (func_80032538(self)) {
+            if (objCheckPlayerInteract(self)) {
                 gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
                 objdata->flags = 2;
-                main_set_bits(BIT_Garunda_Te_Quest_Progress, objdata->flags);
+                mainSetBits(BIT_Garunda_Te_Quest_Progress, objdata->flags);
             }
             break;
         case 2:
             //Eating FrostWeeds
-            if (func_80032538(self)) {
+            if (objCheckPlayerInteract(self)) {
                 gDLL_3_Animation->vtbl->start_obj_sequence(1, self, -1);
             }
             
-            frostWeed = obj_get_nearest_type_to(OBJTYPE_Baddie, self, 0);
+            frostWeed = objGetNearestTypeTo(OBJTYPE_Baddie, self, 0);
             setup = (SnowHorn_Setup*)self->setup;
             if (frostWeed 
                     //@recomp: option of accepting FrostWeed twigs as well
                     && (frostWeed->id == OBJ_Tumbleweed2 || (FROSTWEED_TWIGS_ACCEPTED && frostWeed->id == OBJ_Tumbleweed2twig)) 
-                    && vec3_distance_xz_squared(&self->globalPosition, &frostWeed->globalPosition) < setup->unkRadius * setup->unkRadius) {
+                    && vec3DistanceXZSquared(&self->globalPosition, &frostWeed->globalPosition) < setup->unkRadius * setup->unkRadius) {
                 if (!((DLL_227_Tumbleweed*)frostWeed->dll)->vtbl->is_gravitating(frostWeed)) {
                     ((DLL_227_Tumbleweed*)(frostWeed->dll))->vtbl->gravitate_towards_point(frostWeed, &objdata->playerPositionCopy);
                     objdata->frostWeed = frostWeed;
@@ -131,13 +131,13 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
                     if (objdata->garundaTe_weedsEaten > FROSTWEED_MAX_OVERRIDE) {
                         objdata->garundaTe_weedsEaten = FROSTWEED_MAX_OVERRIDE;
                     }
-                    main_set_bits(BIT_Garunda_Te_Weeds_Eaten, objdata->garundaTe_weedsEaten);
+                    mainSetBits(BIT_Garunda_Te_Weeds_Eaten, objdata->garundaTe_weedsEaten);
                     objdata->flags = 3;
                 }
             }
             break;
         case 3:
-            if (vec3_distance_xz_squared(&objdata->playerPositionCopy, &objdata->frostWeed->globalPosition) < 6.25f) {
+            if (vec3DistanceXZSquared(&objdata->playerPositionCopy, &objdata->frostWeed->globalPosition) < 6.25f) {
                 objdata->flags = 4;
             }
             break;
@@ -145,20 +145,20 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
             if (objdata->unk424 & 8) {
                 weeds = objdata->garundaTe_weedsEaten;
                 if (weeds >= FROSTWEED_MAX_OVERRIDE) {
-                    main_set_bits(BIT_Garunda_Te_Fed, 1);
+                    mainSetBits(BIT_Garunda_Te_Fed, 1);
                     objdata->flags = 5;
-                    main_set_bits(BIT_Garunda_Te_Quest_Progress, objdata->flags);
+                    mainSetBits(BIT_Garunda_Te_Quest_Progress, objdata->flags);
                     break;
                 }
                 if (weeds % 3 == 0) {
-                    gDLL_6_AMSFX->vtbl->play(self, SOUND_74B_Garunda_Te_That_tastes_great_Hurry_up_boy, MAX_VOLUME, 0, 0, 0, 0);
+                    dll_amSfx->Play(self, SOUND_74B_Garunda_Te_That_tastes_great_Hurry_up_boy, MAX_VOLUME, 0, 0, 0, 0);
                     gDLL_22_Subtitles->vtbl->func_368(2);
                 }
                 objdata->flags = 2;
             }
             break;
         case 5:
-            if (func_80032538(self)) {
+            if (objCheckPlayerInteract(self)) {
                 if (objdata->unk425 % 2) {
                     gDLL_3_Animation->vtbl->start_obj_sequence(3, self, -1);
                 } else {
@@ -169,12 +169,12 @@ RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHo
             break;
         case 6:
             //SpellStone activation
-            if (func_80032538(self)) {
+            if (objCheckPlayerInteract(self)) {
                 gDLL_3_Animation->vtbl->start_obj_sequence(4, self, -1);
             } else if (gDLL_1_cmdmenu->vtbl->was_this_item_used(BIT_SpellStone_DIM)) {
-                main_set_bits(BIT_SpellStone_DIM_Activated, 1);
+                mainSetBits(BIT_SpellStone_DIM_Activated, 1);
                 objdata->flags = 7;
-                main_set_bits(BIT_Garunda_Te_Quest_Progress, objdata->flags);
+                mainSetBits(BIT_Garunda_Te_Quest_Progress, objdata->flags);
             }
             break;
         case 7:

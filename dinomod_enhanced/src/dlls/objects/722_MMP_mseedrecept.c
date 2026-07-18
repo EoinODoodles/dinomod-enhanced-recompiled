@@ -61,7 +61,7 @@ void MoonSeedReceptacle_setup(Object* self, MoonSeedReceptacle_Setup* setup, s32
     self->srt.yaw = setup->yaw << 8;
     objData->state = MoonSeedReceptacle_STATE_0_Init;
     
-    obj_add_object_type(self, OBJTYPE_KyteTarget);
+    objAddObjectType(self, OBJTYPE_KyteTarget);
 
     switch (setup->base.uID) {
         //Soil spot just beyond SharpClaw outpost 

@@ -321,7 +321,7 @@ RECOMP_PATCH s32 anim_process_event(Object* animObj, ModelInstance* animObjModel
             } else {
                 var_v0 = 0;
             }
-            func_80023D30(actor, st->modAnimIdx, st->modAnimStartFrame * 0.00390625f, var_v0);
+            objAnimSet(actor, st->modAnimIdx, st->modAnimStartFrame * 0.00390625f, var_v0);
             st->unk20 = 1.0f;
         }
         break;
@@ -406,7 +406,7 @@ RECOMP_PATCH s32 anim_process_event(Object* animObj, ModelInstance* animObjModel
                 func_80000860(actor, actor, evt->params & 0xFFF, 0);
                 break;
             case ANIM_EVT_ENVFX_WARP:
-                warpPlayer(evt->params & 0xFFF, 0);
+                mapWarpPlayer(evt->params & 0xFFF, 0);
                 break;
             }
         }
@@ -427,17 +427,17 @@ RECOMP_PATCH s32 anim_process_event(Object* animObj, ModelInstance* animObjModel
 #endif
     if (arg3_8) { break; }
     if (((evt->params >> 0xC) & 0xF) != 0xF) {
-            gDLL_6_AMSFX->vtbl->play(animObj, 
+            dll_amSfx->Play(animObj, 
                                      ((evt->params & 0xFFF) + 1), 
                                      ((((evt->params >> 0xC) & 0xF) * 7) + 0x16), 
                                      NULL, 
                                      NULL, 0, NULL);
         } else {
             if (gDLL_6_AMSFX->vtbl->is_playing(st->sfxHandles[3]) != 0) {
-                gDLL_6_AMSFX->vtbl->stop(st->sfxHandles[3]);
+                dll_amSfx->Stop(st->sfxHandles[3]);
             }
             st->sfxTimer[3] = 32000;
-            gDLL_6_AMSFX->vtbl->play(animObj, 
+            dll_amSfx->Play(animObj, 
                                      ((evt->params & 0xFFF) + 1), 
                                      (s32) anim_channel_value(st, CHANNEL_soundVolume, st->time), 
                                      &st->sfxHandles[3], 
@@ -455,15 +455,15 @@ RECOMP_PATCH s32 anim_process_event(Object* animObj, ModelInstance* animObjModel
             break;
         case ANIM_EVT_ENVFX_WARP:
             if (arg3_8) { break; }
-            warpPlayer(evt->params & 0xFFF, 0);
+            mapWarpPlayer(evt->params & 0xFFF, 0);
             break;
         case ANIM_EVT_ENVFX_SFX:
             if (arg3_8) { break; }
             if (st->unk30 != 0) {
-                gDLL_6_AMSFX->vtbl->stop(st->unk30);
+                dll_amSfx->Stop(st->unk30);
             }
             st->unk30 = 0;
-            gDLL_6_AMSFX->vtbl->play(animObj, 
+            dll_amSfx->Play(animObj, 
                                      ((evt->params & 0xFFF) + 1), 
                                      ((((evt->params >> 0xC) & 0xF) * 7) + 0x16), 
                                      &st->unk30, NULL, 0, NULL);
@@ -487,7 +487,7 @@ RECOMP_PATCH s32 anim_process_event(Object* animObj, ModelInstance* animObjModel
         if (arg3_8) { break; }
         anim_get_free_sfx_slot(st);
         if (((evt->params >> 0xC) & 0xF) != 0xF) {
-            gDLL_6_AMSFX->vtbl->play(animObj, 
+            dll_amSfx->Play(animObj, 
                                      ((evt->params & 0xFFF) + 1), 
                                      ((((evt->params >> 0xC) & 0xF) * 7) + 0x16), 
                                      &st->sfxHandles[st->sfxNextSlot], 
@@ -499,9 +499,9 @@ RECOMP_PATCH s32 anim_process_event(Object* animObj, ModelInstance* animObjModel
             }
         } else {
             if (gDLL_6_AMSFX->vtbl->is_playing(st->sfxHandles[3]) != 0) {
-                gDLL_6_AMSFX->vtbl->stop(st->sfxHandles[3]);
+                dll_amSfx->Stop(st->sfxHandles[3]);
             }
-            gDLL_6_AMSFX->vtbl->play(animObj, 
+            dll_amSfx->Play(animObj, 
                                      ((evt->params & 0xFFF) + 1), 
                                      (s32) anim_channel_value(st, CHANNEL_soundVolume, st->time), 
                                      &st->sfxHandles[3], NULL, 0, NULL);
@@ -643,7 +643,7 @@ RECOMP_PATCH s32 anim_do_code_event_6(Object *animObj, Object *actor, AnimObj_Da
                 return 1;
             }
             STUBBED_PRINTF(" MODEL NO %i \n", actor->modelInstIdx);
-            obj_set_model(actor, sp54);
+            objSetModel(actor, sp54);
         }
         break;
     case ANIM_CODE_EVT_6_24:
@@ -668,13 +668,13 @@ RECOMP_PATCH s32 anim_do_code_event_6(Object *animObj, Object *actor, AnimObj_Da
         st->unk142_4 = 0;
         break;
     case ANIM_CODE_EVT_6_SAVEPOINT:
-        gDLL_29_Gplay->vtbl->savepoint(&actor->srt.transl, actor->srt.yaw, 0, map_get_layer());
+        gDLL_29_Gplay->vtbl->savepoint(&actor->srt.transl, actor->srt.yaw, 0, mapGetLayer());
         break;
     case ANIM_CODE_EVT_6_SAVEPOINT_NO_LOCATION:
-        gDLL_29_Gplay->vtbl->savepoint(NULL, 0, GPLAY_SAVEPOINT_SkipMapSave, map_get_layer());
+        gDLL_29_Gplay->vtbl->savepoint(NULL, 0, GPLAY_SAVEPOINT_SkipMapSave, mapGetLayer());
         break;
     case ANIM_CODE_EVT_6_TOGGLE_PLAYER_CONTROL:
-        ((DLL_210_Player*)get_player()->dll)->vtbl->func69(get_player(), sp54);
+        ((DLL_210_Player*)objGetPlayer()->dll)->vtbl->func69(objGetPlayer(), sp54);
         break;
     default:
         break;
@@ -685,26 +685,26 @@ RECOMP_PATCH s32 anim_do_code_event_6(Object *animObj, Object *actor, AnimObj_Da
         sSeqEnded = TRUE;
         return 0;
     case ANIM_CODE_EVT_6_5: 
-        gDLL_6_AMSFX->vtbl->func_480(actor);
+        gDLL_6_AMSFX->vtbl->Func480(actor);
         break;
     case ANIM_CODE_EVT_6_6: 
-        gDLL_6_AMSFX->vtbl->func_480(NULL);
+        gDLL_6_AMSFX->vtbl->Func480(NULL);
         break;
     case ANIM_CODE_EVT_6_CAMERA_SHAKE: 
         if (arg4 == 0) {
-            camera_enable_y_offset();
+            camUseShake();
 
             //@recomp: ignore player distance check if the param's uppermost bit is set
             //(no existing sequence uses have it set)
             if (sp54 & 0x80) {
                 amplitude = (2.0f * ((sp54 & 0x7F) - 7)) + 1.0f;
-                camera_set_shake_offset(amplitude);
+                camSetShakeOffset(amplitude);
                 break;
             }
 
-            player = get_player();
+            player = objGetPlayer();
             if (player != NULL) {
-                playerDistance = vec3_distance_xz(&player->globalPosition, &animObj->globalPosition);
+                playerDistance = vec3DistanceXZ(&player->globalPosition, &animObj->globalPosition);
                 amplitude = (2.0f * (sp54 - 7)) + 1.0f;
 
                 if (playerDistance < 200.0f) {
@@ -712,7 +712,7 @@ RECOMP_PATCH s32 anim_do_code_event_6(Object *animObj, Object *actor, AnimObj_Da
                         playerDistance = (playerDistance - 50.0f) / 150.0f;
                         amplitude *= 1.0f - playerDistance;
                     }
-                    camera_set_shake_offset(amplitude);
+                    camSetShakeOffset(amplitude);
                 }
             }
         }
@@ -722,10 +722,10 @@ RECOMP_PATCH s32 anim_do_code_event_6(Object *animObj, Object *actor, AnimObj_Da
         //func_8000F64C(0x12, sp54);
         switch (sp54) {
         case 1: //restore gameplay menu (for skipping credits)
-            menu_set(MENU_GAMEPLAY);
+            menuSet(MENU_GAMEPLAY);
             break;
         default: //play credits
-            menu_set(MENU_CREDITS);
+            menuSet(MENU_CREDITS);
             break;
         }
         break;
@@ -735,17 +735,17 @@ RECOMP_PATCH s32 anim_do_code_event_6(Object *animObj, Object *actor, AnimObj_Da
         actor->objhitInfo->unk5B = sp54;
         break;
     case ANIM_CODE_EVT_6_COUNTDOWN_TIMER_SFX:
-        func_8000F6CC();
+        menu_func_8000F6CC();
         break;
     case ANIM_CODE_EVT_6_SFX_STOP:
-        gDLL_6_AMSFX->vtbl->stop_object(actor);
+        gDLL_6_AMSFX->vtbl->StopObject(actor);
         break;
     case ANIM_CODE_EVT_6_16:
         st->unk89 = sp54;
         break;
     case ANIM_CODE_EVT_6_SET_MODEL:
         if ((arg4 == 0) && (sp54 < actor->def->numModels)) {
-            obj_set_model(actor, sp54);
+            objSetModel(actor, sp54);
         }
         break;
     case ANIM_CODE_EVT_6_ENABLE_OBJ_GROUP:

@@ -5,9 +5,9 @@
 #include "recomputils.h"
 #include "recompconfig.h"
 
-#include "sys/asset_thread.h"
+#include "sys/asset.h"
 #include "sys/dll.h"
-#include "sys/fs.h"
+#include "sys/pi.h"
 #include "sys/memory.h"
 #include "sys/print.h"
 #include "sys/string.h"
@@ -259,7 +259,7 @@ RECOMP_PATCH GameTextChunk *gametext_get_chunk(u16 chunk) {
     // Set up first string pointer
     chunkPtr->strings[0] = (char*)((u32)chunkPtr->commands + sCurrentBank_StrCounts[chunk] * 2);
 
-    queue_load_file_region_to_ptr(
+    assetRomLoadSection(
         (void**)chunkPtr->commands,
         GAMETEXT_BIN,
         sCurrentBank_Offsets[chunk] * 2 + sCurrentBank_GlobalOffset,
@@ -291,7 +291,7 @@ RECOMP_PATCH char *gametext_get_text(u16 chunk, u16 strIndex) {
 
     text = mmAlloc(sCurrentBank_Sizes[chunk], ALLOC_TAG_GAME_COL, ALLOC_NAME("gametext:textGroup"));
 
-    queue_load_file_region_to_ptr(
+    assetRomLoadSection(
         (void**)text, 
         GAMETEXT_BIN, 
         sCurrentBank_Offsets[chunk] * 2 + sCurrentBank_GlobalOffset, //@recomp: calculate offset in same way as "gametext_get_chunk"

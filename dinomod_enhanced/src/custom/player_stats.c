@@ -76,7 +76,7 @@ s8 getCountSpellStones(){
             if (spellStoneFlags[spellStoneIndex][stateIndex] == NULL){
                 continue;
             }
-            if (main_get_bits(spellStoneFlags[spellStoneIndex][stateIndex])){
+            if (mainGetBits(spellStoneFlags[spellStoneIndex][stateIndex])){
                 spellStones++;
                 break;
             }
@@ -89,7 +89,7 @@ s8 getCountSpellStones(){
 s8 getCountSpirits(){
     s8 spirits = 0;
 
-    spirits = main_get_bits(FLAG_WARLOCK_MOUNTAIN_SETUP) - 1;
+    spirits = mainGetBits(FLAG_WARLOCK_MOUNTAIN_SETUP) - 1;
     if (spirits < 0){
         spirits = 0;
     } else if (spirits > 8){
@@ -101,7 +101,7 @@ s8 getCountSpirits(){
 
 s8 getCountDusters(){
     s8 dusters = 0;
-    Object *player = get_player();
+    Object *player = objGetPlayer();
     PlayerStats *playerStats;
 
     if (player){

@@ -71,25 +71,25 @@ RECOMP_HOOK_DLL(rareware_ctor) void rareware_ctor_hook(DLLFile *dll) {
 }
 
 static void recomp_main_menu(void) {
-    extern void func_8001440C(s32 arg0);
+    extern void main_func_8001440C(s32 arg0);
 
-    font_load(FONT_FUN_FONT);
-    font_load(FONT_DINO_MEDIUM_FONT_IN);
-    font_load(FONT_DINO_MEDIUM_FONT_OUT);
-    main_load_frontend();
+    fontLoad(FONT_FUN_FONT);
+    fontLoad(FONT_DINO_MEDIUM_FONT_IN);
+    fontLoad(FONT_DINO_MEDIUM_FONT_OUT);
+    mainLoadFrontend();
 
-    vi_init(1, get_ossched(), FALSE);
-    track_set_z_buffer_on(1);
-    track_set_sky_on(1);
+    viInit(1, mainGetScheduler(), FALSE);
+    trackSetZBufferOn(1);
+    trackSetSkyOn(1);
 
     //Load game options (makes sure languageID is initialised/remembered)
     gDLL_29_Gplay->vtbl->load_game_options();
 
-    main_demo_reset();
-    main_start_game(12457.1f, -1474.875f, -6690.398f, PLAYER_KRYSTAL);
-    menu_set(MENU_TITLE_SCREEN);
+    mainDemoReset();
+    mainStartGame(12457.1f, -1474.875f, -6690.398f, PLAYER_KRYSTAL);
+    menuSet(MENU_TITLE_SCREEN);
 
-    func_8001440C(1);
+    main_func_8001440C(1);
 
     //Title Screen: fade in
     gDLL_28_ScreenFade->vtbl->fade_reversed(MAIN_MENU_FADE_IN_DURATION, SCREEN_FADE_BLACK);
@@ -111,13 +111,13 @@ static s32 update1_hijack(void) {
 
     //End of shot
     if (sCutToNextScreen) {
-        main_set_bits(BIT_Menus_Selection_Blocked, 0);
+        mainSetBits(BIT_Menus_Selection_Blocked, 0);
 
         //@recomp: title screen after Rareware
         if (recomp_get_config_u32("rolling_demo") == BOOTCONFIG_Restore_Rolling_Demo) {
             recomp_main_menu();
         } else {
-            menu_set(MENU_GAME_SELECT);
+            menuSet(MENU_GAME_SELECT);
         }
     }
 
@@ -125,7 +125,7 @@ static s32 update1_hijack(void) {
     if (sFadeOutStarted == FALSE) { //Make sure this isn't clashing with the shot's own end-of-sequence fade-out
         if (rsDoSkip == FALSE) {
             //Fade to black
-            if ((joy_get_pressed_raw(0) & (A_BUTTON | START_BUTTON))) {
+            if ((joyGetPressedRaw(0) & (A_BUTTON | START_BUTTON))) {
                 rsDoSkip = TRUE;
                 rsCutToTitleTimer = (SKIP_FADE_DURATION + SKIP_WAIT_DURATION);
                 gDLL_28_ScreenFade->vtbl->fade(SKIP_FADE_DURATION, SCREEN_FADE_BLACK);            
@@ -175,7 +175,7 @@ RECOMP_PATCH void rareware_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
         return;
     }
 
-    rcp_clear_screen(gdl, mtxs, 1);
+    rcpClearScreen(gdl, mtxs, 1);
     gDLL_76->vtbl->func2(gdl, mtxs);
 
     //Handle key frames
@@ -212,8 +212,8 @@ RECOMP_PATCH void rareware_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
         }
 
         //@recomp: reposition logo
-        rcp_screen_full_write(gdl, sTexRareLogoGlow, 42, 175, 0, 0, (s16)(255.0f * A), SCREEN_WRITE_TRANSLUCENT);
-        rcp_screen_full_write(gdl, sTexRarewareGlow, 130, 208, 0, 0, (s16)(255.0f * A), SCREEN_WRITE_TRANSLUCENT);
+        rcpScreenFullWrite(gdl, sTexRareLogoGlow, 42, 175, 0, 0, (s16)(255.0f * A), SCREEN_WRITE_TRANSLUCENT);
+        rcpScreenFullWrite(gdl, sTexRarewareGlow, 130, 208, 0, 0, (s16)(255.0f * A), SCREEN_WRITE_TRANSLUCENT);
     }
 
     //Draw Rare logo and Rareware text (fade in, hold for a while, then fade out)
@@ -233,7 +233,7 @@ RECOMP_PATCH void rareware_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
         }
 
         //@recomp: reposition logo
-        rcp_screen_full_write(gdl, sTexRareLogo, 42, 175, 0, 0, (u8)(255.0f * A), SCREEN_WRITE_TRANSLUCENT);
-        rcp_screen_full_write(gdl, sTexRareware, 130, 208, 0, 0, (u8)(255.0f * A), SCREEN_WRITE_TRANSLUCENT);
+        rcpScreenFullWrite(gdl, sTexRareLogo, 42, 175, 0, 0, (u8)(255.0f * A), SCREEN_WRITE_TRANSLUCENT);
+        rcpScreenFullWrite(gdl, sTexRareware, 130, 208, 0, 0, (u8)(255.0f * A), SCREEN_WRITE_TRANSLUCENT);
     }
 }

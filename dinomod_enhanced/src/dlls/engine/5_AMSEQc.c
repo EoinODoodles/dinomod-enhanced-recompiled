@@ -9,9 +9,9 @@
 #include "game/objects/object_id.h"
 #include "libnaudio/n_libaudio.h"
 #include "sys/audio/amAudio.h"
-#include "sys/asset_thread.h"
+#include "sys/asset.h"
 #include "sys/audio.h"
-#include "sys/fs.h"
+#include "sys/pi.h"
 #include "sys/main.h"
 #include "sys/memory.h"
 #include "sys/menu.h"
@@ -86,7 +86,7 @@ RECOMP_PATCH s32 amseq_set(Object *obj, u16 actionNo, const char *filename, s32 
     s32 temp_v1;
 
     //@recomp: allow music to continue in Game Select (TODO: find where this is called from and patch it instead?)
-    if ((menu_get_previous() == MENU_TITLE_SCREEN) && (menu_get_current() == MENU_GAME_SELECT)) {
+    if ((menuGetPrevious() == MENU_TITLE_SCREEN) && (menuGetCurrent() == MENU_GAME_SELECT)) {
         if (actionNo == 0xbb || actionNo == 0xda) {
             return -1;
         }
@@ -96,7 +96,7 @@ RECOMP_PATCH s32 amseq_set(Object *obj, u16 actionNo, const char *filename, s32 
         return -1;
     }
     // "music %08x,%d\n"
-    queue_load_file_region_to_ptr((void** ) sMusicAction, MUSICACTIONS_BIN, (actionNo - 1) * sizeof(MusicAction), sizeof(MusicAction));
+    assetRomLoadSection((void** ) sMusicAction, MUSICACTIONS_BIN, (actionNo - 1) * sizeof(MusicAction), sizeof(MusicAction));
     if (obj != NULL && (sMusicAction->unk18 & sMusicAction->unk1A) != 0) {
         // "object+fade\n"
         temp_v1 = sMusicAction->unk18 & sMusicAction->unk1A;

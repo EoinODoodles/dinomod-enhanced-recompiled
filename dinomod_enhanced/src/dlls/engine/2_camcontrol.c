@@ -54,8 +54,8 @@ static void set_letterbox_on_game_start(void) {
     static u8 rsFramesIntoGameplay = 0;
 
     if (!rsLetterboxEditDone && 
-        (menu_get_previous() == MENU_GAME_SELECT) && 
-        (menu_get_current() == MENU_GAMEPLAY)
+        (menuGetPrevious() == MENU_GAME_SELECT) && 
+        (menuGetCurrent() == MENU_GAMEPLAY)
     ) {
         if (rsFramesIntoGameplay < 1) {
             rsFramesIntoGameplay += gUpdateRate;
@@ -90,14 +90,14 @@ RECOMP_PATCH void CamControl_lock_icon_tick(void) {
 
     arrow = sLockIcon;
     hlObject = sCam->highlight;
-    player = get_player();
+    player = objGetPlayer();
     
-    if (menu_get_current() == MENU_TITLE_SCREEN) {
+    if (menuGetCurrent() == MENU_TITLE_SCREEN) {
         return;
     }
     // @recomp: Return early if in the pause menu (prevents things from being interacted with
     //          if you press A to unpause the game).
-    if (menu_get_current() == MENU_PAUSE) {
+    if (menuGetCurrent() == MENU_PAUSE) {
         return;
     }
     
@@ -133,11 +133,11 @@ RECOMP_PATCH void CamControl_lock_icon_tick(void) {
         //Update target Object's interaction flags when A button pressed
         if (hlObject->unkAF & ARROW_FLAG_4_Highlighted) {
             if (!(hlObject->unkAF & ARROW_FLAG_10_Greyed_Out)){
-                if (joy_get_pressed(0) & A_BUTTON) {
+                if (joyGetPressed(0) & A_BUTTON) {
                 hlObject->unkAF |= ARROW_FLAG_1_Interacted;
                 }
-            } else if (joy_get_pressed(0) & A_BUTTON) {
-                gDLL_6_AMSFX->vtbl->play(hlObject, SOUND_6E6_Interaction_Refused, MAX_VOLUME, 0, 0, 0, 0);
+            } else if (joyGetPressed(0) & A_BUTTON) {
+                dll_amSfx->Play(hlObject, SOUND_6E6_Interaction_Refused, MAX_VOLUME, 0, 0, 0, 0);
             }
         }
     }
@@ -158,18 +158,18 @@ RECOMP_PATCH void CamControl_lock_icon_tick(void) {
         sIconRotateSpeed = 0;
         arrow->opacity = OBJECT_OPACITY_MAX;
         sIconState = LockIcon_STATE_Highlighted;
-        gDLL_6_AMSFX->vtbl->play(hlObject, SOUND_43C_Target_Highlighted, MAX_VOLUME, 0, 0, 0, 0);
+        dll_amSfx->Play(hlObject, SOUND_43C_Target_Highlighted, MAX_VOLUME, 0, 0, 0, 0);
         break;
 
     case LockIcon_STATE_Highlighted:
         //While the LockIcon is highlighting a nearby Object (but it's not targeted yet)
         if ((hlObject == NULL) || (sActiveID == DLL_ID_CAM1STPERSON) || (hlObject->unkAF & (ARROW_FLAG_20_Removed | ARROW_FLAG_8_No_Targetting))) {
-            gDLL_6_AMSFX->vtbl->play(hlObject, SOUND_72E_Lock_Disengage, MAX_VOLUME, 0, 0, 0, 0);
+            dll_amSfx->Play(hlObject, SOUND_72E_Lock_Disengage, MAX_VOLUME, 0, 0, 0, 0);
             sIconState = LockIcon_STATE_Vanish;
         } else {
             //Automatically lock-on
             if (sActiveID == DLL_ID_CAMLOCKON) {
-                gDLL_6_AMSFX->vtbl->play(hlObject, SOUND_72D_Lock_On, MAX_VOLUME, 0, 0, 0, 0);
+                dll_amSfx->Play(hlObject, SOUND_72D_Lock_On, MAX_VOLUME, 0, 0, 0, 0);
                 sIconState = LockIcon_STATE_Lock_On;
                 sIconRapidTimer = 60; //icon spins extra quickly for 1st second
             }
@@ -184,7 +184,7 @@ RECOMP_PATCH void CamControl_lock_icon_tick(void) {
     case LockIcon_STATE_Lock_On:
         //Disengage lock when needed
         if ((hlObject == NULL) || (hlObject->unkAF & (ARROW_FLAG_20_Removed | ARROW_FLAG_8_No_Targetting))) {
-            gDLL_6_AMSFX->vtbl->play(hlObject, SOUND_72E_Lock_Disengage, MAX_VOLUME, 0, 0, 0, 0);
+            dll_amSfx->Play(hlObject, SOUND_72E_Lock_Disengage, MAX_VOLUME, 0, 0, 0, 0);
             sIconState = LockIcon_STATE_Vanish;
             break;
         }

@@ -96,9 +96,9 @@ static void galleon_delete_cannons() {
     s32 i;
     s32 count;
 
-    for (objects = get_world_objects(&i, &count); i < count; i++) {
+    for (objects = objGetObjects(&i, &count); i < count; i++) {
         if (objects[i]->id == OBJ_SB_ShipGun) {
-            obj_destroy_object(objects[i]);
+            objFreeObject(objects[i]);
         }
     }
 }
@@ -139,7 +139,7 @@ static void skip_galleon_fight(Object* self) {
     self->srt.transl.z = objSetup->z;
 
     if (objData->soundHandle != 0) {
-        gDLL_6_AMSFX->vtbl->stop(objData->soundHandle);
+        dll_amSfx->Stop(objData->soundHandle);
         objData->soundHandle = 0;
     }
 
@@ -207,8 +207,8 @@ RECOMP_HOOK_DLL(SB_Galleon_control) void galleon_control_hook(Object *self) {
 
     //Button sequence entered
     if (!galleonCheat.finished && button_code_entered(&galleonCheat)) {
-        gDLL_6_AMSFX->vtbl->play(NULL, 
-            soundIDs[rand_next(0, ARRAYCOUNT(soundIDs) - 1)], 
+        dll_amSfx->Play(NULL, 
+            soundIDs[mathRnd(0, ARRAYCOUNT(soundIDs) - 1)], 
             MAX_VOLUME, 0, 0, 0, 0
         );
 

@@ -8,7 +8,7 @@
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
 #include "game/gamebits.h"
-#include "sys/asset_thread.h"
+#include "sys/asset.h"
 #include "sys/camera.h"
 #include "sys/dll.h"
 #include "sys/footsteps.h"
@@ -77,7 +77,7 @@ RECOMP_PATCH void trigger_control(Object* self) {
     
     maxObjSearchDist = 200.0f;
    
-    player = get_player();
+    player = objGetPlayer();
     if (player != NULL) {
         vehicle = ((DLL_210_Player*)player->dll)->vtbl->get_vehicle(player);
         if (vehicle != NULL) {
@@ -85,7 +85,7 @@ RECOMP_PATCH void trigger_control(Object* self) {
         }
     }
     
-    sidekick = get_sidekick();
+    sidekick = objGetSidekick();
     
     if ((player != NULL) || (sidekick != NULL)) {
         if (objdata->flags & TRG_RESTORE_ENTERED_STATE) {
@@ -97,7 +97,7 @@ RECOMP_PATCH void trigger_control(Object* self) {
         
         b_foundActivatorObj = TRUE;
         if (setup->activatorObjType >= 3) {
-            activatorObj = obj_get_nearest_type_to(setup->activatorObjType, self, &maxObjSearchDist);
+            activatorObj = objGetNearestTypeTo(setup->activatorObjType, self, &maxObjSearchDist);
             if (activatorObj == NULL) {
                 b_foundActivatorObj = FALSE;
             }
@@ -185,11 +185,11 @@ RECOMP_PATCH void trigger_control(Object* self) {
             if (objdata->conditionBitFlagIDs[0] >= 0) {
                 // @recomp: Dino Mod condition bit extension for checking unset flags (originally by MusicalProgrammer)
                 if (objdata->conditionBitFlagIDs[0] & 0x4000) {
-                    if (main_get_bits(objdata->conditionBitFlagIDs[0] & ~0x4000) != 0) {
+                    if (mainGetBits(objdata->conditionBitFlagIDs[0] & ~0x4000) != 0) {
                         b_allBitsSet = FALSE;
                     }
                 } else {
-                    if (main_get_bits(objdata->conditionBitFlagIDs[0]) == 0) {
+                    if (mainGetBits(objdata->conditionBitFlagIDs[0]) == 0) {
                         b_allBitsSet = FALSE;
                     }
                 }
@@ -211,15 +211,15 @@ RECOMP_PATCH void trigger_control(Object* self) {
             break;
         case OBJ_TriggerSetup:
             trigger_process_commands(self, player, 1, 0);
-            if (ret1_8001454c() != 0) {
-                obj_destroy_object(self);
+            if (main_ret1_8001454c() != 0) {
+                objFreeObject(self);
             }
             break;
         case OBJ_TriggerBits:
             b_allBitsSet = TRUE;
             for (i = 0; i < 4 && b_allBitsSet; i++) {
                 if (objdata->conditionBitFlagIDs[i] >= 0) {
-                    if (main_get_bits(objdata->conditionBitFlagIDs[i]) == 0) {
+                    if (mainGetBits(objdata->conditionBitFlagIDs[i]) == 0) {
                         b_allBitsSet = FALSE;
                     }
                 }
@@ -325,14 +325,14 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                     } else {
                         mesgID = 0x81;
                     }
-                    obj_send_mesg_many_nearby(OBJ_Swoop,           6000.0f, 0, self, mesgID, 0);
-                    obj_send_mesg_many_nearby(OBJ_GP_ChimneySwipe, 6000.0f, 0, self, mesgID, 0);
+                    objSendMesgManyNearby(OBJ_Swoop,           6000.0f, 0, self, mesgID, 0);
+                    objSendMesgManyNearby(OBJ_GP_ChimneySwipe, 6000.0f, 0, self, mesgID, 0);
                 }
                 break;
             case 8: {
                     // "Trigger [%d], Death drop" (default.dol)
                     s8 pad;
-                    obj = get_player();
+                    obj = objGetPlayer();
                     if (obj != NULL) {
                         ((DLL_210_Player*)obj->dll)->vtbl->func67(obj, 9, 0.0f);
                     }
@@ -341,7 +341,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             case 9: {
                     // "Trigger [%d], Dangerous Water" (default.dol)
                     s8 pad;
-                    obj = get_player();
+                    obj = objGetPlayer();
                     if (obj != NULL) {
                         ((DLL_210_Player*)obj->dll)->vtbl->func67(obj, 10, 0.0f);
                     }
@@ -350,7 +350,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             case 10: {
                     // "Trigger [%d], Safe Water" (default.dol)
                     s8 pad;
-                    obj = get_player();
+                    obj = objGetPlayer();
                     if (obj != NULL) {
                         ((DLL_210_Player*)obj->dll)->vtbl->func67(obj, 11, 0.0f);
                     }
@@ -370,10 +370,10 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
         case TRG_CMD_SOUND: 
             // "Trigger [%d], Sound FX,           Action Num [%d],Handle Num [%d]"
             if (dir >= 0) {
-                gDLL_6_AMSFX->vtbl->play2(self, (cmd->param2 | (cmd->param1 << 8)), &objdata->soundHandles[i]);
+                dll_amSfx->Play2(self, (cmd->param2 | (cmd->param1 << 8)), &objdata->soundHandles[i]);
             } else {
                 if (objdata->soundHandles[i] != 0) {
-                    gDLL_6_AMSFX->vtbl->stop(objdata->soundHandles[i]);
+                    dll_amSfx->Stop(objdata->soundHandles[i]);
                     objdata->soundHandles[i] = 0;
                 }
             }
@@ -388,7 +388,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 if (cmd->param2 >= 2) {
                     cmd->param2 = 1;
                 }
-                track_set_sky_on(cmd->param2);
+                trackSetSkyOn(cmd->param2);
                 if (cmd->param2 != 0) {
                     // "Trigger [%d], Track Sky On"
                 } else {
@@ -399,7 +399,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 if (cmd->param2 >= 2) {
                     cmd->param2 = 1;
                 }
-                track_set_anti_alias_on(cmd->param2);
+                trackSetAntiAliasOn(cmd->param2);
                 if (cmd->param2 != 0) {
                     // "Trigger [%d], Track AntiAlias On"
                 } else {
@@ -410,7 +410,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 if (cmd->param2 >= 2) {
                     cmd->param2 = 1;
                 }
-                track_set_sky_objects_on(cmd->param2);
+                trackSetSkyObjectsOn(cmd->param2);
                 if (cmd->param2 != 0) {
                     // "Trigger [%d], Track SkyObjects On"
                 } else {
@@ -437,7 +437,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 }
                 break;
             case 5:
-                footsteps_toggle(cmd->param2);
+                footstepsTurnOn(cmd->param2);
                 // "Trigger [%d], footstepsTurnOn %d" (default.dol)
                 break;
             case 6:
@@ -451,10 +451,10 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 break;
             case 7:
                 if (cmd->param2 > 0) {
-                    track_set_sun_glare_on(1);
+                    trackSetSunGlareOn(1);
                     // "Trigger [%d], trackSetSunGlareOn(1)" (default.dol)
                 } else {
-                    track_set_sun_glare_on(0);
+                    trackSetSunGlareOn(0);
                     // "Trigger [%d], trackSetSunGlareOn(0)" (default.dol)
                 }
                 break;
@@ -499,7 +499,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             break;
         case TRG_CMD_LOD_MODEL:
             // "Trigger [%d], LOD Model [%d]"
-            obj_set_model(get_player(), cmd->param1);
+            objSetModel(objGetPlayer(), cmd->param1);
             break;
         case TRG_CMD_SETUP_POINT:
             // "Trigger [%d], Setup Point,        Level      [%d], SetupPoint [%d]"
@@ -557,11 +557,11 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             break;
         case TRG_CMD_KYTE_FLIGHT_GROUP:
             // "Trigger [%d], kyte flight group change\n" (default.dol)
-            main_set_bits(BIT_Kyte_Flight_Curve, cmd->param2 | (cmd->param1 << 8));
+            mainSetBits(BIT_Kyte_Flight_Curve, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_KYTE_TALK_SEQ:
             // "Trigger [%d], kyte flight talk sequence set\n" (default.dol)
-            main_set_bits(BIT_Kyte_Flight_Talk_Sequence, cmd->param2 | (cmd->param1 << 8));
+            mainSetBits(BIT_Kyte_Flight_Talk_Sequence, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_WORLD_SET_ACT:
             // "Trigger [%d], Act change on map %d to act %d\n" (default.dol)
@@ -569,11 +569,11 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             break;
         case TRG_CMD_TRICKY_TALK_SEQ:
             // "Trigger [%d], Tricky talk sequence set to %d\n" (default.dol)
-            main_set_bits(BIT_Tricky_Talk_Sequence, cmd->param2 | (cmd->param1 << 8));
+            mainSetBits(BIT_Tricky_Talk_Sequence, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_SAVE_POINT:
             // "Trigger [%d], Save Point\n" (default.dol)
-            gDLL_29_Gplay->vtbl->savepoint(&self->srt.transl, (self->srt.yaw >> 8), cmd->param2, map_get_layer());
+            gDLL_29_Gplay->vtbl->savepoint(&self->srt.transl, (self->srt.yaw >> 8), cmd->param2, mapGetLayer());
             break;
         case TRG_CMD_MAP_LAYER:
             // @recomp: Dino Mod trigger mapLayer command extension (originally by MusicalProgrammer)
@@ -582,10 +582,10 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             } else {
                 if (cmd->param1 == 0) {
                     // "Trigger [%d],trackIncMapLayer\n" (default.dol)
-                    map_increment_layer();
+                    mapIncrementLayer();
                 } else {
                     // "Trigger [%d],trackIncMapLayer\n" (default.dol)
-                    map_decrement_layer();
+                    mapDecrementLayer();
                 }
             }
             break;
@@ -593,7 +593,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             switch (cmd->param1) {
             case 0:
                 // "Restart Set [%d]\n"
-                gDLL_29_Gplay->vtbl->restart_set(&self->srt.transl, self->srt.yaw, map_get_layer());
+                gDLL_29_Gplay->vtbl->restart_set(&self->srt.transl, self->srt.yaw, mapGetLayer());
                 break;
             case 1:
                 // "Restart Clear [%d]\n"
@@ -607,13 +607,13 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             // default.dol
             case 3:
                 // "Trigger [%d],Restart Set Dazed [%d]\n"
-                gDLL_29_Gplay->vtbl->restart_set(&self->srt.transl, self->srt.yaw, map_get_layer(), 1);
+                gDLL_29_Gplay->vtbl->restart_set(&self->srt.transl, self->srt.yaw, mapGetLayer(), 1);
                 break;
             */
             }
             break;
         case TRG_CMD_SIDEKICK:
-            sidekick = get_sidekick();
+            sidekick = objGetSidekick();
             if (sidekick != NULL) {
                 switch (cmd->param1) {
                 case 0:
@@ -623,14 +623,14 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 case 1:
                     // "killing sidekick\n"
                     // "Trigger [%d], Unloading Sidekick\n" (default.dol)
-                    obj_destroy_object(get_sidekick());
+                    objFreeObject(objGetSidekick());
                     break;
                 case 2:
                     // "findobj %i \n"
                     // oh my god this is hacky...
-                    findTarget = obj_get_nearest_type_to(OBJTYPE_DBlevelcontrol, sidekick, NULL);
+                    findTarget = objGetNearestTypeTo(OBJTYPE_DBlevelcontrol, sidekick, NULL);
                     if (findTarget == NULL) {
-                        findTarget = obj_get_nearest_type_to(OBJTYPE_TrickyTarget, sidekick, NULL);
+                        findTarget = objGetNearestTypeTo(OBJTYPE_TrickyTarget, sidekick, NULL);
                     }
                     if (findTarget != NULL) {
                         // "Trigger [%d], Sidekick Find On Object %d\n"
@@ -643,7 +643,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
         case TRG_CMD_WATER_FALLS_FLAGS:
         case TRG_CMD_WATER_FALLS_FLAGS2:
             // "Trigger [%d], amSfxWaterFallsSetFlags,   Action [%d], PassDir [%d]"
-            gDLL_6_AMSFX->vtbl->water_falls_set_flags(cmd->param1);
+            gDLL_6_AMSFX->vtbl->WaterFallsSetFlags(cmd->param1);
             break;
         }
     }
@@ -651,7 +651,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
     if (dir > 0) {
         // In
         objdata->flags |= TRG_ACTIVATOR_ENTERED;
-        main_set_bits(objdata->bitFlagID, 1);
+        mainSetBits(objdata->bitFlagID, 1);
     } else if (dir < 0) {
         // Out
         objdata->flags |= TRG_ACTIVATOR_EXITED;

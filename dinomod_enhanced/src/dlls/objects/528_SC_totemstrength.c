@@ -13,6 +13,8 @@
 
 #include "recomp/dlls/objects/528_SC_totemstrength_recomp.h"
 
+#define MAX_BUFFERED_CONT_SNAPSHOTS 4
+
 #define ANGLE_TO_PIT 0x1DDC 
 #define ANGULAR_RANGE (ANGLE_TO_PIT*2)
 #define ANGULAR_RANGE_F ((f32)ANGULAR_RANGE)
@@ -107,9 +109,9 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
     Object* player;
 
     objData = self->data;
-    player = get_player();
+    player = objGetPlayer();
     objData->flags |= SCTotemStrength_FLAG_Reset;
-    main_set_bits(BIT_SCTotemStrength_Inactive, 0);
+    mainSetBits(BIT_SCTotemStrength_Inactive, 0);
     
     //Handle sequence commands
     for (i = 0; i < animData->messageCount; i++) {
@@ -121,7 +123,7 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
             objData->state = SCTotemStrength_STATE_Initial;
             objData->flags |= SCTotemStrength_FLAG_Strength_Game_Active;
 
-            objects = get_world_objects(&index, &count);
+            objects = objGetObjects(&index, &count);
             while (index < count) {
                 objData->lightFoot = objects[index++];
                 if (objData->lightFoot->id == OBJ_SC_musclelightf) {
@@ -129,8 +131,8 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
                 }
             }
             
-            func_80023D30(player, 0x401, 0.0f, 0);
-            func_80023D30(objData->lightFoot, 0, 1.0f, 0);
+            objAnimSet(player, 0x401, 0.0f, 0);
+            objAnimSet(objData->lightFoot, 0, 1.0f, 0);
             gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAMSTATIC, 3, 0, 0);
             break;
         case SCTotemStrength_SEQCMD_3_Set_Level_State_3:
@@ -158,7 +160,7 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
     animData->unk62 = 0;
 
     //Find the Muscle LightFoot (@bug: doesn't check if already found, searches every frame)
-    objects = get_world_objects(&index, &count);
+    objects = objGetObjects(&index, &count);
     while (index < count) {
         objData->lightFoot = objects[index++];
         if (objData->lightFoot->id == OBJ_SC_musclelightf) {
@@ -168,13 +170,13 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
     
     //Start playing wood creaking loop
     if (objData->soundHandleCreak == 0) {
-        objData->soundHandleCreak = gDLL_6_AMSFX->vtbl->play(self, SOUND_776_Wooden_Creaking_Loop, MAX_VOLUME, 0, 0, 0, 0);
-        gDLL_6_AMSFX->vtbl->set_pitch(objData->soundHandleCreak, 0.8f);
+        objData->soundHandleCreak = dll_amSfx->Play(self, SOUND_776_Wooden_Creaking_Loop, MAX_VOLUME, 0, 0, 0, 0);
+        dll_amSfx->SetPitch(objData->soundHandleCreak, 0.8f);
     }
 
     //@recomp: handle simulated button presses
     if ((rButtonTapMode == BUTTON_TAPPING_ASSIST_AUTO) ||
-        ((rButtonTapMode == BUTTON_TAPPING_ASSIST_HOLD) && (joy_get_buttons(0) & A_BUTTON))
+        ((rButtonTapMode == BUTTON_TAPPING_ASSIST_HOLD) && (joyGetButtons(0) & A_BUTTON))
     ) {
         rsFramesSinceLastAutoTap += gUpdateRate;
         if (rsFramesSinceLastAutoTap >= ASSIST_TAP_INTERVAL) {
@@ -220,8 +222,8 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
             This repetition is why the trial is easier to complete on N64.
 
             The game can buffer up to 4 frames' worth of button presses (MAX_BUFFERED_CONT_SNAPSHOTS).
-            When gUpdateRate is higher 4 the condition below will eventually query `joy_get_released_buffered(0, i)`
-            with an out-of-range snapshot index. When that happens, `joy_get_released_buffered` just returns
+            When gUpdateRate is higher 4 the condition below will eventually query `joyGetReleasedBuffered(0, i)`
+            with an out-of-range snapshot index. When that happens, `joyGetReleasedBuffered` just returns
             the highest-indexed button snapshot again. This means there's a 25% chance a single button press
             will accidentally turn into N (gUpdateRate - 3) button presses when gUpdateRate is higher than 4!
 
@@ -234,7 +236,7 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
         if (doAssistedTaps || //@recomp: handle accessibility options
             ((rButtonTapMode <= BUTTON_TAPPING_ASSIST_ON) && 
                 (i < MAX_BUFFERED_CONT_SNAPSHOTS) && //@recomp: don't repeat highest-indexed button snapshot
-                (joy_get_released_buffered(0, i) & A_BUTTON)
+                (joyGetReleasedBuffered(0, i) & A_BUTTON)
             )            
         ) {
             objData->yawSpeed -= 2.5f * FRAMERATE_ADJUST;
@@ -260,7 +262,7 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
         if (objData->yaw < YAW_WIN) {
             sPrevYaw = YAW_NEUTRAL;
             objData->state = SCTotemStrength_STATE_Won;
-            func_80023D30(player, 0, 0.0f, 0);
+            objAnimSet(player, 0, 0.0f, 0);
             gDLL_3_Animation->vtbl->end_obj_sequence(objData->pushSeq);
             return 4;
         }
@@ -272,7 +274,7 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
         if (objData->yaw > YAW_LOSE) {
             sPrevYaw = YAW_NEUTRAL;
             objData->state = SCTotemStrength_STATE_Lost;
-            func_80023D30(player, 0, 0.0f, 0);
+            objAnimSet(player, 0, 0.0f, 0);
             gDLL_3_Animation->vtbl->end_obj_sequence(objData->pushSeq);
             return 4;
         }
@@ -299,24 +301,24 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
         }
 
         //Handle player anim progress/looping
-        if (func_80024108(player, ((f32)sPrevYaw - (f32)objData->yaw) / 9500.0f, gUpdateRateF, 0) != 0) {
+        if (objAnimAdvance(player, ((f32)sPrevYaw - (f32)objData->yaw) / 9500.0f, gUpdateRateF, 0) != 0) {
             if ((((f32)sPrevYaw - (f32)objData->yaw) / 9500.0f) < 0.0f) {
                 //Start at end of animation
-                func_80023D30(player, 0x401, 1.0f, 0);
+                objAnimSet(player, 0x401, 1.0f, 0);
             } else {
                 //Start at beginning of animation
-                func_80023D30(player, 0x401, 0.0f, 0);
+                objAnimSet(player, 0x401, 0.0f, 0);
             }
         }
         
         //Handle LightFoot anim progress/looping
-        if (func_80024108(objData->lightFoot, -(((f32)sPrevYaw - (f32)objData->yaw) / 9500.0f), gUpdateRateF, 0) != 0) {
+        if (objAnimAdvance(objData->lightFoot, -(((f32)sPrevYaw - (f32)objData->yaw) / 9500.0f), gUpdateRateF, 0) != 0) {
             if (-(((f32)sPrevYaw - (f32)objData->yaw) / 9500.0f) < 0.0f) {
                 //Start at end of animation
-                func_80023D30(objData->lightFoot, 0, 1.0f, 0);
+                objAnimSet(objData->lightFoot, 0, 1.0f, 0);
             } else {
                 //Start at beginning of animation
-                func_80023D30(objData->lightFoot, 0, 0.0f, 0);
+                objAnimSet(objData->lightFoot, 0, 0.0f, 0);
             }
         }
 
@@ -329,12 +331,12 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
     if (objData->soundTimerKrystal < 0.0f) {
         if (pushProgress < 0.0f) {
             //More frequent when Krystal is losing
-            objData->soundTimerKrystal = rand_next(40, 100);
+            objData->soundTimerKrystal = mathRnd(40, 100);
         } else {
             //Less frequent when Krystal is winning
-            objData->soundTimerKrystal = rand_next(120, 240);
+            objData->soundTimerKrystal = mathRnd(120, 240);
         }
-        gDLL_6_AMSFX->vtbl->play(self, dSoundsKrystal[rand_next(0, 2)], MAX_VOLUME, 0, 0, 0, 0);
+        dll_amSfx->Play(self, dSoundsKrystal[mathRnd(0, 2)], MAX_VOLUME, 0, 0, 0, 0);
     }
     
     //Play random LightFoot sounds
@@ -342,20 +344,20 @@ RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj
     if (objData->soundTimerLF < 0.0f) {
         if (pushProgress > 0.0f) {
             //More frequent when LightFoot is losing
-            objData->soundTimerLF = rand_next(40, 100);
+            objData->soundTimerLF = mathRnd(40, 100);
         } else {
             //Less frequent when LightFoot is winning
-            objData->soundTimerLF = rand_next(120, 240);
+            objData->soundTimerLF = mathRnd(120, 240);
         }
-        gDLL_6_AMSFX->vtbl->play(self, dSoundsLightFoot[rand_next(0, 2)], MAX_VOLUME, &objData->soundHandleLightFoot, 0, 0, 0);
+        dll_amSfx->Play(self, dSoundsLightFoot[mathRnd(0, 2)], MAX_VOLUME, &objData->soundHandleLightFoot, 0, 0, 0);
     }
     
     //Adjust the pitch/volume of the wood creaking sound loop wrt. push progress magnitude
     if (pushProgress < 0/*.0f*/) {
         pushProgress = -pushProgress;
     }
-    gDLL_6_AMSFX->vtbl->set_pitch(objData->soundHandleCreak, (pushProgress * 0.3f) + 0.85f);
-    gDLL_6_AMSFX->vtbl->set_vol(objData->soundHandleCreak, (u8)(pushProgress * 0x40) + 0x20);
+    dll_amSfx->SetPitch(objData->soundHandleCreak, (pushProgress * 0.3f) + 0.85f);
+    dll_amSfx->SetVol(objData->soundHandleCreak, (u8)(pushProgress * 0x40) + 0x20);
 
     return 0;
 }

@@ -57,10 +57,10 @@ static void animobj_krystal_handle_rolling_demo_ending(Object* self) {
                 objData->vehicleState = 3;
 
                 //Find closest DR_CloudRunner object
-                objects = obj_get_all_of_type(OBJTYPE_Vehicle, &count);
+                objects = objGetAllOfType(OBJTYPE_Vehicle, &count);
                 minDistance = 131072.0;
                 for (i = 0; i < count; i++) {
-                    distance = vec3_distance(&self->globalPosition, &objects[i]->globalPosition);
+                    distance = vec3Distance(&self->globalPosition, &objects[i]->globalPosition);
                     if ((objects[i]->id == OBJ_DR_CloudRunner) && (distance < minDistance)) {
                         //Store object
                         objData->vehicle = objects[i];
@@ -87,7 +87,7 @@ static void animobj_krystal_handle_rolling_demo_ending(Object* self) {
             self->srt.roll = vehicle->srt.roll;
 
             //Get position from vehicle DLL
-            ((DLL_IVehicle*)vehicle->dll)->vtbl->get_rider_position(
+            ((DLL_IVehicle*)vehicle->dll)->vtbl->GetRiderPosition(
                 vehicle, 
                 &parentPosition.x, 
                 &parentPosition.y, 
@@ -141,7 +141,7 @@ RECOMP_PATCH void animobj_print(Object *self, Gfx **gdl, Mtx **mtxs, Vertex **vt
             self->srt.roll = vehicle->srt.roll;
 
             //Get position from vehicle DLL
-            ((DLL_IVehicle*)vehicle->dll)->vtbl->get_rider_position(
+            ((DLL_IVehicle*)vehicle->dll)->vtbl->GetRiderPosition(
                 vehicle, 
                 &parentPosition.x, 
                 &parentPosition.y, 
@@ -158,5 +158,5 @@ RECOMP_PATCH void animobj_print(Object *self, Gfx **gdl, Mtx **mtxs, Vertex **vt
         }
     }
 
-    draw_object(self, gdl, mtxs, vtxs, pols, 1.0f);
+    objprintDrawModel(self, gdl, mtxs, vtxs, pols, 1.0f);
 }

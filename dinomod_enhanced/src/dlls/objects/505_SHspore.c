@@ -55,7 +55,7 @@ RECOMP_PATCH void SHspore_control(Object* self) {
         self->srt.yaw += gUpdateRate << 6;
         objData->deletionTimer -= gUpdateRateF;
         if (objData->deletionTimer <= 0.0f) {
-            obj_destroy_object(self);
+            objFreeObject(self);
         }
     } else {
         //Update motion
@@ -85,7 +85,7 @@ RECOMP_PATCH void SHspore_control(Object* self) {
         }
 
         SHspore_change_flight_direction(self, objData);
-        if ((rand_next(0, 100) < 5) && (objData->angularJitterTimer <= 0.0f)) {
+        if ((mathRnd(0, 100) < 5) && (objData->angularJitterTimer <= 0.0f)) {
             SHspore_jitter_flight_direction(self, objData);
         }
 
@@ -101,7 +101,7 @@ RECOMP_PATCH void SHspore_control(Object* self) {
 
         self->velocity.x = objData->velocityX + (objData->coefficientX * objData->lateralAcceleration);
         self->velocity.z = objData->velocityZ + (objData->coefficientZ * objData->lateralAcceleration);
-        obj_move(self, self->velocity.x * gUpdateRateF, self->velocity.y * gUpdateRateF, self->velocity.z * gUpdateRateF);
+        objMove(self, self->velocity.x * gUpdateRateF, self->velocity.y * gUpdateRateF, self->velocity.z * gUpdateRateF);
         gDLL_27->vtbl->func_1E8(self, &objData->terrainCollider, gUpdateRateF);
         gDLL_27->vtbl->func_5A8(self, &objData->terrainCollider);
         gDLL_27->vtbl->func_624(self, &objData->terrainCollider, gUpdateRateF);
@@ -112,9 +112,9 @@ RECOMP_PATCH void SHspore_control(Object* self) {
         if (collidedObject) {
             particleCount = 20;
 
-            if (get_player() == collidedObject) {
+            if (objGetPlayer() == collidedObject) {
                 //Player collecting purple mushroom
-                i = main_increment_bits(BIT_Inventory_Purple_Mushrooms);
+                i = mainIncrementBits(BIT_Inventory_Purple_Mushrooms);
                 particleCount = 0;
 
                 //@recomp: optionally show an item collection pop-up
@@ -129,7 +129,7 @@ RECOMP_PATCH void SHspore_control(Object* self) {
             
             if (collidedObject->id != OBJ_SHrocketmushroo) {
                 //Other objects (ignoring SHrocketmushroom since the spores emerge out of it)
-                gDLL_6_AMSFX->vtbl->play(self, SOUND_B31_Item_Collection_Chime, MAX_VOLUME, NULL, 0, 0, 0);
+                dll_amSfx->Play(self, SOUND_B31_Item_Collection_Chime, MAX_VOLUME, NULL, 0, 0, 0);
                 gDLL_13_Expgfx->vtbl->func4(self);
 
                 //Create collision particles
@@ -145,7 +145,7 @@ RECOMP_PATCH void SHspore_control(Object* self) {
             objData->lifetime -= gUpdateRateF;
             //Destroy the spore if its lifetime runs out or it collides with terrain
             if (objData->lifetime <= 0.0f || objData->terrainCollider.unk25C & 0x11) {
-                gDLL_6_AMSFX->vtbl->play(self, SOUND_8A2_Spore_Disintegrate, MAX_VOLUME, NULL, 0, 0, 0);
+                dll_amSfx->Play(self, SOUND_8A2_Spore_Disintegrate, MAX_VOLUME, NULL, 0, 0, 0);
                 gDLL_13_Expgfx->vtbl->func4(self);
 
                 //Create collision particles

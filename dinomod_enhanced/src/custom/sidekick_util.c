@@ -41,6 +41,6 @@ s32 dinomod_unload_sidekick_if_map_unloaded(Object *obj) {
         }
     }
 
-    obj_destroy_object(obj);
+    objFreeObject(obj);
     return 0;
 }

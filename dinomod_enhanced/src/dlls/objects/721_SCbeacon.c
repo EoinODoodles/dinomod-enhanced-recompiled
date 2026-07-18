@@ -57,10 +57,10 @@ static void SCbeacon_flame_sounds_start(Object* self){
     }
 
     if (!objData->soundHandleBurn1) {
-        gDLL_6_AMSFX->vtbl->play(self, SOUND_50a_Fire_Burning_Low_Loop, MAX_VOLUME, &objData->soundHandleBurn1, NULL, 0, NULL);
+        dll_amSfx->Play(self, SOUND_50a_Fire_Burning_Low_Loop, MAX_VOLUME, &objData->soundHandleBurn1, NULL, 0, NULL);
     }
     if (!objData->soundHandleBurn2) {
-        gDLL_6_AMSFX->vtbl->play(self, SOUND_50b_Fire_Burning_High_Loop, MAX_VOLUME, &objData->soundHandleBurn2, NULL, 0, NULL);
+        dll_amSfx->Play(self, SOUND_50b_Fire_Burning_High_Loop, MAX_VOLUME, &objData->soundHandleBurn2, NULL, 0, NULL);
     }
 }
 
@@ -76,11 +76,11 @@ static void SCbeacon_flame_sounds_stop(Object* self){
     }
 
     if (objData->soundHandleBurn1) {
-        gDLL_6_AMSFX->vtbl->stop(objData->soundHandleBurn1);
+        dll_amSfx->Stop(objData->soundHandleBurn1);
         objData->soundHandleBurn1 = 0;
     }
     if (objData->soundHandleBurn2) {
-        gDLL_6_AMSFX->vtbl->stop(objData->soundHandleBurn2);
+        dll_amSfx->Stop(objData->soundHandleBurn2);
         objData->soundHandleBurn2 = 0;
     }
 }
@@ -121,7 +121,7 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
 
     objData = self->data;
     objSetup = (SCbeacon_Setup*)self->setup;
-    player = get_player();
+    player = objGetPlayer();
 
     #if DEBUG_BEACON 
     {
@@ -130,7 +130,7 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
     }
     #endif
 
-    playerDistSQ = vec3_distance_xz_squared(&player->globalPosition, &self->globalPosition);
+    playerDistSQ = vec3DistanceXZSquared(&player->globalPosition, &self->globalPosition);
     interactRangeSQ = SQ(objSetup->playerRange);
     playerIsNearby = (playerDistSQ <= interactRangeSQ);
     
@@ -140,7 +140,7 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
     if (objData->flags & SCbeacon_FLAG_Add_Tumbleweed) {
         objData->state = SCbeacon_STATE_Twigs_in_Bowl;
         self->modelInstIdx = SCbeacon_MODEL_Twigs_in_Bowl;
-        main_set_bits(objData->gamebitTwigs, 1);
+        mainSetBits(objData->gamebitTwigs, 1);
         objData->flags &= ~SCbeacon_FLAG_Add_Tumbleweed;
     }
 
@@ -150,25 +150,25 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
         self->modelInstIdx = SCbeacon_MODEL_Bowl_Empty;
         objData->state = SCbeacon_STATE_Bowl_Empty;
 
-        if (main_get_bits(objData->gamebitTwigs)) {
+        if (mainGetBits(objData->gamebitTwigs)) {
             self->modelInstIdx = SCbeacon_MODEL_Twigs_in_Bowl;
             objData->state = SCbeacon_STATE_Twigs_in_Bowl;
         }
 
-        if (main_get_bits(objData->gamebitLit)) {
+        if (mainGetBits(objData->gamebitLit)) {
             SCbeacon_attempt_to_light(self); //will only be successful here if twigs gamebit also set
         }
         break;
     case SCbeacon_STATE_Bowl_Empty:
 
-        sidekick = get_sidekick();
+        sidekick = objGetSidekick();
         if (sidekick && (self->unkAF & ARROW_FLAG_4_Highlighted)) {
             //Show Flame command option
             ((DLL_ISidekick*)sidekick->dll)->vtbl->enable_command(sidekick, Sidekick_Command_INDEX_4_Flame);
 
             //Check if Flame command was selected
             if (gDLL_1_cmdmenu->vtbl->was_this_item_used(Sidekick_Command_INDEX_4_Flame)) {
-                main_set_bits(BIT_Kyte_Flight_Curve, objSetup->kyteCurveID);
+                mainSetBits(BIT_Kyte_Flight_Curve, objSetup->kyteCurveID);
             }
         }
 
@@ -211,7 +211,7 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
                 recomp_printf("IN BOWL: deleting Tumbleweed!\n");
                 #endif
                 
-                obj_destroy_object(objData->heldTumbleweed);
+                objFreeObject(objData->heldTumbleweed);
             }
             objData->destroyTumbleweed = FALSE;
 
@@ -222,20 +222,20 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
             playerUtil_stop_carrying(player);
         }
 
-        sidekick = get_sidekick();
+        sidekick = objGetSidekick();
         if (sidekick && (self->unkAF & ARROW_FLAG_4_Highlighted)) {
             //Show Flame command option
             ((DLL_ISidekick*)sidekick->dll)->vtbl->enable_command(sidekick, Sidekick_Command_INDEX_4_Flame);
 
             //Check if Flame command was selected
             if (gDLL_1_cmdmenu->vtbl->was_this_item_used(Sidekick_Command_INDEX_4_Flame)) {
-                main_set_bits(BIT_Kyte_Flight_Curve, objSetup->kyteCurveID);
+                mainSetBits(BIT_Kyte_Flight_Curve, objSetup->kyteCurveID);
             }
         }
         break;
     case SCbeacon_STATE_Lighting:
-        sidekick = get_sidekick();
-        if (vec3_distance_xz_squared(&sidekick->globalPosition, &self->globalPosition) <= 2500.0f) {
+        sidekick = objGetSidekick();
+        if (vec3DistanceXZSquared(&sidekick->globalPosition, &self->globalPosition) <= 2500.0f) {
             gDLL_17_partfx->vtbl->spawn(self, PARTICLE_425, NULL, 2, -1, NULL); //create smoke
             gDLL_17_partfx->vtbl->spawn(self, PARTICLE_426, NULL, 2, -1, NULL); //create embers
         }
@@ -259,10 +259,10 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
 
     //@recomp: Play refusal sound after trying to light beacon without adding kindling
     if ((objData->prevState == SCbeacon_STATE_Lighting) && (objData->state == SCbeacon_STATE_Bowl_Empty)){
-        gDLL_6_AMSFX->vtbl->play(player, SOUND_6E6_Interaction_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+        dll_amSfx->Play(player, SOUND_6E6_Interaction_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
     //Play success sound when lit
     } else if (objData->playSuccess && (objData->prevState == SCbeacon_STATE_Lit) && (objData->state == SCbeacon_STATE_Lit)){
-        gDLL_6_AMSFX->vtbl->play(player, 0xB01, 0x60, NULL, NULL, 0, NULL);
+        dll_amSfx->Play(player, 0xB01, 0x60, NULL, NULL, 0, NULL);
         objData->playSuccess = FALSE;
     }
 
@@ -277,7 +277,7 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
 RECOMP_PATCH void SCbeacon_free(Object* self, s32 arg1) {
     gDLL_14_Modgfx->vtbl->func5(self);
     gDLL_13_Expgfx->vtbl->func5(self);
-    obj_free_object_type(self, OBJTYPE_KyteTarget);
+    objFreeObjectType(self, OBJTYPE_KyteTarget);
 
     //@recomp: soundHandles
     SCbeacon_flame_sounds_stop(self);
@@ -301,7 +301,7 @@ RECOMP_PATCH int SCbeacon_handle_kyte_flame_seqs(Object* self, s32 finishLightin
         }
 
         //Finish lighting the beacon
-        if (main_get_bits(objData->gamebitTwigs) && (main_get_bits(objData->gamebitLit) == FALSE)) {
+        if (mainGetBits(objData->gamebitTwigs) && (mainGetBits(objData->gamebitLit) == FALSE)) {
             //Advance to "lit" state
             SCbeacon_attempt_to_light(self); //will always be successful here
 
@@ -309,17 +309,17 @@ RECOMP_PATCH int SCbeacon_handle_kyte_flame_seqs(Object* self, s32 finishLightin
             objData->playSuccess = TRUE;
 
             //Warp to Discovery Falls' entrance when all beacons are lit, and play pool-draining sequence
-            if (main_get_bits(BIT_SC_Beacon_Lit_1) && 
-                main_get_bits(BIT_SC_Beacon_Lit_2) && 
-                main_get_bits(BIT_SC_Beacon_Lit_3)
+            if (mainGetBits(BIT_SC_Beacon_Lit_1) && 
+                mainGetBits(BIT_SC_Beacon_Lit_2) && 
+                mainGetBits(BIT_SC_Beacon_Lit_3)
             ) {
-                main_set_bits(BIT_SC_All_Beacons_Lit, 1);
+                mainSetBits(BIT_SC_All_Beacons_Lit, 1);
 
                 //@recomp: play success jingle
-                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_B89_Puzzle_Solved, 0x60, NULL, NULL, 0, NULL);
+                dll_amSfx->Play(NULL, SOUND_B89_Puzzle_Solved, 0x60, NULL, NULL, 0, NULL);
 
                 gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_SWAPSTONE_CIRCLE, 0, TRUE);
-                warpPlayer(85, TRUE); //SC_warppoint auto-plays seq 0x77
+                mapWarpPlayer(85, TRUE); //SC_warppoint auto-plays seq 0x77
                 gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_SWAPSTONE_CIRCLE, 3, FALSE);
             }
         } else {
@@ -341,25 +341,25 @@ RECOMP_PATCH void SCbeacon_attempt_to_light(Object* self) {
     objData = self->data;
     objSetup = (SCbeacon_Setup*)self->setup;
     
-    if (main_get_bits(objData->gamebitTwigs)) {
+    if (mainGetBits(objData->gamebitTwigs)) {
         //Play burning sound loops (@recomp: use soundHandles)
         // SCbeacon_flame_sounds_start(self);
         
         //Create fire model
         gDLL_14_Modgfx->vtbl->func10(self);
-        modGfxDLL = dll_load_deferred(0x100A, 1);
+        modGfxDLL = dllLoad(0x100A, 1);
         modGfxDLL->vtbl->func0(self, 2, 0, 0x10004, -1, 0);
-        dll_unload(modGfxDLL);
+        dllFree(modGfxDLL);
         
         //Disable targetting and advance to lit state
         self->unkAF |= ARROW_FLAG_8_No_Targetting;
-        main_set_bits(objData->gamebitLit, 1);        
+        mainSetBits(objData->gamebitLit, 1);        
         objData->state = SCbeacon_STATE_Lit;
 
         //Set Kyte curve gamebit
         objData->kyteCurve = gDLL_25->vtbl->func_2BC4(self, objSetup->kyteCurveID);
         if (objData->kyteCurve->type22.usedBit != NO_GAMEBIT) {
-            main_set_bits(objData->kyteCurve->type22.usedBit, 1);
+            mainSetBits(objData->kyteCurve->type22.usedBit, 1);
         }
     }
 }
@@ -376,7 +376,7 @@ RECOMP_PATCH int SCbeacon_anim_callback(Object* self, Object* override, AnimObj_
     u32 interactRangeSQ;
     u32 playerDistanceSQ;
 
-    player = get_player();
+    player = objGetPlayer();
     objData = self->data;
     objSetup = (SCbeacon_Setup*)self->setup;
     
@@ -385,14 +385,14 @@ RECOMP_PATCH int SCbeacon_anim_callback(Object* self, Object* override, AnimObj_
         objData->flags |= SCbeacon_FLAG_Add_Tumbleweed;
     }
     
-    playerDistanceSQ = vec3_distance_xz_squared(&player->globalPosition, &self->globalPosition);
+    playerDistanceSQ = vec3DistanceXZSquared(&player->globalPosition, &self->globalPosition);
     interactRangeSQ = SQ(objSetup->playerRange);
     playerIsNearby = (playerDistanceSQ <= interactRangeSQ);
 
     switch (objData->state) {
     case SCbeacon_STATE_Lighting:
-        sidekick = get_sidekick();
-        if (vec3_distance_xz_squared(&sidekick->globalPosition, &self->globalPosition) <= 2500.0f) {
+        sidekick = objGetSidekick();
+        if (vec3DistanceXZSquared(&sidekick->globalPosition, &self->globalPosition) <= 2500.0f) {
             gDLL_17_partfx->vtbl->spawn(self, PARTICLE_425, NULL, 2, -1, NULL);
             gDLL_17_partfx->vtbl->spawn(self, PARTICLE_426, NULL, 2, -1, NULL);
         }

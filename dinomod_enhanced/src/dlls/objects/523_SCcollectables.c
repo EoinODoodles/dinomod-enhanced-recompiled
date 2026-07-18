@@ -64,13 +64,13 @@ static s16 SCcollectables_override_tutorial_gamebitID(Object* self, Collectable_
 
     switch (self->id) {
     case OBJ_SC_golden_nugge:
-        if (main_get_bits(BIT_Gold_Nugget_GP)) {
+        if (mainGetBits(BIT_Gold_Nugget_GP)) {
             return BIT_Gold_Nugget_GP;
         }
-        if (main_get_bits(BIT_Gold_Nugget_LFV)) {
+        if (mainGetBits(BIT_Gold_Nugget_LFV)) {
             return BIT_Gold_Nugget_LFV;
         }
-        if (main_get_bits(BIT_Gold_Nugget_CC)) {
+        if (mainGetBits(BIT_Gold_Nugget_CC)) {
             return BIT_Gold_Nugget_CC;
         }
     }
@@ -84,7 +84,7 @@ static int SCcollectables_will_tutorial_be_shown(Object* self, Collectable_Setup
 
     tutorialGamebit = SCcollectables_override_tutorial_gamebitID(self, objSetup);
     if (tutorialGamebit > (NO_GAMEBIT + 1)) {
-        return (main_get_bits(tutorialGamebit) == FALSE);
+        return (mainGetBits(tutorialGamebit) == FALSE);
     } else {
         return TRUE;
     }
@@ -97,9 +97,9 @@ static s8 SCcollectables_get_cmdmenu_popup_item_count(Object* self, Collectable_
     switch (self->id) {
     case OBJ_SC_golden_nugge:
         //Show how many have been found in total
-        count += main_get_bits(BIT_Gold_Nugget_GP);
-        count += main_get_bits(BIT_Gold_Nugget_LFV);
-        count += main_get_bits(BIT_Gold_Nugget_CC);
+        count += mainGetBits(BIT_Gold_Nugget_GP);
+        count += mainGetBits(BIT_Gold_Nugget_LFV);
+        count += mainGetBits(BIT_Gold_Nugget_CC);
         return count + 1;
     }
 
@@ -185,8 +185,8 @@ RECOMP_PATCH void SCcollectables_setup(Object* self, Collectable_Setup* objsetup
 
     objdata = self->data;
 
-    obj_add_object_type(self, OBJTYPE_Collectable);
-    obj_init_mesg_queue(self, 2);
+    objAddObjectType(self, OBJTYPE_Collectable);
+    objInitMesgQueue(self, 2);
 
     self->srt.yaw = objsetup->yaw << 8;
     self->srt.pitch = objsetup->pitch << 8;
@@ -205,7 +205,7 @@ RECOMP_PATCH void SCcollectables_setup(Object* self, Collectable_Setup* objsetup
 
     //Check if already knocked out of tree
     if (objdata->gamebitFall != NO_GAMEBIT) {
-        if (main_get_bits(objdata->gamebitFall)) {
+        if (mainGetBits(objdata->gamebitFall)) {
             SCcollectables_handle_motion(self, TRUE);
         }
     } else {
@@ -215,7 +215,7 @@ RECOMP_PATCH void SCcollectables_setup(Object* self, Collectable_Setup* objsetup
     //Check if already collected
     objdata->gamebitCollected = objsetup->gamebitCollected;
     if (objdata->gamebitCollected != NO_GAMEBIT) {
-        self->unkDC = main_get_bits(objdata->gamebitCollected);
+        self->unkDC = mainGetBits(objdata->gamebitCollected);
     } else {
         self->unkDC = 0;
     }
@@ -264,13 +264,13 @@ RECOMP_PATCH void SCcollectables_control(Object* self) {
     if (self->unkE0) {
         self->unkE0 -= gUpdateRate * 3;
         if (self->unkE0 <= 0) {
-            obj_destroy_object(self);
+            objFreeObject(self);
             return;
         }
     }
 
     //Check if should fall from tree
-    if (objdata->gamebitFall != NO_GAMEBIT && main_get_bits(objdata->gamebitFall)) {
+    if (objdata->gamebitFall != NO_GAMEBIT && mainGetBits(objdata->gamebitFall)) {
         objdata->fallFlags |= FLAG_Fall_Start;
     }
     
@@ -282,7 +282,7 @@ RECOMP_PATCH void SCcollectables_control(Object* self) {
     
     //Check for collection message (set gamebits and hide self)
     if (objdata->fallFlags & FLAG_Collected) {
-        while (obj_recv_mesg(self, &messageArg, &messageSender, 0)){
+        while (objRecvMesg(self, &messageArg, &messageSender, 0)){
             if (messageArg == 0x7000B) {
                 SCcollectables_collect(self);
                 recomp_printf("\nMessage received, collected!\n");
@@ -305,7 +305,7 @@ RECOMP_PATCH void SCcollectables_control(Object* self) {
 
         //Check if collection gamebit was reset
         if ((objdata->gamebitCollected != NO_GAMEBIT) && 
-            (main_get_bits(objdata->gamebitCollected) == FALSE)
+            (mainGetBits(objdata->gamebitCollected) == FALSE)
         ) {
             self->unkDC = 0;
         }
@@ -329,7 +329,7 @@ RECOMP_PATCH void SCcollectables_control(Object* self) {
         for (index = 20; index > 0; index--){
             gDLL_17_partfx->vtbl->spawn(self, 0x424, 0, 2, -1, 0);
         }
-        gDLL_6_AMSFX->vtbl->play(self, SOUND_613_Gold_Bounce, MAX_VOLUME, 0, 0, 0, 0);
+        dll_amSfx->Play(self, SOUND_613_Gold_Bounce, MAX_VOLUME, 0, 0, 0, 0);
     }
 
     //@recomp: grey out the arrow if it can't be collected yet
@@ -351,13 +351,13 @@ RECOMP_PATCH void SCcollectables_control(Object* self) {
             return;
         }
 
-        player = get_player();
+        player = objGetPlayer();
         if (!player) {
             return;
         }
         
         //Make sure the player is nearby
-        distance = vec3_distance(&self->globalPosition, &player->globalPosition);
+        distance = vec3Distance(&self->globalPosition, &player->globalPosition);
         objdata->distanceToPlayer = distance;
         if (distance >= objdata->interactionRadius) {
             return;
@@ -371,7 +371,7 @@ RECOMP_PATCH void SCcollectables_control(Object* self) {
         //Have the player scoop up the item, and play a tutorial cutscene if needed
         // outMessage = collectableDef->collectMessage << 0x10;
         messageArg = SCcollectables_override_tutorial_gamebitID(self, objSetup); //@recomp
-        obj_send_mesg(player, 
+        objSendMesg(player, 
             0x7000A, 
             self, 
             (void*)messageArg
@@ -396,12 +396,12 @@ RECOMP_PATCH void SCcollectables_collect(Object* self) {
     
     //Set collection gamebit (if it's in use)
     if (objdata->gamebitCollected != NO_GAMEBIT) {
-        main_set_bits(objdata->gamebitCollected, 1);
+        mainSetBits(objdata->gamebitCollected, 1);
     }
 
     //Increment counter gamebit (if it's in use)
     if (objsetup->gamebitCount > 0) {
-        main_increment_bits(objsetup->gamebitCount);
+        mainIncrementBits(objsetup->gamebitCount);
     }
     
     //Hide self

@@ -41,7 +41,7 @@ RECOMP_PATCH void scarab_collect(Object* self, Object* player, Scarab_Data* objD
 	u8 values[4] = {1, 5, 10, 50};
 
 	//@recomp: enable Scarab counter UI
-	main_set_bits(0x919, 1);
+	mainSetBits(0x919, 1);
 
 	((DLL_210_Player*)player->dll)->vtbl->add_scarab(player, values[objData->scarabTypeIndex]);
 

@@ -12,6 +12,8 @@
 
 #include "recomp/dlls/objects/478_DBSH_Symbol_recomp.h"
 
+#define MAX_BUFFERED_CONT_SNAPSHOTS 4
+
 #define Y_UNDERGROUND 50.0f
 #define YAW_WIN 32500
 #define YAW_SPEED_MAX 80.0f
@@ -71,7 +73,7 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
     s32 count;
 
     objData = self->data;
-    player = get_player();
+    player = objGetPlayer();
     
     animData->unk7A = -1;
     animData->unk62 = 0;
@@ -94,13 +96,13 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
     
     //Play magic humming loop
     if (objData->soundHandle == 0) {
-        gDLL_6_AMSFX->vtbl->play(self, SOUND_357_Magic_Hum_Loop, MAX_VOLUME, &objData->soundHandle, NULL, 0, NULL);
-        gDLL_6_AMSFX->vtbl->set_pitch(objData->soundHandle, 0.8f);
+        dll_amSfx->Play(self, SOUND_357_Magic_Hum_Loop, MAX_VOLUME, &objData->soundHandle, NULL, 0, NULL);
+        dll_amSfx->SetPitch(objData->soundHandle, 0.8f);
     }
 
     //Find phantom Krystal
     if (objData->krystal == NULL) {
-        for (objects = get_world_objects(&index, &count); index < count; index++) {
+        for (objects = objGetObjects(&index, &count); index < count; index++) {
             objData->krystal = objects[index];
             if (objData->krystal->id == OBJ_DBSH_Krystal) {
                 break;
@@ -113,7 +115,7 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
 
     //@recomp: handle simulated button presses
     if ((rButtonTapMode == BUTTON_TAPPING_ASSIST_AUTO) ||
-        ((rButtonTapMode == BUTTON_TAPPING_ASSIST_HOLD) && (joy_get_buttons(0) & A_BUTTON))
+        ((rButtonTapMode == BUTTON_TAPPING_ASSIST_HOLD) && (joyGetButtons(0) & A_BUTTON))
     ) {
         rsFramesSinceLastAutoTap += gUpdateRate;
         if (rsFramesSinceLastAutoTap >= ASSIST_TAP_INTERVAL) {
@@ -132,7 +134,7 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
         //Handle losing (time running out)
         if (objData->timeLeft <= 0) {
             gDLL_3_Animation->vtbl->end_obj_sequence(objData->pushSeq);
-            func_8000FA2C();
+            menu_func_8000FA2C();
 
             //@recomp: fix a bug where it doesn't reset the test properly
             objData->yaw = 0;
@@ -147,8 +149,8 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
             This repetition is why the test is easier to complete on N64.
 
             The game can buffer up to 4 frames' worth of button presses (MAX_BUFFERED_CONT_SNAPSHOTS).
-            When gUpdateRate is higher 4 the condition below will eventually query `joy_get_released_buffered(0, i)`
-            with an out-of-range snapshot index. When that happens, `joy_get_released_buffered` just returns
+            When gUpdateRate is higher 4 the condition below will eventually query `joyGetReleasedBuffered(0, i)`
+            with an out-of-range snapshot index. When that happens, `joyGetReleasedBuffered` just returns
             the highest-indexed button snapshot again. This means there's a 25% chance a single button press
             will accidentally turn into N (gUpdateRate - 3) button presses when gUpdateRate is higher than 4!
 
@@ -164,16 +166,16 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
         if (doAssistedTaps || //@recomp: handle accessibility options
             ((rButtonTapMode <= BUTTON_TAPPING_ASSIST_ON) && 
                 (i < MAX_BUFFERED_CONT_SNAPSHOTS) && //@recomp: don't repeat highest-indexed button snapshot
-                (joy_get_released_buffered(0, i) & A_BUTTON)
+                (joyGetReleasedBuffered(0, i) & A_BUTTON)
             )            
         ) {
             objData->yawSpeed += 18.8f;
             
             //5% chance of playing random Sabre effort sound
-            if (rand_next(0, 20) == 0) {
-                gDLL_6_AMSFX->vtbl->play(
+            if (mathRnd(0, 20) == 0) {
+                dll_amSfx->Play(
                     NULL, 
-                    SOUND_710_Sabre_Test_of_Strength_1 + rand_next(0, 2), 
+                    SOUND_710_Sabre_Test_of_Strength_1 + mathRnd(0, 2), 
                     0x1E, 
                     NULL, 
                     NULL, 
@@ -202,10 +204,10 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
         if (objData->yaw > YAW_WIN) {
             objData->yaw = YAW_WIN;
             gDLL_3_Animation->vtbl->end_obj_sequence(objData->pushSeq);
-            func_8000FA2C();
+            menu_func_8000FA2C();
             objData->magicFxTimer = 10;
             objData->delayTimer = 20;
-            func_80023D30(player, 0, 0.0f, 0);
+            objAnimSet(player, 0, 0.0f, 0);
             break;
         }
         
@@ -221,8 +223,8 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
             }
             
             //Use stopped animation for Sabre/Krystal
-            func_80023D30(player, dAnimOffsetSabre + 0x4A, 0.0f, 0);
-            func_80023D30(objData->krystal, dAnimOffsetKrystal + 0x4A, 1.0f, 0);
+            objAnimSet(player, dAnimOffsetSabre + 0x4A, 0.0f, 0);
+            objAnimSet(objData->krystal, dAnimOffsetKrystal + 0x4A, 1.0f, 0);
             
             sPrevYaw = objData->yaw;
 
@@ -249,26 +251,26 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
         }
     
         //Handle player anim progress/looping
-        if (func_80024108(player, ((f32) objData->yaw - (f32) sPrevYaw) / 7500.0f, gUpdateRateF, NULL) != 0) {
+        if (objAnimAdvance(player, ((f32) objData->yaw - (f32) sPrevYaw) / 7500.0f, gUpdateRateF, NULL) != 0) {
             dAnimOffsetSabre = 1 - dAnimOffsetSabre;
             if ((((f32) objData->yaw - (f32) sPrevYaw) / 7500.0f) < 0.0f) {
                 //Start at end of animation
-                func_80023D30(player, dAnimOffsetSabre + 0x4A, 1.0f, 0);
+                objAnimSet(player, dAnimOffsetSabre + 0x4A, 1.0f, 0);
             } else {
                 //Start at beginning of animation
-                func_80023D30(player, dAnimOffsetSabre + 0x4A, 0.0f, 0);
+                objAnimSet(player, dAnimOffsetSabre + 0x4A, 0.0f, 0);
             }
         }
         
         //Handle phantom Krystal anim progress/looping
-        if (objData->krystal && (func_80024108(objData->krystal, -((f32) objData->yaw - (f32) sPrevYaw) / 7500.0f, gUpdateRateF, NULL) != 0)) {
+        if (objData->krystal && (objAnimAdvance(objData->krystal, -((f32) objData->yaw - (f32) sPrevYaw) / 7500.0f, gUpdateRateF, NULL) != 0)) {
             dAnimOffsetKrystal = 1 - dAnimOffsetKrystal;
             if ((((f32) objData->yaw - (f32) sPrevYaw) / 7500.0f) < 0.0f) {
                 //Start at beginning of animation
-                func_80023D30(objData->krystal, dAnimOffsetKrystal + 0x4A, 0.0f, 0);
+                objAnimSet(objData->krystal, dAnimOffsetKrystal + 0x4A, 0.0f, 0);
             } else {
                 //Start at end of animation
-                func_80023D30(objData->krystal, dAnimOffsetKrystal + 0x4A, 1.0f, 0);
+                objAnimSet(objData->krystal, dAnimOffsetKrystal + 0x4A, 1.0f, 0);
             }
         }
         
@@ -276,7 +278,7 @@ RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, An
     }
 
     //Adjust magic hum sound loop's pitch wrt. yaw
-    gDLL_6_AMSFX->vtbl->set_pitch(objData->soundHandle, ((f32) objData->yaw / 97500.0f) + 0.8f);
+    dll_amSfx->SetPitch(objData->soundHandle, ((f32) objData->yaw / 97500.0f) + 0.8f);
 
     return 0;
 }

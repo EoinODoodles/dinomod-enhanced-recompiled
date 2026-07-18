@@ -47,7 +47,7 @@ RECOMP_PATCH void DRLavaControl_freeze_update_effects(Object* self, Extended_DRL
     }
     
     distance = 500.0f;
-    waveAnimator = obj_get_nearest_type_to(0x1D, self, &distance);
+    waveAnimator = objGetNearestTypeTo(0x1D, self, &distance);
     if (waveAnimator) {
         // diPrintf(" WAVE OBJ %x ", waveAnimator);
         ((DLL_Unknown*)waveAnimator->dll)->vtbl->func[7].withOneS32OneF32((s32)waveAnimator, temperature_tValue); //blending wave amplitude to 0 as lava cools?
@@ -57,7 +57,7 @@ RECOMP_PATCH void DRLavaControl_freeze_update_effects(Object* self, Extended_DRL
     
     if (effectIndex != objData->effectIndex) {
         if (objData->lfxEmitter) {
-            obj_destroy_object(objData->lfxEmitter);
+            objFreeObject(objData->lfxEmitter);
             objData->lfxEmitter = NULL; //@recomp: prevent crash
         }
         if (effectIndex) {
@@ -81,7 +81,7 @@ RECOMP_PATCH void DRLavaControl_freeze(Object* self) {
 
     if (objData->freezeTimer > 0) {
         if (!objData->soundHandleHiss){ //@recomp: use soundHandle
-            gDLL_6_AMSFX->vtbl->play(self, SOUND_80C_Steam_Hissing, MAX_VOLUME, &objData->soundHandleHiss, NULL, 0, NULL);
+            dll_amSfx->Play(self, SOUND_80C_Steam_Hissing, MAX_VOLUME, &objData->soundHandleHiss, NULL, 0, NULL);
         }
         gDLL_17_partfx->vtbl->spawn(self, 0x5A, NULL, 2, -1, NULL);
         gDLL_17_partfx->vtbl->spawn(self, 0x5B, NULL, 2, -1, NULL);
@@ -90,12 +90,12 @@ RECOMP_PATCH void DRLavaControl_freeze(Object* self) {
         if (objData->freezeTimer <= 0) {
             objData->freezeTimer = 0;
             if (!objData->soundHandleCrackle){ //@recomp: use soundHandle
-                gDLL_6_AMSFX->vtbl->play(self, SOUND_80B_Crackling_Freezing, MAX_VOLUME, &objData->soundHandleCrackle, NULL, 0, NULL);
+                dll_amSfx->Play(self, SOUND_80B_Crackling_Freezing, MAX_VOLUME, &objData->soundHandleCrackle, NULL, 0, NULL);
             }
             objData->flags |= 1;
-            main_set_bits(objSetup->gameBitFrozen, TRUE);
+            mainSetBits(objSetup->gameBitFrozen, TRUE);
             // diPrintf(" bit set %i ", objSetup->gameBitFrozen);
-            main_increment_bits(BIT_DR_Lava_Pools_Cooled_Count);
+            mainIncrementBits(BIT_DR_Lava_Pools_Cooled_Count);
             gDLL_5_AMSEQ2->vtbl->set(self, 0x102, 0, 0, 0);
         }
     }
@@ -112,7 +112,7 @@ RECOMP_PATCH void DRLavaControl_setup(Object* self, DRLavaControl_Setup* objSetu
     objData->freezeTimer = objSetup->freezeDuration * 3;    //@recomp: increase to account for average FPS on N64
     objData->freezeDuration = objData->freezeTimer;
     
-    if (main_get_bits(objSetup->gameBitFrozen)) {
+    if (mainGetBits(objSetup->gameBitFrozen)) {
         isFrozen = TRUE;
     } else {
         isFrozen = FALSE;
@@ -136,17 +136,17 @@ RECOMP_PATCH void DRLavaControl_free(Object* self, s32 arg1) {
     Extended_DRLavaControl_Data* objData = self->data;
 
     if (objData->lfxEmitter && (arg1 == 0)) {
-        obj_destroy_object(objData->lfxEmitter);
+        objFreeObject(objData->lfxEmitter);
     }
     gDLL_13_Expgfx->vtbl->func4(self);
 
     //@recomp: sound handles
     if (objData->soundHandleHiss) {
-        gDLL_6_AMSFX->vtbl->stop(objData->soundHandleHiss);
+        dll_amSfx->Stop(objData->soundHandleHiss);
         objData->soundHandleHiss = 0;
     }
     if (objData->soundHandleCrackle) {
-        gDLL_6_AMSFX->vtbl->stop(objData->soundHandleCrackle);
+        dll_amSfx->Stop(objData->soundHandleCrackle);
         objData->soundHandleCrackle = 0;
     }
 }

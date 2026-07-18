@@ -7,8 +7,65 @@
 
 #include "core/joypad.h"
 
+#define THREAD_STACK_CONTROLLER 1024
+#define MAX_BUFFERED_CONT_SNAPSHOTS 4
+
+/**
+ * Represents a single snapshot of each controller.
+ *
+ * In addition to raw OSContPad snapshots, includes bitfields for
+ * buttons being pressed and released.
+ */
+typedef struct _ControllersSnapshot {
+    /**
+     * A raw controller pad snapshot for each controller.
+     */
+    OSContPad pads[MAXCONTROLLERS];
+
+    /**
+     * For each controller, a button bitfield where set button bits indicate that
+     * the button was just pressed down.
+     */
+    u16 buttonPresses[MAXCONTROLLERS];
+
+    /**
+     * For each controller, a button bitfield where set button bits indicate that
+     * the button was just released.
+     */
+    u16 buttonReleases[MAXCONTROLLERS];
+} ControllersSnapshot;
+
+extern ControllersSnapshot *gContSnapshots[2];
+extern ControllersSnapshot gContSnapshotsBuffer0[MAX_BUFFERED_CONT_SNAPSHOTS];
+extern ControllersSnapshot gContSnapshotsBuffer1[MAX_BUFFERED_CONT_SNAPSHOTS];
+extern u8 gNumBufContSnapshots[2];
+extern u8 gPrevContSnapshotsI;
+extern OSMesgQueue gContThreadMesgQueue;
+extern OSMesgQueue gContInterruptQueue;
+extern s32 gNoControllers;
+extern u8 gApplyContInputs;
+extern OSContPad gContPads[MAXCONTROLLERS];
+extern u16 gButtonPresses[MAXCONTROLLERS];
+extern u16 gButtonReleases[MAXCONTROLLERS];
+extern s8 gLastJoyX[MAXCONTROLLERS];
+extern s8 gLastJoyY[MAXCONTROLLERS];
+extern s8 gMenuJoyXHoldTimer[MAXCONTROLLERS];
+extern s8 gMenuJoyYHoldTimer[MAXCONTROLLERS];
+extern s8 gMenuJoyXSign[MAXCONTROLLERS];
+extern s8 gMenuJoyYSign[MAXCONTROLLERS];
+extern s8 gMenuJoystickDelay;
+extern u16 gButtonMask[MAXCONTROLLERS];
+extern u8 gIgnoreJoystick;
+extern OSMesgQueue gContThreadInputsAppliedQueue;
+extern OSMesg gContInterruptBuffer[2];
+extern OSMesg gContThreadMesgQueueBuffer[8];
+extern OSMesg gContThreadInputsAppliedQueueBuffer[1];
+extern s16 gContQueue2Message;
+extern u8 gVirtualContPortMap[MAXCONTROLLERS];
+extern u16 D_8008C8A4;
+
 // @recomp: Make menu movements framerate independent
-RECOMP_PATCH void joy_controller_thread_entry(void* arg) {
+RECOMP_PATCH void joyControllerThreadEntry(void* arg) {
     ControllersSnapshot* currSnap;
     ControllersSnapshot* compSnap;
     s16* message;

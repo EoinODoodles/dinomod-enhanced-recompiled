@@ -57,14 +57,14 @@ RECOMP_PATCH void dll_481_setup(Object *self, NWSH_Shrine_Setup *setup, s32 arg2
     objdata->unk13 = 0;
     objdata->unk2 = 0;
     self->animCallback = dll_481_func_C10;
-    obj_init_mesg_queue(self, 4);
+    objInitMesgQueue(self, 4);
     // @recomp: Fix falling rocks crash (original patch by MusicalProgrammer)
-    main_set_bits(BIT_176, 0);
-    main_set_bits(BIT_DB_Entered_Shrine_3, 1);
-    main_set_bits(BIT_15F, 0);
-    main_set_bits(BIT_DB_Entered_Shrine_1, 1);
-    main_set_bits(BIT_DB_Entered_Shrine_2, 1);
-    main_set_bits(BIT_DB_Triggered_In_Shrine_Spirit_Cutscene, 0);
+    mainSetBits(BIT_176, 0);
+    mainSetBits(BIT_DB_Entered_Shrine_3, 1);
+    mainSetBits(BIT_15F, 0);
+    mainSetBits(BIT_DB_Entered_Shrine_1, 1);
+    mainSetBits(BIT_DB_Entered_Shrine_2, 1);
+    mainSetBits(BIT_DB_Triggered_In_Shrine_Spirit_Cutscene, 0);
     objdata->unk17 = 0;
     objdata->unk4 = 0xC;
     objdata->unk8 = 0x1E;
@@ -76,9 +76,9 @@ RECOMP_PATCH void dll_481_setup(Object *self, NWSH_Shrine_Setup *setup, s32 arg2
     objdata->unk16 = 0;
     objdata->unkE = 0x12C;
     objdata->unk10 = 0x514;
-    sp30 = dll_load_deferred(DLL_ID_122, 1);
+    sp30 = dllLoad(DLL_ID_122, 1);
     objdata->unkC = sp30->vtbl->func0(self, 3, 0, 0x402, -1, 0);
-    dll_unload(sp30);
+    dllFree(sp30);
 }
 
 RECOMP_PATCH void dll_481_control(Object *self) {
@@ -90,13 +90,13 @@ RECOMP_PATCH void dll_481_control(Object *self) {
     s16 var_v0;
 
     objdata = self->data;
-    player = get_player();
+    player = objGetPlayer();
     sp3C = 1000.0f;
     self->globalPosition.x = self->srt.transl.x;
     self->globalPosition.y = self->srt.transl.y;
     self->globalPosition.z = self->srt.transl.z;
     dll_481_func_1084(self);
-    main_set_bits(BIT_DB_Entered_Shrine_2, 1);
+    mainSetBits(BIT_DB_Entered_Shrine_2, 1);
     if (objdata->unk6 != 0) {
         objdata->unk4 += objdata->unk6;
         if (objdata->unk4 < 0xD) {
@@ -132,7 +132,7 @@ RECOMP_PATCH void dll_481_control(Object *self) {
             objdata->unk16 = 1;
         }
     } else {
-        temp_v0_4 = obj_get_nearest_type_to(0x10, player, &sp3C);
+        temp_v0_4 = objGetNearestTypeTo(0x10, player, &sp3C);
         if ((temp_v0_4 != NULL) && (sp3C < 300.0f) && (sp3C > 100.0f)) {
             var_fv0 = temp_v0_4->srt.transl.z - player->srt.transl.z;
             if (var_fv0 <= 0.0f) {
@@ -157,26 +157,26 @@ RECOMP_PATCH void dll_481_control(Object *self) {
         switch (objdata->unk12) {
         case 0:
             if (objdata->unkE <= 0) {
-                main_set_bits(BIT_176, 1);
-                camera_set_shake_offset(1.0f);
-                objdata->unkE = rand_next(0x64, 0x96);
+                mainSetBits(BIT_176, 1);
+                camSetShakeOffset(1.0f);
+                objdata->unkE = mathRnd(0x64, 0x96);
                 objdata->unk10 = 0x91;
             } else {
                 if (objdata->unk10 != -0x3E7) {
                     if (objdata->unk10 < 0) {
-                        gDLL_6_AMSFX->vtbl->play(NULL, 0x3B9, 0x46, NULL, NULL, 0, NULL);
+                        dll_amSfx->Play(NULL, 0x3B9, 0x46, NULL, NULL, 0, NULL);
                         objdata->unk10 = -0x3E7;
                     } else {
                         objdata->unk10 -= gUpdateRate;
                     }
                 }
-                main_set_bits(BIT_176, 0);
+                mainSetBits(BIT_176, 0);
                 objdata->unkE -= gUpdateRate;
             }
-            if (vec3_distance(&self->globalPosition, &player->globalPosition) < (f32) objdata->unk0) {
-                main_set_bits(BIT_5C6, 1);
+            if (vec3Distance(&self->globalPosition, &player->globalPosition) < (f32) objdata->unk0) {
+                mainSetBits(BIT_5C6, 1);
                 objdata->unk12 = 1;
-                main_set_bits(BIT_DB_Entered_Shrine_3, 0);
+                mainSetBits(BIT_DB_Entered_Shrine_3, 0);
                 objdata->unk13 = 1;
                 gDLL_14_Modgfx->vtbl->func7(&objdata->unkC);
             }
@@ -198,49 +198,49 @@ RECOMP_PATCH void dll_481_control(Object *self) {
         case 8:
             gDLL_3_Animation->vtbl->start_obj_sequence(5, self, -1);
             gDLL_5_AMSEQ->vtbl->play_ex(3, 0x35, 0x50, (s16) (u8) objdata->unk8, 0);
-            main_set_bits(BIT_15F, 0);
-            main_set_bits(BIT_DB_Entered_Shrine_2, 0);
-            main_set_bits(BIT_DB_Entered_Shrine_3, 1);
-            main_set_bits(BIT_5BE, 0);
-            main_set_bits(BIT_1CB, 0);
-            main_set_bits(BIT_5C6, 0);
+            mainSetBits(BIT_15F, 0);
+            mainSetBits(BIT_DB_Entered_Shrine_2, 0);
+            mainSetBits(BIT_DB_Entered_Shrine_3, 1);
+            mainSetBits(BIT_5BE, 0);
+            mainSetBits(BIT_1CB, 0);
+            mainSetBits(BIT_5C6, 0);
             objdata->unk12 = 6;
             return;
         case 4:
-            if (main_get_bits(BIT_SP_Replay_Disk_WM) != 0) {
+            if (mainGetBits(BIT_SP_Replay_Disk_WM) != 0) {
                 objdata->unk8 = 1;
                 gDLL_5_AMSEQ->vtbl->play_ex(3, 0x34, 0x50, (s16) (u8) objdata->unk8, 0);
                 objdata->unkA = 1;
-                main_set_bits(BIT_DB_Entered_Shrine_3, 1);
+                mainSetBits(BIT_DB_Entered_Shrine_3, 1);
                 objdata->unk12 = 6;
                 return;
             }
-            main_set_bits(BIT_DB_Entered_Shrine_1, 0);
+            mainSetBits(BIT_DB_Entered_Shrine_1, 0);
             gDLL_5_AMSEQ->vtbl->play_ex(3, 0x34, 0x50, (s16) (u8) objdata->unk8, 0);
             objdata->unkA = 1;
             gDLL_3_Animation->vtbl->start_obj_sequence(1, self, -1);
             objdata->unk12 = 5;
             return;
         case 5:
-            if (main_get_bits(BIT_Shrine_Do_Exit_Warp) == 0) {
-                main_set_bits(BIT_Shrine_Do_Exit_Warp, 1);
+            if (mainGetBits(BIT_Shrine_Do_Exit_Warp) == 0) {
+                mainSetBits(BIT_Shrine_Do_Exit_Warp, 1);
             }
-            main_set_bits(BIT_15F, 0);
-            main_set_bits(BIT_DB_Entered_Shrine_2, 0);
-            main_set_bits(BIT_DB_Entered_Shrine_3, 1);
+            mainSetBits(BIT_15F, 0);
+            mainSetBits(BIT_DB_Entered_Shrine_2, 0);
+            mainSetBits(BIT_DB_Entered_Shrine_3, 1);
             objdata->unk12 = 6;
-            main_set_bits(BIT_DB_Entered_Shrine_1, 1);
-            main_set_bits(BIT_SP_Replay_Disk_WM, 1);
+            mainSetBits(BIT_DB_Entered_Shrine_1, 1);
+            mainSetBits(BIT_SP_Replay_Disk_WM, 1);
             // @recomp: Set WM setup to 8 instead (original patch by MusicalProgrammer)
             gDLL_29_Gplay->vtbl->set_act(MAP_WARLOCK_MOUNTAIN, 8);
             // @recomp: Set spirit bit
             ((DLL_210_Player*)player->dll)->vtbl->set_spirit_bits(player, PLAYER_SPIRIT_5, TRUE);
             break;
         case 6:
-            if (main_get_bits(BIT_5C2) == 0) {
-                main_set_bits(BIT_5C2, 1);
+            if (mainGetBits(BIT_5C2) == 0) {
+                mainSetBits(BIT_5C2, 1);
             }
-            main_set_bits(BIT_5C6, 0);
+            mainSetBits(BIT_5C6, 0);
             // @recomp: Go to noop state so we don't keep setting bit 0x5C2, otherwise the warppoint
             //          will still be active when the player returns to the shrine to try again, which
             //          will immediately kick the player back out. 

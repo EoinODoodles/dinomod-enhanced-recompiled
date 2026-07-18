@@ -132,8 +132,8 @@ RECOMP_PATCH void dll_63_act_game_select(PicMenuAction action, s32 selected) {
                 if (sSaveGameInfo[selected].isEmpty) {
                     // Go to name entry menu
                     dll_63_clean_up(0);
-                    set_save_game_idx(selected);
-                    menu_set(MENU_ENTER_NAME);
+                    menuSetSaveGameIdx(selected);
+                    menuSet(MENU_ENTER_NAME);
                 } else {
                     sSelectedSaveIdx = selected;
                     sSaveGameBoxX = 56;
@@ -221,35 +221,35 @@ RECOMP_PATCH void dll_63_draw_save_game_box(Gfx **gdl, s32 x, s32 y, GameSelectS
             x2 = x;
             y2 += 32;
         } else {
-            rcp_screen_full_write(gdl, sSaveGameBgTextures[sSaveGameBgIndices[i]], x2, y2, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
+            rcpScreenFullWrite(gdl, sSaveGameBgTextures[sSaveGameBgIndices[i]], x2, y2, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
             x2 += 64;
         }
     }
 
     // Draw player icon
-    rcp_screen_full_write(gdl, sSaveGameTextures[saveInfo->playerno], x + 14, y + 8, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
+    rcpScreenFullWrite(gdl, sSaveGameTextures[saveInfo->playerno], x + 14, y + 8, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
     // Draw spirit icon
-    rcp_screen_full_write(gdl, sSaveGameTextures[2], x + 241, y + 71, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
+    rcpScreenFullWrite(gdl, sSaveGameTextures[2], x + 241, y + 71, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
     // Draw spell stone icon
-    rcp_screen_full_write(gdl, sSaveGameTextures[3], x2 + 14, y + 71, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
+    rcpScreenFullWrite(gdl, sSaveGameTextures[3], x2 + 14, y + 71, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
 
     // Draw text
-    font_window_use_font(1, FONT_DINO_MEDIUM_FONT_IN);
-    font_window_set_text_colour(1, 255, 255, 255, 0, 255);
+    fontWindowUseFont(1, FONT_DINO_MEDIUM_FONT_IN);
+    fontWindowSetTextColour(1, 255, 255, 255, 0, 255);
 
     // @recomp: Display default filename if selected save name is empty
-    font_window_add_string_xy(1, x + 64, y + 18, (char*)dinomod_get_save_filename(saveInfo), 1, ALIGN_TOP_LEFT);
+    fontWindowAddStringXY(1, x + 64, y + 18, (char*)dinomod_get_save_filename(saveInfo), 1, ALIGN_TOP_LEFT);
 
     sprintf(sSaveGameTimeStr, "%3d:%02d:%02d", saveInfo->timeHours, saveInfo->timeMinutes, saveInfo->timeSeconds);
-    font_window_add_string_xy(1, x + 156, y + 49, sSaveGameTimeStr, 1, ALIGN_TOP_CENTER);
+    fontWindowAddStringXY(1, x + 156, y + 49, sSaveGameTimeStr, 1, ALIGN_TOP_CENTER);
 
     // @recomp: Use Spirit count
     sprintf(sSpiritCountStr, "%1d", saveInfo->spiritBits);
-    font_window_add_string_xy(1, x + 234, y + 81, sSpiritCountStr, 1, ALIGN_TOP_CENTER);
+    fontWindowAddStringXY(1, x + 234, y + 81, sSpiritCountStr, 1, ALIGN_TOP_CENTER);
 
     // @recomp: Use SpellStone count
     sprintf(sSpellStoneCountStr, "%1d", saveInfo->unk3);
-    font_window_add_string_xy(1, x + 84, y + 81, sSpellStoneCountStr, 1, ALIGN_TOP_CENTER);
+    fontWindowAddStringXY(1, x + 84, y + 81, sSpellStoneCountStr, 1, ALIGN_TOP_CENTER);
 }
 
 /** Makes it so "Krystal"/"Sabre" appears as the save slot name if you don't set any name */

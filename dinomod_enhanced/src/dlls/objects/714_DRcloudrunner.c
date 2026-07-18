@@ -53,12 +53,12 @@ RECOMP_PATCH s32 dll_714_func_1968(Object* self, DRCloudRunner_Data* objdata, s3
     
     // Randomly call out to player while in cage 
     // (Object parent hierarchy: DR_Cage -> DRPerch -> DR_CloudRunner)
-    if (rand_next(0, 120) == 0) {
+    if (mathRnd(0, 120) == 0) {
         parent = (Object*)self->unkC4; //DRPerch
         if (parent) {
             parent = (Object*)parent->unkC4; //DR_Cage
             if (parent && (parent->id == OBJ_DR_Cage)) {
-                gDLL_3_Animation->vtbl->start_obj_sequence(rand_next(0, 1), self, -1);
+                gDLL_3_Animation->vtbl->start_obj_sequence(mathRnd(0, 1), self, -1);
             }
         }
     } else {
@@ -73,7 +73,7 @@ RECOMP_PATCH s32 dll_714_func_1968(Object* self, DRCloudRunner_Data* objdata, s3
     }
     
     new_var = 4;
-    if (main_get_bits(setup->unk1E)) {
+    if (mainGetBits(setup->unk1E)) {
         self->unkC4 = NULL;
         objdata2->unk920 = (((new_var * (objdata2->unk910 > 0)) * 4) & 0x10) | (objdata2->unk920 & 0xFFEF);
         return 3;

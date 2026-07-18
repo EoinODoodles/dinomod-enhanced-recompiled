@@ -42,7 +42,7 @@ RECOMP_PATCH s32 dll_734_func_DD8(Object* self, u8 arg1, u8 arg2, s32* arg3) {
     f32 temp;
 
     objData = self->data;
-    player = get_player();
+    player = objGetPlayer();
     
     *arg3 = -1;
 
@@ -63,11 +63,11 @@ RECOMP_PATCH s32 dll_734_func_DD8(Object* self, u8 arg1, u8 arg2, s32* arg3) {
     case 4:
         if (!(objData->unk10C <= 0.0f)) {
             if (objData->unk15C_30) {
-                // main_set_bits(BIT_660, 1); //@recomp: Stop DR_PushCart from opening mine door too early
+                // mainSetBits(BIT_660, 1); //@recomp: Stop DR_PushCart from opening mine door too early
             } else {
-                main_get_bits(BIT_661);
-                if (main_get_bits(BIT_661) == 0) {
-                    main_set_bits(BIT_788, 1);
+                mainGetBits(BIT_661);
+                if (mainGetBits(BIT_661) == 0) {
+                    mainSetBits(BIT_788, 1);
                     objData->unk15C_28 = 1;
                     objData->unk118 = 0.0f;
                 } else {
@@ -83,7 +83,7 @@ RECOMP_PATCH s32 dll_734_func_DD8(Object* self, u8 arg1, u8 arg2, s32* arg3) {
         break;
     case 9:
         if (!(objData->unk10C >= 0.0f)) {
-            if (main_get_bits(BIT_661) == 0) {
+            if (mainGetBits(BIT_661) == 0) {
                 objData->unk118 = 0.0f;
                 objData->unk15C_28 = 1;
             } else {
@@ -118,22 +118,22 @@ RECOMP_PATCH s32 dll_734_func_DD8(Object* self, u8 arg1, u8 arg2, s32* arg3) {
         }
         break;        
     case 10:
-        if ((objData->unk15C_22) && (main_get_bits(BIT_689) == 0)) {
-            main_set_bits(BIT_689, 1);
+        if ((objData->unk15C_22) && (mainGetBits(BIT_689) == 0)) {
+            mainSetBits(BIT_689, 1);
         }
         break;
     case 11:
         if ((objData->unk15C_22) && (self == player->parent)) {
-            main_set_bits(BIT_68A, 1);
+            mainSetBits(BIT_68A, 1);
         }
         break;
     case 12:
         if ((objData->unk15C_22) && (self == player->parent)) {
-            main_set_bits(BIT_68B, 1);
+            mainSetBits(BIT_68B, 1);
         }
         break;
     case 13:
-        if ((main_get_bits(BIT_68A) != 0) && (objData->unk118 >= 0.0f)) {
+        if ((mainGetBits(BIT_68A) != 0) && (objData->unk118 >= 0.0f)) {
             dll_734_func_133C(self, objData);
         }
         break;
@@ -144,7 +144,7 @@ RECOMP_PATCH s32 dll_734_func_DD8(Object* self, u8 arg1, u8 arg2, s32* arg3) {
         break;
     case 15:
         if (!(objData->unk15C_30)) {
-            main_set_bits(BIT_788, 1);
+            mainSetBits(BIT_788, 1);
         }
         break;
     case 16:
@@ -164,14 +164,14 @@ RECOMP_PATCH s32 dll_734_func_DD8(Object* self, u8 arg1, u8 arg2, s32* arg3) {
 
     if (arg2 != 2) {
         if (arg2 == 8) {
-            if (main_get_bits(BIT_67F)) {
+            if (mainGetBits(BIT_67F)) {
                 *arg3 = 0;
             } else {
                 *arg3 = 1;
             }
         }
     } else {
-        main_set_bits(BIT_DR_Minecart_Track_Entrance_Demolished, 1);
+        mainSetBits(BIT_DR_Minecart_Track_Entrance_Demolished, 1);
     }
     
     return 1;

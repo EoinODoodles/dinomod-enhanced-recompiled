@@ -24,15 +24,15 @@ RECOMP_PATCH void VFP_SpellPlace_do_act1(Object* self) {
 
     objdata = (VFP_SpellPlace_Data*)self->data;
     
-    bits2 = main_get_bits(objdata->unk2);
-    bits1 = main_get_bits(objdata->unk0);
+    bits2 = mainGetBits(objdata->unk2);
+    bits1 = mainGetBits(objdata->unk0);
     
     if ((bits1 == 0) && (bits2 != 0)) {
         self->unkAF &= ~0x8;
         
         // @recomp: Accept DIM's activated SpellStone instead of the unactivated one
         if ((bits2 != 0) && (gDLL_1_cmdmenu->vtbl->was_this_item_used(BIT_SpellStone_DIM_Activated) != 0)) {
-            main_set_bits(objdata->unk0, 1);
+            mainSetBits(objdata->unk0, 1);
             objdata->unk4 = 1;
             self->unkAF |= 8;
         }

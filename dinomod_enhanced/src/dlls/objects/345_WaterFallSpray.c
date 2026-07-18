@@ -50,7 +50,7 @@ static void WaterFallSpray_check_if_enabled(Object *self, WaterFallSpray_Setup* 
     }
 
     //If it does use a gamebit, check whether it's set
-    u32 gamebitSet = main_get_bits(objSetup->gamebit);
+    u32 gamebitSet = mainGetBits(objSetup->gamebit);
     u8 prevEnabled = objData->enabled;
 
     //Handle WaterFallSprays that switch on when their gamebit is set
@@ -71,7 +71,7 @@ static void WaterFallSpray_check_if_enabled(Object *self, WaterFallSpray_Setup* 
 
     //Signal AMSFX to refresh its WaterFallSprays list when state changes
     if (objData->enabled != prevEnabled) {
-        gDLL_6_AMSFX->vtbl->water_falls_set_flags(AMSFX_WATERFALLS_REFRESH);
+        gDLL_6_AMSFX->vtbl->WaterFallsSetFlags(AMSFX_WATERFALLS_REFRESH);
     }
 }
 
@@ -101,7 +101,7 @@ RECOMP_PATCH void WaterFallSpray_control(Object *self) {
     WaterFallSpray_Data* objData = self->data;
 
     setup = (WaterFallSpray_Setup *)self->setup;
-    player = get_player();
+    player = objGetPlayer();
     if (!player){
         return;
     }
@@ -120,9 +120,9 @@ RECOMP_PATCH void WaterFallSpray_control(Object *self) {
         if (sqrtf(SQ(dx) + SQ(dy) + SQ(dz)) <= setup->distance * 0x10 || setup->distance == 0) {
 
             for (i = 0; i < setup->iterations; i++){
-                srt.transl.x = rand_next(-setup->amplitudeX, setup->amplitudeX);
-                srt.transl.y = rand_next(-setup->amplitudeY, setup->amplitudeY);
-                srt.transl.z = rand_next(-setup->amplitudeZ, setup->amplitudeZ);
+                srt.transl.x = mathRnd(-setup->amplitudeX, setup->amplitudeX);
+                srt.transl.y = mathRnd(-setup->amplitudeY, setup->amplitudeY);
+                srt.transl.z = mathRnd(-setup->amplitudeZ, setup->amplitudeZ);
 
                 if (setup->flags & WaterFallSpray_FLAG_Big_Mist_Cloud) {
                     gDLL_17_partfx->vtbl->spawn(self, PARTICLE_320, &srt, PARTFXFLAG_4, -1, NULL);

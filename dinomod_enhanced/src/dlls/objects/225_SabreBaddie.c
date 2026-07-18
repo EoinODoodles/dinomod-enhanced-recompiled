@@ -30,13 +30,13 @@ RECOMP_PATCH s32 dll_225_func_1F38(Object* self, SabreBaddie_Data* objdata, s32 
     }
     
     if (objdata->unk348 < 5) {
-        main_set_bits(0x5B2, 1); //@recomp: flagID changed
+        mainSetBits(0x5B2, 1); //@recomp: flagID changed
         objdata->unk348 = 1;
         return 3;
     }
     
     if (objdata->unk33A) {
-        if (objdata->unk348 < rand_next(2, 4)) {
+        if (objdata->unk348 < mathRnd(2, 4)) {
             return 4;
         }
         objdata2->unk3B6 = 0x12C;

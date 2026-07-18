@@ -136,7 +136,7 @@ static s8 collectable_get_cmdmenu_popup_item_count(Object* self, Collectable_Set
         // case OBJ_BlackEyedPod:
         default:
             if ((objSetup->gamebitCount != NO_GAMEBIT)) {
-                return main_get_bits(objSetup->gamebitCount) + 1;
+                return mainGetBits(objSetup->gamebitCount) + 1;
             }
             break;
 
@@ -144,7 +144,7 @@ static s8 collectable_get_cmdmenu_popup_item_count(Object* self, Collectable_Set
         case OBJ_EnergyEgg:
         case OBJ_applePickup:
         case OBJ_beanPickup:
-            player = get_player();
+            player = objGetPlayer();
             if (!player) {
                 break;
             }
@@ -159,7 +159,7 @@ static s8 collectable_get_cmdmenu_popup_item_count(Object* self, Collectable_Set
 
                 //Get the food's count
                 if (foodGamebit != NO_GAMEBIT) {
-                    return main_get_bits(foodGamebit) + 1;
+                    return mainGetBits(foodGamebit) + 1;
                 }
             }
             break;
@@ -173,23 +173,23 @@ static s8 collectable_get_cmdmenu_popup_item_count(Object* self, Collectable_Set
             return 0;
         case OBJ_CCgoldnuggetPic:
             //Show how many have been found in total
-            count += main_get_bits(BIT_Gold_Nugget_GP);
-            count += main_get_bits(BIT_Gold_Nugget_LFV);
-            count += main_get_bits(BIT_Gold_Nugget_CC);
+            count += mainGetBits(BIT_Gold_Nugget_GP);
+            count += mainGetBits(BIT_Gold_Nugget_LFV);
+            count += mainGetBits(BIT_Gold_Nugget_CC);
             return count + 1;
         case OBJ_DIMBridgeCogCol:
             //Show how many are currently held
-            if (!main_get_bits(BIT_DIM_Used_Gear_1)) {
-                count += main_get_bits(BIT_DIM_Gear_1);
+            if (!mainGetBits(BIT_DIM_Used_Gear_1)) {
+                count += mainGetBits(BIT_DIM_Gear_1);
             }
-            if (!main_get_bits(BIT_DIM_Used_Gear_2)) {
-                count += main_get_bits(BIT_DIM_Gear_2);
+            if (!mainGetBits(BIT_DIM_Used_Gear_2)) {
+                count += mainGetBits(BIT_DIM_Gear_2);
             }
-            if (!main_get_bits(BIT_DIM_Used_Gear_3)) {
-                count += main_get_bits(BIT_DIM_Gear_3);
+            if (!mainGetBits(BIT_DIM_Used_Gear_3)) {
+                count += mainGetBits(BIT_DIM_Gear_3);
             }
-            if (!main_get_bits(BIT_DIM_Used_Gear_4)) {
-                count += main_get_bits(BIT_DIM_Gear_4);
+            if (!mainGetBits(BIT_DIM_Used_Gear_4)) {
+                count += mainGetBits(BIT_DIM_Gear_4);
             }
             return count + 1;
     }
@@ -218,26 +218,26 @@ static s16 collectable_override_tutorial_gamebitID(Object* self, Collectable_Set
            it doesn't show a tutorial since it's acquired during 
            the cutscene where you free the shackled SnowHorn
         */
-        // if (main_get_bits(BIT_DIM_Gear_1)) {
+        // if (mainGetBits(BIT_DIM_Gear_1)) {
         //     return BIT_DIM_Gear_1;
         // }
-        if (main_get_bits(BIT_DIM_Gear_2)) {
+        if (mainGetBits(BIT_DIM_Gear_2)) {
             return BIT_DIM_Gear_2;
         }
-        if (main_get_bits(BIT_DIM_Gear_3)) {
+        if (mainGetBits(BIT_DIM_Gear_3)) {
             return BIT_DIM_Gear_3;
         }
-        if (main_get_bits(BIT_DIM_Gear_4)) {
+        if (mainGetBits(BIT_DIM_Gear_4)) {
             return BIT_DIM_Gear_4;
         }
     case OBJ_CCgoldnuggetPic:
-        if (main_get_bits(BIT_Gold_Nugget_GP)) {
+        if (mainGetBits(BIT_Gold_Nugget_GP)) {
             return BIT_Gold_Nugget_GP;
         }
-        if (main_get_bits(BIT_Gold_Nugget_LFV)) {
+        if (mainGetBits(BIT_Gold_Nugget_LFV)) {
             return BIT_Gold_Nugget_LFV;
         }
-        if (main_get_bits(BIT_Gold_Nugget_CC)) {
+        if (mainGetBits(BIT_Gold_Nugget_CC)) {
             return BIT_Gold_Nugget_CC;
         }
     }
@@ -251,12 +251,12 @@ static int collectable_will_tutorial_be_shown(Object* self, Collectable_Setup* o
 
     //Special case: Energy Eggs
     if (self->id == OBJ_EnergyEgg) {
-        return (main_get_bits(BIT_Tutorial_Collected_Energy_Egg) == FALSE);
+        return (mainGetBits(BIT_Tutorial_Collected_Energy_Egg) == FALSE);
     }
 
     tutorialGamebit = collectable_override_tutorial_gamebitID(self, objSetup);
     if (tutorialGamebit > (NO_GAMEBIT + 1)) {
-        return (main_get_bits(tutorialGamebit) == FALSE);
+        return (mainGetBits(tutorialGamebit) == FALSE);
     } else {
         return TRUE;
     }
@@ -351,8 +351,8 @@ RECOMP_PATCH void collectable_setup(Object* self, Collectable_Setup* objSetup, s
     Collectable_Data_Recomp* objData;
 
     objData = self->data;
-    obj_add_object_type(self, OBJTYPE_Collectable);
-    obj_init_mesg_queue(self, 2);
+    objAddObjectType(self, OBJTYPE_Collectable);
+    objInitMesgQueue(self, 2);
 
     self->srt.yaw = objSetup->yaw << 8;
     self->srt.pitch = objSetup->pitch << 8;
@@ -378,7 +378,7 @@ RECOMP_PATCH void collectable_setup(Object* self, Collectable_Setup* objSetup, s
 
     //Check if hidden via gamebit
     if (objData->gamebitShow != NO_GAMEBIT) {
-        objData->isHidden = main_get_bits(objData->gamebitShow) == 0;
+        objData->isHidden = mainGetBits(objData->gamebitShow) == 0;
 
         //@recomp: remove collision
         func_800267A4(self);
@@ -387,7 +387,7 @@ RECOMP_PATCH void collectable_setup(Object* self, Collectable_Setup* objSetup, s
     //Check if already collected
     objData->gamebitCollected = objSetup->gamebitCollected;
     if (objData->gamebitCollected != NO_GAMEBIT) {
-        self->unkDC = main_get_bits(objData->gamebitCollected);
+        self->unkDC = mainGetBits(objData->gamebitCollected);
     } else {
         self->unkDC = 0;
     }
@@ -402,7 +402,7 @@ RECOMP_PATCH void collectable_setup(Object* self, Collectable_Setup* objSetup, s
     collectableDef = self->def->collectableDef;
     if (collectableDef && collectableDef->type == Collectable_Type_Magic) {
         if (arg2 == 0) {
-            gDLL_6_AMSFX->vtbl->play(self, SOUND_8E_Magic_Chime, MAX_VOLUME, 0, 0, 0, 0);
+            dll_amSfx->Play(self, SOUND_8E_Magic_Chime, MAX_VOLUME, 0, 0, 0, 0);
         }
 
         for (index = 10; index > 0; index--){
@@ -498,7 +498,7 @@ RECOMP_PATCH void collectable_control(Object* self) {
     if (objData->timerDestroy != 0.0f) {
         objData->timerDestroy -= gUpdateRateF;
         if (objData->timerDestroy <= 0.0f) {
-            obj_destroy_object(self);
+            objFreeObject(self);
             objData->timerDestroy = 0.0f;
         }
         return;
@@ -509,7 +509,7 @@ RECOMP_PATCH void collectable_control(Object* self) {
 
     //Handle being unhidden/hidden
     if (objData->gamebitShow != NO_GAMEBIT) {
-        gamebitValue = main_get_bits(objData->gamebitShow);
+        gamebitValue = mainGetBits(objData->gamebitShow);
     
         //@recomp: add collision when unhidden
         if (objData->isHidden & gamebitValue) {
@@ -532,7 +532,7 @@ RECOMP_PATCH void collectable_control(Object* self) {
     if (self->unkE0) {
         self->unkE0 -= gUpdateRate * 3;
         if (self->unkE0 <= 0) {
-            obj_destroy_object(self);
+            objFreeObject(self);
             return;
         }
     }
@@ -544,7 +544,7 @@ RECOMP_PATCH void collectable_control(Object* self) {
     }
 
     //Check for collection message
-    while (obj_recv_mesg(self, &outMessage, &messageSender, 0)) {
+    while (objRecvMesg(self, &outMessage, &messageSender, 0)) {
         if (outMessage == 0x7000B) {
             objData->timerDestroy = 180.0f;
             collectable_collect(self);
@@ -577,7 +577,7 @@ RECOMP_PATCH void collectable_control(Object* self) {
 
         //Check if collection gamebit was reset
         if ((objData->gamebitCollected != NO_GAMEBIT) && 
-            (main_get_bits(objData->gamebitCollected) == FALSE)
+            (mainGetBits(objData->gamebitCollected) == FALSE)
         ) {
             self->unkDC = 0;
         }
@@ -593,7 +593,7 @@ RECOMP_PATCH void collectable_control(Object* self) {
     }
 
     //Return early if no player interaction can happen
-    player = get_player();
+    player = objGetPlayer();
     if (!player || 
         objData->interactFlags & Collectable_FLAG_Interaction_Off || 
         !self->def->collectableDef
@@ -603,7 +603,7 @@ RECOMP_PATCH void collectable_control(Object* self) {
 
     //Handle collection when close enough 
     //(either automatically or via target arrow, depending on objectID)
-    distance = vec3_distance_xz(&self->globalPosition, &player->globalPosition);
+    distance = vec3DistanceXZ(&self->globalPosition, &player->globalPosition);
     if ((distance >= objData->interactionRadius) || objData->delayCollect) {
         objData->distanceToPlayer = distance;
         return;
@@ -618,16 +618,16 @@ RECOMP_PATCH void collectable_control(Object* self) {
             gDLL_17_partfx->vtbl->spawn(self, 0x549, 0, 1, -1, 0);
         }
 
-        if (main_get_bits(BIT_Tutorial_Collected_Energy_Egg) == 0) {
+        if (mainGetBits(BIT_Tutorial_Collected_Energy_Egg) == 0) {
             gDLL_3_Animation->vtbl->set_variable_obj(collectableDef->seqObjectID, 0, 0);
             outMessage = 0;
-            obj_send_mesg(
+            objSendMesg(
                 player, 
                 0x7000A, 
                 self, 
                 0
             );
-            main_set_bits(BIT_Tutorial_Collected_Energy_Egg, 1);
+            mainSetBits(BIT_Tutorial_Collected_Energy_Egg, 1);
         } else {
             objData->timerDestroy = 180.0f;
             collectable_collect(self);
@@ -657,7 +657,7 @@ RECOMP_PATCH void collectable_control(Object* self) {
 
         //Have the player scoop up the item, and play a tutorial cutscene if needed
         messageArg = collectable_override_tutorial_gamebitID(self, objSetup); //@recomp: handle cases like the gears/gold
-        obj_send_mesg(
+        objSendMesg(
             player,
             0x7000A,
             self,
@@ -719,13 +719,13 @@ RECOMP_PATCH void collectable_handle_animation_and_fx(Object* self) {
                     opacity = OBJECT_OPACITY_MAX;
                 }
                 objData->shadowOpacity = opacity;
-                temp = shadows_calc_opacity(self, shadow);
+                temp = shadowsCalcOpacity(self, shadow);
                 shadow->opacity = (temp * (opacity + 1)) >> 8;
             }
         }
 
         //Sparkles
-        if (rand_next(0, 80) == 0) {
+        if (mathRnd(0, 80) == 0) {
             gDLL_17_partfx->vtbl->spawn(self, 0x47, 0, 4, -1, 0);
         }
     }
@@ -736,9 +736,9 @@ RECOMP_PATCH void collectable_handle_animation_and_fx(Object* self) {
         //Play rattle sound when random timer runs out
         objData->soundTimer -= gUpdateRate;
         if (objData->soundTimer <= 0) {
-            objData->pitchAnimate = rand_next(600, 800);
-            objData->soundTimer = rand_next(180, 240);
-            gDLL_6_AMSFX->vtbl->play(self, SOUND_8FC_Egg_Rattle, MAX_VOLUME, 0, 0, 0, 0);
+            objData->pitchAnimate = mathRnd(600, 800);
+            objData->soundTimer = mathRnd(180, 240);
+            dll_amSfx->Play(self, SOUND_8FC_Egg_Rattle, MAX_VOLUME, 0, 0, 0, 0);
         }
 
         //Rapidly oscillate rotational pitch for a basic rattle animation
@@ -760,7 +760,7 @@ RECOMP_PATCH void collectable_handle_animation_and_fx(Object* self) {
         return;
     case OBJ_SC_golden_nugge:
         if (objData->distanceToPlayer < 200.0f) {
-            if (rand_next(0, 10) == 0) {
+            if (mathRnd(0, 10) == 0) {
                 gDLL_17_partfx->vtbl->spawn(self, 0x423, 0, 2, -1, 0);
             }
             self->srt.yaw += 182.0f * gUpdateRateF;
@@ -769,7 +769,7 @@ RECOMP_PATCH void collectable_handle_animation_and_fx(Object* self) {
         break;
     case OBJ_WCTrexTooth:
         if (objData->distanceToPlayer < 200.0f) {
-            if (rand_next(0, 10) == 0) {
+            if (mathRnd(0, 10) == 0) {
                 if (self->modelInstIdx == 0) {
                     gDLL_17_partfx->vtbl->spawn(self, 0x73D, 0, 2, -1, 0);
                 } else {
@@ -799,8 +799,8 @@ RECOMP_PATCH void collectable_collect(Object* self) {
 
     objData = self->data;
     objSetup = (Collectable_Setup*)self->setup;
-    player = get_player();
-    sidekick = get_sidekick();
+    player = objGetPlayer();
+    sidekick = objGetSidekick();
     collectableDef = self->def->collectableDef;
 
     if (collectableDef == NULL) {
@@ -812,12 +812,12 @@ RECOMP_PATCH void collectable_collect(Object* self) {
 
     //Set the collection gamebit (usually for making sure the object doesn't reappear)
     if (objData->gamebitCollected != NO_GAMEBIT) {
-        main_set_bits(objData->gamebitCollected, TRUE);
+        mainSetBits(objData->gamebitCollected, TRUE);
     }
 
     //Increment the counter gamebit (if one is being used)
     if (objSetup->gamebitCount > 0) {
-        main_increment_bits(objSetup->gamebitCount);
+        mainIncrementBits(objSetup->gamebitCount);
     }
 
     switch (collectableDef->type) {
@@ -827,8 +827,8 @@ RECOMP_PATCH void collectable_collect(Object* self) {
         default:
             break;
         case OBJ_DIMAlpineRoot2: 
-            gDLL_6_AMSFX->vtbl->play(self, SOUND_506_Chomping_Food, MAX_VOLUME, 0, 0, 0, 0);
-            main_set_bits(BIT_3E9, 1);
+            dll_amSfx->Play(self, SOUND_506_Chomping_Food, MAX_VOLUME, 0, 0, 0, 0);
+            mainSetBits(BIT_3E9, 1);
             self->unkDC = 1;
             objData->rootTimer = 1200;
             return;
@@ -845,12 +845,12 @@ RECOMP_PATCH void collectable_collect(Object* self) {
         switch (self->id) {  
         case OBJ_meatPickup:      
             ((DLL_IFoodbag*)foodbag->dll)->vtbl->collect_food(foodbag, FOOD_Dino_Egg);
-            obj_free_object_type(self, OBJTYPE_Collectable);
+            objFreeObjectType(self, OBJTYPE_Collectable);
             return;
         case OBJ_applePickup:
             ((DLL_IFoodbag*)foodbag->dll)->vtbl->collect_food(foodbag, FOOD_Red_Apple);
-            obj_free_object_type(self, OBJTYPE_Collectable);
-            obj_destroy_object(self);
+            objFreeObjectType(self, OBJTYPE_Collectable);
+            objFreeObject(self);
             return;
         case OBJ_beanPickup:
             ((DLL_IFoodbag*)foodbag->dll)->vtbl->collect_food(foodbag, FOOD_Blue_Bean);
@@ -858,18 +858,18 @@ RECOMP_PATCH void collectable_collect(Object* self) {
         }
         break;
     case Collectable_Type_SidekickA:
-        obj_send_mesg(sidekick, 0x70004, self, (void*)(collectableDef->amountRestored + objData->sidekickArgBase));
+        objSendMesg(sidekick, 0x70004, self, (void*)(collectableDef->amountRestored + objData->sidekickArgBase));
         break;
     case Collectable_Type_SidekickB:
-        obj_send_mesg(sidekick, 0x70005, self, (void*)(collectableDef->amountRestored + objData->sidekickArgBase));
+        objSendMesg(sidekick, 0x70005, self, (void*)(collectableDef->amountRestored + objData->sidekickArgBase));
         break;
     case Collectable_Type_Magic:
         ((DLL_210_Player*)player->dll)->vtbl->add_magic(player, collectableDef->amountRestored);
         gDLL_13_Expgfx->vtbl->func5(self);
-        gDLL_6_AMSFX->vtbl->play(self, SOUND_8E_Magic_Chime, MAX_VOLUME, 0, 0, 0, 0);
+        dll_amSfx->Play(self, SOUND_8E_Magic_Chime, MAX_VOLUME, 0, 0, 0, 0);
         break;
     case Collectable_Type_Upgrade:
-        obj_send_mesg(sidekick, 0x70008, self, (void*)(collectableDef->amountRestored + objData->sidekickArgBase));
+        objSendMesg(sidekick, 0x70008, self, (void*)(collectableDef->amountRestored + objData->sidekickArgBase));
         break;
     }
 

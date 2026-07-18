@@ -5,6 +5,7 @@
 #include "common.h"
 #include "game/objects/object_def.h"
 #include "sys/newshadows.h"
+#include "sys/objtype.h"
 
 extern s16 *gFile_OBJINDEX;
 extern int gObjIndexCount;
@@ -13,19 +14,19 @@ extern ObjDef **gLoadedObjDefs;
 extern u8 *gObjDefRefCount;
 extern s32  *gFile_OBJECTS_TAB;
 
-extern ModLine *obj_load_objdef_modlines(s32 modLineNo, s16 *modLineCount);
+extern ModLine *objLoadObjdefModlines(s32 modLineNo, s16 *modLineCount);
 extern void func_800596BC(ObjDef*);
-extern u32 obj_get_model_flags(Object *obj);
-extern u32 obj_calc_mem_size(Object *obj, ObjDef *def, u32 flags);
-extern void obj_free_objdef(s32 tabIdx);
-extern void func_80021E74(f32 scale, ModelInstance *modelInst);
-extern void func_80022200(Object *obj, s32 param2, s32 param3);
-extern u32 obj_alloc_objdata(Object *obj, u32 addr);
-extern u32 obj_init_event_data(s32 param1, Object *obj, u32 addr);
-extern u32 func_8002298C(s32 param1, ModelInstance *param2, Object *obj, u32 addr);
-extern f32 obj_calc_vis_radius(Object *obj);
+extern u32 objGetModelFlags(Object *obj);
+extern u32 objCalcMemSize(Object *obj, ObjDef *def, u32 flags);
+extern void objFreeObjdef(s32 tabIdx);
+extern void obj_func_80021E74(f32 scale, ModelInstance *modelInst);
+extern void objModelLoadFailed(Object *obj, s32 param2, s32 param3);
+extern u32 objAllocDLLData(Object *obj, u32 addr);
+extern u32 objInitEventData(s32 param1, Object *obj, u32 addr);
+extern u32 obj_func_8002298C(s32 param1, ModelInstance *param2, Object *obj, u32 addr);
+extern f32 objCalcVisRadius(Object *obj);
 
-RECOMP_HOOK_RETURN("init_objects") void init_objects_return_hook(void) {
+RECOMP_HOOK_RETURN("objInit") void init_objects_return_hook(void) {
     // @recomp: Change all -1 OBJINDEX.bin mappings to DummyObject. Otherwise, attempting to load
     //          one of those object IDs will result in a crash since the object setup code will
     //          return null and pretty much no part of the game is coded to expect a null there.
@@ -84,11 +85,11 @@ static void add_extra_descriptions_objects(void) {
 }
 
 /** Allocate memory for custom text values (so they can be toggled easily) */
-RECOMP_HOOK_RETURN("init_objects") void init_custom_text_ids(void) {
+RECOMP_HOOK_RETURN("objInit") void init_custom_text_ids(void) {
     customObjDefTextIDs = recomp_alloc(gNumObjectsTabEntries*2);
 }
 
-RECOMP_PATCH ObjDef *obj_load_objdef(s32 tabIdx) {
+RECOMP_PATCH ObjDef *objLoadObjdef(s32 tabIdx) {
     ObjDef *def;
     s32 fileOffset;
     s32 fileSize;
@@ -97,7 +98,7 @@ RECOMP_PATCH ObjDef *obj_load_objdef(s32 tabIdx) {
 
     if (tabIdx >= gNumObjectsTabEntries) {
         // @recomp: Warn about failures
-        recomp_eprintf("obj_load_objdef: tab idx %d out of range\n", tabIdx);
+        recomp_eprintf("objLoadObjdef: tab idx %d out of range\n", tabIdx);
         return NULL;
     }
     
@@ -112,7 +113,7 @@ RECOMP_PATCH ObjDef *obj_load_objdef(s32 tabIdx) {
 
     def = (ObjDef*)mmAlloc(fileSize, ALLOC_TAG_OBJECTS_COL, ALLOC_NAME("obj:def"));
     if (def != NULL) {
-        read_file_region(OBJECTS_BIN, (void*)def, fileOffset, fileSize);
+        piRomLoadSection(OBJECTS_BIN, (void*)def, fileOffset, fileSize);
 
         if (def->pEvent != 0) {
             def->pEvent = (ObjDefEvent*)((u32)def + (u32)def->pEvent);
@@ -149,7 +150,7 @@ RECOMP_PATCH ObjDef *obj_load_objdef(s32 tabIdx) {
         def->pIntersectPoints = NULL;
 
         if (def->modLineNo > -1) {
-            def->pModLines = obj_load_objdef_modlines(def->modLineNo, &def->modLineCount);
+            def->pModLines = objLoadObjdefModlines(def->modLineNo, &def->modLineCount);
             func_800596BC(def);
         }
 
@@ -166,7 +167,7 @@ RECOMP_PATCH ObjDef *obj_load_objdef(s32 tabIdx) {
 
     } else {
         // @recomp: Warn about failures
-        recomp_eprintf("obj_load_objdef: alloc failed (tab idx %d)\n", tabIdx);
+        recomp_eprintf("objLoadObjdef: alloc failed (tab idx %d)\n", tabIdx);
         return NULL;
     }
 
@@ -193,7 +194,7 @@ RECOMP_CALLBACK("*", recomp_on_game_tick_start) void updateExtraTextObjects(void
  * Set quarterSize for dynamically created setups. This isn't required by the game but is 
  * handy to have for debugging (the game does sometimes set this at runtime, it's not consistent).
  */
-RECOMP_PATCH void *obj_alloc_setup(s32 size, s32 objId) {
+RECOMP_PATCH void *objAllocSetup(s32 size, s32 objId) {
     ObjSetup *setup;
 
     setup = (ObjSetup*)mmAlloc(size, ALLOC_TAG_OBJECTS_COL, ALLOC_NAME("romdef"));
@@ -211,21 +212,21 @@ RECOMP_PATCH void *obj_alloc_setup(s32 size, s32 objId) {
     return (void*)setup;
 }
 
-RECOMP_PATCH Object *obj_create(ObjSetup *setup, u32 initFlags, s32 mapID, s32 param4, Object *parent) {
+RECOMP_PATCH Object *objSetupObject(ObjSetup *setup, u32 initFlags, s32 mapID, s32 param4, Object *parent) {
     Object *obj;
 
     obj = NULL;
-    queue_load_map_object(&obj, setup, initFlags, mapID, param4, parent, 0);
+    assetLoadObject(&obj, setup, initFlags, mapID, param4, parent, 0);
     // @recomp: Restore default.dol behavior and warn about errors
     if (obj != NULL) {
-        obj_add_object(obj, initFlags);
+        objAddObjectType(obj, initFlags);
     } else {
-        recomp_eprintf("Warning: obj_create failed to instantiate object (obj id: %d, UID: 0x%X)\n", setup->objId, setup->uID);
+        recomp_eprintf("Warning: objSetupObject failed to instantiate object (obj id: %d, UID: 0x%X)\n", setup->objId, setup->uID);
     }
     return obj;
 }
 
-RECOMP_PATCH Object *obj_setup_object(ObjSetup *setup, u32 initFlags, s32 mapID, s32 param4, Object *parent, s32 param6) {
+RECOMP_PATCH Object *objSetupObjectActual(ObjSetup *setup, u32 initFlags, s32 mapID, s32 param4, Object *parent, s32 param6) {
     ObjDef *def;
     s32 modelCount;
     s32 var;
@@ -258,7 +259,7 @@ RECOMP_PATCH Object *obj_setup_object(ObjSetup *setup, u32 initFlags, s32 mapID,
 
     bzero(&objHeader, sizeof(Object));
 
-    objHeader.def = obj_load_objdef(tabIdx);
+    objHeader.def = objLoadObjdef(tabIdx);
     def = objHeader.def;
 
     if (def == NULL || (u32)def == 0xFFFFFFFF) {
@@ -302,14 +303,14 @@ RECOMP_PATCH Object *obj_setup_object(ObjSetup *setup, u32 initFlags, s32 mapID,
     objHeader.dll = NULL;
 
     if (def->dllID != 0) {
-        objHeader.dll = (DLL_IObject*)dll_load(def->dllID, 6, 1);
+        objHeader.dll = (DLL_IObject*)dllLoadActual(def->dllID, 6, 1);
         // @recomp: Restore printf
         if (objHeader.dll == NULL) {
             recomp_eprintf("OBJECTS: warning DLL load failed\n");
         }
     }
 
-    modflags = obj_get_model_flags(&objHeader);
+    modflags = objGetModelFlags(&objHeader);
 
     if (def->flags & OBJDEF_FLAG20) {
         modflags &= ~MODFLAGS_1;
@@ -327,14 +328,14 @@ RECOMP_PATCH Object *obj_setup_object(ObjSetup *setup, u32 initFlags, s32 mapID,
         modflags |= MODFLAGS_DONT_LOAD_MODEL;
     }
 
-    var = obj_calc_mem_size(&objHeader, def, modflags);
+    var = objCalcMemSize(&objHeader, def, modflags);
 
     obj = (Object*)mmAlloc(var, ALLOC_TAG_OBJECTS_COL, ALLOC_NAME("obj"));
 
     if (obj == NULL) {
         // @recomp: Restore printf
         recomp_eprintf("ObjSetupObject(3) Memory fail!!\n");
-        obj_free_objdef(tabIdx);
+        objFreeObjdef(tabIdx);
         return NULL;
     }
 
@@ -353,24 +354,24 @@ RECOMP_PATCH Object *obj_setup_object(ObjSetup *setup, u32 initFlags, s32 mapID,
             var = MODFLAGS_GET_MODEL_INDEX(modflags);
 
             if (var < modelCount) {
-                obj->modelInsts[var] = model_load_create_instance(-def->pModelList[var], modflags);
+                obj->modelInsts[var] = modLoadModelActual(-def->pModelList[var], modflags);
 
                 if (obj->modelInsts[var] == NULL) {
                     modelLoadFailed = TRUE;
                     goto modelLoadFailedLabel;
                 } else {
                     tempModel = obj->modelInsts[var];
-                    func_80021E74(obj->srt.scale, tempModel);
+                    obj_func_80021E74(obj->srt.scale, tempModel);
                 }
             }
         } else {
             for (; var < modelCount; var++) {
-                obj->modelInsts[var] = model_load_create_instance(-def->pModelList[var], modflags);
+                obj->modelInsts[var] = modLoadModelActual(-def->pModelList[var], modflags);
                 if (obj->modelInsts[var] == NULL) {
                     modelLoadFailed = TRUE;
                 } else {
                     tempModel = obj->modelInsts[var];
-                    func_80021E74(obj->srt.scale, tempModel);
+                    obj_func_80021E74(obj->srt.scale, tempModel);
                 }
             }
         }
@@ -380,26 +381,26 @@ RECOMP_PATCH Object *obj_setup_object(ObjSetup *setup, u32 initFlags, s32 mapID,
     if (modelLoadFailed) {
         // @recomp: Warn about failed model loads
         recomp_eprintf("Warning: Model load failed for object type '%d/%d'\n", tabIdx, setup->objId);
-        func_80022200(obj, modelCount, objId);
-        obj_free_objdef(tabIdx);
+        objModelLoadFailed(obj, modelCount, objId);
+        objFreeObjdef(tabIdx);
         return NULL;
     }
      
-    addr = obj_alloc_objdata(obj, (u32)&obj->modelInsts[def->numModels]);
+    addr = objAllocDLLData(obj, (u32)&obj->modelInsts[def->numModels]);
 
     if (modflags & MODFLAGS_EVENTS) {
-        addr = obj_init_event_data(obj->id, obj, addr);
+        addr = objInitEventData(obj->id, obj, addr);
     }
 
     if (modflags & MODFLAGS_100) {
-        addr = func_8002298C(obj->id, obj->modelInsts[0], obj, addr);
+        addr = obj_func_8002298C(obj->id, obj->modelInsts[0], obj, addr);
     }
 
     if ((modflags & MODFLAGS_SHADOW) && (def->shadowType != OBJ_SHADOW_NONE)) {
-        addr = shadows_init_obj_shadow(obj, addr, 0);
+        addr = shadowsInitObjShadow(obj, addr, 0);
     }
 
-    obj->visRadius = obj_calc_vis_radius(obj) * obj->srt.scale;
+    obj->visRadius = objCalcVisRadius(obj) * obj->srt.scale;
 
     if (def->unk8F != 0) {
         addr = func_8002667C(obj, addr);

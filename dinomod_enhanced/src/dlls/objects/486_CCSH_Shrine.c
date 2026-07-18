@@ -48,13 +48,13 @@ RECOMP_PATCH void CCSH_Shrine_control(Object* self) {
     f32 sp2C;
     s16 volume;
     
-    player = get_player();
+    player = objGetPlayer();
     dist = 1000.0f;
     self->globalPosition.x = self->srt.transl.x;
     self->globalPosition.y = self->srt.transl.y;
     self->globalPosition.z = self->srt.transl.z;
     CCSH_Shrine_process_obj_messages(self);
-    main_set_bits(BIT_DB_Entered_Shrine_2, 1);
+    mainSetBits(BIT_DB_Entered_Shrine_2, 1);
     if (objdata->unk6 != 0) {
         objdata->unk4 += objdata->unk6;
         if (objdata->unk4 <= 12) {
@@ -87,7 +87,7 @@ RECOMP_PATCH void CCSH_Shrine_control(Object* self) {
             }
         }
     } else {
-        obj = obj_get_nearest_type_to(OBJTYPE_Door, player, &dist);
+        obj = objGetNearestTypeTo(OBJTYPE_Door, player, &dist);
         if ((obj != NULL) && (dist < 300.0f) && (dist > 100.0f)) {
             doorDist = obj->srt.transl.z - player->srt.transl.z;
             if (doorDist <= 0.0f) {
@@ -112,25 +112,25 @@ RECOMP_PATCH void CCSH_Shrine_control(Object* self) {
         }
         switch (objdata->unkF) {
         case 0:
-            if ((main_get_bits(BIT_5B5) == 0) && (main_get_bits(BIT_594) != 0)) {
-                main_set_bits(BIT_5B5, 1);
+            if ((mainGetBits(BIT_5B5) == 0) && (mainGetBits(BIT_594) != 0)) {
+                mainSetBits(BIT_5B5, 1);
             }
-            main_set_bits(BIT_5B9, 0);
-            if (vec3_distance(&self->globalPosition, &player->globalPosition) < (f32) objdata->unk0) {
+            mainSetBits(BIT_5B9, 0);
+            if (vec3Distance(&self->globalPosition, &player->globalPosition) < (f32) objdata->unk0) {
                 objdata->unkF = 1;
-                main_set_bits(BIT_DB_Entered_Shrine_3, 0);
+                mainSetBits(BIT_DB_Entered_Shrine_3, 0);
                 gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
-                modgfx = dll_load_deferred(DLL_ID_147, 1);
+                modgfx = dllLoad(DLL_ID_147, 1);
                 modgfx->vtbl->func0(self, 0, 0, 1, -1, 0);
-                dll_unload(modgfx);
-                modgfx = dll_load_deferred(DLL_ID_148, 1);
+                dllFree(modgfx);
+                modgfx = dllLoad(DLL_ID_148, 1);
                 modgfx->vtbl->func0(self, 0, 0, 1, -1, 0);
-                dll_unload(modgfx);
-                main_set_bits(BIT_DB_Entered_Shrine_1, 0);
+                dllFree(modgfx);
+                mainSetBits(BIT_DB_Entered_Shrine_1, 0);
                 gDLL_14_Modgfx->vtbl->func7(&objdata->unkC);
                 // @recomp: Shut door while test is active (normally the trigger planes will clear this bit but the
                 //          way they are positioned makes it possible to get the door stuck open.
-                main_set_bits(BIT_5B6, 0);
+                mainSetBits(BIT_5B6, 0);
             }
         default:
             return;
@@ -142,10 +142,10 @@ RECOMP_PATCH void CCSH_Shrine_control(Object* self) {
             }
             break;
         case 2:
-            if ((objdata->unkE == 0) && (main_get_bits(BIT_1CD) == 0)) {
-                main_set_bits(BIT_1CD, 1);
+            if ((objdata->unkE == 0) && (mainGetBits(BIT_1CD) == 0)) {
+                mainSetBits(BIT_1CD, 1);
             }
-            if (main_get_bits(BIT_5B2) != 0) {
+            if (mainGetBits(BIT_5B2) != 0) {
                 objdata->unkE++;
                 objdata->unk2 = 0x64;
                 if (objdata->unkE == 1) {
@@ -170,52 +170,52 @@ RECOMP_PATCH void CCSH_Shrine_control(Object* self) {
             objdata->unkA = 1;
             gDLL_3_Animation->vtbl->start_obj_sequence(2, self, -1);
             dist = 10000.0f;
-            obj = obj_get_nearest_type_to(OBJTYPE_Baddie, self, &dist);
+            obj = objGetNearestTypeTo(OBJTYPE_Baddie, self, &dist);
             if (obj != NULL) {
-                obj_destroy_object(obj);
+                objFreeObject(obj);
             }
             objdata->unkF = 0;
             objdata->unk2 = 0x190;
-            main_set_bits(BIT_DB_Entered_Shrine_3, 1);
-            main_set_bits(BIT_DB_Entered_Shrine_1, 1);
-            main_set_bits(BIT_DB_Entered_Shrine_2, 1);
-            main_set_bits(BIT_5B2, 0);
-            main_set_bits(BIT_5B9, 1);
-            modgfx = dll_load_deferred(DLL_ID_122, 1);
+            mainSetBits(BIT_DB_Entered_Shrine_3, 1);
+            mainSetBits(BIT_DB_Entered_Shrine_1, 1);
+            mainSetBits(BIT_DB_Entered_Shrine_2, 1);
+            mainSetBits(BIT_5B2, 0);
+            mainSetBits(BIT_5B9, 1);
+            modgfx = dllLoad(DLL_ID_122, 1);
             objdata->unkC = modgfx->vtbl->func0(self, 0, 0, 0x402, -1, 0);
-            dll_unload(modgfx);
-            main_set_bits(BIT_1CD, 0);
+            dllFree(modgfx);
+            mainSetBits(BIT_1CD, 0);
             objdata->unkE = 0;
             objdata->unk10 = 0;
             return;
         case 3:
             dist = 10000.0f;
-            obj = obj_get_nearest_type_to(OBJTYPE_Baddie, self, &dist);
+            obj = objGetNearestTypeTo(OBJTYPE_Baddie, self, &dist);
             if (obj != NULL) {
-                obj_destroy_object(obj);
+                objFreeObject(obj);
             }
-            if (main_get_bits(BIT_1CE) != 0) {
+            if (mainGetBits(BIT_1CE) != 0) {
                 objdata->unk8 = 1;
                 gDLL_5_AMSEQ->vtbl->play_ex(3, 0x2C, 0x50, (u8) objdata->unk8, 0);
                 objdata->unkA = 1;
-                main_set_bits(BIT_DB_Entered_Shrine_3, 1);
+                mainSetBits(BIT_DB_Entered_Shrine_3, 1);
                 objdata->unkF = 5;
                 return;
             }
-            main_set_bits(BIT_DB_Entered_Shrine_1, 0);
+            mainSetBits(BIT_DB_Entered_Shrine_1, 0);
             gDLL_5_AMSEQ->vtbl->play_ex(3, 0x2A, 0x50, (u8) objdata->unk8, 0);
             objdata->unkA = 1;
             gDLL_3_Animation->vtbl->start_obj_sequence(1, self, -1);
             break;
         case 4:
-            if (main_get_bits(BIT_Shrine_Do_Exit_Warp) == 0) {
-                main_set_bits(BIT_Shrine_Do_Exit_Warp, 1);
+            if (mainGetBits(BIT_Shrine_Do_Exit_Warp) == 0) {
+                mainSetBits(BIT_Shrine_Do_Exit_Warp, 1);
             }
-            main_set_bits(BIT_1CF, 0);
-            main_set_bits(BIT_DB_Entered_Shrine_2, 0);
+            mainSetBits(BIT_1CF, 0);
+            mainSetBits(BIT_DB_Entered_Shrine_2, 0);
             objdata->unkF = 5;
             gDLL_5_AMSEQ->vtbl->play_ex(3, 0x2C, 0x50, (u8) objdata->unk8, 0);
-            main_set_bits(BIT_1CE, 1);
+            mainSetBits(BIT_1CE, 1);
             gDLL_29_Gplay->vtbl->set_act(MAP_WARLOCK_MOUNTAIN, 6);
             break;
         }

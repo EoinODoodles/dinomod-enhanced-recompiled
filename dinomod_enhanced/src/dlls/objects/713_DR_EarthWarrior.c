@@ -65,7 +65,7 @@ enum DREWSeq {
 
 /** Allow a summoned Earth Warrior to be ridden if he was already brought to the surface. */
 RECOMP_HOOK_DLL(DRearthwalk_setup) void dll_713_setup_hook(Object* self, DRearthwalk_Setup* setup, s32 arg2) {
-    if (main_get_bits(BIT_DR_EarthWarriorBroughtToSurface)) { // bit 0x656
+    if (mainGetBits(BIT_DR_EarthWarriorBroughtToSurface)) { // bit 0x656
         setup->unk19 = 0;
     }
 }

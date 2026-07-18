@@ -27,7 +27,7 @@ RECOMP_PATCH void task_mark_task_completed(u8 task) {
     // }
     bs_entry = task / 32;
     bit_idx = task % 32;
-    bs_value = main_get_bits(BIT_Task_Bits_1 + bs_entry);
+    bs_value = mainGetBits(BIT_Task_Bits_1 + bs_entry);
 
     if ((bs_value >> bit_idx) & 1) {
         return;
@@ -41,7 +41,7 @@ RECOMP_PATCH void task_mark_task_completed(u8 task) {
             sRecentlyCompletedNextIdx++;
             sRecentlyCompleted[sRecentlyCompletedNextIdx] = task;
 
-            main_set_bits(sRecentlyCompletedNextIdx + BIT_Recent_Task_1, task);
+            mainSetBits(sRecentlyCompletedNextIdx + BIT_Recent_Task_1, task);
         } else {
             // Otherwise, shift everything down and add to the end
             for (i = 0; i < 4; i++) {
@@ -51,7 +51,7 @@ RECOMP_PATCH void task_mark_task_completed(u8 task) {
             sRecentlyCompleted[4] = task;
 
             for (i = 0; i < 5; i++) {
-                main_set_bits(BIT_Recent_Task_1 + i, sRecentlyCompleted[i]);
+                mainSetBits(BIT_Recent_Task_1 + i, sRecentlyCompleted[i]);
             }
         }
     }
@@ -61,11 +61,11 @@ RECOMP_PATCH void task_mark_task_completed(u8 task) {
     // This is a 256-bit bitstring from bit entry 303 to 315 (8 entries)
     bs_entry = (task / 32) + BIT_Task_Bits_1;
 
-    bs_value = main_get_bits(bs_entry);
+    bs_value = mainGetBits(bs_entry);
     bit_idx = task % 32;
     bs_value = (1 << (bit_idx)) | bs_value;
 
-    main_set_bits(bs_entry, bs_value);
+    mainSetBits(bs_entry, bs_value);
 
     // Determine new completion index
     if (sCompletionIdx == task) {
@@ -76,18 +76,18 @@ RECOMP_PATCH void task_mark_task_completed(u8 task) {
             if (bs_entry2 != bs_entry) {
                 bs_entry = bs_entry2;
 
-                bs_value = main_get_bits(bs_entry2);
+                bs_value = mainGetBits(bs_entry2);
             }
             bit_idx = sCompletionIdx % 32;
 
         } while ((bs_value >> bit_idx) & 1);
 
-        main_set_bits(BIT_Furthest_Completed_Task, sCompletionIdx);
+        mainSetBits(BIT_Furthest_Completed_Task, sCompletionIdx);
     }
 
     // hmm
     if (!task) {
-        gDLL_29_Gplay->vtbl->savepoint(NULL, 0, GPLAY_SAVEPOINT_SkipMapSave, map_get_layer());
+        gDLL_29_Gplay->vtbl->savepoint(NULL, 0, GPLAY_SAVEPOINT_SkipMapSave, mapGetLayer());
     }
 }
 

@@ -50,8 +50,8 @@ f32 ease_in_out_quart(f32 x) {
 
 /** Rotate a point in a plane, around the origin. */
 void rotate_point_by_angle_2D(f32 x, f32 y, f32* ox, f32* oy, s16 theta){
-    f32 sinTheta = fsin16_precise(-theta);
-    f32 cosTheta = fcos16_precise(-theta);
+    f32 sinTheta = mathSinfInterp(-theta);
+    f32 cosTheta = mathCosfInterp(-theta);
 
     *ox = x*cosTheta - y*sinTheta;
     *oy = x*sinTheta + y*cosTheta;
@@ -233,13 +233,13 @@ void rotation_from_matrix(MtxF* mtx, s16* yaw, s16* pitch, s16* roll, f32 normal
 
     if (outPitch == M_90_DEGREES) {
         outYaw  = 0;
-        outRoll = atan2f_to_s(-n.m[1][0], n.m[0][0]);
+        outRoll = Arctanf(-n.m[1][0], n.m[0][0]);
     } else if (outPitch == -M_90_DEGREES) {
         outYaw  = 0;
-        outRoll = atan2f_to_s(-n.m[1][0], n.m[0][0]);
+        outRoll = Arctanf(-n.m[1][0], n.m[0][0]);
     } else {
-        outYaw  = atan2f_to_s(n.m[2][0], n.m[2][2]);
-        outRoll = atan2f_to_s(n.m[0][1], n.m[1][1]);
+        outYaw  = Arctanf(n.m[2][0], n.m[2][2]);
+        outRoll = Arctanf(n.m[0][1], n.m[1][1]);
     }
 
     CIRCLE_WRAP(outYaw);

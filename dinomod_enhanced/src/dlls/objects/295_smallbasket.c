@@ -34,7 +34,7 @@ RECOMP_PATCH void smallbasket_free(Object* self, s32 arg1) {
     Player_Data* playerObjdata; //@recomp
     
     //@recomp: Remove basket if the player's holding it (Banjeoin)
-    player = get_player();
+    player = objGetPlayer();
     if (player){
         playerObjdata = player->data;
         if (playerObjdata->unk868 && 
@@ -44,10 +44,10 @@ RECOMP_PATCH void smallbasket_free(Object* self, s32 arg1) {
     }
 
     gDLL_14_Modgfx->vtbl->func5(self);
-    obj_free_object_type(self, 0x12); //@recomp: remove self from type category 0x12
-    dll_unload((void*)dModGfxDLL[0]);
+    objFreeObjectType(self, 0x12); //@recomp: remove self from type category 0x12
+    dllFree((void*)dModGfxDLL[0]);
     if (objdata->soundHandle) {
-        gDLL_6_AMSFX->vtbl->stop(objdata->soundHandle);
+        dll_amSfx->Stop(objdata->soundHandle);
         objdata->soundHandle = 0;
     }
 }

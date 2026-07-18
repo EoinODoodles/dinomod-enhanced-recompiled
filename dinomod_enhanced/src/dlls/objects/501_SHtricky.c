@@ -20,10 +20,10 @@ RECOMP_PATCH void SHtricky_setup(Object* self, ObjSetup* setup, s32 arg2) {
     objdata = (SHtricky_Data*)self->data;
     
     // @recomp: Stop Tricky from repeating: "That's my mom!" when arriving in SwapStone Hollow (originally by MusicalProgrammer)
-    if (main_get_bits(BIT_A1)) {
+    if (mainGetBits(BIT_A1)) {
         objdata->unk0 = 3;
     } else {
-        main_set_bits(BIT_Play_Seq_00D1, 0);
+        mainSetBits(BIT_Play_Seq_00D1, 0);
         objdata->unk0 = 0;
     }
 
@@ -35,7 +35,7 @@ RECOMP_PATCH void SHtricky_control(Object *self) {
     Object *sidekick;
 
     objdata = (SHtricky_Data*)self->data;
-    sidekick = get_sidekick();
+    sidekick = objGetSidekick();
     //@recomp: prevent crash if Tricky isn't loaded
     if (sidekick == NULL){
         return;
@@ -43,7 +43,7 @@ RECOMP_PATCH void SHtricky_control(Object *self) {
 
     switch (objdata->unk0) {
     case 0:
-        if (main_get_bits(BIT_Play_Seq_00D1)) {
+        if (mainGetBits(BIT_Play_Seq_00D1)) {
             gDLL_3_Animation->vtbl->start_obj_sequence(3, sidekick, -1);
             objdata->unk0 = 1;
         } 

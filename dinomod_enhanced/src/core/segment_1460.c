@@ -59,9 +59,9 @@ RECOMP_PATCH s32 func_80000860(Object *calledBy, Object *target, u16 actionIndex
 
     //@recomp: don't allow snow envFxAction to be reapplied outside of snowy areas
     if (actionIndex == 42) { //Seems to be set while on Ice Mountain, and persists for ages!
-        Object* player = get_player();
+        Object* player = objGetPlayer();
         if (player) {
-            int mapID = map_world_xz_to_map_id(
+            int mapID = mapWorldXZToMapID(
                 player->globalPosition.x, 
                 player->globalPosition.z
             );
@@ -80,7 +80,7 @@ RECOMP_PATCH s32 func_80000860(Object *calledBy, Object *target, u16 actionIndex
     }
 
     envFx = mmAlloc(sizeof(EnvFxAction), COLOUR_TAG_WHITE, ALLOC_NAME("envfx:action1"));
-    queue_load_file_region_to_ptr ((void **)envFx, ENVFXACT_BIN, actionIndex * sizeof(EnvFxAction), sizeof(EnvFxAction));
+    assetRomLoadSection((void **)envFx, ENVFXACT_BIN, actionIndex * sizeof(EnvFxAction), sizeof(EnvFxAction));
     if (envFx != NULL) {
         if ((envFx->unk5C < 3) || (envFx->unk5C == 4)) {
             gDLL_9_Newclouds->vtbl->func0(calledBy, target, envFx, arg3);

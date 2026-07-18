@@ -47,7 +47,7 @@ RECOMP_PATCH void dll_537_func_16AC(Object* self) {
 
     // objData = self->data;
 
-    shotSetup = (DIMCannonBall_Setup*)obj_alloc_setup(sizeof(DIMExplosion_Setup), OBJ_DIMExplosion);
+    shotSetup = (DIMCannonBall_Setup*)objAllocSetup(sizeof(DIMExplosion_Setup), OBJ_DIMExplosion);
     // shotSetup->base.loadFlags = objData->unk4;
     // shotSetup->base.byte6 = objData->unk6;
     // shotSetup->base.byte5 = objData->unk5;
@@ -55,5 +55,5 @@ RECOMP_PATCH void dll_537_func_16AC(Object* self) {
     shotSetup->base.x = self->srt.transl.x;
     shotSetup->base.y = self->srt.transl.y;
     shotSetup->base.z = self->srt.transl.z;
-    obj_create((ObjSetup*)shotSetup, 5, self->mapID, -1, self->parent);
+    objSetupObject((ObjSetup*)shotSetup, 5, self->mapID, -1, self->parent);
 }

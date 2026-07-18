@@ -22,18 +22,18 @@ static void SHbarrelcreator_control(Object* self) {
     f32 distance;
 
     //Don't create a barrel if the specified gamebit is set
-    if ((objSetup->gamebitStop != NO_GAMEBIT) && main_get_bits(objSetup->gamebitStop)) {
+    if ((objSetup->gamebitStop != NO_GAMEBIT) && mainGetBits(objSetup->gamebitStop)) {
         return;
     }
 
     //Don't create a barrel if there's already one nearby
     distance = objSetup->searchDistance * 4;
-    if (obj_get_nearest_type_to(OBJTYPE_Barrel, self, &distance)) {
+    if (objGetNearestTypeTo(OBJTYPE_Barrel, self, &distance)) {
         return;
     }
 
     //Create a barrel
-    barrel = (SHBarrel_Setup*)obj_alloc_setup(sizeof(SHBarrel_Setup), OBJ_SHbarrel);
+    barrel = (SHBarrel_Setup*)objAllocSetup(sizeof(SHBarrel_Setup), OBJ_SHbarrel);
     barrel->base.loadDistance = 100;
     barrel->base.fadeDistance = 80;
     barrel->base.loadFlags = OBJSETUP_LOAD_MAIN;
@@ -42,7 +42,7 @@ static void SHbarrelcreator_control(Object* self) {
     barrel->base.y = self->srt.transl.y - 30.0f;
     barrel->base.z = self->srt.transl.z;
     barrel->yaw = self->srt.yaw >> 8;
-    obj_create((ObjSetup*)barrel, OBJINIT_STANDALONE | OBJINIT_FLAG4, self->mapID, -1, NULL);
+    objSetupObject((ObjSetup*)barrel, OBJINIT_STANDALONE | OBJINIT_FLAG4, self->mapID, -1, NULL);
 }
 
 static void SHbarrelcreator_update(Object* self) {}
@@ -60,11 +60,11 @@ static u32 SHbarrelcreator_get_data_size(Object *self, u32 offsetAddr) {
 }
 
 DLL_IObject_Vtbl DLL_SHbarrelcreator_vtbl = {
-    .setup = (void*)SHbarrelcreator_setup,
-    .control = SHbarrelcreator_control,
-    .update = SHbarrelcreator_update,
-    .print = SHbarrelcreator_print,
-    .free = SHbarrelcreator_free,
-    .get_model_flags = SHbarrelcreator_get_model_flags,
-    .get_data_size = SHbarrelcreator_get_data_size
+    .Setup = (void*)SHbarrelcreator_setup,
+    .Control = SHbarrelcreator_control,
+    .Update = SHbarrelcreator_update,
+    .Print = SHbarrelcreator_print,
+    .Free = SHbarrelcreator_free,
+    .GetModelFlags = SHbarrelcreator_get_model_flags,
+    .GetDataSize = SHbarrelcreator_get_data_size
 };

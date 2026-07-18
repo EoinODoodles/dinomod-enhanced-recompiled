@@ -25,7 +25,7 @@
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
 #include "game/gamebits.h"
-#include "sys/fs.h"
+#include "sys/pi.h"
 #include "sys/map.h"
 #include "sys/map_enums.h"
 #include "sys/math.h"

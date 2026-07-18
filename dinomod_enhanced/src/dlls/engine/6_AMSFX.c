@@ -13,13 +13,13 @@
 #include "libnaudio/n_sndplayer.h"
 #include "mp3/mp3.h"
 #include "sys/acache.h"
-#include "sys/fs.h"
+#include "sys/pi.h"
 #include "sys/main.h"
 #include "sys/map.h"
 #include "sys/mpeg.h"
-#include "sys/asset_thread.h"
+#include "sys/asset.h"
 #include "sys/dll.h"
-#include "sys/fs.h"
+#include "sys/pi.h"
 #include "sys/memory.h"
 #include "dll.h"
 #include "sys/objects.h"
@@ -94,16 +94,16 @@ extern u8 sWaterfallHighVolume; // sound volume
 extern WaterFallSpray sWaterFallSprays[MAX_WATER_FALL_SPRAY];
 extern ACache *sSoundDefCache;
 
-extern void amsfx_set_vol(u32 soundHandle, u8 volume);
-extern void amsfx_stop(u32 arg0);
-extern s32 amsfx_get_default(u16 arg0, SoundDef* arg1);
-extern s32 amsfx_water_falls_find_sprays(void);
-extern s32 amsfx_make_handle(s32 handle, char *filename, s32 lineNo);
-extern s32 amsfx_free_handle(u32);
-extern void amsfx_func_1F78(void);
-extern void amsfx_func_2240(Object* obj, f32* xo, f32* yo, f32* zo, u16* yawOut);
-extern void amsfx_func_22FC(f32 arg0, f32 arg1, f32 arg2, SoundDef* arg3, s8* outVolume);
-extern void amsfx_func_2438(f32 arg0, f32 arg1, s32 arg2, s8* outPan, s8* outFx);
+extern void amSfx_SetVol(u32 soundHandle, u8 volume);
+extern void amSfx_Stop(u32 arg0);
+extern s32 amSfx_GetDefault(u16 arg0, SoundDef* arg1);
+extern s32 amSfx_waterFallsFindSprays(void);
+extern s32 amSfx_makeHandle(s32 handle, char *filename, s32 lineNo);
+extern s32 amSfx_freeHandle(u32);
+extern void amSfx_func_1F78(void);
+extern void amSfx_func_2240(Object* obj, f32* xo, f32* yo, f32* zo, u16* yawOut);
+extern void amSfx_func_22FC(f32 arg0, f32 arg1, f32 arg2, SoundDef* arg3, s8* outVolume);
+extern void amSfx_func_2438(f32 arg0, f32 arg1, s32 arg2, s8* outPan, s8* outFx);
 
 enum RecompSoundIDs {
     SOUND_B8A_FirstTimeItemPickup = 0xB8A,
@@ -152,7 +152,7 @@ static void recomp_intercept_soundIDs(u16 soundID, SoundDef* soundEntry, ALBank 
     }
 }
 
-RECOMP_PATCH u32 amsfx_play(Object* obj, u16 soundID, u8 volume, u32* soundHandle, char *filename, s32 lineNo, char *code) {
+RECOMP_PATCH u32 amSfx_Play(Object* obj, u16 soundID, u8 volume, u32* soundHandle, char *filename, s32 lineNo, char *code) {
     SoundDef soundDef;
     f32 x;
     f32 y;
@@ -170,7 +170,7 @@ RECOMP_PATCH u32 amsfx_play(Object* obj, u16 soundID, u8 volume, u32* soundHandl
     }
 
     //Get sound definition from AUDIO.bin subfile 0
-    amsfx_get_default(soundID, &soundDef);
+    amSfx_GetDefault(soundID, &soundDef);
 
     // @recomp: Support multiple banks
     ALBank *bank = _bss_0->bankArray[0];
@@ -190,14 +190,14 @@ RECOMP_PATCH u32 amsfx_play(Object* obj, u16 soundID, u8 volume, u32* soundHandl
         handle = 0;
     }
 
-    handle = amsfx_make_handle(handle, filename, lineNo);
+    handle = amSfx_makeHandle(handle, filename, lineNo);
     sSndSlots[handle].soundID = soundID;
     sSndSlots[handle].source = obj;
     sSndSlots[handle].distVolume = MAX_VOLUME;
 
     if ((obj != NULL) && (soundDef.volumeFalloff & 3)) {
-        amsfx_func_2240(obj, &x, &y, &z, &yaw);
-        amsfx_func_22FC(x, y, z, &soundDef, &volumeCalc);
+        amSfx_func_2240(obj, &x, &y, &z, &yaw);
+        amSfx_func_22FC(x, y, z, &soundDef, &volumeCalc);
         sSndSlots[handle].distVolume = volumeCalc;
     }
 
@@ -209,8 +209,8 @@ RECOMP_PATCH u32 amsfx_play(Object* obj, u16 soundID, u8 volume, u32* soundHandl
         sSndSlots[handle].sndpHandle = (sndstate* )-2;
         // @fake
         if (sSndSlots[handle].def.bankAndClipID) {}
-        mpeg_play((soundDef.bankAndClipID & 0x7FFF) - 1);
-        mp3_set_volume(volumeCalc << 8, 0);
+        mpegPlay((soundDef.bankAndClipID & 0x7FFF) - 1);
+        mp3SetVolume(volumeCalc << 8, 0);
         // @fake
         if (sSndSlots) {}
     } else {
@@ -237,7 +237,7 @@ RECOMP_PATCH u32 amsfx_play(Object* obj, u16 soundID, u8 volume, u32* soundHandl
     return handle;
 }
 
-RECOMP_PATCH void amsfx_water_falls_control(void) {
+RECOMP_PATCH void amSfx_WaterFallsControl(void) {
     Object* player;
     s32 i;
     f32 distance;
@@ -246,10 +246,10 @@ RECOMP_PATCH void amsfx_water_falls_control(void) {
     u8 mapID;
     Vec3f* camera;
 
-    player = get_player();
-    mapID = map_world_xz_to_map_id(player->srt.transl.x, player->srt.transl.z);
+    player = objGetPlayer();
+    mapID = mapWorldXZToMapID(player->srt.transl.x, player->srt.transl.z);
     if ((mapID != sWaterfallsLastMap) || (sWaterfallFlags & AMSFX_WATERFALLS_REFRESH)) {
-        amsfx_water_falls_find_sprays();
+        amSfx_waterFallsFindSprays();
         sWaterfallsLastMap = mapID;
         sWaterfallFlags &= ~AMSFX_WATERFALLS_REFRESH;
     }
@@ -258,11 +258,11 @@ RECOMP_PATCH void amsfx_water_falls_control(void) {
     //     return;
     // }
 
-    camera = (Vec3f*)get_camera();
+    camera = (Vec3f*)camGet();
     highVolume = 0;
     lowVolume = 0;
     for (i = 0; i < sWaterFallSprayCount; i++) {
-        distance = vec3_distance(camera + 1, &sWaterFallSprays[i].pos);
+        distance = vec3Distance(camera + 1, &sWaterFallSprays[i].pos);
         if (distance < sWaterFallSprays[i].unkC) {
             lowVolume += MAX_VOLUME - (u8)((u32)((distance / sWaterFallSprays[i].unkC) * MAX_VOLUME_F));
         }
@@ -291,13 +291,13 @@ RECOMP_PATCH void amsfx_water_falls_control(void) {
     // @recomp: Partially rewrite to handle fading out when no more sprays exist rather than abruptly stopping
     if (lowVolume == 0 && sWaterfallLowVolume == 0) {
         if (sWaterfallLowHandle != 0) {
-            amsfx_stop(sWaterfallLowHandle);
+            amSfx_Stop(sWaterfallLowHandle);
             sWaterfallLowHandle = 0;
         }
     } else {
         if (sWaterfallLowHandle == 0) {
             sWaterfallLowVolume = 1;
-            amsfx_play(NULL, SOUND_986_Waterfall_Low_Loop, sWaterfallLowVolume, &sWaterfallLowHandle, "game/amsfx.c", 1016, "");
+            amSfx_Play(NULL, SOUND_986_Waterfall_Low_Loop, sWaterfallLowVolume, &sWaterfallLowHandle, "game/amsfx.c", 1016, "");
         }
         // @bug: framerate dependent
         if (lowVolume < sWaterfallLowVolume) {
@@ -305,17 +305,17 @@ RECOMP_PATCH void amsfx_water_falls_control(void) {
         } else {
             sWaterfallLowVolume += 1;
         }
-        amsfx_set_vol(sWaterfallLowHandle, sWaterfallLowVolume);
+        amSfx_SetVol(sWaterfallLowHandle, sWaterfallLowVolume);
     }
     if (highVolume == 0 && sWaterfallHighVolume == 0) {
         if (sWaterfallHighHandle != 0) {
-            amsfx_stop(sWaterfallHighHandle);
+            amSfx_Stop(sWaterfallHighHandle);
             sWaterfallHighHandle = 0;
         }
     } else {
         if (sWaterfallHighHandle == 0) {
             sWaterfallHighVolume = 1;
-            amsfx_play(NULL, SOUND_987_Waterfall_High_Loop, sWaterfallHighVolume, &sWaterfallHighHandle, "game/amsfx.c", 1036, "");
+            amSfx_Play(NULL, SOUND_987_Waterfall_High_Loop, sWaterfallHighVolume, &sWaterfallHighHandle, "game/amsfx.c", 1036, "");
         }
         // @bug: framerate dependent
         if (highVolume < sWaterfallHighVolume) {
@@ -323,23 +323,23 @@ RECOMP_PATCH void amsfx_water_falls_control(void) {
         } else {
             sWaterfallHighVolume += 1;
         }
-        amsfx_set_vol(sWaterfallHighHandle, sWaterfallHighVolume);
+        amSfx_SetVol(sWaterfallHighHandle, sWaterfallHighVolume);
     }
 }
 
 /** When searching for WaterFallSpray objects, ignore any that are switched off via a gamebit */
-RECOMP_PATCH s32 amsfx_water_falls_find_sprays(void) {
+RECOMP_PATCH s32 amSfx_waterFallsFindSprays(void) {
     Object* player;
     s32 offset;
     ObjSetup* setup;
     s32 setupListLength;
 
-    player = get_player();
+    player = objGetPlayer();
     if (player == NULL) {
         return TRUE;
     }
     
-    setup = map_world_xz_to_map_obj_setup_list(player->srt.transl.x, player->srt.transl.z, &setupListLength);
+    setup = mapWorldXZToMapObjSetupList(player->srt.transl.x, player->srt.transl.z, &setupListLength);
     if (setup == NULL) {
         return TRUE;
     }
@@ -351,8 +351,8 @@ RECOMP_PATCH s32 amsfx_water_falls_find_sprays(void) {
             //@recomp: ignore the WaterFallSpray object if it's switched off via its gamebit
             WaterFallSpray_Setup* spraySetup = (WaterFallSpray_Setup*)setup;
             if ((spraySetup->gamebit <= NO_GAMEBIT + 1) || //the WaterFallSpray doesn't use a gamebit, so it's always on
-                (   (spraySetup->invertGamebit && main_get_bits(spraySetup->gamebit))   ||  //switched on when gamebit set
-                    (!spraySetup->invertGamebit && !main_get_bits(spraySetup->gamebit))     //switched on when gamebit unset
+                (   (spraySetup->invertGamebit && mainGetBits(spraySetup->gamebit))   ||  //switched on when gamebit set
+                    (!spraySetup->invertGamebit && !mainGetBits(spraySetup->gamebit))     //switched on when gamebit unset
                 )
             ) {
                 sWaterFallSprays[sWaterFallSprayCount].pos.x = setup->x;

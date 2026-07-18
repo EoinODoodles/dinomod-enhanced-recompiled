@@ -53,7 +53,7 @@ void tumbleweed_stop_being_carried(Object* self){
   * (useful when the Tumbleweed is suddenly unloaded while still being carried by the player) 
   */
 void tumbleweed_create_disintegrate_effects(Object* self, int createLeaves, int createDust, int playSound) {
-    Object* player = get_player();
+    Object* player = objGetPlayer();
     SRT transform;
     u32 ID;
     u32 i;
@@ -103,7 +103,7 @@ void tumbleweed_create_disintegrate_effects(Object* self, int createLeaves, int 
     }
 
     if (playSound){
-        gDLL_6_AMSFX->vtbl->play(player, SOUND_5F7_Tumbleweed_Disintegrate, MAX_VOLUME, 0, 0, 0, 0);
+        dll_amSfx->Play(player, SOUND_5F7_Tumbleweed_Disintegrate, MAX_VOLUME, 0, 0, 0, 0);
     }
 }
 
@@ -141,7 +141,7 @@ RECOMP_PATCH void Tumbleweed_free(Object* self, s32 arg1) {
     {
         //@recomp: force player to let go of carried Tumbleweed (avoids a crash)
 
-        Object* player = get_player();
+        Object* player = objGetPlayer();
         Player_Data* playerData;
 
         if (player && player->data){
@@ -157,7 +157,7 @@ RECOMP_PATCH void Tumbleweed_free(Object* self, s32 arg1) {
     }
     
     //Find parent tree object
-    for (objects = get_world_objects(&i, &count); i < count; i++) {
+    for (objects = objGetObjects(&i, &count); i < count; i++) {
         object = objects[i];
         if (id == object->id && !(object->stateFlags & OBJSTATE_DESTROYED)) { //@recomp: check Object isn't deleted
             ((DLL_226_TumbleweedBush*)object->dll)->vtbl->remove_tumbleweed(object, self);
@@ -165,12 +165,12 @@ RECOMP_PATCH void Tumbleweed_free(Object* self, s32 arg1) {
     }
     
     if (objData->goldenNugget) {
-        main_set_bits(objData->goldDroppedGamebit, 1);
+        mainSetBits(objData->goldDroppedGamebit, 1);
         objData->goldenNugget = NULL;
     }
 
-    obj_free_object_type(self, OBJTYPE_Baddie);
-    obj_free_object_type(self, OBJTYPE_TrickyTarget);
+    objFreeObjectType(self, OBJTYPE_Baddie);
+    objFreeObjectType(self, OBJTYPE_TrickyTarget);
 }
 
 /**
@@ -185,7 +185,7 @@ RECOMP_PATCH int Tumbleweed_handle_carry_behaviour(Object* self) {
     Tumbleweed_Data_Extended* objData;
 
     objData = self->data;
-    player = get_player();
+    player = objGetPlayer();
 
     //Not being carried
     if (objData->carryFlags == Twig_FLAG_None) {
@@ -202,10 +202,10 @@ RECOMP_PATCH int Tumbleweed_handle_carry_behaviour(Object* self) {
         //Handle squeaking and growing in size temporarily
         objData->twigSqueakTimer -= gUpdateRateF;
         if (objData->twigSqueakTimer < 0.0f) {
-            objData->twigSqueakTimer = rand_next(120, 240);
-            soundID = rand_next(SOUND_614_Tumbleweed_Squeak_1, SOUND_615_Tumbleweed_Squeak_2);
-            soundVol = rand_next(90, 100);
-            gDLL_6_AMSFX->vtbl->play(self, soundID, soundVol, 0, 0, 0, 0);
+            objData->twigSqueakTimer = mathRnd(120, 240);
+            soundID = mathRnd(SOUND_614_Tumbleweed_Squeak_1, SOUND_615_Tumbleweed_Squeak_2);
+            soundVol = mathRnd(90, 100);
+            dll_amSfx->Play(self, soundID, soundVol, 0, 0, 0, 0);
             self->srt.scale = 0.2f;
         } else {
             self->srt.scale = 0.15f;
@@ -219,8 +219,8 @@ RECOMP_PATCH int Tumbleweed_handle_carry_behaviour(Object* self) {
             //@recomp: only allow letting go of Tumbleweed when player standing/walking
             //Fixes issue where player can immediately drop Tumbleweed after lifting it (from tapping A)
             if (playerUtil_is_player_standing_or_walking(player)){
-                if (joy_get_pressed(0) & A_BUTTON) {
-                    joy_disable_buttons(0, A_BUTTON);
+                if (joyGetPressed(0) & A_BUTTON) {
+                    joyDisableButtons(0, A_BUTTON);
                     objData->beingCarried = FALSE;
                 }
             }
@@ -238,7 +238,7 @@ RECOMP_PATCH int Tumbleweed_handle_carry_behaviour(Object* self) {
         //Send message to player object while being carried
         if (objData->beingCarried) {
             messageArg = (objData->carryMessageArgHi << 0x10) | (objData->carryMessageArgLo & 0xFFFF);
-            obj_send_mesg(player, 0x100008, self, (void*)messageArg);
+            objSendMesg(player, 0x100008, self, (void*)messageArg);
         }
 
         return FALSE;

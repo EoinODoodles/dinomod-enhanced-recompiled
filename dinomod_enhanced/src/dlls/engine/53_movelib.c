@@ -19,7 +19,7 @@ RECOMP_PATCH s32 movelib_func_18(Object* arg0, Object* arg1, s32* arg2, MoveLibD
     s32* sp34;
     HeadAnimation* var_a3;
 
-    sp34 = func_800349B0();
+    sp34 = objExpr_func_800349B0();
     if (arg1->objhitInfo != NULL) {
         if (arg1->objhitInfo->unk5A & 2) {
             sp38 = arg1->objhitInfo->unk56 * 4.0f;
@@ -37,15 +37,15 @@ RECOMP_PATCH s32 movelib_func_18(Object* arg0, Object* arg1, s32* arg2, MoveLibD
     //          sequences, which does not correctly set the objexpr flag like the other does. Since we fixed
     //          the objexpr flag getting stuck, we need to make sure it's actually set when it's needed.
     if (arg3->unk4A9 & 0x10) {
-        func_80034D94(0, 1);
+        objExpr_func_80034D94(0, 1);
     }
 
-    sp3E = func_80031DD8(arg0, arg1, NULL);
-    sp3C = func_800334A4(arg0, arg1, &arg3->headRefPoint, 
+    sp3E = objAngleToObjectXZ(arg0, arg1, NULL);
+    sp3C = objExpr_func_800334A4(arg0, arg1, &arg3->headRefPoint, 
                          (arg3->unk4A9 & 8) ? NULL : arg3->unk1C, 
                          arg3->unk454, sp38, 8, arg3->unk4A4);
     if (!(arg3->unk4A9 & 8)) {
-        arg3->unk490 = !func_800333C8(arg0, sp34, arg3->jointCount, arg3->unk1C);
+        arg3->unk490 = !objExpr_func_800333C8(arg0, sp34, arg3->jointCount, arg3->unk1C);
     }
     arg3->unk490 = 0;
     if ((arg3->unk4A9 & 2) && (sp3C != 0)) {
@@ -65,12 +65,12 @@ RECOMP_PATCH s32 movelib_func_18(Object* arg0, Object* arg1, s32* arg2, MoveLibD
         *arg4 = 0.005f;
     } else if (*arg2 != 0) {
         if (sp3E > 0 && arg0->curModAnimId != arg5[1]) {
-            func_80023D30(arg0, arg5[1], 0.0f, 0);
-            func_80024D74(arg0, 30);
+            objAnimSet(arg0, arg5[1], 0.0f, 0);
+            objAnim_func_80024D74(arg0, 30);
         }
         if (sp3E < 0 && arg0->curModAnimId != arg5[0]) {
-            func_80023D30(arg0, arg5[0], 0.0f, 0);
-            func_80024D74(arg0, 30);
+            objAnimSet(arg0, arg5[0], 0.0f, 0);
+            objAnim_func_80024D74(arg0, 30);
         }
         if (sp3C == 0) {
             sp3E = sp3E > 0 ? (sp3E / 20) : (sp3E / 20);
@@ -95,35 +95,35 @@ RECOMP_PATCH void movelib_func_4B8(Object* obj, MoveLibData* data) {
     maxLookAtSearchDist = 1000.0f;
     lookatYOffset = 30.0f;
     sp5A = 0;
-    sp54 = func_800349B0();
-    get_player();
+    sp54 = objExpr_func_800349B0();
+    objGetPlayer();
     if (data->unk499 == 0) {
         if ((data->unk4A9 & 1) && (data->unk498 != 8)) {
             data->unk498 = 8;
             if (!(data->unk4A9 & 8)) {
-                func_80033224(obj, sp54, data->jointCount, data->unk1C);
+                objExpr_func_80033224(obj, sp54, data->jointCount, data->unk1C);
                 data->unk490 = 0x50;
-                func_80033350(data->unk1C, data->jointCount, 0, 0);
+                objExpr_func_80033350(data->unk1C, data->jointCount, 0, 0);
             } else {
-                func_800332A4(obj, func_800349B0(), data->jointCount);
+                objExpr_func_800332A4(obj, objExpr_func_800349B0(), data->jointCount);
             }
         } else if (!(data->unk4A9 & 1) && (data->unk498 == 8)) {
             data->unk498 = 0;
             if (!(data->unk4A9 & 8)) {
-                func_80033224(obj, sp54, data->jointCount, data->unk1C);
+                objExpr_func_80033224(obj, sp54, data->jointCount, data->unk1C);
                 data->unk490 = 0x50;
             }
         }
         if (data->unk498 > 1) {
             if ((data->unk490 != 0) && !(data->unk4A9 & 8)) {
-                data->unk490 = !func_800333C8(obj, sp54, data->jointCount, data->unk1C);
+                data->unk490 = !objExpr_func_800333C8(obj, sp54, data->jointCount, data->unk1C);
                 return;
             }
-            func_800332A4(obj, func_800349B0(), data->jointCount);
+            objExpr_func_800332A4(obj, objExpr_func_800349B0(), data->jointCount);
             return;
         }
         if (data->lookat == NULL) {
-            lookat = obj_get_nearest_type_to(OBJTYPE_LookAt, obj, &maxLookAtSearchDist);
+            lookat = objGetNearestTypeTo(OBJTYPE_LookAt, obj, &maxLookAtSearchDist);
         } else {
             lookat = data->lookat;
         }
@@ -147,17 +147,17 @@ RECOMP_PATCH void movelib_func_4B8(Object* obj, MoveLibData* data) {
             }
             if ((data->unk4AC != -1) && (lookat == data->prevLookat)) {
                 if (((data->unk4B4 -= gUpdateRate) <= 0) && ((data->unk4B4 + gUpdateRate) > 0)) {
-                    func_80033224(obj, sp54, data->jointCount, data->unk1C);
+                    objExpr_func_80033224(obj, sp54, data->jointCount, data->unk1C);
                     data->unk490 = 0x50;
-                    func_80033350(data->unk1C, data->jointCount, 0, 0);
+                    objExpr_func_80033350(data->unk1C, data->jointCount, 0, 0);
                     data->unk498 = 0;
                     return;
                 }
                 if (data->unk490 != 0) {
-                    data->unk490 = !func_800333C8(obj, sp54, data->jointCount, data->unk1C);
+                    data->unk490 = !objExpr_func_800333C8(obj, sp54, data->jointCount, data->unk1C);
                 }
                 if (data->unk4B4 < -data->unk4B0) {
-                    data->unk4B4 = rand_next(data->unk4B0, data->unk4AC);
+                    data->unk4B4 = mathRnd(data->unk4B0, data->unk4AC);
                 }
                 if (data->unk4B4 < 0) {
                     return;
@@ -179,33 +179,33 @@ RECOMP_PATCH void movelib_func_4B8(Object* obj, MoveLibData* data) {
                 }
             }
             if (lookat != NULL) {
-                sp5A = func_80031DD8(obj, lookat, NULL);
+                sp5A = objAngleToObjectXZ(obj, lookat, NULL);
             }
             if (data->unk4A9 & 0x10) {
-                func_80034D94(0, 1);
+                objExpr_func_80034D94(0, 1);
                 sp5A -= 0x8000;
             }
             if ((((sp5A >= 0) ? sp5A : -sp5A) >= 0x5555) || (lookat == NULL)) {
                 if ((data->unk498 != 0) || ((lookat == NULL) && (data->prevLookat != NULL))) {
-                    func_80033224(obj, sp54, data->jointCount, data->unk1C);
+                    objExpr_func_80033224(obj, sp54, data->jointCount, data->unk1C);
                     data->unk490 = 0xA;
-                    func_80033350(data->unk1C, data->jointCount, 0, 0);
+                    objExpr_func_80033350(data->unk1C, data->jointCount, 0, 0);
                     data->unk498 = 0;
                 }
-                // @recomp: If we're not gonna call func_800334A4, then we need to clear the objexpr flag that
+                // @recomp: If we're not gonna call objExpr_func_800334A4, then we need to clear the objexpr flag that
                 //          flips the head lookat angle (if we set it), otherwise it will leak into other calls.
                 if (data->unk4A9 & 0x10) {
-                    func_80034D94(0, 0);
+                    objExpr_func_80034D94(0, 0);
                 }
             } else {
                 if ((lookat != data->prevLookat) || (data->unk498 == 0)) {
-                    func_80033224(obj, sp54, data->jointCount, data->unk1C);
+                    objExpr_func_80033224(obj, sp54, data->jointCount, data->unk1C);
                     data->unk490 = 1;
                 }
                 if (data->unk4A9 & 8) {
                     data->unk490 = 0;
                 }
-                func_800334A4(obj, lookat, &data->headRefPoint, 
+                objExpr_func_800334A4(obj, lookat, &data->headRefPoint, 
                               data->unk490 != 0 ? data->unk1C : NULL, 
                               data->unk454, lookatYOffset, 8, data->unk4A4);
                 data->unk498 = 1;
@@ -213,7 +213,7 @@ RECOMP_PATCH void movelib_func_4B8(Object* obj, MoveLibData* data) {
             data->prevLookat = lookat;
             data->lookat = NULL;
             if (!(data->unk4A9 & 8) && (data->unk490 != 0)) {
-                data->unk490 = !func_800333C8(obj, sp54, data->jointCount, data->unk1C);
+                data->unk490 = !objExpr_func_800333C8(obj, sp54, data->jointCount, data->unk1C);
             }
         }
     }

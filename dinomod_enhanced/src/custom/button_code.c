@@ -111,7 +111,7 @@ int button_code_entered(ButtonCode* code) {
     }
 
     //Check for button presses
-    buttonsPressed = joy_get_pressed(0);
+    buttonsPressed = joyGetPressed(0);
     if (buttonsPressed) {
         if (buttonsPressed & code->sequence[code->position]) {
             code->position++;

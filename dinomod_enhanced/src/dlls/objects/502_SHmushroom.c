@@ -154,7 +154,7 @@ static void add_to_inventory(Object* self, SHmushroom_Data_Extended* objData, SH
 
 	//Set this mushroom's collection gamebit, so it won't reappear
 	if (objSetup->gamebitCollected != NO_GAMEBIT) {
-		main_set_bits(objSetup->gamebitCollected, TRUE);
+		mainSetBits(objSetup->gamebitCollected, TRUE);
 	}
 
 	if (self->modelInstIdx == SHmushroom_MODEL_0_Blue_Mushroom) {
@@ -163,14 +163,14 @@ static void add_to_inventory(Object* self, SHmushroom_Data_Extended* objData, SH
 		//If the player has a sidekick foodbag, store Blue Mushrooms there
 		if (dinoFoodBag && ((DLL_315_SideFoodbag*)dinoFoodBag->dll)->vtbl->is_obtained(dinoFoodBag)) {
 			((DLL_315_SideFoodbag*)dinoFoodBag->dll)->vtbl->collect_food(dinoFoodBag, SIDEFOOD_Blue_Mushrooms);
-			count = main_get_bits(BIT_Dino_Bag_Blue_Mushrooms);
+			count = mainGetBits(BIT_Dino_Bag_Blue_Mushrooms);
 		//Otherwise store Blue Mushrooms directly in the inventory
 		} else {
-			count = main_increment_bits(objData->gamebitInventory);
+			count = mainIncrementBits(objData->gamebitInventory);
 		}
 	} else {
 		//Other mushroom types (White Mushrooms) are always stored directly in the inventory
-		count = main_increment_bits(objData->gamebitInventory);
+		count = mainIncrementBits(objData->gamebitInventory);
 	}
 
 	//Optionally show an item collection pop-up
@@ -197,10 +197,10 @@ RECOMP_PATCH void SHmushroom_setup(Object* self, SHmushroom_Setup* setup, s32 ar
 
 	objData = self->data;
 	curveEndpoint = 25; //Matches unk18 on the initial curve node for SwapStone Hollow's lily pond mushroom (uID 0x3081c)
-	player = get_player();
+	player = objGetPlayer();
 	self->stateFlags |= (OBJSTATE_UPDATE_DISABLED | OBJSTATE_PRINT_DISABLED);
 
-	if (main_get_bits(setup->gamebitCollected)) {
+	if (mainGetBits(setup->gamebitCollected)) {
 		objData->state = SHmushroom_STATE_8_Hidden;
 		self->objhitInfo->unk58 &= ~1;
 		self->srt.flags |= OBJFLAG_INVISIBLE;
@@ -232,8 +232,8 @@ RECOMP_PATCH void SHmushroom_setup(Object* self, SHmushroom_Setup* setup, s32 ar
 	self->srt.scale = self->def->scale;
 
 	//Get root motion speed from jump animation?
-	func_80023D30(self, SHmushroom_MODANIM_1_Jump, 0.0f, 0);
-	func_80024108(self, 1.0f, 1.0f, &animInfo);
+	objAnimSet(self, SHmushroom_MODANIM_1_Jump, 0.0f, 0);
+	objAnimAdvance(self, 1.0f, 1.0f, &animInfo);
 	objData->jumpSpeed = animInfo.unk0[0];
 	if (objData->jumpSpeed < 0.0f) {
 		objData->jumpSpeed = -objData->jumpSpeed;
@@ -242,8 +242,8 @@ RECOMP_PATCH void SHmushroom_setup(Object* self, SHmushroom_Setup* setup, s32 ar
 	objData->jumpSpeed += 20.0f;
 
 	//Get root motion speed from hop animation?
-	func_80023D30(self, SHmushroom_MODANIM_4_Look_Hop_LOOP, 0.0f, 0);
-	func_80024108(self, 1.0f, 1.0f, &animInfo);
+	objAnimSet(self, SHmushroom_MODANIM_4_Look_Hop_LOOP, 0.0f, 0);
+	objAnimAdvance(self, 1.0f, 1.0f, &animInfo);
 	objData->hopSpeed = animInfo.unk0[2];
 	if (objData->hopSpeed < 0.0f) {
 		objData->hopSpeed = -objData->hopSpeed;
@@ -251,7 +251,7 @@ RECOMP_PATCH void SHmushroom_setup(Object* self, SHmushroom_Setup* setup, s32 ar
 	objData->hopSpeed += 20.0f;
 
 	//Set up message queue
-	obj_init_mesg_queue(self, 1);
+	objInitMesgQueue(self, 1);
 
 	//Optionally set the mushroom to follow curves (only affects specific mushrooms)
 	if ((setup->index == 4) || //White Mushroom around lily pond in SwapStone Hollow well
@@ -267,7 +267,7 @@ RECOMP_PATCH void SHmushroom_setup(Object* self, SHmushroom_Setup* setup, s32 ar
 
 	//Set initial pursuer distance
 	if (player != NULL) {
-		distanceToPlayer = vec3_distance(&player->globalPosition, &self->globalPosition);
+		distanceToPlayer = vec3Distance(&player->globalPosition, &self->globalPosition);
 		objData->prevPursuerDistance = distanceToPlayer;
 		objData->pursuerDistance = distanceToPlayer;
 	} else {
@@ -275,7 +275,7 @@ RECOMP_PATCH void SHmushroom_setup(Object* self, SHmushroom_Setup* setup, s32 ar
 		objData->prevPursuerDistance = 200.0f;
 	}
 
-	obj_add_object_type(self, OBJTYPE_TrickyTarget);
+	objAddObjectType(self, OBJTYPE_TrickyTarget);
 
 	//Set up inventory gamebit (value incremented when collected)
 	if (self->modelInstIdx == SHmushroom_MODEL_0_Blue_Mushroom) {
@@ -284,10 +284,10 @@ RECOMP_PATCH void SHmushroom_setup(Object* self, SHmushroom_Setup* setup, s32 ar
 		objData->gamebitInventory = BIT_Inventory_White_Mushrooms;
 	}
 
-	func_80023D08(self, self->modelInstIdx);
+	objSetInfoNum(self, self->modelInstIdx);
 
 	//@recomp: start at a random point in the initial animation (desync nearby mushrooms)
-	func_80023D30(self, dStateModAnimIDs[objData->state], rand_next(0, 3)*0.25f, 0);
+	objAnimSet(self, dStateModAnimIDs[objData->state], mathRnd(0, 3)*0.25f, 0);
 }
 
 RECOMP_PATCH void SHmushroom_control(Object* self) {
@@ -311,13 +311,13 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 
 	//@recomp: delete immediately if already collected
 	if (objData->flags & SHmushroom_FLAG_Delete_after_Setup) {
-		playerUtil_clear_collected_object(get_player(), self);
-		obj_destroy_object(self);
+		playerUtil_clear_collected_object(objGetPlayer(), self);
+		objFreeObject(self);
 	}
 
 	objSetup = (SHmushroom_Setup*)self->setup;
-	player = get_player();
-	sidekick = get_sidekick();
+	player = objGetPlayer();
+	sidekick = objGetSidekick();
 
 	if (DEBUG_MUSHROOM) {
 		diPrintf("\nSTATE: %d\n", objData->state);
@@ -331,11 +331,11 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 		objData->expireTimer += gUpdateRate;
 		if ((objData->expireTimer >= 500) && ((objData->flags & SHmushroom_FLAG_Message_Sent_to_Player) == FALSE)) {
 			playerUtil_clear_collected_object(player, self);
-			obj_destroy_object(self);
+			objFreeObject(self);
 		}
 
 		//@recomp: wait for player message, but only use it to delete the mushroom
-		while (obj_recv_mesg(self, &outMesgID, NULL, NULL)) {
+		while (objRecvMesg(self, &outMesgID, NULL, NULL)) {
 			if (outMesgID == 0x7000B) {
 				objData->flags &= ~SHmushroom_FLAG_Message_Sent_to_Player;
 				break;
@@ -348,11 +348,11 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 	//Handle being chased by player/sidekick (get distance to whoever's nearest)
 	objData->prevPursuerDistance = objData->pursuerDistance;
 
-	playerDistanceSquared = vec3_distance_squared(&player->globalPosition, &self->globalPosition);
+	playerDistanceSquared = vec3DistanceSquared(&player->globalPosition, &self->globalPosition);
 	if (sidekick == NULL) {
 		objData->pursuerDistance = sqrtf(playerDistanceSquared);
 	} else {
-		sidekickDistanceSquared = vec3_distance_squared(&sidekick->globalPosition, &self->globalPosition);
+		sidekickDistanceSquared = vec3DistanceSquared(&sidekick->globalPosition, &self->globalPosition);
 		if (playerDistanceSquared < sidekickDistanceSquared) {
 			objData->pursuerDistance = sqrtf(playerDistanceSquared);
 		} else {
@@ -367,7 +367,7 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 
 	//React to attacks
 	if (func_80025F40(self, &hitBy, NULL, NULL) != 0) {
-		gDLL_6_AMSFX->vtbl->play(self, SOUND_744_Mushroom_Hit, MAX_VOLUME, NULL, NULL, 0, NULL);
+		dll_amSfx->Play(self, SOUND_744_Mushroom_Hit, MAX_VOLUME, NULL, NULL, 0, NULL);
 
 		//Get eaten when attacked by an EarthWalker
 		if (hitBy->id == OBJ_DR_EarthWarrior) {
@@ -433,7 +433,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 	s8 configDanceChance = recomp_get_config_u32("shmushroom_dance_chance");
 	s8 percentThreshold;
 
-	player = get_player();
+	player = objGetPlayer();
 
 	objData->flags &= ~SHmushroom_FLAG_Moving;
 
@@ -460,9 +460,9 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 					objData->state = SHmushroom_STATE_10_Dance;
 					//Start at a random point in the initial animation (desync nearby mushrooms)
 					if (objData->firstTickDone == FALSE) {
-						func_80023D30(self, 
+						objAnimSet(self, 
 							dStateModAnimIDs[objData->state], 
-							rand_next(0, 3)*0.25f, 
+							mathRnd(0, 3)*0.25f, 
 							0
 						);
 					}
@@ -471,9 +471,9 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 						if (objData->flags & SHmushroom_FLAG_Animation_Finished) {
 							percentThreshold = MAX(0, MIN(configDanceChance - 1, 100 - 1));
 
-							if (rand_next(0, 99) <= percentThreshold) {
+							if (mathRnd(0, 99) <= percentThreshold) {
 								//random delay to desync nearby mushrooms' anims
-								objData->danceTimer = rand_next(1, 60); 
+								objData->danceTimer = mathRnd(1, 60); 
 							}
 						}
 					} else {
@@ -495,7 +495,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 				}
 
 				objData->state = SHmushroom_STATE_1_Jump;
-				gDLL_6_AMSFX->vtbl->play(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
+				dll_amSfx->Play(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
 				self->srt.yaw = objData->fleeAngle - M_90_DEGREES;
 
 			//Enter alert state if the player/sidekick are close
@@ -540,7 +540,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 			//Alert state: staying still in poised pose, facing towards threat
 			dx = self->srt.transl.x - player->srt.transl.x;
 			dz = self->srt.transl.z - player->srt.transl.z;
-			self->srt.yaw = arctan2_f(-dx,-dz);
+			self->srt.yaw = mathAtan2f(-dx,-dz);
 
 			//If pursuer backs off, play a little "phew!" animation
 			if ((objSetup->alertRange + 10.0f) < objData->pursuerDistance) {
@@ -557,7 +557,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 						}
 
 						objData->state = SHmushroom_STATE_1_Jump;
-						gDLL_6_AMSFX->vtbl->play(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
+						dll_amSfx->Play(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
 						self->srt.yaw = objData->fleeAngle - M_90_DEGREES;
 
 					//Hop in surprise (if the player/sidekick are sneaking up)
@@ -569,7 +569,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 						}
 
 						objData->state = SHmushroom_STATE_5_Surprised_Hop;
-						gDLL_6_AMSFX->vtbl->play(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
+						dll_amSfx->Play(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
 						self->srt.yaw = objData->fleeAngle;
 					}
 				}
@@ -598,7 +598,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 			}
 
 			objData->state = SHmushroom_STATE_1_Jump;
-			gDLL_6_AMSFX->vtbl->play(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
+			dll_amSfx->Play(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
 			self->srt.yaw = objData->fleeAngle - M_90_DEGREES;
 		}
 		break;
@@ -615,8 +615,8 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 	case SHmushroom_STATE_9_Stunned:
 		//Start stunned sound loop
 		if (objData->stunnedTimer <= 0) {
-			gDLL_6_AMSFX->vtbl->play(self, SOUND_745_Mushroom_Stunned_Loop, MAX_VOLUME, &objData->soundHandleStun, NULL, 0, NULL);
-			objData->stunnedTimer = rand_next(240, 300);
+			dll_amSfx->Play(self, SOUND_745_Mushroom_Stunned_Loop, MAX_VOLUME, &objData->soundHandleStun, NULL, 0, NULL);
+			objData->stunnedTimer = mathRnd(240, 300);
 		}
 
 		//Run down stun timer
@@ -630,7 +630,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 
 			//Stop sound loop
 			if (objData->soundHandleStun != 0) {
-				gDLL_6_AMSFX->vtbl->stop(objData->soundHandleStun);
+				dll_amSfx->Stop(objData->soundHandleStun);
 				objData->soundHandleStun = 0;
 			}
 
@@ -668,7 +668,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 			} else if (configDanceChance < 100) {
 				//66% chance of continuing dance, 33% chance of returning to idle
 				if ((objData->flags & SHmushroom_FLAG_Animation_Finished) && 
-					!rand_next(0, 2)
+					!mathRnd(0, 2)
 				) {
 					objData->state = SHmushroom_STATE_0_Idle;
 				}
@@ -676,7 +676,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 
 			//Pick direction and spin
 			if (objData->spinSpeed == 0) {
-				objData->spinSpeed = rand_next(0, 1) ? -100 : 100;
+				objData->spinSpeed = mathRnd(0, 1) ? -100 : 100;
 			}
 			self->srt.yaw += objData->spinSpeed * gUpdateRate;
 
@@ -689,7 +689,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 				}
 
 				objData->state = SHmushroom_STATE_1_Jump;
-				gDLL_6_AMSFX->vtbl->play(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
+				dll_amSfx->Play(self, SOUND_53C_Mushroom_Bounce, MAX_VOLUME, NULL, NULL, 0, NULL);
 				self->srt.yaw = objData->fleeAngle - M_90_DEGREES;
 
 			//Enter alert state if the player/sidekick are close
@@ -705,7 +705,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 	//Handle player collecting mushroom (@recomp: increment inventory gamebit immediately)
 	if (self->unkAF & ARROW_FLAG_1_Interacted) {
 		//Check if tutorial already seen
-		if ((objData->tutorialGamebit != NO_GAMEBIT) && main_get_bits(objData->tutorialGamebit)) {
+		if ((objData->tutorialGamebit != NO_GAMEBIT) && mainGetBits(objData->tutorialGamebit)) {
 			tutorialSeen = TRUE;
 		}
 
@@ -715,7 +715,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 		}
 
 		//Send message to player, collecting and displaying Blue Mushroom's tutorial box
-		obj_send_mesg(player,
+		objSendMesg(player,
 			0x7000A,
 			self,
 			(void*)(s32)objData->tutorialGamebit
@@ -730,14 +730,14 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 
 		//Stop sound loop
 		if (objData->soundHandleStun != 0) {
-			gDLL_6_AMSFX->vtbl->stop(objData->soundHandleStun);
+			dll_amSfx->Stop(objData->soundHandleStun);
 			objData->soundHandleStun = 0;
 		}
 	}
 
 	//Change animation when needed
 	if (self->curModAnimId != dStateModAnimIDs[objData->state]) {
-		func_80023D30(self, 
+		objAnimSet(self, 
 			dStateModAnimIDs[objData->state], 
 			(objData->state == SHmushroom_STATE_10_Dance) ? 0.0f : 0.25f, 
 			0
@@ -745,7 +745,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 	}
 
 	//Advance animation
-	if (func_80024108(self, dStateAnimSpeeds[objData->state], gUpdateRateF, &animInfo)) {
+	if (objAnimAdvance(self, dStateAnimSpeeds[objData->state], gUpdateRateF, &animInfo)) {
 		objData->flags |= SHmushroom_FLAG_Animation_Finished;
 	} else {
 		objData->flags &= ~SHmushroom_FLAG_Animation_Finished;
@@ -761,9 +761,9 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 	}
 
 	//Move
-	self->velocity.x = fsin16_precise(objData->fleeAngle) * speed;
-	self->velocity.z = fcos16_precise(objData->fleeAngle) * speed;
-	obj_move(self, self->velocity.x * gUpdateRateF, 0.0f, self->velocity.z * gUpdateRateF);
+	self->velocity.x = mathSinfInterp(objData->fleeAngle) * speed;
+	self->velocity.z = mathCosfInterp(objData->fleeAngle) * speed;
+	objMove(self, self->velocity.x * gUpdateRateF, 0.0f, self->velocity.z * gUpdateRateF);
 
 	if (objData->firstTickDone == FALSE) {
 		objData->firstTickDone = TRUE;

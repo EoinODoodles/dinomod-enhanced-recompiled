@@ -38,26 +38,26 @@ RECOMP_PATCH void sideload_control(Object* self) {
     Object* sidekick;
     
     //@recomp: store player and sidekick for additional checks
-    if ((player = get_player()) == NULL) {
+    if ((player = objGetPlayer()) == NULL) {
         return;
     }
-    sidekick = get_sidekick();
+    sidekick = objGetSidekick();
 
     //@recomp: add a special case for SwapStone Hollow, 
     //stopping Tricky from loading and falling into the well via the surface's SideLoad object
     if (self->mapID == MAP_SWAPSTONE_HOLLOW) {
-        if ((player->srt.transl.y < -845.0f) && (main_get_bits(BIT_Tricky_Learned_Flame) == FALSE)) {
+        if ((player->srt.transl.y < -845.0f) && (mainGetBits(BIT_Tricky_Learned_Flame) == FALSE)) {
             if (sidekick) {
-                obj_destroy_object(sidekick);
+                objFreeObject(sidekick);
             }
             return;
         }
     }
 
     if ((sidekick == FALSE) && (objData->loaded == FALSE) && 
-        ((gamebit = objSetup->gamebitUnlocked, gamebit == NO_GAMEBIT) || main_get_bits(gamebit))
+        ((gamebit = objSetup->gamebitUnlocked, gamebit == NO_GAMEBIT) || mainGetBits(gamebit))
     ) {
         objData->loaded = TRUE;
-        func_80023894(self, dSidekickObjIDs[objSetup->sidekickIndex]);
+        objLoadSidekick(self, dSidekickObjIDs[objSetup->sidekickIndex]);
     }
 }

@@ -77,7 +77,7 @@ RECOMP_PATCH void dll_22_func_C64(void) {
     s32 j;
 
     //@recomp: pause subtitles while gameplay paused
-    if (get_pause_state()) {
+    if (mainGetPauseState()) {
         return;
     }
 
@@ -116,7 +116,7 @@ RECOMP_PATCH void dll_22_func_578(Gfx **gdl) {
     s32 temp_v0;
 
     //@recomp: pause subtitles while gameplay paused
-    if (get_pause_state()){
+    if (mainGetPauseState()){
         _bss_7A4 = 0; //hide background strip
         dll_22_func_D9C(gdl);
         return;
@@ -140,7 +140,7 @@ RECOMP_PATCH void dll_22_func_578(Gfx **gdl) {
         return;
     }
 
-    temp_v0 = vi_get_current_size();
+    temp_v0 = viGetCurrentSize();
     _bss_7A0 = GET_VIDEO_WIDTH(temp_v0);
     _bss_79C = _bss_7A0 - (_bss_7A2 * 2);
     _bss_798 = (_bss_7A0 - _bss_79C) / 2;

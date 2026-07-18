@@ -49,7 +49,7 @@ enum SnowHornAnims {
 */
 
 //Prevent head turn while asleep
-RECOMP_PATCH void func_80033B68(Object* obj, HeadAnimation* arg1, f32 arg2) {
+RECOMP_PATCH void objExpr_func_80033B68(Object* obj, HeadAnimation* arg1, f32 arg2) {
     s16* neckJoint;
     s32 var_v0;
 
@@ -61,7 +61,7 @@ RECOMP_PATCH void func_80033B68(Object* obj, HeadAnimation* arg1, f32 arg2) {
         }
     }
 
-    neckJoint = func_80034804(obj, 0);
+    neckJoint = objExpr_func_80034804(obj, 0);
     if (neckJoint == NULL) {
         return;
     }
@@ -74,9 +74,9 @@ RECOMP_PATCH void func_80033B68(Object* obj, HeadAnimation* arg1, f32 arg2) {
         arg2 = -arg2;
     }
     if (arg2 <= 0.1f) {
-        func_80033C54(obj, arg1, arg2, neckJoint);
+        objExpr_func_80033C54(obj, arg1, arg2, neckJoint);
     } else {
-        func_80033FD8(obj, arg1, arg2, neckJoint);
+        objExpr_func_80033FD8(obj, arg1, arg2, neckJoint);
     }
     
     var_v0 = arg2 > 0.1f ? 1 : 0;
@@ -85,7 +85,7 @@ RECOMP_PATCH void func_80033B68(Object* obj, HeadAnimation* arg1, f32 arg2) {
 
 // Prevent SnowHorn from blinking while asleep, 
 // and ensure all randomised blink animation is framerate independent
-RECOMP_PATCH void func_80032A08(Object* obj, HeadAnimation* headAnimator) {
+RECOMP_PATCH void objExprEyeIdle(Object* obj, HeadAnimation* headAnimator) {
     TextureAnimator* eyelidR;
     TextureAnimator* eyelidL;
     s32 eyelidValue;
@@ -100,8 +100,8 @@ RECOMP_PATCH void func_80032A08(Object* obj, HeadAnimation* headAnimator) {
         }
     }
 
-    eyelidR = func_800348A0(obj, HEAD_ANIMATION_TAG_Eyelid_R, 0);
-    eyelidL = func_800348A0(obj, HEAD_ANIMATION_TAG_Eyelid_L, 0);
+    eyelidR = objExprGetTexAnimator(obj, HEAD_ANIMATION_TAG_Eyelid_R, 0);
+    eyelidL = objExprGetTexAnimator(obj, HEAD_ANIMATION_TAG_Eyelid_L, 0);
 
     if (!eyelidR || !eyelidL) {
         return;
@@ -121,7 +121,7 @@ RECOMP_PATCH void func_80032A08(Object* obj, HeadAnimation* headAnimator) {
             headAnim->blinkRollTimer += gUpdateRate;
             if (headAnim->blinkRollTimer >= 2){
                 headAnim->blinkRollTimer = 0;
-                if (rand_next(0, 1000) > 985) {
+                if (mathRnd(0, 1000) > 985) {
                     //(Every 3 frames) 1.5% chance of going into a blink
                     headAnim->blinkState = BLINK_Animate;
                     headAnim->blinkDelayTimer = 0;
@@ -159,5 +159,5 @@ RECOMP_PATCH void func_80032A08(Object* obj, HeadAnimation* headAnimator) {
         break;
     }
 
-    func_80034678(obj, headAnimator, 0);
+    objExprEyeDart(obj, headAnimator, 0);
 }

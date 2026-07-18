@@ -53,24 +53,24 @@ static void getPlayerStats(void){
 
 static void printWithDropshadow(char message[], s16 x, s16 y, s32 colour_main, s32 colour_shadow, s8 opacity, s8 alignment){ 
     //Main text
-    font_window_set_text_colour(1, 
+    fontWindowSetTextColour(1, 
         (colour_main >> 24) & 0xFF, 
         (colour_main >> 16) & 0xFF, 
         (colour_main >> 8) & 0xFF,  
         colour_main & 0xFF, 
         opacity);
 
-    font_window_add_string_xy(1, x, y, message, 1, alignment);
+    fontWindowAddStringXY(1, x, y, message, 1, alignment);
 
     //Drop-shadow
-    font_window_set_text_colour(1, 
+    fontWindowSetTextColour(1, 
         (colour_shadow >> 24) & 0xFF, 
         (colour_shadow >> 16) & 0xFF, 
         (colour_shadow >> 8) & 0xFF,  
         colour_shadow & 0xFF, 
         ((u8)opacity * DROP_SHADOW_MULTIPLIER) >> 8);
 
-    font_window_add_string_xy(1, x - 1, y - 1, message, 2, alignment);
+    fontWindowAddStringXY(1, x - 1, y - 1, message, 2, alignment);
 }
 
 /** 
@@ -94,37 +94,37 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
     s32 colour_main = 0xB78B61FF;
     s32 colour_shadow = 0x000000FF;
 
-    screen_dimensions = vi_get_current_size();
+    screen_dimensions = viGetCurrentSize();
     screen_width = screen_dimensions & 0xFFFF;
     screen_height = screen_dimensions >> 0x10;
 
     //Draw background and dimming overlay
-    viewport_get_full_rect(&ulx, &uly, &lrx, &lry);
+    camViewportGetFullRect(&ulx, &uly, &lrx, &lry);
     gDPSetCombineMode(*gfx, G_CC_PRIMITIVE, G_CC_PRIMITIVE);    
-    dl_apply_combine(gfx);
+    dlApplyCombine(gfx);
     gDPSetOtherMode(*gfx, 
         G_AD_PATTERN | G_CD_MAGICSQ | G_CK_NONE | G_TC_FILT | G_TF_BILERP | 
         G_TT_NONE | G_TL_TILE | G_TD_CLAMP | G_TP_NONE | G_CYC_1CYCLE | 
         G_PM_NPRIMITIVE, G_AC_NONE | G_ZS_PIXEL | G_RM_CLD_SURF | G_RM_CLD_SURF2);
-    dl_apply_other_mode(gfx);
-    dl_set_prim_color(gfx, 0, 0, 0, pauseMenuOpacity);
+    dlApplyOtherMode(gfx);
+    dlSetPrimColor(gfx, 0, 0, 0, pauseMenuOpacity);
     gDPFillRectangle((*gfx)++, ulx, uly, lrx, lry);
     gDLBuilder->needsPipeSync = TRUE;
     
-    font_window_set_coords(1, 0, 0, screen_width, screen_height);
-    font_window_flush_strings(1);
+    fontWindowSetCoords(1, 0, 0, screen_width, screen_height);
+    fontWindowFlushStrings(1);
     opacity_main = ((f32) pauseMenuOpacity / BG_OVERLAY_MAX_OPACITY) * 255.0f;
 
     gDLL_74_Picmenu->vtbl->set_opacity((u8)opacity_main);
     gDLL_74_Picmenu->vtbl->draw(gfx);
 
     //Draw icons and text
-    font_window_set_text_colour(1, 0xB7, 0x8B, 0x61, 0xFF, opacity_main);
+    fontWindowSetTextColour(1, 0xB7, 0x8B, 0x61, 0xFF, opacity_main);
     
-    // font_window_use_font(1, FONT_DINO_SUBTITLE_FONT_1);
+    // fontWindowUseFont(1, FONT_DINO_SUBTITLE_FONT_1);
     // printWithDropshadow("Custom pause draw function!", screen_width/2, screen_height - 20,  colour_main, colour_shadow, opacity_main, ALIGN_MIDDLE_CENTER);
 
-    font_window_use_font(1, FONT_FUN_FONT);
+    fontWindowUseFont(1, FONT_FUN_FONT);
 
     switch (pauseScreenState){
         case PAUSE_MENU_GAME_SAVED:
@@ -136,19 +136,19 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
             #ifdef DINOMOD_ROM_PATCH
             if (D_8008C890) {
                 //Widescreen aspect
-                rcp_screen_full_write(gfx, textureSpellStone, 52, 136, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
-                rcp_screen_full_write(gfx, textureDuster, 134, 162, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
-                rcp_screen_full_write(gfx, textureSpirit, 219, 137, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
+                rcpScreenFullWrite(gfx, textureSpellStone, 52, 136, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
+                rcpScreenFullWrite(gfx, textureDuster, 134, 162, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
+                rcpScreenFullWrite(gfx, textureSpirit, 219, 137, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
             } else {
                 //Standard aspect
-                rcp_screen_full_write(gfx, textureSpellStone, 44, 136, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
-                rcp_screen_full_write(gfx, textureDuster, 127, 162, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
-                rcp_screen_full_write(gfx, textureSpirit, 216, 137, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
+                rcpScreenFullWrite(gfx, textureSpellStone, 44, 136, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
+                rcpScreenFullWrite(gfx, textureDuster, 127, 162, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
+                rcpScreenFullWrite(gfx, textureSpirit, 216, 137, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
             }
             #else
-            rcp_screen_full_write(gfx, textureSpellStone, 44, 136, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
-            rcp_screen_full_write(gfx, textureDuster, 127, 162, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
-            rcp_screen_full_write(gfx, textureSpirit, 216, 137, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
+            rcpScreenFullWrite(gfx, textureSpellStone, 44, 136, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
+            rcpScreenFullWrite(gfx, textureDuster, 127, 162, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
+            rcpScreenFullWrite(gfx, textureSpirit, 216, 137, 0, 0, opacity_main, SCREEN_WRITE_TRANSLUCENT);
             #endif
             
             //Draw completion percentage
@@ -161,7 +161,7 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
             printWithDropshadow(gameplayTime, 74, 36, colour_main, colour_shadow, opacity_main, ALIGN_TOP_CENTER);
     
             //Change font
-            font_window_use_font(1, FONT_DINO_SUBTITLE_FONT_1);
+            fontWindowUseFont(1, FONT_DINO_SUBTITLE_FONT_1);
     
             //Update stats
             getPlayerStats();
@@ -171,34 +171,34 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
                 //Widescreen aspect
 
                 //Draw SpellStone count
-                font_window_add_string_xy(1, 85, 156, spellStoneCount, 1, ALIGN_TOP_LEFT);
+                fontWindowAddStringXY(1, 85, 156, spellStoneCount, 1, ALIGN_TOP_LEFT);
         
                 //Draw Duster count
-                font_window_add_string_xy(1, 177, 184, dusterCount, 1, ALIGN_TOP_RIGHT);
+                fontWindowAddStringXY(1, 177, 184, dusterCount, 1, ALIGN_TOP_RIGHT);
         
                 //Draw Spirit count
-                font_window_add_string_xy(1, 232, 156, spiritCount, 1, ALIGN_TOP_LEFT);
+                fontWindowAddStringXY(1, 232, 156, spiritCount, 1, ALIGN_TOP_LEFT);
             } else {
                 //Standard aspect
 
                 //Draw SpellStone count
-                font_window_add_string_xy(1, 85, 156, spellStoneCount, 1, ALIGN_TOP_LEFT);
+                fontWindowAddStringXY(1, 85, 156, spellStoneCount, 1, ALIGN_TOP_LEFT);
         
                 //Draw Duster count
-                font_window_add_string_xy(1, 182, 184, dusterCount, 1, ALIGN_TOP_RIGHT);
+                fontWindowAddStringXY(1, 182, 184, dusterCount, 1, ALIGN_TOP_RIGHT);
         
                 //Draw Spirit count
-                font_window_add_string_xy(1, 232, 156, spiritCount, 1, ALIGN_TOP_LEFT);
+                fontWindowAddStringXY(1, 232, 156, spiritCount, 1, ALIGN_TOP_LEFT);
             }
             #else
             //Draw SpellStone count
-            font_window_add_string_xy(1, 85, 156, spellStoneCount, 1, ALIGN_TOP_LEFT);
+            fontWindowAddStringXY(1, 85, 156, spellStoneCount, 1, ALIGN_TOP_LEFT);
     
             //Draw Duster count
-            font_window_add_string_xy(1, 182, 184, dusterCount, 1, ALIGN_TOP_RIGHT);
+            fontWindowAddStringXY(1, 182, 184, dusterCount, 1, ALIGN_TOP_RIGHT);
     
             //Draw Spirit count
-            font_window_add_string_xy(1, 232, 156, spiritCount, 1, ALIGN_TOP_LEFT);
+            fontWindowAddStringXY(1, 232, 156, spiritCount, 1, ALIGN_TOP_LEFT);
             #endif
 
             //Draw "Game Time" and "Complete" strings
@@ -207,7 +207,7 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
             break;
     }
 
-    font_window_draw(gfx, 0, 0, 1);
+    fontWindowDraw(gfx, 0, 0, 1);
 }
 
 RECOMP_PATCH s32 pausemenu_update1(void) {
@@ -222,12 +222,12 @@ RECOMP_PATCH s32 pausemenu_update1(void) {
         
         if (action == PICMENU_ACTION_SELECT) {
             if (!selectedItem){
-                gDLL_6_AMSFX->vtbl->play(0, 2931, 0x7F, 0, 0, 0, 0);
-                menu_set(MENU_GAMEPLAY);
-                unpause();
-                joy_disable_buttons(0, A_BUTTON | B_BUTTON);
+                dll_amSfx->Play(0, 2931, 0x7F, 0, 0, 0, 0);
+                menuSet(MENU_GAMEPLAY);
+                mainUnpause();
+                joyDisableButtons(0, A_BUTTON | B_BUTTON);
             } else {
-                gDLL_6_AMSFX->vtbl->play(0, 2930, 0x7F, 0, 0, 0, 0);
+                dll_amSfx->Play(0, 2930, 0x7F, 0, 0, 0, 0);
                 gameSavedMessageTimer = 0;
                 pauseScreenState = 1;
                 
@@ -238,9 +238,9 @@ RECOMP_PATCH s32 pausemenu_update1(void) {
                 gDLL_74_Picmenu->vtbl->update_flags(pauseMenuItems);
             }
         } else if (action == PICMENU_ACTION_BACK) {
-            menu_set(MENU_GAMEPLAY);
-            unpause();
-            joy_disable_buttons(0, A_BUTTON | B_BUTTON);
+            menuSet(MENU_GAMEPLAY);
+            mainUnpause();
+            joyDisableButtons(0, A_BUTTON | B_BUTTON);
         }
 
     } else if (pauseScreenState == PAUSE_MENU_GAME_SAVED) {

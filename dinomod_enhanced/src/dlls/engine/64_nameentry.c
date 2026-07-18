@@ -36,15 +36,15 @@ RECOMP_PATCH s32 dll_64_update1() {
     s32 i;
 
     //@recomp: jump to end button when pressing Start
-    if ((joy_get_pressed(0) & START_BUTTON) && 
+    if ((joyGetPressed(0) & START_BUTTON) && 
         (gDLL_74_Picmenu->vtbl->get_selected_item() != END_BUTTON_IDX)
     ) {
-        joy_disable_buttons(0, START_BUTTON);
+        joyDisableButtons(0, START_BUTTON);
 
         gDLL_74_Picmenu->vtbl->set_selected_item(END_BUTTON_IDX);
         sNameLettersRedrawFrames = 2;
 
-        gDLL_6_AMSFX->vtbl->play(NULL, SOUND_PICMENU_MOVE, MAX_VOLUME, NULL, NULL, 0, NULL);
+        dll_amSfx->Play(NULL, SOUND_PICMENU_MOVE, MAX_VOLUME, NULL, NULL, 0, NULL);
     }
 
     action = gDLL_74_Picmenu->vtbl->update();
@@ -66,8 +66,8 @@ RECOMP_PATCH s32 dll_64_update1() {
                 }
                 name[sNumNameLetters] = '\0';
 
-                gDLL_29_Gplay->vtbl->init_save(get_save_game_idx(), name);
-                menu_set(MENU_GAME_SELECT);
+                gDLL_29_Gplay->vtbl->init_save(menuGetSaveGameIdx(), name);
+                menuSet(MENU_GAME_SELECT);
                 sNameLettersRedrawFrames = 2;
             }
         } else {

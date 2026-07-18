@@ -40,9 +40,9 @@ static char dinomod_enhanced_message[] = "(Dinomod Enhanced: Recompiled - v0.9.3
 /** Option to skip directly to Game Select on boot-up (to speed up testing things when working on mods) */
 RECOMP_PATCH void dll_60_update2(void) {
     if (recomp_get_config_u32("rolling_demo") == BOOTCONFIG_Skip_to_Game_Select) {
-        main_set_bits(BIT_Menus_Selection_Blocked, 0);
+        mainSetBits(BIT_Menus_Selection_Blocked, 0);
         gDLL_29_Gplay->vtbl->load_game_options();
-        menu_set(MENU_GAME_SELECT);
+        menuSet(MENU_GAME_SELECT);
     }
 }
 
@@ -53,43 +53,43 @@ RECOMP_PATCH void dll_60_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
     f32 var5;
     s32 fontYSpacing;
 
-    font_window_set_coords(2, 0, 0, 
-        (GET_VIDEO_WIDTH(vi_get_current_size())) - 50,
-        (GET_VIDEO_HEIGHT(vi_get_current_size())));
+    fontWindowSetCoords(2, 0, 0, 
+        (GET_VIDEO_WIDTH(viGetCurrentSize())) - 50,
+        (GET_VIDEO_HEIGHT(viGetCurrentSize())));
     
-    font_window_flush_strings(2);
-    font_window_use_font(2, FONT_FUN_FONT);
-    rcp_clear_screen(gdl, mtxs, CLEAR_COLOR);
+    fontWindowFlushStrings(2);
+    fontWindowUseFont(2, FONT_FUN_FONT);
+    rcpClearScreen(gdl, mtxs, CLEAR_COLOR);
 
     if (dExpansionPakMissing == TRUE) {
-        fontYSpacing = font_get_y_spacing(FONT_FUN_FONT);
+        fontYSpacing = fontGetYSpacing(FONT_FUN_FONT);
 
-        font_window_set_text_colour(2, 183, 139, 97, 255, 255);
-        font_window_add_string_xy(2, 320, 198,                splashGametext->strings[0], 1, ALIGN_TOP_CENTER);
-        font_window_add_string_xy(2, 320, 272,                splashGametext->strings[1], 1, ALIGN_TOP_CENTER);
-        font_window_add_string_xy(2, 320, fontYSpacing + 272, splashGametext->strings[2], 1, ALIGN_TOP_CENTER);
-        font_window_add_string_xy(2, 320, 356,                splashGametext->strings[3], 1, ALIGN_TOP_CENTER);
-        font_window_add_string_xy(2, 320, fontYSpacing + 356, splashGametext->strings[4], 1, ALIGN_TOP_CENTER);
-        rcp_screen_full_write(gdl, dTexExpansionPak, 0xfd, 0x42, 0, 0, 0xff, SCREEN_WRITE_TRANSLUCENT);
+        fontWindowSetTextColour(2, 183, 139, 97, 255, 255);
+        fontWindowAddStringXY(2, 320, 198,                splashGametext->strings[0], 1, ALIGN_TOP_CENTER);
+        fontWindowAddStringXY(2, 320, 272,                splashGametext->strings[1], 1, ALIGN_TOP_CENTER);
+        fontWindowAddStringXY(2, 320, fontYSpacing + 272, splashGametext->strings[2], 1, ALIGN_TOP_CENTER);
+        fontWindowAddStringXY(2, 320, 356,                splashGametext->strings[3], 1, ALIGN_TOP_CENTER);
+        fontWindowAddStringXY(2, 320, fontYSpacing + 356, splashGametext->strings[4], 1, ALIGN_TOP_CENTER);
+        rcpScreenFullWrite(gdl, dTexExpansionPak, 0xfd, 0x42, 0, 0, 0xff, SCREEN_WRITE_TRANSLUCENT);
     } else {
         gDLL_76->vtbl->func2(gdl, mtxs);
 
         if (bss_0 < 240.0f) {
-            font_window_enable_wordwrap(2);
-            font_window_set_text_colour(2, 183, 139, 97, 255, 255);
+            fontWindowEnableWordwrap(2);
+            fontWindowSetTextColour(2, 183, 139, 97, 255, 255);
 
             //@recomp: print mod date
-            font_window_use_font(2, FONT_DINO_SUBTITLE_FONT_1);
-            font_window_add_string_xy(2, GET_VIDEO_WIDTH(vi_get_current_size())/2, 30,  dinomod_enhanced_message, 1, ALIGN_TOP_CENTER);
-            font_window_use_font(2, FONT_FUN_FONT);
+            fontWindowUseFont(2, FONT_DINO_SUBTITLE_FONT_1);
+            fontWindowAddStringXY(2, GET_VIDEO_WIDTH(viGetCurrentSize())/2, 30,  dinomod_enhanced_message, 1, ALIGN_TOP_CENTER);
+            fontWindowUseFont(2, FONT_FUN_FONT);
 
-            font_window_add_string_xy(2, 57, 54,  splashGametext->strings[0], 1, ALIGN_TOP_LEFT);
-            font_window_add_string_xy(2, 179, 88, splashGametext->strings[1], 1, ALIGN_TOP_LEFT);
-            font_window_add_string_xy(2, 57, 172, splashGametext->strings[2], 1, ALIGN_TOP_LEFT);
-            font_window_add_string_xy(2, 57, 222, splashGametext->strings[3], 1, ALIGN_TOP_LEFT);
-            font_window_add_string_xy(2, 57, 381, splashGametext->strings[4], 1, ALIGN_TOP_LEFT);
-            rcp_screen_full_write(gdl, sTexDolbyBig, 0x3a, 0x65, 0, 0, 0xff, SCREEN_WRITE_TRANSLUCENT);
-            rcp_screen_full_write(gdl, sTexDolbySmall, 0x16d, 0x68, 0, 0, 0xff, SCREEN_WRITE_TRANSLUCENT);
+            fontWindowAddStringXY(2, 57, 54,  splashGametext->strings[0], 1, ALIGN_TOP_LEFT);
+            fontWindowAddStringXY(2, 179, 88, splashGametext->strings[1], 1, ALIGN_TOP_LEFT);
+            fontWindowAddStringXY(2, 57, 172, splashGametext->strings[2], 1, ALIGN_TOP_LEFT);
+            fontWindowAddStringXY(2, 57, 222, splashGametext->strings[3], 1, ALIGN_TOP_LEFT);
+            fontWindowAddStringXY(2, 57, 381, splashGametext->strings[4], 1, ALIGN_TOP_LEFT);
+            rcpScreenFullWrite(gdl, sTexDolbyBig, 0x3a, 0x65, 0, 0, 0xff, SCREEN_WRITE_TRANSLUCENT);
+            rcpScreenFullWrite(gdl, sTexDolbySmall, 0x16d, 0x68, 0, 0, 0xff, SCREEN_WRITE_TRANSLUCENT);
         }
 
         if (bss_0 > 240.0f && data_0 == 0) {
@@ -121,7 +121,7 @@ RECOMP_PATCH void dll_60_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
             }
             
             //@recomp: reposition logo
-            rcp_screen_full_write(gdl, dTexN64LogoShadow, 0x2B, 0xBE, 0, 0, (s16)(255.0f * var5), SCREEN_WRITE_TRANSLUCENT);
+            rcpScreenFullWrite(gdl, dTexN64LogoShadow, 0x2B, 0xBE, 0, 0, (s16)(255.0f * var5), SCREEN_WRITE_TRANSLUCENT);
         }
 
         if (data_0 >= 2) {
@@ -138,11 +138,11 @@ RECOMP_PATCH void dll_60_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
             }
 
             //@recomp: reposition logo
-            rcp_screen_full_write(gdl, dTexN64Logo, 0x2B, 0xBE, 0, 0, (u32)(255.0f * var5) & 0xFF, SCREEN_WRITE_TRANSLUCENT);
+            rcpScreenFullWrite(gdl, dTexN64Logo, 0x2B, 0xBE, 0, 0, (u32)(255.0f * var5) & 0xFF, SCREEN_WRITE_TRANSLUCENT);
         }
     }
 
-    font_window_draw(gdl, NULL, NULL, 2);
+    fontWindowDraw(gdl, NULL, NULL, 2);
     bss_5 -= 1;
     if (bss_5 < 0) {
         bss_5 = 0;
