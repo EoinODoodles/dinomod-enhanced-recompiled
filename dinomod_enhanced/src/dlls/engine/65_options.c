@@ -4,12 +4,13 @@
 #include "PR/gbi.h"
 #include "PR/os.h"
 #include "PR/ultratypes.h"
-// #include "dll.h"
+#include "dll.h"
+#include "dlls/engine/6_amsfx.h"
 #include "dlls/engine/21_gametext.h"
 #include "dlls/engine/28_screen_fade.h"
-#include "dlls/engine/6_amsfx.h"
 #include "dlls/engine/29_gplay.h"
 #include "dlls/engine/74_picmenu.h"
+#include "dlls/engine/75_frontend.h"
 #include "game/gamebits.h"
 #include "macros.h"
 #include "sys/camera.h"
@@ -28,7 +29,7 @@
 #include "core/joypad.h"
 #include "button_code.h"
 
-#include "recomp/dlls/_asm/65_recomp.h"
+#include "recomp/dlls/engine/65_options_recomp.h"
 
 static s32 rsDimOpacity = 0;
 static s32 rsDimOpacityPrev = 0;
@@ -41,175 +42,7 @@ static s32 rsShowMessage = 0;
 #define DESC_SHADOW2(val) (val - 2)
 #define DESC_SHADOW3(val) (val - 3)
 
-// TEMPORARY DEFINES (TODO: remove after decomp update)
-
-extern DLL_6_AMSFX *gDLL_6_AMSFX;
-extern DLL_28_screen_fade *gDLL_28_ScreenFade;
-extern DLL_29_gplay *gDLL_29_Gplay;
-extern DLL_74_picmenu *gDLL_74_Picmenu;
-
-typedef enum {
-    FRONTEND_CONTROL_Slider,
-    FRONTEND_CONTROL_Checkbox,
-    FRONTEND_CONTROL_List
-} FrontEnd_Control_Types;
-
-typedef enum {
-    FRONTEND_FLAG_0_None = 0x0,
-    FRONTEND_FLAG_1_Selected = 0x1,
-    FRONTEND_FLAG_2_Wrap_Value = 0x2,       //Sliders can wrap or clamp when moving past min/max values
-    FRONTEND_FLAG_4_Moved_Left = 0x4,       //Lists highlight their left arrow when moving left
-    FRONTEND_FLAG_8_Moved_Right = 0x8,      //Lists highlight their right arrow when moving right
-    FRONTEND_FLAG_10_Value_Changed = 0x10,
-    FRONTEND_FLAG_20_Locked = 0x20          //No interaction possible
-} FrontEnd_Flags;
-
 #define FRONTEND_FLAG_40_Hidden 0x40      //CUSTOM FLAG: control hidden
-
-/* Generic FrontEnd control */
-typedef struct {
-/*0*/    s16 x;
-/*2*/    s16 y;
-/*4*/    u8 flags;
-/*5*/    u8 type; 
-/*6*/    s8 redrawFrames;
-/*8*/    s16 min;
-/*A*/    s16 max;
-/*C*/    s16 value;
-} FrontEndControl;
-
-typedef struct {
-/*0*/    s16 x;
-/*2*/    s16 y;
-/*4*/    u8 flags;
-/*5*/    u8 type;
-/*6*/    s8 redrawFrames;
-/*8*/    s16 min;
-/*A*/    s16 max;
-/*C*/    s16 value;
-/*E*/    s16 width;
-} FrontEndSlider;
-
-typedef struct {
-/*0*/    s16 x;
-/*2*/    s16 y;
-/*4*/    u8 flags;
-/*5*/    u8 type; 
-/*6*/    s8 redrawFrames;
-/*8*/    s16 min;
-/*A*/    s16 max;
-/*C*/    s16 value;
-} FrontEndCheckbox;
-
-typedef struct {
-/*0*/    s16 x;
-/*2*/    s16 y;
-/*4*/    u8 flags;
-/*5*/    u8 type;
-/*6*/    s8 redrawFrames;
-/*8*/    s16 min;
-/*A*/    s16 max;
-/*C*/    s16 value;
-/*10*/   char** strings;
-/*14*/   u8 halfWidth;
-} FrontEndList;
-
-DLL_INTERFACE(DLL_75) {
-/*:*/ DLL_INTERFACE_BASE(DLL);
-/*0*/ FrontEndSlider* (*create_slider)(s16 x, s16 y, s16 min, s16 max, s16 initialValue);
-/*1*/ FrontEndCheckbox* (*create_checkbox)(s16 x, s16 y, s16 min, s16 max, s16 initialValue);
-/*2*/ FrontEndList* (*create_list)(s16 x, s16 y, s16 min, s16 max, s16 initialValue, char** strings, u8 halfWidth);
-/*3*/ void (*free)(FrontEndControl* ctrl);
-/*4*/ void (*update)(FrontEndControl* ctrl);
-/*5*/ void (*draw)(FrontEndControl* ctrl, Gfx** gdl);
-/*6*/ s32 (*get_selection_state)(FrontEndControl* ctrl);
-/*7*/ void (*set_selection_state)(FrontEndControl* slider, s32 select);
-/*8*/ s32 (*get_value)(FrontEndControl* ctrl);
-/*9*/ void (*set_value)(FrontEndControl* ctrl, s32 value);
-/*10*/ s32 (*did_value_change)(FrontEndControl* ctrl);
-/*11*/ void (*set_unlock_state)(FrontEndControl* ctrl, s32 unlock);
-};
-
-extern DLL_75 *gDLL_75;
-
-#define options_ctor dll_65_ctor
-#define options_dtor dll_65_dtor
-#define options_update1 dll_65_func_1FC
-#define options_update2 dll_65_func_B84
-#define options_draw dll_65_func_B8C
-#define options_set_up_menu_strings dll_65_func_16A4
-#define options_goto_main_page dll_65_func_1718
-#define options_goto_display_page dll_65_func_1898
-#define options_goto_control_page dll_65_func_1AE4
-#define options_goto_cheats_page dll_65_func_1CF4
-#define options_goto_video_page dll_65_func_2088
-#define options_goto_audio_page dll_65_func_2438
-#define options_goto_view_layout_page dll_65_func_26D8
-#define options_goto_screen_position_page dll_65_func_2888
-#define options_exit_main_page dll_65_func_2A1C
-#define options_handle_action_display_page dll_65_func_2B50
-#define options_handle_action_control_page dll_65_func_2C58
-#define options_handle_action_cheats_page dll_65_func_2D50
-#define options_handle_action_video_page dll_65_func_320C
-#define options_handle_action_audio_page dll_65_func_32B8
-#define options_handle_action_cinema_page dll_65_func_3404
-#define options_clean_up dll_65_func_3414
-#define options_draw_box dll_65_func_35D0
-
-#define dDownArrowChar data_0
-#define dUpArrowChar data_4
-#define dLeftArrowChar data_8
-#define dRightArrowChar data_C
-#define dItemsMain data_10
-#define dTextIDsMain data_178
-#define dItemsDisplay data_180
-#define dTextIDsDisplay data_1F8
-#define dDisplayChoiceStrings data_1FC
-#define dItemsControl data_204
-#define dTextIDsControl data_27C
-#define dControlZButtonStrings data_280
-#define dItemsCheats data_28C
-#define dTextIDsVideo data_4E4
-#define dVideoSizeStrings data_4E8
-#define dVideoRatioStrings data_4F4
-#define dItemsAudio data_4FC
-#define dTextIDsAudio data_5EC
-#define dAudioSetupStrings data_5F0
-#define dItemsCinema data_600
-#define _data_678 data_678
-#define _data_67C data_67C
-#define _data_680 data_680
-#define dItemsViewLayout data_684
-#define dTextIDsViewLayout data_6C0
-#define dItemsScreenPosition data_6C4
-#define dTextIDsScreenPosition data_700
-#define dMenus data_704
-#define dGametextMenu data_794
-#define dGametextControls data_798
-#define dMenuID data_79C
-#define dLayoutCoordsHeadings data_7A0
-#define dLayoutCoordsDescriptions data_7CC
-#define dBoxTextureIDs data_80C
-#define dBoxTextureIndices data_830
-#define dSpeakerModes data_88C
-
-#define sRedrawFrames bss_0
-#define sCheatsTopIdx bss_1
-#define sFadeOutActive bss_2
-#define sFadeOutTimer bss_3
-#define sCheatStrings bss_8
-#define dBoxTextures bss_D0
-#define sBGTex bss_118
-#define sCropFrameVertical bss_11C
-#define sCropFrameHorizontal bss_120
-#define sGametextCinema bss_124
-#define sGametextCheats bss_128
-#define sCtrlCount bss_12C
-#define sTopLevelItemIdx bss_12D
-#define sCtrls bss_130
-#define sGameOptions bss_148
-// END OF TEMPORARY DEFINES
-
 
 extern void vi_set_modifiers(u8 updateViMode, s8 hStartMod, s8 vScaleMod);
 
@@ -220,7 +53,7 @@ extern void vi_set_modifiers(u8 updateViMode, s8 hStartMod, s8 vScaleMod);
 
 #define CHEATS_PER_SCREEN 4
 
-//NOTE: causes a crash because the Gametext file only has 7 strings
+//NOTE: (used to) cause a crash because the Gametext file only has 7 strings
 #define TOTAL_CHEATS 32
 
 //The index of the first cheat shown when scrolled all the way to the bottom of the cheats list
@@ -643,7 +476,7 @@ RECOMP_PATCH s32 options_update1(void) {
                 }
 
                 //Skip picmenu update when a frontend checkbox is selected and toggled with A
-                if (gDLL_75->vtbl->get_selection_state(sCtrls[i])) {
+                if (gDLL_75->vtbl->get_highlight_state(sCtrls[i])) {
                     skipPicmenuUpdate = TRUE;
                     action = PICMENU_ACTION_NONE;
                     options_refresh_draws();
@@ -788,9 +621,9 @@ RECOMP_PATCH s32 options_update1(void) {
         for (i = 0; i < sCtrlCount; i++) {
             if (sCtrls[i] != NULL) {
                 if (i == selectedIdx) {
-                    gDLL_75->vtbl->set_selection_state(sCtrls[i], TRUE);
+                    gDLL_75->vtbl->set_highlight_state(sCtrls[i], TRUE);
                 } else {
-                    gDLL_75->vtbl->set_selection_state(sCtrls[i], FALSE);
+                    gDLL_75->vtbl->set_highlight_state(sCtrls[i], FALSE);
                 }
                 gDLL_75->vtbl->update(sCtrls[i]);
             }
@@ -1075,7 +908,7 @@ static void options_debug_cheats(void) {
         if (sCtrls[i] == NULL) {
             continue;
         }
-        if (gDLL_75->vtbl->get_selection_state(sCtrls[i])) {
+        if (gDLL_75->vtbl->get_highlight_state(sCtrls[i])) {
             selectedCheatIdx = sCheatsTopIdx + i - 1;
             break;
         }
@@ -1334,7 +1167,7 @@ RECOMP_PATCH void options_goto_cheats_page(void) {
         0xFF, 0xD7, 0x3D
     );
 
-    gDLL_75->vtbl->set_selection_state(sCtrls[OPTIONS_CHEATS_1_CheatShown1], 1);
+    gDLL_75->vtbl->set_highlight_state(sCtrls[OPTIONS_CHEATS_1_CheatShown1], 1);
 
     sRedrawFrames = 2;
 }
@@ -1503,10 +1336,10 @@ RECOMP_PATCH void options_goto_cheats_page(void) {
     gDLL_74_Picmenu->vtbl->update_flags(submenu->menuItems);
 
     if (sCheatsTopIdx == 0) {
-        gDLL_75->vtbl->set_selection_state(sCtrls[OPTIONS_CHEATS_1_CheatShown1], 1);
+        gDLL_75->vtbl->set_highlight_state(sCtrls[OPTIONS_CHEATS_1_CheatShown1], 1);
         gDLL_74_Picmenu->vtbl->set_selected_item(OPTIONS_CHEATS_1_CheatShown1);
     } else if (sCheatsTopIdx == firstIdxLastPage) {
-        gDLL_75->vtbl->set_selection_state(sCtrls[OPTIONS_CHEATS_4_CheatShown4], 1);
+        gDLL_75->vtbl->set_highlight_state(sCtrls[OPTIONS_CHEATS_4_CheatShown4], 1);
         gDLL_74_Picmenu->vtbl->set_selected_item(OPTIONS_CHEATS_4_CheatShown4);
     }
 
@@ -1523,7 +1356,7 @@ RECOMP_PATCH void options_goto_cheats_page(void) {
 static void dinomod_setup_standard_resolution(void) {
     extern void func_8001440C(s32 arg0);
 
-    main_set_bits(BIT_44F, 0);
+    main_set_bits(BIT_Menus_Selection_Blocked, 0);
     gDLL_29_Gplay->vtbl->load_game_options();
 
     vi_init(1, get_ossched(), FALSE);
@@ -1535,7 +1368,7 @@ static void dinomod_setup_standard_resolution(void) {
 
 static void dinomod_goto_old_title_screen_menu(void) {
     dinomod_setup_standard_resolution();
-    menu_set(MENU_11);
+    menu_set(MENU_OLD_TITLE_SCREEN);
 }
 
 /* Add a secret way of accessing the old Title Screen and Level Select */

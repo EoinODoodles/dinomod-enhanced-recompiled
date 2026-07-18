@@ -1,10 +1,10 @@
-#include "dll.h"
-#include "game/gametexts.h"
+#include "configs.h"
 #include "modding.h"
 #include "recompconfig.h"
-#include "configs.h"
 
-// #include "dlls/engine/73.h"
+#include "dll.h"
+#include "dlls/engine/73.h"
+#include "game/gametexts.h"
 #include "sys/dll.h"
 #include "sys/fonts.h"
 #include "sys/gfx/textable.h"
@@ -14,22 +14,7 @@
 
 #include "engine/73_old_picmenu.h"
 
-#include "recomp/dlls/_asm/73_recomp.h"
-
-#define dll_73_init_text_window_with_margin dll_73_func_118
-#define dll_73_add_string dll_73_func_204
-#define dll_73_set_font_and_colour dll_73_func_6D0
-
-#define dButtonsEnabled data_0
-#define sValueEnter bss_0
-#define sValueExit bss_1
-#define sTextY bss_2
-#define sTotalItems bss_4
-#define sTimer bss_8
-
-typedef enum {
-    DLL73_ACTION_None = -1
-} DLL73_Actions;
+#include "recomp/dlls/engine/73_old_picmenu_recomp.h"
 
 /*0x0*/ extern s8 dButtonsEnabled;  //Whether to check button presses (for backing out/advancing)
 

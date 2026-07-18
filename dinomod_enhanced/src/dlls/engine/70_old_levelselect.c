@@ -1,11 +1,11 @@
-#include "dll.h"
 #include "game/gamebits.h"
 #include "game/gametexts.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "configs.h"
 
-// #include "dlls/engine/73.h"
+#include "dll.h"
+#include "dlls/engine/73.h"
 #include "recomputils.h"
 #include "sys/dll.h"
 #include "sys/fonts.h"
@@ -14,35 +14,11 @@
 #include "sys/memory.h"
 #include "sys/menu.h"
 #include "sys/map_enums.h"
+#include "sys/print.h"
 
 #include "engine/73_old_picmenu.h"
 
-#include "recomp/dlls/_asm/70_recomp.h"
-#include "sys/print.h"
-
-//TODO: remove after decomp update
-#define dll_70_draw dll_70_func_2C
-#define dll_70_start dll_70_func_B58
-
-#define DLL_ID_OLD_PICMENU 73
-#define BIT_Menus_Selection_Blocked 0x44F
-
-typedef enum {
-    DLL73_ACTION_None = -1
-} DLL73_Actions;
-
-DLL_INTERFACE(DLL_73) {
-/*:*/ DLL_INTERFACE_BASE(DLL);
-/*0*/ void (*init_text_window)(s32 y);
-/*1*/ void (*init_text_window_with_margin)(s32 marginX, s32 y);
-/*2*/ void (*add_string)(s32 valueEnter, char* text, s32 lineHeight, s32 selectedIndex);
-/*3*/ void (*add_string_x)(s32 valueEnter, char* text, s32 x, s32 lineHeight, s32 selectedIndex);
-/*4*/ void (*set_exit_value)(s32 value);
-/*5*/ s16 (*handle_joystick_and_buttons)(s32* idx);
-/*6*/ void (*set_font_and_colour)(s32 dimmed);
-/*7*/ void (*enable_joy_buttons)(s32 enabled);
-/*8*/ s8 (*get_total_items)(void);
-};
+#include "recomp/dlls/engine/70_old_levelselect_recomp.h"
 
 static DLL_73* gDLL_73_PicmenuOld;
 
@@ -111,61 +87,7 @@ typedef enum {
     LEVELSELECT_IDX_34_WARLOCK_ACT_SIX
 } LevelSelectOld_Indices;
 
-/*0x0*/ static char dStrings[TOTAL_STRINGS][STRING_LENGTH] = {
-    "NEW GAME",
-    "LOAD GAME",
-    "",
-    "SWAPSTONE HOLLOW",
-    "SWAPSTONE CIRCLE",
-    "",
-    "DARKICE MINES",
-    "DARKICE MINES TWO",
-    "WALLED CITY",
-    "DRAGON ROCK",
-    "CLOUDRUNNER FORTRESS",
-    "KRAZOA PALACE",
-    "BLACKWATER CANYON",
-    "",
-    "NORTHERN WASTES",
-    "EARTHWALKER TEMPLE",
-    "WILLOW GROVE",
-    "DIAMOND BAY",
-    "DISCOVERY FALLS",
-    "MOON MOUNTAIN PASS",
-    "CAPE CLAW",
-    "GOLDEN PLAINS",
-    "",
-    "TEST OF COMBAT",
-    "TEST OF STRENGTH",
-    "TEST OF FEAR",
-    "TEST OF CHARACTER",
-    "TEST OF KNOWLEDGE",
-    "TEST OF SACRIFICE",
-    "TEST OF SKILL",
-    "TEST OF MAGIC",
-    "",
-    "",
-    "DARKICE BOSS",
-    "GENERAL SCALES BOSS",
-    "BLACKWATER BOSS",
-    "CLOUDRUNNER RACE",
-    "KAMERIA DRAGON BOSS",
-    "DRAKOR FINAL BOSS",
-    "ICE MOUNTAIN",
-    "",
-    "DESERT FORCE POINT",
-    "VOLCANO FORCE POINT",
-    "",
-    "EARTHWALKER ACT TWO", 
-    "ENERGY DEMO",
-    "", 
-    "WARLOCK ACT ONE",
-    "WARLOCK ACT TWO",
-    "WARLOCK ACT THREE",
-    "WARLOCK ACT FOUR",
-    "WARLOCK ACT FIVE",
-    "WARLOCK ACT SIX"
-};
+/*0x0*/ extern char dStrings[TOTAL_STRINGS][STRING_LENGTH];
 
 #define END {NULL, -1, 0, 0}
 
@@ -243,14 +165,14 @@ static s32 dinomod_is_save_slot_empty(s32 saveSlotIdx) {
     }
 }
 
-extern void dll_70_start(MapIDs mapID, s32 act, PlayerNo playerNo);
+extern void old_levelselect_start(MapIDs mapID, s32 act, PlayerNo playerNo);
 
 #define TEXT_FONT FONT_FUN_FONT
 #define TEXT_COLOUR_LIGHT 0xFFD73DFF
 #define TEXT_COLOUR_DARK 0x5B4530FF
 
 // offset: 0x0 | ctor
-RECOMP_PATCH void dll_70_ctor(void *dll) {
+RECOMP_PATCH void old_levelselect_ctor(void *dll) {
     //@recomp: load DLL 73 as a static, to fix this menu's broken function calls
     if (gDLL_73_PicmenuOld == NULL) {
         gDLL_73_PicmenuOld = dll_load_deferred(DLL_ID_OLD_PICMENU, 8);
@@ -269,7 +191,7 @@ RECOMP_PATCH void dll_70_ctor(void *dll) {
 }
 
 // offset: 0xC | dtor
-RECOMP_PATCH void dll_70_dtor(void *dll) {
+RECOMP_PATCH void old_levelselect_dtor(void *dll) {
     //@recomp: unload DLL 73 when finished
     if (gDLL_73_PicmenuOld) {
         dll_unload(gDLL_73_PicmenuOld);
@@ -281,7 +203,7 @@ RECOMP_PATCH void dll_70_dtor(void *dll) {
 }
 
 // offset: 0x2C | func: 2 | export: 2
-RECOMP_PATCH void dll_70_draw(Gfx** gdl, Mtx** mtx, Vertex** vtx) {
+RECOMP_PATCH void old_levelselect_draw(Gfx** gdl, Mtx** mtx, Vertex** vtx) {
     /*0xD40*/ static s32 dSelectedPrintIdx = 0;         //Selected index within 9 strings currently shown
     /*0xD44*/ static s32 dSelectedListIdx = 0;          //Selected index within full list of strings
     /*0xD48*/ static s32 dShowLevelUnavailable = FALSE; //Shows a "LEVEL NOT AVAILABLE" message instead of the level list
@@ -390,19 +312,19 @@ RECOMP_PATCH void dll_70_draw(Gfx** gdl, Mtx** mtx, Vertex** vtx) {
                 gDLL_29_Gplay->vtbl->load_save(0, TRUE);
                 return;
             case LEVELSELECT_IDX_02: //NOTE: blank string
-                dll_70_start(MAP_FRONT_END, 0, PLAYER_KRYSTAL);
+                old_levelselect_start(MAP_FRONT_END, 0, PLAYER_KRYSTAL);
                 return;
             case LEVELSELECT_IDX_03_SWAPSTONE_HOLLOW:
-                dll_70_start(MAP_SWAPSTONE_HOLLOW, 0, PLAYER_SABRE);
+                old_levelselect_start(MAP_SWAPSTONE_HOLLOW, 0, PLAYER_SABRE);
                 return;
             case LEVELSELECT_IDX_04_SWAPSTONE_CIRCLE:
-                dll_70_start(MAP_SWAPSTONE_CIRCLE, 1, PLAYER_KRYSTAL);
+                old_levelselect_start(MAP_SWAPSTONE_CIRCLE, 1, PLAYER_KRYSTAL);
                 return;
             case LEVELSELECT_IDX_06_DARKICE_MINES:
-                dll_70_start(MAP_DARK_ICE_MINES_1, 0, PLAYER_SABRE);
+                old_levelselect_start(MAP_DARK_ICE_MINES_1, 0, PLAYER_SABRE);
                 return;
             case LEVELSELECT_IDX_07_DARKICE_MINES_TWO:
-                dll_70_start(MAP_ANIMTEST, 0, PLAYER_SABRE); //DIM2 may have been moved down by one index, after Animtest?
+                old_levelselect_start(MAP_ANIMTEST, 0, PLAYER_SABRE); //DIM2 may have been moved down by one index, after Animtest?
                 return;
             case LEVELSELECT_IDX_08_WALLED_CITY:
                 dShowLevelUnavailable = TRUE;
@@ -411,7 +333,7 @@ RECOMP_PATCH void dll_70_draw(Gfx** gdl, Mtx** mtx, Vertex** vtx) {
                 dShowLevelUnavailable = TRUE; //Wasn't created at this stage?
                 break;
             case LEVELSELECT_IDX_0A_CLOUDRUNNER_FORTRESS:
-                dll_70_start(MAP_CLOUDRUNNER_FORTRESS, 0, PLAYER_KRYSTAL);
+                old_levelselect_start(MAP_CLOUDRUNNER_FORTRESS, 0, PLAYER_KRYSTAL);
                 return;
             case LEVELSELECT_IDX_0B_KRAZOA_PALACE:
                 dShowLevelUnavailable = TRUE;  //Wasn't created at this stage?
@@ -420,55 +342,55 @@ RECOMP_PATCH void dll_70_draw(Gfx** gdl, Mtx** mtx, Vertex** vtx) {
                 dShowLevelUnavailable = TRUE;  //Wasn't created at this stage?
                 break;
             case LEVELSELECT_IDX_0E_NORTHERN_WASTES:
-                dll_70_start(MAP_SNOWHORN_WASTES, 0, PLAYER_SABRE);
+                old_levelselect_start(MAP_SNOWHORN_WASTES, 0, PLAYER_SABRE);
                 return;
             case LEVELSELECT_IDX_0F_EARTHWALKER_TEMPLE:
-                dll_70_start(MAP_EARTHWALKER_TEMPLE, 1, PLAYER_SABRE);
+                old_levelselect_start(MAP_EARTHWALKER_TEMPLE, 1, PLAYER_SABRE);
                 return;
             case LEVELSELECT_IDX_10_WILLOW_GROVE:
-                dll_70_start(MAP_WILLOW_GROVE, 0, PLAYER_KRYSTAL); //Starting as Krystal by mistake?
+                old_levelselect_start(MAP_WILLOW_GROVE, 0, PLAYER_KRYSTAL); //Starting as Krystal by mistake?
                 return;
             case LEVELSELECT_IDX_11_DIAMOND_BAY:
-                dll_70_start(MAP_DIAMOND_BAY, 0, PLAYER_SABRE);
+                old_levelselect_start(MAP_DIAMOND_BAY, 0, PLAYER_SABRE);
                 return;
             case LEVELSELECT_IDX_12_DISCOVERY_FALLS:
-                dll_70_start(MAP_DISCOVERY_FALLS, 0, PLAYER_KRYSTAL);
+                old_levelselect_start(MAP_DISCOVERY_FALLS, 0, PLAYER_KRYSTAL);
                 return;
             case LEVELSELECT_IDX_13_MOON_MOUNTAIN_PASS:
-                dll_70_start(MAP_MOON_MOUNTAIN_PASS, 0, PLAYER_KRYSTAL);
+                old_levelselect_start(MAP_MOON_MOUNTAIN_PASS, 0, PLAYER_KRYSTAL);
                 return;
             case LEVELSELECT_IDX_14_CAPE_CLAW:
-                dll_70_start(MAP_CAPE_CLAW, 0, PLAYER_KRYSTAL);
+                old_levelselect_start(MAP_CAPE_CLAW, 0, PLAYER_KRYSTAL);
                 return;
             case LEVELSELECT_IDX_15_GOLDEN_PLAINS:
-                dll_70_start(MAP_GOLDEN_PLAINS, 0, PLAYER_KRYSTAL);
+                old_levelselect_start(MAP_GOLDEN_PLAINS, 0, PLAYER_KRYSTAL);
                 return;
             case LEVELSELECT_IDX_17_TEST_OF_COMBAT:
-                dll_70_start(MAP_SHRINE_DISCOVERY_FALLS, 0, PLAYER_KRYSTAL);
+                old_levelselect_start(MAP_SHRINE_DISCOVERY_FALLS, 0, PLAYER_KRYSTAL);
                 return;
             case LEVELSELECT_IDX_18_TEST_OF_STRENGTH:
-                dll_70_start(MAP_SHRINE_DIAMOND_BAY, 0, PLAYER_SABRE);
+                old_levelselect_start(MAP_SHRINE_DIAMOND_BAY, 0, PLAYER_SABRE);
                 return;
             case LEVELSELECT_IDX_19_TEST_OF_FEAR:
-                dll_70_start(MAP_SHRINE_MOON_MOUNTAIN_PASS, 0, PLAYER_KRYSTAL);
+                old_levelselect_start(MAP_SHRINE_MOON_MOUNTAIN_PASS, 0, PLAYER_KRYSTAL);
                 return;
             case LEVELSELECT_IDX_1A_TEST_OF_CHARACTER:
-                dll_70_start(MAP_SHRINE_CAPE_CLAW, 0, PLAYER_KRYSTAL);
+                old_levelselect_start(MAP_SHRINE_CAPE_CLAW, 0, PLAYER_KRYSTAL);
                 return;
             case LEVELSELECT_IDX_1B_TEST_OF_KNOWLEDGE:
-                dll_70_start(MAP_SHRINE_GOLDEN_PLAINS, 0, PLAYER_KRYSTAL);
+                old_levelselect_start(MAP_SHRINE_GOLDEN_PLAINS, 0, PLAYER_KRYSTAL);
                 return;
             case LEVELSELECT_IDX_1C_TEST_OF_SACRIFICE:
-                dll_70_start(MAP_SHRINE_SNOWHORN_WASTES, 0, PLAYER_SABRE);
+                old_levelselect_start(MAP_SHRINE_SNOWHORN_WASTES, 0, PLAYER_SABRE);
                 return;
             case LEVELSELECT_IDX_1D_TEST_OF_SKILL:
-                dll_70_start(MAP_SHRINE_WALLED_CITY, 0, PLAYER_SABRE);
+                old_levelselect_start(MAP_SHRINE_WALLED_CITY, 0, PLAYER_SABRE);
                 return;
             case LEVELSELECT_IDX_1E_TEST_OF_MAGIC:
-                dll_70_start(MAP_SHRINE_WILLOW_GROVE, 0, PLAYER_SABRE);
+                old_levelselect_start(MAP_SHRINE_WILLOW_GROVE, 0, PLAYER_SABRE);
                 return;
             case LEVELSELECT_IDX_21_DARKICE_BOSS:
-                dll_70_start(MAP_BOSS_GALADON, 0, PLAYER_KRYSTAL); //Starting as Krystal, just like in the old trailer!
+                old_levelselect_start(MAP_BOSS_GALADON, 0, PLAYER_KRYSTAL); //Starting as Krystal, just like in the old trailer!
                 return;
             case LEVELSELECT_IDX_22_GENERAL_SCALES_BOSS:
                 dShowLevelUnavailable = TRUE;
@@ -477,22 +399,22 @@ RECOMP_PATCH void dll_70_draw(Gfx** gdl, Mtx** mtx, Vertex** vtx) {
                 dShowLevelUnavailable = TRUE;
                 break;
             case LEVELSELECT_IDX_24_CLOUDRUNNER_RACE:
-                dll_70_start(MAP_CLOUDRUNNER_RACETRACK, 0, PLAYER_KRYSTAL); //CRF Trap Rooms scrapped by this stage?
+                old_levelselect_start(MAP_CLOUDRUNNER_RACETRACK, 0, PLAYER_KRYSTAL); //CRF Trap Rooms scrapped by this stage?
                 return;
             case LEVELSELECT_IDX_25_KAMERIA_DRAGON_BOSS:
                 dShowLevelUnavailable = TRUE; //Wasn't created at this stage?
                 break;
             case LEVELSELECT_IDX_26_DRAKOR_FINAL_BOSS:
-                dll_70_start(MAP_BOSS_DRAKOR, 0, PLAYER_SABRE);
+                old_levelselect_start(MAP_BOSS_DRAKOR, 0, PLAYER_SABRE);
                 break;
             case LEVELSELECT_IDX_27_ICE_MOUNTAIN:
-                dll_70_start(MAP_ICE_MOUNTAIN_1, 0, PLAYER_SABRE);
+                old_levelselect_start(MAP_ICE_MOUNTAIN_1, 0, PLAYER_SABRE);
                 return;
             case LEVELSELECT_IDX_29_DESERT_FORCE_POINT:
-                dll_70_start(MAP_DESERT_FORCE_POINT_TEMPLE_BOTTOM, 0, PLAYER_KRYSTAL);
+                old_levelselect_start(MAP_DESERT_FORCE_POINT_TEMPLE_BOTTOM, 0, PLAYER_KRYSTAL);
                 return;
             case LEVELSELECT_IDX_2A_VOLCANO_FORCE_POINT:
-                dll_70_start(MAP_VOLCANO_FORCE_POINT_TEMPLE, 0, PLAYER_KRYSTAL); //Starting as Krystal by mistake?
+                old_levelselect_start(MAP_VOLCANO_FORCE_POINT_TEMPLE, 0, PLAYER_KRYSTAL); //Starting as Krystal by mistake?
                 return;
             case LEVELSELECT_IDX_2C_EARTHWALKER_ACT_TWO:
                 gDLL_5_AMSEQ2->vtbl->set(NULL, 0x23, 0, 0, 0);
@@ -505,7 +427,7 @@ RECOMP_PATCH void dll_70_draw(Gfx** gdl, Mtx** mtx, Vertex** vtx) {
                 dShowLevelUnavailable = TRUE; rsUnavailableMessageID = 1; //@recomp: lock option to avoid crash
                 return;
             case LEVELSELECT_IDX_2D_ENERGY_DEMO:
-                dll_70_start(MAP_EARTHWALKER_TEMPLE, 5, PLAYER_KRYSTAL);
+                old_levelselect_start(MAP_EARTHWALKER_TEMPLE, 5, PLAYER_KRYSTAL);
                 return;
             case LEVELSELECT_IDX_2F_WARLOCK_ACT_ONE:
                 gDLL_5_AMSEQ2->vtbl->set(NULL, 0x23, 0, 0, 0);
@@ -600,7 +522,7 @@ RECOMP_PATCH void dll_70_draw(Gfx** gdl, Mtx** mtx, Vertex** vtx) {
 /**
   * Starts the game with a specific mapID, Act number, and player character.
   */
-RECOMP_PATCH void dll_70_start(MapIDs mapID, s32 act, PlayerNo playerNo) {
+RECOMP_PATCH void old_levelselect_start(MapIDs mapID, s32 act, PlayerNo playerNo) {
     gDLL_5_AMSEQ2->vtbl->set(NULL, 0x23, 0, 0, 0);
 
     //@recomp: only init the save if the slot's empty, to avoid losing save data

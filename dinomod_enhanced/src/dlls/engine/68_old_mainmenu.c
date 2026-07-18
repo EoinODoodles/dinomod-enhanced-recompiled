@@ -1,10 +1,10 @@
-#include "dll.h"
-#include "game/gametexts.h"
+#include "configs.h"
 #include "modding.h"
 #include "recompconfig.h"
-#include "configs.h"
 
-// #include "dlls/engine/73.h"
+#include "dll.h"
+#include "dlls/engine/73.h"
+#include "game/gametexts.h"
 #include "sys/dll.h"
 #include "sys/fonts.h"
 #include "sys/gfx/textable.h"
@@ -13,36 +13,6 @@
 #include "sys/menu.h"
 
 #include "recomp/dlls/engine/68_old_mainmenu_recomp.h"
-
-//TODO: remove after decomp update
-#define old_mainmenu_draw old_mainmenu_func_D8
-
-#define dTexTiles data_0 
-
-#define sIndexSelected bss_4 
-#define sTextTimer bss_8 
-#define sButtonsEnabled bss_C 
-#define sTimer bss_10 
-
-#define DLL_ID_OLD_PICMENU 73
-#define MENU_OLD_LEVEL_SELECT 13
-
-typedef enum {
-    DLL73_ACTION_None = -1
-} DLL73_Actions;
-
-DLL_INTERFACE(DLL_73) {
-/*:*/ DLL_INTERFACE_BASE(DLL);
-/*0*/ void (*init_text_window)(s32 y);
-/*1*/ void (*init_text_window_with_margin)(s32 marginX, s32 y);
-/*2*/ void (*add_string)(s32 valueEnter, char* text, s32 lineHeight, s32 selectedIndex);
-/*3*/ void (*add_string_x)(s32 valueEnter, char* text, s32 x, s32 lineHeight, s32 selectedIndex);
-/*4*/ void (*set_exit_value)(s32 value);
-/*5*/ s16 (*handle_joystick_and_buttons)(s32* idx);
-/*6*/ void (*set_font_and_colour)(s32 dimmed);
-/*7*/ void (*enable_joy_buttons)(s32 enabled);
-/*8*/ s8 (*get_total_items)(void);
-};
 
 static DLL_73* gDLL_73_PicmenuOld;
 

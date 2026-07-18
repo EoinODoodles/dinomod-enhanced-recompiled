@@ -1,40 +1,19 @@
 //Seems to be an old version of the SwapStone choice menu (DLL 71 selection)
 
-#include "dll.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "configs.h"
 
+#include "dll.h"
 #include "dlls/engine/29_gplay.h"
-// #include "dlls/engine/73.h"
+#include "dlls/engine/73.h"
 #include "sys/dll.h"
 #include "sys/fonts.h"
 #include "sys/map.h"
 #include "sys/menu.h"
 #include "sys/objmsg.h"
 
-#include "recomp/dlls/_asm/71_recomp.h"
-
-#define dll_71_draw dll_71_func_48
-
-#define DLL_ID_OLD_PICMENU 73
-
-typedef enum {
-    DLL73_ACTION_None = -1
-} DLL73_Actions;
-
-DLL_INTERFACE(DLL_73) {
-/*:*/ DLL_INTERFACE_BASE(DLL);
-/*0*/ void (*init_text_window)(s32 y);
-/*1*/ void (*init_text_window_with_margin)(s32 marginX, s32 y);
-/*2*/ void (*add_string)(s32 valueEnter, char* text, s32 lineHeight, s32 selectedIndex);
-/*3*/ void (*add_string_x)(s32 valueEnter, char* text, s32 x, s32 lineHeight, s32 selectedIndex);
-/*4*/ void (*set_exit_value)(s32 value);
-/*5*/ s16 (*handle_joystick_and_buttons)(s32* idx);
-/*6*/ void (*set_font_and_colour)(s32 dimmed);
-/*7*/ void (*enable_joy_buttons)(s32 enabled);
-/*8*/ s8 (*get_total_items)(void);
-};
+#include "recomp/dlls/engine/71_old_selection_recomp.h"
 
 extern DLL_29_gplay *gDLL_29_Gplay;
 // extern DLL_73* dll_throw_fault; //NOTE: BROKEN! This is a function now, not DLL 73.
@@ -49,11 +28,8 @@ typedef enum {
     SwapStone_Old_To_Warlock
 } SwapStone_Old_Options;
 
-#define sIndexSelected bss_0
-#define sButtonsEnabled bss_4
-
-/*0x0*/ static s32 sIndexSelected;
-/*0x4*/ static s32 sButtonsEnabled;
+/*0x0*/ extern s32 sIndexSelected;
+/*0x4*/ extern s32 sButtonsEnabled;
 
 // offset: 0x0 | ctor
 RECOMP_PATCH void dll_71_ctor(void *dll) {
