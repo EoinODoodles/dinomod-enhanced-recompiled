@@ -194,3 +194,12 @@ void joy_disable_stick(int port) {
     gMenuJoyXSign[gVirtualContPortMap[port]] = 0;
     gMenuJoyYSign[gVirtualContPortMap[port]] = 0;
 }
+
+/* Returns a controller's held buttons, without considering button masking. */
+u16 joyGetButtonsRaw(int port) {
+    if (port > 0) {
+        return 0;
+    }
+
+    return gContPads[gVirtualContPortMap[port]].button;
+}

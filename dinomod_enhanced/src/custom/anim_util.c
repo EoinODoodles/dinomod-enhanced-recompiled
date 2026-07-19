@@ -1,13 +1,13 @@
 /* Helper functions for animations */
 
-#include "anim_util.h"
-#include "macros.h"
 #include "recomputils.h"
+#include "anim_util.h"
+
+#include "core/joypad.h"
+
+#include "macros.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
-
-extern u8 gVirtualContPortMap[MAXCONTROLLERS];
-extern OSContPad gContPads[MAXCONTROLLERS];
 
 /** Inspect an Object's animations using the D-pad.
   * - D-left: previous animation
@@ -58,7 +58,7 @@ int object_modanim_debugger(Object* obj) {
         static u16 prevButtons;
         static u16 currentButtons;
         
-        currentButtons = gContPads[gVirtualContPortMap[0]].button;
+        currentButtons = joyGetButtonsRaw(0);
         
         for (int i = 0; i < 16; i++) {
             //Pressed

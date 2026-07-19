@@ -34,12 +34,11 @@
 #include "recomp/dlls/engine/1_cmdmenu_recomp.h"
 #include "recomp/dlls/engine/2_camcontrol_recomp.h"
 
+#include "core/joypad.h"
 #include "engine/1_cmdmenu.h"
 #include "engine/59_minimap.h"
 
 extern s32 D_8008C890;
-extern OSContPad gContPads[MAXCONTROLLERS];
-extern u8 gVirtualContPortMap[MAXCONTROLLERS];
 
 /* RECOMP VARS */
 
@@ -1879,7 +1878,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
         sJoyPressedButtons = sJoyPressedButtonsOverride;
     } else {
         sJoyPressedButtons = joyGetPressed(0) | rRawDPad; //@recomp: optionally factor in D-pad
-        rJoyHeldButtons = rNewControls ? gContPads[gVirtualContPortMap[0]].button : 0; //@recomp: get held buttons (for continuous scrolling)
+        rJoyHeldButtons = rNewControls ? joyGetButtonsRaw(0) : 0; //@recomp: get held buttons (for continuous scrolling)
 
         if ((player->stateFlags & OBJSTATE_IN_SEQ) || (rJoyButtonMaskExtended != 0)) {
             sJoyPressedButtons |= B_BUTTON;
