@@ -171,7 +171,7 @@ RECOMP_PATCH void rareware_draw(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
     s32 pad;
 
     //Stop drawing near the end of the screen's fade-out
-    if (sCutToNextScreen != 0 && sFadeOutTimer < 11) {
+    if (sCutToNextScreen && sFadeOutTimer < 11) {
         return;
     }
 

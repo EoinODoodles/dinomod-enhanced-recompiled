@@ -44,7 +44,7 @@ static s32 rsShowMessage = 0;
 
 #define FRONTEND_FLAG_40_Hidden 0x40      //CUSTOM FLAG: control hidden
 
-extern void vi_set_modifiers(u8 updateViMode, s8 hStartMod, s8 vScaleMod);
+extern void viSetModifiers(u8 updateViMode, s8 hStartMod, s8 vScaleMod);
 
 #define NONE -1
 #define MAX_CONTROLS_PER_PAGE 6
@@ -602,7 +602,7 @@ RECOMP_PATCH s32 options_update1(void) {
         }
 
         if ((joyX != 0) || (joyY != 0)) {
-            vi_set_modifiers(1, sGameOptions->screenOffsetX, sGameOptions->screenOffsetY);
+            viSetModifiers(1, sGameOptions->screenOffsetX, sGameOptions->screenOffsetY);
         }
 #endif
 
@@ -1167,7 +1167,7 @@ RECOMP_PATCH void options_goto_cheats_page(void) {
         0xFF, 0xD7, 0x3D
     );
 
-    gDLL_75->vtbl->set_highlight_state(sCtrls[OPTIONS_CHEATS_1_CheatShown1], 1);
+    gDLL_75->vtbl->set_highlight_state(sCtrls[OPTIONS_CHEATS_1_CheatShown1], TRUE);
 
     sRedrawFrames = 2;
 }

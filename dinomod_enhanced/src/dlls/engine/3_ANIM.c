@@ -369,10 +369,10 @@ RECOMP_PATCH s32 anim_process_event(Object* animObj, ModelInstance* animObjModel
                 if ((animObjModelInst->model->unk71 & 1) && ((evt->params & 0xFF) < 0xF)) {
                     blendShape = animObjModelInst->blendshapes;
                     blendShape += 2;
-                    func_8001AF04(animObjModelInst, blendShape->id, (evt->params & 0xFF) - 1, var_fv0, 2, 0);
+                    mod_func_8001AF04(animObjModelInst, blendShape->id, (evt->params & 0xFF) - 1, var_fv0, 2, 0);
                 } else {
                     blendShape = animObjModelInst->blendshapes;
-                    func_8001AF04(animObjModelInst, blendShape->id, (evt->params & 0xFF) - 1, var_fv0, 0, 0);
+                    mod_func_8001AF04(animObjModelInst, blendShape->id, (evt->params & 0xFF) - 1, var_fv0, 0, 0);
                 }
             }
         }
@@ -433,7 +433,7 @@ RECOMP_PATCH s32 anim_process_event(Object* animObj, ModelInstance* animObjModel
                                      NULL, 
                                      NULL, 0, NULL);
         } else {
-            if (gDLL_6_AMSFX->vtbl->is_playing(st->sfxHandles[3]) != 0) {
+            if (dll_amSfx->IsPlaying(st->sfxHandles[3]) != 0) {
                 dll_amSfx->Stop(st->sfxHandles[3]);
             }
             st->sfxTimer[3] = 32000;
@@ -498,7 +498,7 @@ RECOMP_PATCH s32 anim_process_event(Object* animObj, ModelInstance* animObjModel
                 st->sfxNextSlot = 0;
             }
         } else {
-            if (gDLL_6_AMSFX->vtbl->is_playing(st->sfxHandles[3]) != 0) {
+            if (dll_amSfx->IsPlaying(st->sfxHandles[3]) != 0) {
                 dll_amSfx->Stop(st->sfxHandles[3]);
             }
             dll_amSfx->Play(animObj, 
@@ -685,10 +685,10 @@ RECOMP_PATCH s32 anim_do_code_event_6(Object *animObj, Object *actor, AnimObj_Da
         sSeqEnded = TRUE;
         return 0;
     case ANIM_CODE_EVT_6_5: 
-        gDLL_6_AMSFX->vtbl->Func480(actor);
+        dll_amSfx->Func480(actor);
         break;
     case ANIM_CODE_EVT_6_6: 
-        gDLL_6_AMSFX->vtbl->Func480(NULL);
+        dll_amSfx->Func480(NULL);
         break;
     case ANIM_CODE_EVT_6_CAMERA_SHAKE: 
         if (arg4 == 0) {
@@ -738,7 +738,7 @@ RECOMP_PATCH s32 anim_do_code_event_6(Object *animObj, Object *actor, AnimObj_Da
         menu_func_8000F6CC();
         break;
     case ANIM_CODE_EVT_6_SFX_STOP:
-        gDLL_6_AMSFX->vtbl->StopObject(actor);
+        dll_amSfx->StopObject(actor);
         break;
     case ANIM_CODE_EVT_6_16:
         st->unk89 = sp54;

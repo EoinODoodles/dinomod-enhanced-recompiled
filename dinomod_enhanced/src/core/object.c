@@ -219,7 +219,7 @@ RECOMP_PATCH Object *objSetupObject(ObjSetup *setup, u32 initFlags, s32 mapID, s
     assetLoadObject(&obj, setup, initFlags, mapID, param4, parent, 0);
     // @recomp: Restore default.dol behavior and warn about errors
     if (obj != NULL) {
-        objAddObjectType(obj, initFlags);
+        objAddObject(obj, initFlags);
     } else {
         recomp_eprintf("Warning: objSetupObject failed to instantiate object (obj id: %d, UID: 0x%X)\n", setup->objId, setup->uID);
     }
