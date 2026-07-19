@@ -11,9 +11,9 @@
 #include "sys/objanim.h"
 #include "dlls/objects/210_player.h"
 
-#include "recomp/dlls/objects/528_SC_totemstrength_recomp.h"
+#include "core/joypad.h"
 
-#define MAX_BUFFERED_CONT_SNAPSHOTS 4
+#include "recomp/dlls/objects/528_SC_totemstrength_recomp.h"
 
 #define ANGLE_TO_PIT 0x1DDC 
 #define ANGULAR_RANGE (ANGLE_TO_PIT*2)

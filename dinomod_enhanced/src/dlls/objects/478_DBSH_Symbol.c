@@ -10,9 +10,9 @@
 #include "sys/menu.h"
 #include "sys/objanim.h"
 
-#include "recomp/dlls/objects/478_DBSH_Symbol_recomp.h"
+#include "core/joypad.h"
 
-#define MAX_BUFFERED_CONT_SNAPSHOTS 4
+#include "recomp/dlls/objects/478_DBSH_Symbol_recomp.h"
 
 #define Y_UNDERGROUND 50.0f
 #define YAW_WIN 32500

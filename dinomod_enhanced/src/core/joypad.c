@@ -8,7 +8,6 @@
 #include "core/joypad.h"
 
 #define THREAD_STACK_CONTROLLER 1024
-#define MAX_BUFFERED_CONT_SNAPSHOTS 4
 
 /**
  * Represents a single snapshot of each controller.
