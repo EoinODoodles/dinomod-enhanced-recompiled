@@ -77,7 +77,7 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
     case STATE_1_Chased_by_SharpClaw:
         if (mainGetBits(BIT_SnowHorn_Tutorial_Defeated_SharpClaw)) {
             ((DLL_ISidekick*)tricky->dll)->vtbl->func21(tricky, 0, 0);
-            gDLL_6_AMSFX->vtbl->StopObject(tricky);
+            dll_amSfx->StopObject(tricky);
             mainSetBits(BIT_4E3, 0);
             objdata->state = STATE_2_Learning_Sidekick_Commands;
         } else {

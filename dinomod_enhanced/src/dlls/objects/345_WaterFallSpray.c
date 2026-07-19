@@ -71,7 +71,7 @@ static void WaterFallSpray_check_if_enabled(Object *self, WaterFallSpray_Setup* 
 
     //Signal AMSFX to refresh its WaterFallSprays list when state changes
     if (objData->enabled != prevEnabled) {
-        gDLL_6_AMSFX->vtbl->WaterFallsSetFlags(AMSFX_WATERFALLS_REFRESH);
+        dll_amSfx->WaterFallsSetFlags(AMSFX_WATERFALLS_REFRESH);
     }
 }
 

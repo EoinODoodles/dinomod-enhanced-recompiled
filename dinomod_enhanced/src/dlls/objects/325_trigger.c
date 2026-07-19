@@ -643,7 +643,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
         case TRG_CMD_WATER_FALLS_FLAGS:
         case TRG_CMD_WATER_FALLS_FLAGS2:
             // "Trigger [%d], amSfxWaterFallsSetFlags,   Action [%d], PassDir [%d]"
-            gDLL_6_AMSFX->vtbl->WaterFallsSetFlags(cmd->param1);
+            dll_amSfx->WaterFallsSetFlags(cmd->param1);
             break;
         }
     }

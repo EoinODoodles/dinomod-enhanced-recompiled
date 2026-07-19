@@ -88,7 +88,7 @@ RECOMP_HOOK_DLL(SHLevelControl_setup) void SHLevelControl_setup_hook(Object *sel
 RECOMP_HOOK_DLL(SHLevelControl_control) void SHLevelControl_control_hook(Object *self) {
     // Drive AMSFX's waterfall sfx logic. This is necessary to stop the waterfallspray sfx that plays
     // in the DB river when coming back to SH.
-    gDLL_6_AMSFX->vtbl->WaterFallsControl();
+    dll_amSfx->WaterFallsControl();
 
     // Handle river related stuff
     dinomod_river_control();
