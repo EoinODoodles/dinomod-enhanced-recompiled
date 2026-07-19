@@ -5,7 +5,6 @@
 #include "common.h"
 #include "game/objects/object_def.h"
 #include "sys/newshadows.h"
-#include "sys/objtype.h"
 
 extern s16 *gFile_OBJINDEX;
 extern int gObjIndexCount;
