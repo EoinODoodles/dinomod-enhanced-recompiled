@@ -190,7 +190,7 @@ RECOMP_PATCH void joyControllerThreadEntry(void* arg) {
 }
 
 /* Ignore joystick inputs */
-void joy_disable_stick(int port) {
+void joyDisableStick(int port) {
     gMenuJoyXSign[gVirtualContPortMap[port]] = 0;
     gMenuJoyYSign[gVirtualContPortMap[port]] = 0;
 }

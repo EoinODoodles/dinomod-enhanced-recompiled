@@ -1398,7 +1398,7 @@ RECOMP_HOOK_DLL(options_update1) void options_secret_code_goto_old_menus(void) {
 
         //Block buttons and joystick during fadeout
         joyDisableButtons(0, START_BUTTON | A_BUTTON);
-        joy_disable_stick(0);
+        joyDisableStick(0);
 
         if (rsTransitionTimer > 70) {
             rsTransitionTimer = 0;
