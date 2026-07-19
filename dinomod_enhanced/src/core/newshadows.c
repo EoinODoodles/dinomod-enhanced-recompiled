@@ -18,7 +18,7 @@ extern Vec3f *D_800BB168[2];
 
 extern Texture* D_800BB190;
 
-RECOMP_PATCH void shadows_init(void) {
+RECOMP_PATCH void shadowsInit(void) {
     void *temp_v0;
 
     D_80092BE8 = 10;
@@ -96,6 +96,6 @@ RECOMP_PATCH void shadows_init(void) {
     D_800B9840[21] = 6.0f;
     D_800B9840[22] = 0.0f;
     D_800B9840[23] = 55.0f;
-    shadowtex_init();
-    D_800BB190 = tex_load_deferred(TEXTABLE_D8);
+    shadowtexInit();
+    D_800BB190 = texLoadTexture(TEXTABLE_D8);
 }

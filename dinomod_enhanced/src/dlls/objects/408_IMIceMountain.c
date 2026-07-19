@@ -58,26 +58,26 @@ RECOMP_PATCH void IMIceMountain_do_act1(Object *self) {
     objdata = self->data;
     switch (objdata->state) {
     case STATE_Intro_Sequence:
-        if (main_get_bits(BIT_Played_Seq_0063_IM_Sabre_Intro)) {
+        if (mainGetBits(BIT_Played_Seq_0063_IM_Sabre_Intro)) {
             objdata->state = STATE_Rescue_Tricky;
             gDLL_29_Gplay->vtbl->set_obj_group_status(self->mapID, IM_ObjGroup2_AnimSpacecraft, 0);
 
             //@recomp: make sure Tricky's cave door is shut initially
-            main_set_bits(BIT_382, 0);
+            mainSetBits(BIT_382, 0);
         }
         break;
     case STATE_Rescue_Tricky:
-        if (main_get_bits(BIT_IM_MultiSeq_2)) {
+        if (mainGetBits(BIT_IM_MultiSeq_2)) {
             objdata->state = STATE_Race_Start_Sequence;
             gDLL_29_Gplay->vtbl->set_obj_group_status(self->mapID, IM_ObjGroup6_Track_Icicles, 1);
         }
         break;
     case STATE_Race_Start_Sequence:
-        if (main_get_bits(BIT_IM_MultiSeq_3)) {
+        if (mainGetBits(BIT_IM_MultiSeq_3)) {
             gDLL_29_Gplay->vtbl->set_obj_group_status(self->mapID, IM_ObjGroup0_AnimTricky, 0);
             gDLL_29_Gplay->vtbl->set_obj_group_status(self->mapID, IM_ObjGroup5_Summit_Main, 0);
         }
-        if (main_get_bits(BIT_IM_Race_Started)) {
+        if (mainGetBits(BIT_IM_Race_Started)) {
             objdata->state = STATE_Race;
         }
         if (self->unkDC == 0) {
@@ -114,7 +114,7 @@ RECOMP_PATCH void IMIceMountain_do_act1(Object *self) {
             objdata->warpCounter--;
             if (objdata->warpCounter == 0) {
                 // race will restart after warp
-                warpPlayer(WARP_IM_RACE_START, FALSE);
+                mapWarpPlayer(WARP_IM_RACE_START, FALSE);
             }
         }
         break;

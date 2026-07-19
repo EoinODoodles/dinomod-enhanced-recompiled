@@ -36,7 +36,7 @@ RECOMP_PATCH void MagicPlant_print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex**
         return;
     }
 
-    draw_object(self, gdl, mtxs, vtxs, pols, 1.0f);
+    objprintDrawModel(self, gdl, mtxs, vtxs, pols, 1.0f);
     modelInstance = self->modelInsts[self->modelInstIdx];
 
     //Position the MagicDust gem at the centre of the plant's petals
@@ -51,13 +51,13 @@ RECOMP_PATCH void MagicPlant_print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex**
         }
 
         //Get the matrix for the end joint of the main joint chain
-        jointMtx = func_80032170(self, ATTACH_JOINT_ID);
+        jointMtx = objGetAttachPointBoneMatrix(self, ATTACH_JOINT_ID);
         if (jointMtx == NULL) {
             return;
         }
 
         //Get coords for the end joint of the main joint chain
-        func_800321E4(self, ATTACH_JOINT_ID, &x, &y, &z);
+        objGetAttachPointLocalSpace(self, ATTACH_JOINT_ID, &x, &y, &z);
 
         dustIdx = objSetup->dustIdx;
         srt.transl.x = x;
@@ -67,15 +67,15 @@ RECOMP_PATCH void MagicPlant_print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex**
         srt.pitch = 0;
         srt.roll = 0;
         srt.scale = objData->magic->srt.scale / self->srt.scale;
-        matrix_from_srt(&mtx, &srt);
-        matrix_concat_4x3(&mtx, jointMtx, &mtx);
+        mathYprXyzMtx(&mtx, &srt);
+        mathMtxCat4x3F(&mtx, jointMtx, &mtx);
 
         objData->magic->srt.transl.x = mtx.m[3][0] + gWorldX;
         objData->magic->srt.transl.y = mtx.m[3][1];
         objData->magic->srt.transl.z = mtx.m[3][2] + gWorldZ;
 
-        func_80034FF0(&mtx);
-        draw_object(objData->magic, gdl, mtxs, vtxs, pols, 1.0f);
-        func_80034FF0(NULL);
+        objprintSetModelMatrixOverride(&mtx);
+        objprintDrawModel(objData->magic, gdl, mtxs, vtxs, pols, 1.0f);
+        objprintSetModelMatrixOverride(NULL);
     }
 }

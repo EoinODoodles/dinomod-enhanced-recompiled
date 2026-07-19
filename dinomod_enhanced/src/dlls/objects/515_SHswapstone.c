@@ -55,7 +55,7 @@ RECOMP_PATCH void SHswapstone_setup(Object* self, SHswapstone_Setup* setup, s32 
     self->animCallback = (void*)SHswapstone_anim_callback;
 
     //@recomp: change how we determine if this is Rubble or Rocky, avoiding incorrect outcome if local Block is unloaded
-    if ((map_world_xz_to_map_id(self->srt.transl.x, self->srt.transl.z) == MAP_SWAPSTONE_CIRCLE) 
+    if ((mapWorldXZToMapID(self->srt.transl.x, self->srt.transl.z) == MAP_SWAPSTONE_CIRCLE) 
         || (setup->base.uID == Rubble_uID) //@recomp: fallback check
     ) {
         // We are Rubble
@@ -72,13 +72,13 @@ RECOMP_PATCH void SHswapstone_setup(Object* self, SHswapstone_Setup* setup, s32 
         self->modelInstIdx = 0;
     }
 
-    if (main_get_bits(BIT_Talking_to_Rocky) && main_get_bits(BIT_Talked_to_Rocky)) {
+    if (mainGetBits(BIT_Talking_to_Rocky) && mainGetBits(BIT_Talked_to_Rocky)) {
         objdata->awake = TRUE;
     } else {
         objdata->awake = FALSE;
     }
 
-    main_set_bits(objdata->bitIntroSeq, 0);
+    mainSetBits(objdata->bitIntroSeq, 0);
 }
 
 /** Make sure Rubble loads in SwapStone Circle (rather than Rocky) */
@@ -86,7 +86,7 @@ RECOMP_PATCH u32 SHswapstone_get_model_flags(Object* self) {
     s32 modelno;
 
     //@recomp: change how we determine if this is Rubble or Rocky, avoiding incorrect outcome if local Block is unloaded
-    if (map_world_xz_to_map_id(self->srt.transl.x, self->srt.transl.z) == MAP_SWAPSTONE_CIRCLE
+    if (mapWorldXZToMapID(self->srt.transl.x, self->srt.transl.z) == MAP_SWAPSTONE_CIRCLE
         || (self->setup->uID == Rubble_uID) //@recomp: fallback check
     ) {
         // We are Rubble
@@ -107,8 +107,8 @@ RECOMP_PATCH int SHswapstone_anim_callback(Object* self, Object* overrideObj, An
     s32 i;
 
     objdata = self->data;
-    if (menu_get_current() != MENU_SELECTION) {
-        menu_set(MENU_SELECTION);
+    if (menuGetCurrent() != MENU_SELECTION) {
+        menuSet(MENU_SELECTION);
     }
 
     animData->decisionCallback = SHswapstone_is_stick_direction_available;
@@ -123,7 +123,7 @@ RECOMP_PATCH int SHswapstone_anim_callback(Object* self, Object* overrideObj, An
             objdata->flags |= SWAPSTONE_PLAYER_HAS_SPELLSTONE;
         }
         animData->unk62 = 0;
-        if (main_get_bits(objdata->bitSwapStoneSpokenTo) != 0) {
+        if (mainGetBits(objdata->bitSwapStoneSpokenTo) != 0) {
             animData->unk9D |= 4;
         }
     }
@@ -145,24 +145,24 @@ RECOMP_PATCH int SHswapstone_anim_callback(Object* self, Object* overrideObj, An
                 gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_SWAPSTONE_HOLLOW, 0, 1);
                 gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_SWAPSTONE_HOLLOW, 7, 1);
                 gDLL_29_Gplay->vtbl->set_act(MAP_SWAPSTONE_HOLLOW, 1);
-                if ((main_get_bits(BIT_Play_Seq_0180_Release_Spirit_1) != 0) && (main_get_bits(BIT_Played_Seq_01FD_Rocky_Teaches_Distract) == 0)) {
+                if ((mainGetBits(BIT_Play_Seq_0180_Release_Spirit_1) != 0) && (mainGetBits(BIT_Played_Seq_01FD_Rocky_Teaches_Distract) == 0)) {
                     // Set Rocky to give Tricky the distract command
-                    main_set_bits(BIT_Play_Seq_01FD_Rocky_Teaches_Distract, 1);
+                    mainSetBits(BIT_Play_Seq_01FD_Rocky_Teaches_Distract, 1);
                 } else {
-                    main_set_bits(objdata->bitSwappedToSeq, 1);
+                    mainSetBits(objdata->bitSwappedToSeq, 1);
                 }
             } else {
                 // Going to SwapStone Circle
                 gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_SWAPSTONE_CIRCLE, 0, 1);
                 //gDLL_29_Gplay->vtbl->set_act(MAP_SWAPSTONE_CIRCLE, 2); // @recomp: Don't reset SwapStone circle act
-                main_set_bits(objdata->bitSwappedToSeq, 1);
+                mainSetBits(objdata->bitSwappedToSeq, 1);
             }
 
             //@recomp: reset shop exit gamebit to make sure shop exit sequence doesn't play at wrong time
-            main_set_bits(BIT_SP_Exiting_Shop, 0); 
+            mainSetBits(BIT_SP_Exiting_Shop, 0); 
 
-            menu_set(MENU_GAMEPLAY); // @recomp: Reactivate gameplay menu (so spells/bag can be used again)
-            warpPlayer(sSwapStoneWarps[playerno], /*fadeToBlack=*/FALSE);
+            menuSet(MENU_GAMEPLAY); // @recomp: Reactivate gameplay menu (so spells/bag can be used again)
+            mapWarpPlayer(sSwapStoneWarps[playerno], /*fadeToBlack=*/FALSE);
             break;
         case 7:
             // Warp to Warlock Mountain
@@ -187,8 +187,8 @@ RECOMP_PATCH int SHswapstone_anim_callback(Object* self, Object* overrideObj, An
                 //gDLL_29_Gplay->vtbl->set_act(MAP_WARLOCK_MOUNTAIN, 2); // @recomp: Don't reset Warlock Mountain act
                 break;
             }
-            menu_set(MENU_GAMEPLAY); // @recomp: Reactivate gameplay menu (so spells/bag can be used again)
-            warpPlayer(sWarlockMountainWarps[playerno], /*fadeToBlack=*/FALSE);
+            menuSet(MENU_GAMEPLAY); // @recomp: Reactivate gameplay menu (so spells/bag can be used again)
+            mapWarpPlayer(sWarlockMountainWarps[playerno], /*fadeToBlack=*/FALSE);
             break;
         case 10:
             objdata->bShowScreen ^= 1;
@@ -198,18 +198,18 @@ RECOMP_PATCH int SHswapstone_anim_callback(Object* self, Object* overrideObj, An
             gDLL_29_Gplay->vtbl->set_playerno(1 - playerno);
             gDLL_29_Gplay->vtbl->set_act(MAP_ICE_MOUNTAIN_1, 1);
             gDLL_29_Gplay->vtbl->set_act(MAP_SWAPSTONE_CIRCLE, 2);
-            menu_set(MENU_GAMEPLAY);
-            warpPlayer(WARP_ICE_MOUNTAIN_CAMPSITE, /*fadeToBlack=*/FALSE);
+            menuSet(MENU_GAMEPLAY);
+            mapWarpPlayer(WARP_ICE_MOUNTAIN_CAMPSITE, /*fadeToBlack=*/FALSE);
             break;
         case 12:
-            warpPlayer(WARP_SWAPSTONE_SHOP_ENTRANCE, /*fadeToBlack=*/FALSE);
+            mapWarpPlayer(WARP_SWAPSTONE_SHOP_ENTRANCE, /*fadeToBlack=*/FALSE);
             break;
         case (SELECT_SCREEN(SelectionMenu_STATE_0_Fade_Out)):
         case (SELECT_SCREEN(SelectionMenu_STATE_1_SwapStone_Choices)):
         case (SELECT_SCREEN(SelectionMenu_STATE_2_Confirm_Right)):
         case (SELECT_SCREEN(SelectionMenu_STATE_3_Confirm_Left)):
-            if (menu_get_current() == MENU_SELECTION) {
-                ((DLL_Menu16*)menu_get_active_dll())->vtbl->set_selection_state(animData->messages[i] - CMD_BASE_SELECTION);
+            if (menuGetCurrent() == MENU_SELECTION) {
+                ((DLL_Menu16*)menuGetActiveDLL())->vtbl->set_selection_state(animData->messages[i] - CMD_BASE_SELECTION);
             }
             break;
         default:

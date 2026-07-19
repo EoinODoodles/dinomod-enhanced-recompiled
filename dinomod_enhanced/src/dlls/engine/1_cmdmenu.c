@@ -38,6 +38,8 @@
 #include "engine/59_minimap.h"
 
 extern s32 D_8008C890;
+extern OSContPad gContPads[MAXCONTROLLERS];
+extern u8 gVirtualContPortMap[MAXCONTROLLERS];
 
 /* RECOMP VARS */
 
@@ -747,14 +749,14 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
     s8 offsetY;
     s32 temp;
     Gfx* dl;
-    Object* player = get_player();
+    Object* player = objGetPlayer();
     u8 texIdx;
     static char playerScarabCountText[4] = "   ";
     /* RECOMP */
     u8 rConfigActiveIconOverlapFix = recomp_get_config_u32("cmdmenu_active_icon_overlap");
 
     dl = *gdl;
-    temp = vi_get_current_size();
+    temp = viGetCurrentSize();
     
     gDPSetScissor(dl++, G_SC_NON_INTERLACE, 0, 0, (u16)GET_VIDEO_WIDTH(temp) - 1, SCREEN_HEIGHT - 1);
 
@@ -820,7 +822,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                     texIdx = CMDMENU_TEX_08_Apple_0_Pct + (sStats.playerHealth & 3);
                 }
                 
-                rcp_tile_write(
+                rcpTileWrite(
                     &dl,
                     sTextureTiles[texIdx], 
                     HEALTH_ICONS_X + offsetX, 
@@ -873,7 +875,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                 }
 
                 //Draw the filled part of the bar
-                rcp_tile_write_x(
+                rcpTileWriteX(
                     &dl,
                     sTextureTiles[CMDMENU_TEX_36_MagicBar_Full],
                     MAGIC_BARS_X,
@@ -887,7 +889,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                 );
 
                 //Draw the empty part of the bar
-                rcp_tile_write_x(
+                rcpTileWriteX(
                     &dl, sTextureTiles[CMDMENU_TEX_35_MagicBar_Empty],
                     MAGIC_BARS_X + temp,
                     MAGIC_BARS_Y + (i * MAGIC_BARS_SPACING_Y),
@@ -958,7 +960,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                             rsIllusionOpacity = 0;
                             rsIllusionIcon = Illusion_Icon_Fox;
                         }
-                        dInventoryPageIcon = tex_load_deferred(dTextableIDs[texIdx]);
+                        dInventoryPageIcon = texLoadTexture(dTextableIDs[texIdx]);
                     } else {
                         //Fade in Fox icon
                         if (rsIllusionOpacity < MAX_OPACITY) {
@@ -967,7 +969,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                                 rsIllusionOpacity = MAX_OPACITY;
                             }
                         }
-                        dInventoryPageIcon = tex_load_deferred(TEXTABLE_266_Kiosk_Fox_Icon);
+                        dInventoryPageIcon = texLoadTexture(TEXTABLE_266_Kiosk_Fox_Icon);
                     }
                 } else {
                     if (rsIllusionIcon == Illusion_Icon_Fox) {
@@ -977,7 +979,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                             rsIllusionOpacity = 0;
                             rsIllusionIcon = Illusion_Icon_Sabre;
                         }
-                        dInventoryPageIcon = tex_load_deferred(TEXTABLE_266_Kiosk_Fox_Icon);
+                        dInventoryPageIcon = texLoadTexture(TEXTABLE_266_Kiosk_Fox_Icon);
                     } else {
                         //Fade in Sabre icon
                         if (rsIllusionOpacity < MAX_OPACITY) {
@@ -986,7 +988,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                                 rsIllusionOpacity = MAX_OPACITY;
                             }
                         }
-                        dInventoryPageIcon = tex_load_deferred(dTextableIDs[texIdx]);
+                        dInventoryPageIcon = texLoadTexture(dTextableIDs[texIdx]);
                     }
                 }
 
@@ -1000,7 +1002,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                 }
 
                 //Draw icon
-                rcp_screen_full_write(
+                rcpScreenFullWrite(
                     &dl,
                     dInventoryPageIcon,
                     CHARACTER_ICON_X + offsetX + (rsIllusionIcon == Illusion_Icon_Fox ? 1 : 0), //shift over by 1px when using Fox icon
@@ -1011,12 +1013,12 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                     SCREEN_WRITE_TRANSLUCENT
                 );
 
-                tex_free(dInventoryPageIcon);
+                texFreeTexture(dInventoryPageIcon);
             } else {
                 //Unmodified behaviour
-                dInventoryPageIcon = tex_load_deferred(dTextableIDs[texIdx]);
+                dInventoryPageIcon = texLoadTexture(dTextableIDs[texIdx]);
 
-                rcp_screen_full_write(
+                rcpScreenFullWrite(
                     &dl,
                     dInventoryPageIcon,
                     CHARACTER_ICON_X + offsetX,
@@ -1028,7 +1030,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                 );
 
                 //TODO: for console, it might be a good idea to keep the character icon loaded until it changes?
-                tex_free(dInventoryPageIcon);
+                texFreeTexture(dInventoryPageIcon);
             }
         }
     }
@@ -1083,7 +1085,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
         }
 
         statsOpacity = sOpacityScarabs;
-        if (statsOpacity && main_get_bits(BIT_UI_Scarab_Counter_Enabled)) {
+        if (statsOpacity && mainGetBits(BIT_UI_Scarab_Counter_Enabled)) {
             sAnimFrameScarab = 0;
             if (statsOpacity == MAX_OPACITY) {
                 if (sAnimScarabSpin) {
@@ -1115,7 +1117,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                             sAnimFrameScarab = 3 - (sAnimScarabFlutterTimer / 4); //@recomp: playing flutter on 4s
                         }
                     } else {
-                        sAnimScarabFlutterTimer = rand_next(20, 255);
+                        sAnimScarabFlutterTimer = mathRnd(20, 255);
                     }
                 }
             }
@@ -1125,7 +1127,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
                 sAnimFrameScarab = 0;
             }
 
-            rcp_tile_write_x(
+            rcpTileWriteX(
                 &dl, 
                 sTextureTiles[CMDMENU_TEX_18_Scarab + sAnimFrameScarab], 
                 SCARABS_ICON_X, 
@@ -1139,15 +1141,15 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
             );
 
             sprintf(playerScarabCountText, "%d", (int)sStats.playerScarabCount);
-            font_window_set_coords(3, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-            font_window_use_font(3, FONT_DINO_SUBTITLE_FONT_1);
-            font_window_set_bg_colour(3, 0, 0, 0, 0);
-            font_window_flush_strings(3);
-            font_window_set_text_colour(3, 0xFF, 0xFF, 0xFF, 0xFF, statsOpacity);
-            font_window_add_string_xy(3, SCARABS_NUMBER_X, SCARABS_NUMBER_Y, playerScarabCountText, 1, ALIGN_TOP_LEFT);
-            font_window_set_text_colour(3, 0x14, 0x14, 0x14, 0xFF, 0xFF);
-            font_window_use_font(3, FONT_DINO_SUBTITLE_FONT_1);
-            font_window_draw(&dl, mtxs, vtxs, 3);
+            fontWindowSetCoords(3, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            fontWindowUseFont(3, FONT_DINO_SUBTITLE_FONT_1);
+            fontWindowSetBgColour(3, 0, 0, 0, 0);
+            fontWindowFlushStrings(3);
+            fontWindowSetTextColour(3, 0xFF, 0xFF, 0xFF, 0xFF, statsOpacity);
+            fontWindowAddStringXY(3, SCARABS_NUMBER_X, SCARABS_NUMBER_Y, playerScarabCountText, 1, ALIGN_TOP_LEFT);
+            fontWindowSetTextColour(3, 0x14, 0x14, 0x14, 0xFF, 0xFF);
+            fontWindowUseFont(3, FONT_DINO_SUBTITLE_FONT_1);
+            fontWindowDraw(&dl, mtxs, vtxs, 3);
         }
     }
 
@@ -1169,8 +1171,8 @@ RECOMP_PATCH void cmdmenu_update_stats(void) {
     u8 scarabFrameOffset;
     u8 i;
 
-    player = get_player();
-    sidekick = get_sidekick();
+    player = objGetPlayer();
+    sidekick = objGetSidekick();
     scarabFrameOffset = 0;
 
     stats.playerHealth = ((DLL_210_Player*)player->dll)->vtbl->get_health(player);
@@ -1200,14 +1202,14 @@ RECOMP_PATCH void cmdmenu_update_stats(void) {
 
     //Play sound when pressing R to show HUD
     if (sJoyPressedButtons & R_TRIG) {
-        gDLL_6_AMSFX->vtbl->play(NULL, SOUND_5EA_Cmdmenu_ShowHUD, MAX_VOLUME, NULL, NULL, 0, NULL);
+        dll_amSfx->Play(NULL, SOUND_5EA_Cmdmenu_ShowHUD, MAX_VOLUME, NULL, NULL, 0, NULL);
     }
 
     //Increment stat.unk14 when holding R, or when there's a target Object, or when stats are auto-shown
     //(Causes health/magic to fade in and stay on-screen a little while longer than C buttons)
     if ((sJoyHeldButtons & R_TRIG) || 
         (gDLL_2_Camera->vtbl->get_target_object() != NULL) || 
-        (sForceStatsDisplay && (camera_get_letterbox() == 0))
+        (sForceStatsDisplay && (camGetLetterbox() == 0))
     ) {
         stats.unk14 = sPrevStats.unk14 + 1;
     } else {
@@ -1255,11 +1257,11 @@ RECOMP_PATCH void cmdmenu_update_stats(void) {
                 //Optionally play a sound when the stat increases/decreases (unused)
                 if (sStats.items[i] < stats.items[i]) {
                     if (dStatChangeSounds.items[i].increased != NO_SOUND) {
-                        gDLL_6_AMSFX->vtbl->play(NULL, dStatChangeSounds.items[i].increased, MAX_VOLUME, NULL, NULL, 0, NULL);
+                        dll_amSfx->Play(NULL, dStatChangeSounds.items[i].increased, MAX_VOLUME, NULL, NULL, 0, NULL);
                     }
                 } else {
                     if (dStatChangeSounds.items[i].decreased != NO_SOUND) {
-                        gDLL_6_AMSFX->vtbl->play(NULL, dStatChangeSounds.items[i].decreased, MAX_VOLUME, NULL, NULL, 0, NULL);
+                        dll_amSfx->Play(NULL, dStatChangeSounds.items[i].decreased, MAX_VOLUME, NULL, NULL, 0, NULL);
                     }
                 }
 
@@ -1298,7 +1300,7 @@ static int sidekick_meter_handle_full(int isBlueEnergy, s8 energyAdded) {
     s8 newValue;
     s8 returnValue = 0;
 
-    sidekick = get_sidekick();
+    sidekick = objGetSidekick();
     highlighted = gDLL_2_Camera->vtbl->get_highlighted_object();
 
     //Return if the sidekick isn't who the food's being given to
@@ -1329,7 +1331,7 @@ static int sidekick_meter_handle_full(int isBlueEnergy, s8 energyAdded) {
             *statToIncrease = SIDEKICK_FOOD_MAX;
 
             //Bark
-            gDLL_6_AMSFX->vtbl->play(sidekick, 0x4B8, MAX_VOLUME, NULL, NULL, 0, NULL);
+            dll_amSfx->Play(sidekick, 0x4B8, MAX_VOLUME, NULL, NULL, 0, NULL);
             
             returnValue = 1;
         }
@@ -1343,7 +1345,7 @@ static int sidekick_meter_handle_full(int isBlueEnergy, s8 energyAdded) {
 
             //Refuse food if the meter's already fully filled with that colour
             if (*statToIncrease >= SIDEKICK_FOOD_MAX) {
-                gDLL_6_AMSFX->vtbl->play(sidekick, 0x4B8, MAX_VOLUME, NULL, NULL, 0, NULL);
+                dll_amSfx->Play(sidekick, 0x4B8, MAX_VOLUME, NULL, NULL, 0, NULL);
                 returnValue = 1;
             } else {
             //Otherwise: discard enough of the opposite-colour food icon to make space
@@ -1572,7 +1574,7 @@ RECOMP_PATCH void cmdmenu_update2(void) {
     u16 rMenuLeft = (rCControls * L_CBUTTONS) | (rDControls * L_JPAD);
     u16 rMenuDown = (rCControls * D_CBUTTONS) | (rDControls * D_JPAD);
     u16 rMenuRight = (rCControls * R_CBUTTONS) | (rDControls * R_JPAD);
-    u16 rRawDPad = joy_get_pressed_raw(0) & ALL_MENUOPEN_D_PAD; //D-right seems to be masked, so getting it separately
+    u16 rRawDPad = joyGetPressedRaw(0) & ALL_MENUOPEN_D_PAD; //D-right seems to be masked, so getting it separately
     u8 rIsInventoryOpen;
     s8 rMoveToCategory;
     s8 rMoveToPage;
@@ -1580,26 +1582,26 @@ RECOMP_PATCH void cmdmenu_update2(void) {
 
     //@recomp: set button mask
     if (rDControls) {
-        joy_disable_buttons(0, rJoyButtonMaskExtended | ALL_MENUOPEN_D_PAD);
+        joyDisableButtons(0, rJoyButtonMaskExtended | ALL_MENUOPEN_D_PAD);
     }
 
-    player = get_player();
-    sidekick = get_sidekick();
+    player = objGetPlayer();
+    sidekick = objGetSidekick();
 
     if (player == NULL) {
         return;
     }
 
     //Get controller button presses/holds
-    sJoyPressedButtons = joy_get_pressed(0) | rRawDPad;
-    sJoyHeldButtons = joy_get_buttons(0); //D-right holds not needed anyway
+    sJoyPressedButtons = joyGetPressed(0) | rRawDPad;
+    sJoyHeldButtons = joyGetButtons(0); //D-right holds not needed anyway
 
     if (player->stateFlags & OBJSTATE_IN_SEQ) {
-        joy_disable_buttons(0, rAllMenuOpenButtons);
+        joyDisableButtons(0, rAllMenuOpenButtons);
         sJoyPressedButtons &= ~(R_TRIG | rAllMenuOpenButtons);
         sJoyHeldButtons &= ~(R_TRIG | rAllMenuOpenButtons);
     } else if (rJoyButtonMaskExtended != 0) {
-        joy_disable_buttons(0, rJoyButtonMaskExtended);
+        joyDisableButtons(0, rJoyButtonMaskExtended);
         sJoyPressedButtons &= ~rJoyButtonMaskExtended;
         sJoyHeldButtons &= ~rJoyButtonMaskExtended;
     }
@@ -1619,7 +1621,7 @@ RECOMP_PATCH void cmdmenu_update2(void) {
             //C-down: Sidekick Commands
             newPageIndex = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[newPageIndex].items, TRUE)) {
-                joy_disable_buttons(0, rMenuDown);
+                joyDisableButtons(0, rMenuDown);
                 dNextPageCategory = CMDMENU_CATEGORY_2_Sidekick;
                 sInventoryPageID = newPageIndex;
             }
@@ -1627,14 +1629,14 @@ RECOMP_PATCH void cmdmenu_update2(void) {
             //C-right: Items
             newPageIndex = player->id == OBJ_Krystal ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[newPageIndex].items, FALSE)) {
-                joy_disable_buttons(0, rMenuRight);
+                joyDisableButtons(0, rMenuRight);
                 dNextPageCategory = CMDMENU_CATEGORY_3_Items;
                 sInventoryPageID = newPageIndex;
             }
         } else if ((sJoyPressedButtons & rMenuLeft) && (dPageCategory != CMDMENU_CATEGORY_4_Spells)) {
             //C-left: Magic Spells
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[CMDMENU_PAGE_6_Spells].items, FALSE)) {
-                joy_disable_buttons(0, rMenuLeft);
+                joyDisableButtons(0, rMenuLeft);
                 dNextPageCategory = CMDMENU_CATEGORY_4_Spells;
                 sInventoryPageID = CMDMENU_PAGE_6_Spells;
             }
@@ -1665,7 +1667,7 @@ RECOMP_PATCH void cmdmenu_update2(void) {
             //C-down while Closed: Open on Sidekick Commands
             newPageIndex = sidekick->id == OBJ_Kyte ? CMDMENU_PAGE_8_Sidekick_Kyte : CMDMENU_PAGE_7_Sidekick_Tricky;
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[newPageIndex].items, TRUE)) {
-                joy_disable_buttons(0, rMenuDown);
+                joyDisableButtons(0, rMenuDown);
                 dNextPageCategory = CMDMENU_CATEGORY_2_Sidekick;
                 sInventoryPageID = newPageIndex;
             }
@@ -1673,25 +1675,25 @@ RECOMP_PATCH void cmdmenu_update2(void) {
             //C-right while Closed: Open on Items
             newPageIndex = player->id == OBJ_Krystal ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[newPageIndex].items, FALSE)) {
-                joy_disable_buttons(0, rMenuRight);
+                joyDisableButtons(0, rMenuRight);
                 dNextPageCategory = CMDMENU_CATEGORY_3_Items;
                 sInventoryPageID = newPageIndex;
             }
         } else if ((!rIsInventoryOpen) && (sJoyPressedButtons & rMenuLeft) && (dPageCategory != CMDMENU_CATEGORY_4_Spells)) {
             //C-left while Closed: Open on Magic Spells
             if (cmdmenu_page_count_shown_items(dCmdmenuPages[CMDMENU_PAGE_6_Spells].items, FALSE)) {
-                joy_disable_buttons(0, rMenuLeft);
+                joyDisableButtons(0, rMenuLeft);
                 dNextPageCategory = CMDMENU_CATEGORY_4_Spells;
                 sInventoryPageID = CMDMENU_PAGE_6_Spells;
             }
         } else if (rIsInventoryOpen && (sJoyPressedButtons & rMenuLeft) && cmdmenu_new_get_next_category_right(player, sidekick, &rMoveToCategory, &rMoveToPage)) {
             //C-left while Open: go to previous category
-            joy_disable_buttons(0, rMenuLeft);
+            joyDisableButtons(0, rMenuLeft);
             dNextPageCategory = rMoveToCategory;
             sInventoryPageID = rMoveToPage;
         } else if (rIsInventoryOpen && (sJoyPressedButtons & rMenuRight) && cmdmenu_new_get_next_category_left(player, sidekick, &rMoveToCategory, &rMoveToPage)) {
             //C-right while Open: go to next category
-            joy_disable_buttons(0, rMenuRight);
+            joyDisableButtons(0, rMenuRight);
             dNextPageCategory = rMoveToCategory;
             sInventoryPageID = rMoveToPage;
         } else if (sUsedItemPageID != EXIT) {
@@ -1719,16 +1721,16 @@ RECOMP_PATCH void cmdmenu_update2(void) {
         if (cmdmenu_is_inventory_closed()) {
             switch (dNextPageCategory) {
             case CMDMENU_CATEGORY_3_Items:
-                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_5EC_Cmdmenu_OpenBag, MAX_VOLUME, NULL, NULL, 0, NULL);
+                dll_amSfx->Play(NULL, SOUND_5EC_Cmdmenu_OpenBag, MAX_VOLUME, NULL, NULL, 0, NULL);
                 break;
             case CMDMENU_CATEGORY_2_Sidekick:
-                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_5F0_Cmdmenu_OpenSidekickMenu, MAX_VOLUME, NULL, NULL, 0, NULL);
+                dll_amSfx->Play(NULL, SOUND_5F0_Cmdmenu_OpenSidekickMenu, MAX_VOLUME, NULL, NULL, 0, NULL);
                 break;
             case CMDMENU_CATEGORY_4_Spells:
-                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_5ED_Cmdmenu_OpenSpellBook, MAX_VOLUME, NULL, NULL, 0, NULL);
+                dll_amSfx->Play(NULL, SOUND_5ED_Cmdmenu_OpenSpellBook, MAX_VOLUME, NULL, NULL, 0, NULL);
                 break;
             default:
-                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_28D_Cmdmenu_OpenBag_HighPitch, MAX_VOLUME, NULL, NULL, 0, NULL);
+                dll_amSfx->Play(NULL, SOUND_28D_Cmdmenu_OpenBag_HighPitch, MAX_VOLUME, NULL, NULL, 0, NULL);
                 break;
             }
 
@@ -1810,7 +1812,7 @@ RECOMP_PATCH void cmdmenu_update2(void) {
         }
     }
 
-    joy_disable_buttons(0, rAllMenuOpenButtons);
+    joyDisableButtons(0, rAllMenuOpenButtons);
     sJoyDisabledButtons = 0;
 }
 
@@ -1850,13 +1852,13 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
     u16 rMenuDown = (rCControls * D_CBUTTONS) | (rDControls * D_JPAD);
     u16 rMenuRight = (rCControls * R_CBUTTONS) | (rDControls * R_JPAD);
     u16 rMenuUp = (rCControls * U_CBUTTONS) | (rDControls * U_JPAD);
-    u16 rRawDPad = joy_get_pressed_raw(0) & (ALL_MENUOPEN_D_PAD | U_JPAD); //D-right seems to be masked, so getting it separately
+    u16 rRawDPad = joyGetPressedRaw(0) & (ALL_MENUOPEN_D_PAD | U_JPAD); //D-right seems to be masked, so getting it separately
     u32 rJoyHeldButtons = 0;
     static s8 rsHoldDirectionTimer = NEW_CONTROLS_CONTINUOUS_SCROLL_WAIT;
     static s16 rsHeldButton = 0;
     u16 rJoyButtonMaskExtended = cmdmenu_get_extended_disabled_buttons();
 
-    player = get_player();
+    player = objGetPlayer();
 
     isSidekickMenu = FALSE;
 
@@ -1867,16 +1869,16 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
 
     //Lock/unlock accessing the C-button scroll menu
     if (player->stateFlags & OBJSTATE_IN_SEQ) {
-        joy_disable_buttons(0, (rCControls * (ALL_MENUOPEN_C_BUTTONS | U_CBUTTONS)) | (rDControls * (ALL_MENUOPEN_D_PAD | U_JPAD)));
+        joyDisableButtons(0, (rCControls * (ALL_MENUOPEN_C_BUTTONS | U_CBUTTONS)) | (rDControls * (ALL_MENUOPEN_D_PAD | U_JPAD)));
     } else if (rJoyButtonMaskExtended != 0) {
-        joy_disable_buttons(0, rJoyButtonMaskExtended);
+        joyDisableButtons(0, rJoyButtonMaskExtended);
     }
 
     //Get button presses (or simulated ones, for tutorial sequences)
     if (sShouldOverrideJoypadButtons) {
         sJoyPressedButtons = sJoyPressedButtonsOverride;
     } else {
-        sJoyPressedButtons = joy_get_pressed(0) | rRawDPad; //@recomp: optionally factor in D-pad
+        sJoyPressedButtons = joyGetPressed(0) | rRawDPad; //@recomp: optionally factor in D-pad
         rJoyHeldButtons = rNewControls ? gContPads[gVirtualContPortMap[0]].button : 0; //@recomp: get held buttons (for continuous scrolling)
 
         if ((player->stateFlags & OBJSTATE_IN_SEQ) || (rJoyButtonMaskExtended != 0)) {
@@ -1926,7 +1928,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
 
     //@recomp: disable C-up while inventory open (to prevent entering 1st-person while navigating up)
     if (rNewControls && (dInventoryShow > 0)) {
-        joy_disable_buttons(0, rJoyButtonMaskExtended | rMenuUp);
+        joyDisableButtons(0, rJoyButtonMaskExtended | rMenuUp);
     }
 
     //Play item use sound if needed
@@ -1934,10 +1936,10 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
     case CMDMENU_SOUND_NONE:
         break;
     case CMDMENU_SOUND_ITEM:
-        gDLL_6_AMSFX->vtbl->play(NULL, SOUND_79C_Cmdmenu_CantUse, MAX_VOLUME, NULL, NULL, 0, NULL);
+        dll_amSfx->Play(NULL, SOUND_79C_Cmdmenu_CantUse, MAX_VOLUME, NULL, NULL, 0, NULL);
         break;
     case CMDMENU_SOUND_PAGE:
-        gDLL_6_AMSFX->vtbl->play(NULL, SOUND_814_Cmdmenu_OpenSubMenu, MAX_VOLUME, NULL, NULL, 0, NULL);
+        dll_amSfx->Play(NULL, SOUND_814_Cmdmenu_OpenSubMenu, MAX_VOLUME, NULL, NULL, 0, NULL);
         break;
     }
 
@@ -2009,7 +2011,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
                 (sInventoryScrollOffset < 8) && 
                 (dInventoryIsScrolling == FALSE)
             ) {
-                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_28A_Cmdmenu_MoveSelection, MAX_VOLUME, NULL, NULL, 0, NULL);
+                dll_amSfx->Play(NULL, SOUND_28A_Cmdmenu_MoveSelection, MAX_VOLUME, NULL, NULL, 0, NULL);
                 dInventoryMovesQueued++;
 
                 if (sInventoryScrollOffset != 0) {
@@ -2023,7 +2025,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
                 (SQ(sInventoryScrollOffset) < SQ(8)) &&
                 (dInventoryIsScrolling == FALSE)
             ) {
-                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_28A_Cmdmenu_MoveSelection, MAX_VOLUME, NULL, NULL, 0, NULL);
+                dll_amSfx->Play(NULL, SOUND_28A_Cmdmenu_MoveSelection, MAX_VOLUME, NULL, NULL, 0, NULL);
                 dInventoryMovesQueued++;
 
                 if (sInventoryScrollOffset != 0) {
@@ -2033,7 +2035,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
                 (SQ(sInventoryScrollOffset) < SQ(8)) && 
                 (dInventoryIsScrolling == FALSE)
             ) {
-                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_28A_Cmdmenu_MoveSelection, MAX_VOLUME, NULL, NULL, 0, NULL);
+                dll_amSfx->Play(NULL, SOUND_28A_Cmdmenu_MoveSelection, MAX_VOLUME, NULL, NULL, 0, NULL);
                 dInventoryMovesQueued--;
 
                 if (sInventoryScrollOffset != 0) {
@@ -2112,7 +2114,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
             }
         //Close the inventory with the B button
         } else if (sJoyPressedButtons & B_BUTTON) {
-            gDLL_6_AMSFX->vtbl->play(NULL, SOUND_28C_Cmdmenu_Close, MAX_VOLUME, NULL, NULL, 0, NULL);
+            dll_amSfx->Play(NULL, SOUND_28C_Cmdmenu_Close, MAX_VOLUME, NULL, NULL, 0, NULL);
             cmdmenu_close_inventory();
 
         //Use an inventory item with the A button
@@ -2121,18 +2123,18 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
             
             //Items/Spells
             if (isSidekickMenu == FALSE) {
-                obj_send_mesg(player, pageMsg, NULL, (void*)usedGamebit);
+                objSendMesg(player, pageMsg, NULL, (void*)usedGamebit);
                 
                 sUsedItemGamebitID = usedGamebit;
                 sUsedItemSoundType = sMenuItemUseSounds[sMenuSelectedItemIdx];
                 sUsedItemPageID = sMenuItemOpenPageIDs[sMenuSelectedItemIdx];
-                gDLL_6_AMSFX->vtbl->play(NULL, SOUND_28B_Cmdmenu_Use, MAX_VOLUME, NULL, NULL, 0, NULL);
+                dll_amSfx->Play(NULL, SOUND_28B_Cmdmenu_Use, MAX_VOLUME, NULL, NULL, 0, NULL);
                 cmdmenu_close_inventory();
                 
             //Sidekick commands
             } else {
                 if (sMenuItemVisibilities[sMenuSelectedItemIdx]) {
-                    gDLL_6_AMSFX->vtbl->play(NULL, SOUND_28B_Cmdmenu_Use, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    dll_amSfx->Play(NULL, SOUND_28B_Cmdmenu_Use, MAX_VOLUME, NULL, NULL, 0, NULL);
                     cmdmenu_close_inventory();
                     sUsedItemGamebitID = usedGamebit;
                     sUsedItemSoundType = CMDMENU_SOUND_NONE;
@@ -2145,7 +2147,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
                         Possibly intended for Spells instead, since they're the only kind of 
                         inventory item that can have their sMenuItemVisibilities set to FALSE?
                     */
-                    gDLL_6_AMSFX->vtbl->play(NULL, SOUND_A0_Cmdmenu_Item_Locked, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    dll_amSfx->Play(NULL, SOUND_A0_Cmdmenu_Item_Locked, MAX_VOLUME, NULL, NULL, 0, NULL);
                     sUsedItemGamebitID = NO_GAMEBIT;
                     sUsedItemSoundType = CMDMENU_SOUND_NONE;
                 }
@@ -2158,7 +2160,7 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
         sInventoryFrameCounter = 0;
         dInventoryMovesQueued = 0;
     } else {
-        joy_disable_buttons(0, A_BUTTON | B_BUTTON);
+        joyDisableButtons(0, A_BUTTON | B_BUTTON);
     }
 
     *pageSelectionIndex = sMenuSelectedItemIdx;
@@ -2415,14 +2417,14 @@ RECOMP_PATCH void cmdmenu_draw_info_scroll(Gfx** gdl, Mtx** mtxs, Vertex** vtxs)
     dl = *gdl;
 
     gDPSetCombineMode(dl, G_CC_MODULATEIA_PRIM, G_CC_MODULATEIA_PRIM);
-    dl_apply_combine(&dl);
+    dlApplyCombine(&dl);
     gDPSetOtherMode(dl,
         G_AD_PATTERN | G_CD_MAGICSQ | G_CK_NONE | G_TC_FILT | G_TF_POINT | G_TT_NONE | G_TL_TILE | G_TD_CLAMP | G_TP_NONE | G_CYC_1CYCLE | G_PM_NPRIMITIVE, 
         G_AC_NONE | G_ZS_PIXEL | G_RM_XLU_SURF | G_RM_XLU_SURF2);
-    dl_apply_other_mode(&dl);
+    dlApplyOtherMode(&dl);
     gSPLoadGeometryMode(dl, G_SHADE | G_SHADING_SMOOTH);
-    dl_apply_geometry_mode(&dl);
-    dl_set_prim_color(&dl, 255, 255, 255, dInfoScrollOpacity);
+    dlApplyGeometryMode(&dl);
+    dlSetPrimColor(&dl, 255, 255, 255, dInfoScrollOpacity);
 
     //Get dimensions (note: coords multiplied by 4 for gSPTextureRectangle)
     x = dInfoScrollX << 2;
@@ -2477,7 +2479,7 @@ RECOMP_PATCH void cmdmenu_draw_info_scroll(Gfx** gdl, Mtx** mtxs, Vertex** vtxs)
     //Draw the top/bottom rolls' page shadows
     if (sInfoScrollUnrollY > INFO_SCROLL_PAGE_SHADOW_HEIGHT) {
         cmdmenu_gfx_set_texture(&dl, sTextures[CMDMENU_TEX_07_InfoScroll_SelfShadow], 0);
-        dl_set_prim_color(&dl, 255, 128, 128, 128);
+        dlSetPrimColor(&dl, 255, 128, 128, 128);
         
         //Top shadow
         tempY = y;
@@ -2506,7 +2508,7 @@ RECOMP_PATCH void cmdmenu_draw_info_scroll(Gfx** gdl, Mtx** mtxs, Vertex** vtxs)
         gDLBuilder->needsPipeSync = TRUE;
 
         //Restore prim colour
-        dl_set_prim_color(&dl, 255, 255, 255, dInfoScrollOpacity);
+        dlSetPrimColor(&dl, 255, 255, 255, dInfoScrollOpacity);
     }
 
     //Draw the top/bottom rolls
@@ -2608,7 +2610,7 @@ RECOMP_PATCH void cmdmenu_draw_info_scroll(Gfx** gdl, Mtx** mtxs, Vertex** vtxs)
     }
 
     //Restore prim colour
-    dl_set_prim_color(&dl, 255, 255, 255, 255);
+    dlSetPrimColor(&dl, 255, 255, 255, 255);
 
     //Return early if there's no gametext
     if (dInfoScrollTextID <= NO_GAMETEXT) {
@@ -2640,28 +2642,28 @@ RECOMP_PATCH void cmdmenu_draw_info_scroll(Gfx** gdl, Mtx** mtxs, Vertex** vtxs)
 
     //Draw text if the scroll's open
     if (sInfoScrollUnrollY > 0) {
-        font_window_set_coords(3, 
+        fontWindowSetCoords(3, 
             /*x1*/ dInfoScrollX - dInfoScrollWidthHalf, 
             /*y1*/ dInfoScrollY, 
             /*x2*/ dInfoScrollX + dInfoScrollWidthHalf, 
             /*y2*/ dInfoScrollY + sInfoScrollUnrollY);
-        font_window_use_font(3, FONT_DINO_SUBTITLE_FONT_1);
-        font_window_set_bg_colour(3, 0, 0, 0, 0);
-        font_window_flush_strings(3);
-        font_window_set_text_colour(3, 0, 0, 255, 255, 255);
+        fontWindowUseFont(3, FONT_DINO_SUBTITLE_FONT_1);
+        fontWindowSetBgColour(3, 0, 0, 0, 0);
+        fontWindowFlushStrings(3);
+        fontWindowSetTextColour(3, 0, 0, 255, 255, 255);
 
         //Print the text lines
         for (y = INFO_SCROLL_TEXT_Y, lineIdx = 0; lineIdx <= 3; lineIdx++) {
             if (dInfoScrollStrings[lineIdx] == NULL) {
                 break;
             }
-            font_window_add_string_xy(3, -0x8000, y, dInfoScrollStrings[lineIdx], 1, ALIGN_TOP_CENTER);
-            font_window_set_text_colour(3, 20, 20, 20, 255, 255);
-            font_window_use_font(3, FONT_DINO_SUBTITLE_FONT_1);
+            fontWindowAddStringXY(3, -0x8000, y, dInfoScrollStrings[lineIdx], 1, ALIGN_TOP_CENTER);
+            fontWindowSetTextColour(3, 20, 20, 20, 255, 255);
+            fontWindowUseFont(3, FONT_DINO_SUBTITLE_FONT_1);
             y += INFO_SCROLL_LINE_HEIGHT;
         }
 
-        font_window_draw(&dl, mtxs, vtxs, 3);
+        fontWindowDraw(&dl, mtxs, vtxs, 3);
     }
 
     *gdl = dl;
@@ -2693,7 +2695,7 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     s32 screenX;
     s32 screenY;
 
-    player = get_player();
+    player = objGetPlayer();
     if (player == NULL) {
         return;
     }
@@ -2705,13 +2707,13 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
 
     //Draw Spell reticle when aiming (@bug: x coord not adjusted in widescreen)
     if (((DLL_210_Player*)player->dll)->vtbl->func77(player, &screenX, &screenY)) {
-        tex_animate(sCrosshairTex, &sCrosshairAnimRenderFlags, &sCrosshairAnimProgress);
+        texAnimateTexture(sCrosshairTex, &sCrosshairAnimRenderFlags, &sCrosshairAnimProgress);
         
         #ifdef DINOMOD_ROM_PATCH
         {
             if (D_8008C890) {
                 //Widescreen aspect
-                rcp_screen_full_write(
+                rcpScreenFullWrite(
                     gdl, 
                     sCrosshairTex, 
                     (u32)(screenX*0.75f) - (AIMING_RETICLE_WIDTH/2) + 43, 
@@ -2723,7 +2725,7 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                 );
             } else {
                 //Standard aspect
-                rcp_screen_full_write(
+                rcpScreenFullWrite(
                     gdl, 
                     sCrosshairTex, 
                     screenX - (AIMING_RETICLE_WIDTH/2), 
@@ -2736,7 +2738,7 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             }
         }
         #else
-        rcp_screen_full_write(
+        rcpScreenFullWrite(
             gdl, 
             sCrosshairTex, 
             screenX - (AIMING_RETICLE_WIDTH/2), 
@@ -2751,7 +2753,7 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
 
     cmdmenu_draw_player_stats_custom(gdl, mtxs, vtxs);
 
-    viSize = vi_get_current_size();
+    viSize = viGetCurrentSize();
     gDPSetScissor((*gdl)++, G_SC_NON_INTERLACE, 
         0, 
         0, 
@@ -2775,7 +2777,7 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     cmdmenu_draw_info_scroll(gdl, mtxs, vtxs);
     cmdmenu_draw_tutorial_textbox(gdl, mtxs, vtxs);
     cmdmenu_draw_main_custom(gdl, mtxs, vtxs); //@recomp
-    camera_apply_scissor(gdl);
+    camApplyScissor(gdl);
 
     // @recomp: Reset scissor align
     #ifndef DINOMOD_ROM_PATCH
@@ -2788,7 +2790,7 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
   */
 static _Bool cmdmenu_is_important_sequence_playing() {
     Player_Data* playerData;
-    Object* player = get_player();
+    Object* player = objGetPlayer();
     if (!player || !player->data) {
         return FALSE;
     }
@@ -2796,7 +2798,7 @@ static _Bool cmdmenu_is_important_sequence_playing() {
     playerData = player->data;
 
     //Check if the letterbox is active, and the player is either in a sequence or locked
-    if (camera_get_letterbox() && (
+    if (camGetLetterbox() && (
             (player->stateFlags & OBJSTATE_IN_SEQ) ||                                       //Player involved in sequence
             (!(player->stateFlags & OBJSTATE_IN_SEQ) && (playerData->flags & 0x200000))     //Player not in sequence, but locked
         )
@@ -2835,10 +2837,10 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     u8 rConfigActiveIconOverlapFix = recomp_get_config_u32("cmdmenu_active_icon_overlap");
     u8 rConfigActiveIconFade = recomp_get_config_u32("cmdmenu_active_icon_fade");
 
-    player = get_player();
+    player = objGetPlayer();
     offsetX = 0;
     offsetY = 0;
-    sidekick = get_sidekick();
+    sidekick = objGetSidekick();
 
     // @recomp: Align item popup to left
     #ifndef DINOMOD_ROM_PATCH
@@ -2878,8 +2880,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             }
 
             if (!rConfigActiveIconFade || (activeSpellGamebit != NO_GAMEBIT) || (rsOpacityActiveSpell == 0)) {
-                tex_free(sActiveSpellRing);
-                tex_free(sActiveSpellIcon);
+                texFreeTexture(sActiveSpellRing);
+                texFreeTexture(sActiveSpellIcon);
                 sPrevActiveSpellGamebit = NO_GAMEBIT;
                 sActiveSpellIcon = NULL;
             }
@@ -2896,8 +2898,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
 
             spellTexTableID = cmdmenu_get_spell_textable(activeSpellGamebit);
             if (spellTexTableID != NO_TEXTURE) {
-                sActiveSpellIcon = tex_load_deferred(spellTexTableID);
-                sActiveSpellRing = tex_load_deferred(TEXTABLE_574_CMDMENU_Active_Spell_Ring);
+                sActiveSpellIcon = texLoadTexture(spellTexTableID);
+                sActiveSpellRing = texLoadTexture(TEXTABLE_574_CMDMENU_Active_Spell_Ring);
             }
 
             sPrevActiveSpellGamebit = activeSpellGamebit; //@recomp: only set this when icon is shown
@@ -2909,12 +2911,12 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             case ACTIVEICON_MOVE:
                 rActiveIconCoord = lerp_float(ease_in_out_quad(rsLerpActiveSpell), ACTIVE_SPELL_X, ACTIVE_SPELL_X - 48);
 
-                rcp_screen_full_write(gdl, sActiveSpellRing, rActiveIconCoord,                                  ACTIVE_SPELL_Y,      0, 0, rsOpacityActiveSpell, SCREEN_WRITE_TRANSLUCENT);
-                rcp_screen_full_write(gdl, sActiveSpellIcon, (rActiveIconCoord + ACTIVE_SPELL_ICON_OFFSET_X),   ACTIVE_SPELL_ICON_Y, 0, 0, rsOpacityActiveSpell, SCREEN_WRITE_TRANSLUCENT);
+                rcpScreenFullWrite(gdl, sActiveSpellRing, rActiveIconCoord,                                  ACTIVE_SPELL_Y,      0, 0, rsOpacityActiveSpell, SCREEN_WRITE_TRANSLUCENT);
+                rcpScreenFullWrite(gdl, sActiveSpellIcon, (rActiveIconCoord + ACTIVE_SPELL_ICON_OFFSET_X),   ACTIVE_SPELL_ICON_Y, 0, 0, rsOpacityActiveSpell, SCREEN_WRITE_TRANSLUCENT);
                 break;
             default:
-                rcp_screen_full_write(gdl, sActiveSpellRing, ACTIVE_SPELL_X,      ACTIVE_SPELL_Y,      0, 0, rsOpacityActiveSpell, SCREEN_WRITE_TRANSLUCENT);
-                rcp_screen_full_write(gdl, sActiveSpellIcon, ACTIVE_SPELL_ICON_X, ACTIVE_SPELL_ICON_Y, 0, 0, rsOpacityActiveSpell, SCREEN_WRITE_TRANSLUCENT);
+                rcpScreenFullWrite(gdl, sActiveSpellRing, ACTIVE_SPELL_X,      ACTIVE_SPELL_Y,      0, 0, rsOpacityActiveSpell, SCREEN_WRITE_TRANSLUCENT);
+                rcpScreenFullWrite(gdl, sActiveSpellIcon, ACTIVE_SPELL_ICON_X, ACTIVE_SPELL_ICON_Y, 0, 0, rsOpacityActiveSpell, SCREEN_WRITE_TRANSLUCENT);
                 break;
             }
         }
@@ -2943,8 +2945,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             }
 
             if (!rConfigActiveIconFade || (sideCommandIndex > 0) || (rsOpacityActiveSideCommand == 0)) {
-                tex_free(sActiveSidekickCommandRing);
-                tex_free(sActiveSidekickCommandIcon);
+                texFreeTexture(sActiveSidekickCommandRing);
+                texFreeTexture(sActiveSidekickCommandIcon);
                 sPrevSidekickCommandIndex = NO_SIDEKICK_COMMAND;
                 sActiveSidekickCommandIcon = NULL;
             }
@@ -2961,8 +2963,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
 
             commandTexTableID = dCommandTextableIDs[sideCommandIndex];
             if (commandTexTableID != NO_TEXTURE) {
-                sActiveSidekickCommandIcon = tex_load_deferred(commandTexTableID);
-                sActiveSidekickCommandRing = tex_load_deferred(TEXTABLE_584_CMDMENU_Active_Sidekick_Command_Ring);
+                sActiveSidekickCommandIcon = texLoadTexture(commandTexTableID);
+                sActiveSidekickCommandRing = texLoadTexture(TEXTABLE_584_CMDMENU_Active_Sidekick_Command_Ring);
             }
 
             sPrevSidekickCommandIndex = sideCommandIndex; //@recomp: only set this when icon is shown
@@ -2974,8 +2976,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             case ACTIVEICON_MOVE:
                 rActiveIconCoord = lerp_float(ease_in_out_quad(rsLerpActiveSpell), ACTIVE_SIDECOMMAND_Y, ACTIVE_SPELL_Y);
 
-                rcp_screen_full_write(gdl, sActiveSidekickCommandRing, ACTIVE_SIDECOMMAND_X,      rActiveIconCoord,                                0, 0, rsOpacityActiveSideCommand, SCREEN_WRITE_TRANSLUCENT);
-                rcp_screen_full_write(gdl, sActiveSidekickCommandIcon, ACTIVE_SIDECOMMAND_ICON_X, (rActiveIconCoord + ACTIVE_SPELL_ICON_OFFSET_Y), 0, 0, rsOpacityActiveSideCommand, SCREEN_WRITE_TRANSLUCENT);
+                rcpScreenFullWrite(gdl, sActiveSidekickCommandRing, ACTIVE_SIDECOMMAND_X,      rActiveIconCoord,                                0, 0, rsOpacityActiveSideCommand, SCREEN_WRITE_TRANSLUCENT);
+                rcpScreenFullWrite(gdl, sActiveSidekickCommandIcon, ACTIVE_SIDECOMMAND_ICON_X, (rActiveIconCoord + ACTIVE_SPELL_ICON_OFFSET_Y), 0, 0, rsOpacityActiveSideCommand, SCREEN_WRITE_TRANSLUCENT);
                 break;
             case ACTIVEICON_HIDE:
                 //Hide Sidekick Command icon when inventory open
@@ -2983,8 +2985,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                     break;
                 }
             default:
-                rcp_screen_full_write(gdl, sActiveSidekickCommandRing, ACTIVE_SIDECOMMAND_X,      ACTIVE_SIDECOMMAND_Y,      0, 0, rsOpacityActiveSideCommand, SCREEN_WRITE_TRANSLUCENT);
-                rcp_screen_full_write(gdl, sActiveSidekickCommandIcon, ACTIVE_SIDECOMMAND_ICON_X, ACTIVE_SIDECOMMAND_ICON_Y, 0, 0, rsOpacityActiveSideCommand, SCREEN_WRITE_TRANSLUCENT);
+                rcpScreenFullWrite(gdl, sActiveSidekickCommandRing, ACTIVE_SIDECOMMAND_X,      ACTIVE_SIDECOMMAND_Y,      0, 0, rsOpacityActiveSideCommand, SCREEN_WRITE_TRANSLUCENT);
+                rcpScreenFullWrite(gdl, sActiveSidekickCommandIcon, ACTIVE_SIDECOMMAND_ICON_X, ACTIVE_SIDECOMMAND_ICON_Y, 0, 0, rsOpacityActiveSideCommand, SCREEN_WRITE_TRANSLUCENT);
                 break;
             }
         }
@@ -3008,7 +3010,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     //@recomp: draw top of the scroll here instead (so icons draw on top of it)
     #ifdef FIX_ICON_STRIP_PIXEL_ROW_ONE
     if (dInventoryOpacity != 0) {
-        rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
+        rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
     }
     #endif
 
@@ -3125,7 +3127,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                         //Draw icon
                         if (track_func_80041E08()) {
                             //Widescreen aspect
-                            rcp_tile_write(
+                            rcpTileWrite(
                                 gdl, 
                                 sTempIcon, 
                                 MENU_ITEM_X - 1, 
@@ -3134,7 +3136,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                             );
                         } else {
                             //Standard aspect
-                            rcp_tile_write(
+                            rcpTileWrite(
                                 gdl, 
                                 sTempIcon, 
                                 MENU_ITEM_X, 
@@ -3147,7 +3149,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                         if (sMenuItemQuantities[itemIdx] > 1) {
                             sTempIcon->tex = sInventoryStackNumbersTex;
                             sTempIcon->animProgress = (sMenuItemQuantities[itemIdx] - 2) << 8; //Numbers only shown from 2 onwards (up to 10)
-                            rcp_tile_write(
+                            rcpTileWrite(
                                 gdl, 
                                 sTempIcon, 
                                 MENU_ITEM_QUANTITY_X, 
@@ -3160,7 +3162,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                     //Draw empty tile
                     if (track_func_80041E08()) {
                         //Widescreen aspect
-                        rcp_tile_write(
+                        rcpTileWrite(
                             gdl, 
                             sTextureTiles[CMDMENU_TEX_00_Scroll_BG], 
                             MENU_ITEM_X - 1, 
@@ -3169,7 +3171,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                         );
                     } else {
                         //Standard aspect
-                        rcp_tile_write(
+                        rcpTileWrite(
                             gdl, 
                             sTextureTiles[CMDMENU_TEX_00_Scroll_BG], 
                             MENU_ITEM_X, 
@@ -3187,10 +3189,10 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             }
 
             //Draw a selection square around the currently highlighted item
-            rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_31_Highlight_Corner_Top_Left],     ITEM_HL_X1, (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y1, 255, 255, 255, dInventoryOpacity);
-            rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_32_Highlight_Corner_Top_Right],    ITEM_HL_X2, (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y1, 255, 255, 255, dInventoryOpacity);
-            rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_33_Highlight_Corner_Bottom_Left],  ITEM_HL_X1, (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y2, 255, 255, 255, dInventoryOpacity);
-            rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_34_Highlight_Corner_Bottom_Right], ITEM_HL_X2, (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y2, 255, 255, 255, dInventoryOpacity);
+            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_31_Highlight_Corner_Top_Left],     ITEM_HL_X1, (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y1, 255, 255, 255, dInventoryOpacity);
+            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_32_Highlight_Corner_Top_Right],    ITEM_HL_X2, (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y1, 255, 255, 255, dInventoryOpacity);
+            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_33_Highlight_Corner_Bottom_Left],  ITEM_HL_X1, (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y2, 255, 255, 255, dInventoryOpacity);
+            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_34_Highlight_Corner_Bottom_Right], ITEM_HL_X2, (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y2, 255, 255, 255, dInventoryOpacity);
             
             //Restore full-screen scissor
             cmdmenu_gfx_set_screen_scissor(gdl);
@@ -3199,7 +3201,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
         #ifdef FIX_ICON_STRIP_PIXEL_ROW_ONE
         //@recomp: draw bottom of the scroll here instead
         if (dInventoryOpacity != 0) {
-            rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], 
+            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], 
                 MENU_SCROLL_X, 
                 MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY - 1, //@recomp: 1px higher
                 255, 255, 255, dInventoryOpacity);
@@ -3207,8 +3209,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
         #else
         //@recomp: Draw top & bottom of the scroll here instead
         if (dInventoryOpacity != 0) {
-            rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
-            rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], MENU_SCROLL_X, MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY, 255, 255, 255, dInventoryOpacity);
+            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
+            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], MENU_SCROLL_X, MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY, 255, 255, 255, dInventoryOpacity);
         }
         #endif
 
@@ -3267,8 +3269,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
 
         //Draw page icon
         if (iconOpacity && pageIcon) {
-            dInventoryPageIcon = tex_load_deferred(dTextableIDs[pageIcon]);
-            rcp_screen_full_write(
+            dInventoryPageIcon = texLoadTexture(dTextableIDs[pageIcon]);
+            rcpScreenFullWrite(
                 gdl, 
                 dInventoryPageIcon, 
                 PAGE_ICON_X + offsetX,
@@ -3278,7 +3280,7 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                 iconOpacity, 
                 SCREEN_WRITE_TRANSLUCENT
             );
-            tex_free(dInventoryPageIcon);
+            texFreeTexture(dInventoryPageIcon);
         }
     
         #if DEBUG_INVENTORY_SCROLLING
@@ -3343,9 +3345,9 @@ RECOMP_PATCH s32 cmdmenu_get_target_objects(Object **targetObjects, s32 maxObjec
     s32 targetCount;
     s32 yaw;
 
-    set_camera_selector(0);
-    camera = get_main_camera();
-    objects = get_world_objects(&index, &count);
+    camSetCameraSelector(0);
+    camera = camGetMain();
+    objects = objGetObjects(&index, &count);
 
     //Get the subset of Objects that can be targetted
     for (targetCount = 0, i = index; i < count; i++) {
@@ -3358,12 +3360,12 @@ RECOMP_PATCH s32 cmdmenu_get_target_objects(Object **targetObjects, s32 maxObjec
             (targetCount < maxObjects) && 
             (arg3 & 1)
         ) {
-            get_object_child_position(obj, &objX, &objY, &objZ);
+            camGetObjectChildPosition(obj, &objX, &objY, &objZ);
             dx = objX - camera->srt.transl.x;
             dy = objY - camera->srt.transl.y;
             dz = objZ - camera->srt.transl.z;
             if ((SQ(dx) + SQ(dy) + SQ(dz)) < SQ(range)) {
-                yaw = camera->srt.yaw - (u16)(M_90_DEGREES - arctan2_f(dx, dz));
+                yaw = camera->srt.yaw - (u16)(M_90_DEGREES - mathAtan2f(dx, dz));
                 CIRCLE_WRAP(yaw);
                 if (yaw < -10000 && yaw > -22000) {
                     targetObjects[targetCount++] = obj;
@@ -3449,8 +3451,8 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
     SidekickStats* dinoStats;
     u8 isSidekickFoodSelected;
 
-    sidekick = get_sidekick();
-    player = get_player();
+    sidekick = objGetSidekick();
+    player = objGetPlayer();
     isKyte = FALSE;
     cIconFlags = CIcon_FLAG_None;
 
@@ -3491,8 +3493,8 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
                 if (cIconFlags & CIcon_FLAG_Have_Items) {
                     //With inventory bag
                     texIdx = CMDMENU_TEX_47_RightButton_With_Bag;
-                    dInventoryPageIcon = tex_load_deferred(dTextableIDs[texIdx]);
-                    rcp_screen_full_write(gdl, 
+                    dInventoryPageIcon = texLoadTexture(dTextableIDs[texIdx]);
+                    rcpScreenFullWrite(gdl, 
                         dInventoryPageIcon, 
                         C_BUTTONS_RIGHT_BAG_X, 
                         C_BUTTONS_RIGHT_BAG_Y, 
@@ -3501,11 +3503,11 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
                         sOpacityR, 
                         SCREEN_WRITE_TRANSLUCENT
                     );
-                    tex_free(dInventoryPageIcon);
+                    texFreeTexture(dInventoryPageIcon);
                 } else {
                     //Empty C-right button
                     texIdx = CMDMENU_TEX_41_C_Right;
-                    rcp_tile_write(
+                    rcpTileWrite(
                         gdl,
                         sTextureTiles[texIdx], 
                         C_BUTTONS_RIGHT_EMPTY_X, 
@@ -3537,8 +3539,8 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
                     */
                     //TODO: fix condition not being met
 
-                    dInventoryPageIcon = tex_load_deferred(dTextableIDs[texIdx]);
-                    rcp_screen_full_write(
+                    dInventoryPageIcon = texLoadTexture(dTextableIDs[texIdx]);
+                    rcpScreenFullWrite(
                         gdl, 
                         dInventoryPageIcon, 
                         C_BUTTONS_LEFT_DOWN_BOOK_SIDEKICK_X, 
@@ -3548,17 +3550,17 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
                         sOpacityR, 
                         SCREEN_WRITE_TRANSLUCENT
                     );
-                    tex_free(dInventoryPageIcon);
+                    texFreeTexture(dInventoryPageIcon);
                 } else {
                     //Draw empty C-down and C-left buttons
-                    rcp_tile_write(
+                    rcpTileWrite(
                         gdl,
                         sTextureTiles[CMDMENU_TEX_37_C_Down], 
                         C_BUTTONS_DOWN_EMPTY_X, 
                         C_BUTTONS_DOWN_EMPTY_Y, 
                         255, 255, 255, sOpacityR
                     );
-                    rcp_tile_write(
+                    rcpTileWrite(
                         gdl, 
                         sTextureTiles[CMDMENU_TEX_39_C_Left], 
                         C_BUTTONS_LEFT_EMPTY_X, 
@@ -3576,8 +3578,8 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
 
     //Draw the top/bottom of the inventory scroll (@recomp: drawn with the rest of the inventory instead)
     // if (dInventoryOpacity != 0) {
-    //     rcp_tile_write(&dl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
-    //     rcp_tile_write(&dl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], MENU_SCROLL_X, MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY, 255, 255, 255, dInventoryOpacity);
+    //     rcpTileWrite(&dl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
+    //     rcpTileWrite(&dl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], MENU_SCROLL_X, MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY, 255, 255, 255, dInventoryOpacity);
     // }
 
     //Draw the sidekick food meter 
@@ -3671,7 +3673,7 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
                 }
                 
                 //Draw icons (in 2x4 grid: starting top-right to bottom-right, then top-left to bottom-left)
-                rcp_tile_write(&dl, sTextureTiles[iconIndex], 
+                rcpTileWrite(&dl, sTextureTiles[iconIndex], 
                     SIDEKICK_METER_X - ((i / SIDEKICK_METER_ICONS_PER_COLUMN) * SIDEKICK_METER_SPACING_X), 
                     SIDEKICK_METER_Y + ((i % SIDEKICK_METER_ICONS_PER_COLUMN) * SIDEKICK_METER_SPACING_Y), 
                     255, 255, 255, dOpacitySidekickMeter
@@ -3680,7 +3682,7 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
         }
     }
 
-    dl_set_prim_color(&dl, 255, 255, 255, 255);
+    dlSetPrimColor(&dl, 255, 255, 255, 255);
 
     *gdl = dl;
 }
@@ -3705,7 +3707,7 @@ RECOMP_PATCH void cmdmenu_info_show(s16 itemGamebit, s32 displayDuration, s32 it
         items = inventoryPage->items;
         while (items->gamebitObtained != NO_GAMEBIT) {
             if (itemGamebit == items->gamebitObtained) {
-                tex = tex_load_deferred(items->textureID);
+                tex = texLoadTexture(items->textureID);
                 break;
             }
             items++;
@@ -3782,7 +3784,7 @@ void cmdmenu_info_draw_custom(Gfx** gdl, CmdmenuInfoPopup* box) {
     //Decrement box's timer
     box->timer -= gUpdateRate;
     if (box->timer < 0) {
-        tex_free(box->texture);
+        texFreeTexture(box->texture);
         box->texture = NULL;
         return;
     }
@@ -3816,7 +3818,7 @@ void cmdmenu_info_draw_custom(Gfx** gdl, CmdmenuInfoPopup* box) {
     }
 
     //@recomp: draw the top of the scroll
-    rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top], 
+    rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top], 
         POPUP_FIX_TOP_X,
         POPUP_FIX_TOP_Y + 12 - rsInfoPopupUnroll,
         0xFF, 
@@ -3826,7 +3828,7 @@ void cmdmenu_info_draw_custom(Gfx** gdl, CmdmenuInfoPopup* box) {
     );        
 
     //@recomp: draw the bottom of the scroll
-    rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], 
+    rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], 
         POPUP_FIX_BOTTOM_X,
         POPUP_FIX_BOTTOM_Y - 12 + rsInfoPopupUnroll,
         0xFF, 
@@ -3842,7 +3844,7 @@ void cmdmenu_info_draw_custom(Gfx** gdl, CmdmenuInfoPopup* box) {
     bzero(sTempIcon, sizeof(TextureTile));
     sTempIcon->tex = box->texture;
     sTempIcon[1].tex = NULL;
-    rcp_tile_write(gdl, sTempIcon, 
+    rcpTileWrite(gdl, sTempIcon, 
         POPUP_FIX_ICON_X, //@recomp: different coord
         POPUP_FIX_ICON_Y, //@recomp: different coord 
         0xFF, 
@@ -3857,7 +3859,7 @@ void cmdmenu_info_draw_custom(Gfx** gdl, CmdmenuInfoPopup* box) {
 
         //@recomp: don't try to draw beyond 10, since it'll crash
         sTempIcon->animProgress = (MIN(8, box->count - 2)) << 8; 
-        rcp_tile_write(gdl, sTempIcon, 
+        rcpTileWrite(gdl, sTempIcon, 
             POPUP_FIX_COUNT_X, //@recomp: different coord
             POPUP_FIX_COUNT_Y, //@recomp: different coord
             0xFF, 
@@ -3896,7 +3898,7 @@ RECOMP_PATCH void cmdmenu_info_draw(Gfx** gdl, CmdmenuInfoPopup* box) {
     //Decrement box's timer
     box->timer -= gUpdateRate;
     if (box->timer < 0) {
-        tex_free(box->texture);
+        texFreeTexture(box->texture);
         box->texture = NULL;
         return;
     }
@@ -3916,7 +3918,7 @@ RECOMP_PATCH void cmdmenu_info_draw(Gfx** gdl, CmdmenuInfoPopup* box) {
     }
 
     //Draw the box's shadow
-    rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_52_Page_Torn_Shadow], 
+    rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_52_Page_Torn_Shadow], 
         INFO_POPUP_SHADOW_X, 
         INFO_POPUP_SHADOW_Y, 
         0xFF, 
@@ -3929,7 +3931,7 @@ RECOMP_PATCH void cmdmenu_info_draw(Gfx** gdl, CmdmenuInfoPopup* box) {
     bzero(sTempIcon, sizeof(TextureTile));
     sTempIcon->tex = box->texture;
     sTempIcon[1].tex = NULL;
-    rcp_tile_write(gdl, sTempIcon, 
+    rcpTileWrite(gdl, sTempIcon, 
         INFO_POPUP_M_X, 
         INFO_POPUP_Y, 
         0xFF, 
@@ -3939,7 +3941,7 @@ RECOMP_PATCH void cmdmenu_info_draw(Gfx** gdl, CmdmenuInfoPopup* box) {
     );
 
     //Draw tattered left edge of box (@unfinished: outdated page design, mismatched with icons' newer BG)
-    rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_29_Page_Torn_Left], 
+    rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_29_Page_Torn_Left], 
         INFO_POPUP_L_X, 
         INFO_POPUP_Y, 
         0xFF, 
@@ -3949,7 +3951,7 @@ RECOMP_PATCH void cmdmenu_info_draw(Gfx** gdl, CmdmenuInfoPopup* box) {
     );
 
     //Draw tattered right edge of box (@unfinished: outdated page design, mismatched with icons' newer BG)
-    rcp_tile_write(gdl, sTextureTiles[CMDMENU_TEX_30_Page_Torn_Right], 
+    rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_30_Page_Torn_Right], 
         INFO_POPUP_R_X,
         INFO_POPUP_Y, 
         0xFF, 
@@ -3964,7 +3966,7 @@ RECOMP_PATCH void cmdmenu_info_draw(Gfx** gdl, CmdmenuInfoPopup* box) {
 
         //@recomp: don't try to draw beyond 10, since it'll crash
         sTempIcon->animProgress = (MIN(8, box->count - 2)) << 8; 
-        rcp_tile_write(gdl, sTempIcon, 
+        rcpTileWrite(gdl, sTempIcon, 
             INFO_POPUP_QUANTITY_X, 
             INFO_POPUP_QUANTITY_Y, 
             0xFF, 
@@ -4002,8 +4004,8 @@ RECOMP_PATCH void cmdmenu_energy_bar_free(void) {
     }
 
     enbar->alpha = 0;
-    tex_free(enbar->fullbarTex[0].tex);
-    tex_free(enbar->emptybarTex[0].tex);
+    texFreeTexture(enbar->fullbarTex[0].tex);
+    texFreeTexture(enbar->emptybarTex[0].tex);
     mmFree(sEnergyBar);
     sEnergyBar = NULL;
 }

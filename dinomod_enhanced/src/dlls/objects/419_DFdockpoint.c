@@ -40,20 +40,20 @@ RECOMP_PATCH void DFdockpoint_control(Object *self) {
     //Create a log if none exists
     /* @bug: doesn't first check if player's outside the log's unload distance, 
        so a log will be rapidly created/deleted until the player comes into the log's load range */
-    obj_get_all_of_type(OBJTYPE_Vehicle, &logCount);
+    objGetAllOfType(OBJTYPE_Vehicle, &logCount);
     if (logCount != 0) {
         return;
     }
 
     //@recomp: don't create a log if it'll immediately be unloaded
-    if (!(player = get_player())) {
+    if (!(player = objGetPlayer())) {
         return;
     }
-    if (vec3_distance_squared(&self->globalPosition, &player->srt.transl) >= SQ(LOG_UNLOAD_DISTANCE)) {
+    if (vec3DistanceSquared(&self->globalPosition, &player->srt.transl) >= SQ(LOG_UNLOAD_DISTANCE)) {
         return;
     }
 
-    logsetup = obj_alloc_setup(sizeof(BWLog_Setup), OBJ_BWLog);
+    logsetup = objAllocSetup(sizeof(BWLog_Setup), OBJ_BWLog);
     logsetup->base.quarterSize = sizeof(BWLog_Setup)/4;
     logsetup->base.loadFlags = OBJSETUP_LOAD_MAIN;
     logsetup->base.loadDistance = LOG_LOAD_DISTANCE/8;
@@ -64,7 +64,7 @@ RECOMP_PATCH void DFdockpoint_control(Object *self) {
     logsetup->base.z = self->srt.transl.z;
     logsetup->yaw = setup->yaw;
 
-    obj_create((ObjSetup*)logsetup, 
+    objSetupObject((ObjSetup*)logsetup, 
         OBJINIT_STANDALONE | OBJINIT_FLAG4, 
         self->mapID, 
         -1, 

@@ -7,7 +7,7 @@ extern Struct_D_800B9768 D_800B9768;
 
 // Add CRF Traprooms, the old Krazoa Shrine, and old Earthwalker Temple to global map.
 // Original patch by nuggs.
-RECOMP_HOOK_RETURN("game_init") void dinomod_global_map_init(void) {
+RECOMP_HOOK_RETURN("mainInit") void dinomod_global_map_init(void) {
     D_800B9768.unk4[MAP_CLOUDRUNNER_TRAPROOMS].xMin = -32;
     D_800B9768.unk4[MAP_CLOUDRUNNER_TRAPROOMS].xMax = -27;
     D_800B9768.unk4[MAP_CLOUDRUNNER_TRAPROOMS].zMin = -50;

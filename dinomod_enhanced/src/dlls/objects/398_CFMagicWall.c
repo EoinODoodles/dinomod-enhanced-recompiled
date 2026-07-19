@@ -26,14 +26,14 @@ RECOMP_PATCH void CFMagicWall_control(Object* self) {
     f32 var_ft1;
 
     setup = (CFMagicWall_Setup*)self->setup;
-    player = get_player();
+    player = objGetPlayer();
     var_ft1 = (f32) setup->unk1A;
 
     // @recomp: Don't crash if player or sidekick isn't found (original by MusicalProgrammer)
-    Object *sidekick = get_sidekick();
+    Object *sidekick = objGetSidekick();
 
-    f32 playerDist = player == NULL ? F32_MAX : vec3_distance(&self->globalPosition, &player->globalPosition);
-    f32 sidekickDist = sidekick == NULL ? F32_MAX : vec3_distance(&self->globalPosition, &sidekick->globalPosition);
+    f32 playerDist = player == NULL ? F32_MAX : vec3Distance(&self->globalPosition, &player->globalPosition);
+    f32 sidekickDist = sidekick == NULL ? F32_MAX : vec3Distance(&self->globalPosition, &sidekick->globalPosition);
 
     if (playerDist < sidekickDist) {
         var_fv0 = playerDist;
@@ -41,7 +41,7 @@ RECOMP_PATCH void CFMagicWall_control(Object* self) {
         var_fv0 = sidekickDist;
     }
     
-    f32 camDist = camera_get_distance_to_point(self->srt.transl.x, self->srt.transl.y, self->srt.transl.z);
+    f32 camDist = camDistance(self->srt.transl.x, self->srt.transl.y, self->srt.transl.z);
 
     if (camDist < var_fv0) {
         var_fv0 = camDist;

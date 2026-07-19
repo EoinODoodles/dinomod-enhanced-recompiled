@@ -157,7 +157,7 @@ RECOMP_PATCH s32 CRSnowBike_sharpclaw_update_race_pathing(Object* self, CRSnowBi
         //@recomp: store checkpoint's y position
         objData->srtCurves.transl.y = checkpointSetup->pos.y;
 
-        objData->branchFlagCPU = rand_next(0, 1);
+        objData->branchFlagCPU = mathRnd(0, 1);
     }
     
     return gDLL_4_Race->vtbl->func5(&data->srtCurves, &data->raceData, arg2, 1, 0, objData->branchFlagCPU);

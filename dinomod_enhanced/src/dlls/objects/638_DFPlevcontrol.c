@@ -22,8 +22,8 @@ extern Texture* dTexElectricity;
 RECOMP_PATCH void DFP_LevelControl_setup(Object* self, ObjSetup *setup, s32 arg2) {
     u8 act;
 
-    obj_add_object_type(self, OBJTYPE_LevelControl);
-    dTexElectricity = tex_load_deferred(1132);
+    objAddObjectType(self, OBJTYPE_LevelControl);
+    dTexElectricity = texLoadTexture(1132);
     self->animCallback = DFP_LevelControl_anim_callback;
     // @recomp: Don't reset DFP act on setup
     //gDLL_29_Gplay->vtbl->set_act(self->mapID, 1);
@@ -39,17 +39,17 @@ RECOMP_PATCH void DFP_LevelControl_setup(Object* self, ObjSetup *setup, s32 arg2
             break;
         case 1:
             func_80000860(self, self, 415, 0);
-            // main_set_bits(BIT_SpellStone_CRF, 1); //@recomp: don't set gamebit
+            // mainSetBits(BIT_SpellStone_CRF, 1); //@recomp: don't set gamebit
             break;
         case 2:
             func_80000860(self, self, 415, 0);
-            main_set_bits(BIT_SpellStone_BWC, 1);
-            main_set_bits(BIT_Spell_Grenade, 1);
+            mainSetBits(BIT_SpellStone_BWC, 1);
+            mainSetBits(BIT_Spell_Grenade, 1);
             break;
         case 3:
             func_80000860(self, self, 415, 0);
-            main_set_bits(BIT_SpellStone_KP, 1);
-            main_set_bits(BIT_Spell_Grenade, 1);
+            mainSetBits(BIT_SpellStone_KP, 1);
+            mainSetBits(BIT_Spell_Grenade, 1);
             break;
     }
     self->stateFlags |= (OBJSTATE_UPDATE_DISABLED | OBJSTATE_PRINT_DISABLED);

@@ -44,7 +44,7 @@ static s32 rsShowMessage = 0;
 
 #define FRONTEND_FLAG_40_Hidden 0x40      //CUSTOM FLAG: control hidden
 
-extern void vi_set_modifiers(u8 updateViMode, s8 hStartMod, s8 vScaleMod);
+extern void viSetModifiers(u8 updateViMode, s8 hStartMod, s8 vScaleMod);
 
 #define NONE -1
 #define MAX_CONTROLS_PER_PAGE 6
@@ -294,8 +294,8 @@ void options_recomp_override_and_display_messages(void) {
         return;
     }
 
-    buttons = joy_get_pressed(0);
-    joy_get_stick_menu_xy_sign(0, &joyX, &joyY);
+    buttons = joyGetPressed(0);
+    joyGetStickMenuXYSign(0, &joyX, &joyY);
 
     switch (dMenuID) {
 #ifndef DINOMOD_ROM_PATCH //@recomp only: handle blocking certain options to avoid crashes
@@ -328,7 +328,7 @@ void options_recomp_override_and_display_messages(void) {
     }
 
     if ((rsShowMessage > 0) && (prevShowMessage == 0)) {
-        gDLL_6_AMSFX->vtbl->play(NULL, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+        dll_amSfx->Play(NULL, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
     }
 }
 
@@ -360,25 +360,25 @@ static void dim_screen(Gfx** gdl, Mtx **mtxs, Vertex **vtxs, u8 opacity) {
     s32 ulx;
     s32 lrx;
 
-    viewport_get_full_rect(&ulx, &uly, &lrx, &lry);
+    camViewportGetFullRect(&ulx, &uly, &lrx, &lry);
 
     gDPSetCombineMode(*gdl, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
-    dl_apply_combine(gdl);
+    dlApplyCombine(gdl);
 
     gDPSetOtherMode(*gdl,
                     G_AD_PATTERN | G_CD_MAGICSQ | G_CK_NONE | G_TC_FILT | G_TF_BILERP |
                         G_TT_NONE | G_TL_TILE | G_TD_CLAMP | G_TP_NONE | G_CYC_1CYCLE | G_PM_NPRIMITIVE,
                     G_AC_NONE | G_ZS_PIXEL | G_RM_CLD_SURF | G_RM_CLD_SURF2);
-    dl_apply_other_mode(gdl);
+    dlApplyOtherMode(gdl);
 
-    dl_set_prim_color(gdl, 0, 0, 0, opacity);
+    dlSetPrimColor(gdl, 0, 0, 0, opacity);
 
     gDPFillRectangle((*gdl)++, ulx, uly, lrx, lry);
 
     gDLBuilder->needsPipeSync = TRUE;
 }
 
-extern void func_8001440C(s32 arg0);
+extern void main_func_8001440C(s32 arg0);
 
 // offset: 0x1FC | func: 0 | export: 0
 RECOMP_PATCH s32 options_update1(void) {
@@ -396,7 +396,7 @@ RECOMP_PATCH s32 options_update1(void) {
 
     //@recomp: make sure pause menu doesn't accidentally load when pressing start
     //(can happen sometimes when Picmenu doesn't block START_BUTTON)
-    func_8001440C(1);
+    main_func_8001440C(1);
 
     timeBefore = sFadeOutTimer;
 
@@ -419,9 +419,9 @@ RECOMP_PATCH s32 options_update1(void) {
     //@recomp: handle custom message
     if (rsShowMessage > 0) {
         //Dismiss message when a button is pressed
-        if ((rsDimOpacity > 50) && (joy_get_pressed(0) & (A_BUTTON | B_BUTTON | START_BUTTON))) {
+        if ((rsDimOpacity > 50) && (joyGetPressed(0) & (A_BUTTON | B_BUTTON | START_BUTTON))) {
             rsShowMessage = 0;
-            gDLL_6_AMSFX->vtbl->play(NULL, SOUND_PICMENU_MOVE, MAX_VOLUME, NULL, NULL, 0, NULL);
+            dll_amSfx->Play(NULL, SOUND_PICMENU_MOVE, MAX_VOLUME, NULL, NULL, 0, NULL);
         }
 
         //Quit out of `options_update1` early when a message is being displayed
@@ -444,14 +444,14 @@ RECOMP_PATCH s32 options_update1(void) {
     //Handle leaving the Options menu and returning to the Title Screen
     if (sFadeOutActive) {
         if ((timeBefore >= FADE_THRESHOLD) && (sFadeOutTimer < FADE_THRESHOLD)) {
-            vi_init(1, get_ossched(), 0);
+            viInit(1, mainGetScheduler(), 0);
             options_clean_up();
-            track_set_z_buffer_on(1);
-            track_set_sky_on(1);
+            trackSetZBufferOn(1);
+            trackSetSkyOn(1);
         } else if (sFadeOutTimer <= 0) {
-            main_demo_reset();
-            main_start_game(12457.1f, -1474.875f, -6690.398f, PLAYER_KRYSTAL);
-            menu_set(MENU_TITLE_SCREEN);
+            mainDemoReset();
+            mainStartGame(12457.1f, -1474.875f, -6690.398f, PLAYER_KRYSTAL);
+            menuSet(MENU_TITLE_SCREEN);
         }
 
         if (sFadeOutTimer < FADE_THRESHOLD) {
@@ -465,7 +465,7 @@ RECOMP_PATCH s32 options_update1(void) {
         This decides whether the picmenu update should be skipped 
         (to avoid a bug where the picmenu items consume the frontend checkboxes' controls) */
     if (dMenuID != OPTIONS_PAGE_0_Main_Page) {
-        buttons = joy_get_pressed(0);
+        buttons = joyGetPressed(0);
         if (buttons & (A_BUTTON | START_BUTTON)) {
 
             //Iterate over frontend controls
@@ -483,7 +483,7 @@ RECOMP_PATCH s32 options_update1(void) {
 
                     //Play a refusal sound when trying to toggle a checkbox that's locked
                     if ((sCtrls[i]->flags & FRONTEND_FLAG_20_Locked) && ((buttons & (A_BUTTON | START_BUTTON)) != START_BUTTON)) {
-                        gDLL_6_AMSFX->vtbl->play(NULL, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+                        dll_amSfx->Play(NULL, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
                         break;
                     }
                     break;
@@ -557,8 +557,8 @@ RECOMP_PATCH s32 options_update1(void) {
         break;
     case OPTIONS_PAGE_7_View_Layout:
         if (action != PICMENU_ACTION_NONE) {
-            tex_free(sBGTex);
-            sBGTex = tex_load_deferred(TEXTABLE_2DF_Paper_BG_Sabre_Cape);
+            texFreeTexture(sBGTex);
+            sBGTex = texLoadTexture(TEXTABLE_2DF_Paper_BG_Sabre_Cape);
             options_goto_control_page(OPTIONS_CONTROL_1_View_Layout);
             return 0;
         }
@@ -567,9 +567,9 @@ RECOMP_PATCH s32 options_update1(void) {
         //@recomp: avoid recomp-specific crash
 
 #ifdef DINOMOD_ROM_PATCH
-        joy_get_stick_menu_xy_sign(0, &joyX, &joyY);
+        joyGetStickMenuXYSign(0, &joyX, &joyY);
         if (joyX > 0) {
-            gDLL_6_AMSFX->vtbl->play(NULL, SOUND_PICMENU_MOVE, MAX_VOLUME, NULL, NULL, 0, NULL);
+            dll_amSfx->Play(NULL, SOUND_PICMENU_MOVE, MAX_VOLUME, NULL, NULL, 0, NULL);
             sGameOptions->screenOffsetX += 1;
             if (sGameOptions->screenOffsetX > 7) {
                 sGameOptions->screenOffsetX = 7;
@@ -577,7 +577,7 @@ RECOMP_PATCH s32 options_update1(void) {
             }
 
         } else if (joyX < 0) {
-            gDLL_6_AMSFX->vtbl->play(NULL, SOUND_PICMENU_MOVE, MAX_VOLUME, NULL, NULL, 0, NULL);
+            dll_amSfx->Play(NULL, SOUND_PICMENU_MOVE, MAX_VOLUME, NULL, NULL, 0, NULL);
             sGameOptions->screenOffsetX -= 1;
             if (sGameOptions->screenOffsetX < -7) {
                 sGameOptions->screenOffsetX = -7;
@@ -586,14 +586,14 @@ RECOMP_PATCH s32 options_update1(void) {
         }
 
         if (joyY > 0) {
-            gDLL_6_AMSFX->vtbl->play(NULL, SOUND_PICMENU_MOVE, MAX_VOLUME, NULL, NULL, 0, NULL);
+            dll_amSfx->Play(NULL, SOUND_PICMENU_MOVE, MAX_VOLUME, NULL, NULL, 0, NULL);
             sGameOptions->screenOffsetY -= 1;
             if (sGameOptions->screenOffsetY < -7) {
                 sGameOptions->screenOffsetY = -7;
                 joyY = 0;
             }
         } else if (joyY < 0) {
-            gDLL_6_AMSFX->vtbl->play(NULL, SOUND_PICMENU_MOVE, MAX_VOLUME, NULL, NULL, 0, NULL);
+            dll_amSfx->Play(NULL, SOUND_PICMENU_MOVE, MAX_VOLUME, NULL, NULL, 0, NULL);
             sGameOptions->screenOffsetY += 1;
             if (sGameOptions->screenOffsetY > 7) {
                 sGameOptions->screenOffsetY = 7;
@@ -602,12 +602,12 @@ RECOMP_PATCH s32 options_update1(void) {
         }
 
         if ((joyX != 0) || (joyY != 0)) {
-            vi_set_modifiers(1, sGameOptions->screenOffsetX, sGameOptions->screenOffsetY);
+            viSetModifiers(1, sGameOptions->screenOffsetX, sGameOptions->screenOffsetY);
         }
 #endif
 
         if (action != PICMENU_ACTION_NONE) {
-            joy_reset_menu_joystick_delay();
+            joyResetMenuStickDelay();
             options_goto_video_page(OPTIONS_VIDEO_2_Screen_Position);
             return 0;
         }
@@ -830,39 +830,39 @@ static void options_draw_dinomod_message(Gfx** gdl, Mtx **mtxs, Vertex **vtxs) {
             #define LINE_HEIGHT_DESCRIPTION 25
             s32 totalTextHeight = LINE_HEIGHT_TITLE + (LINE_HEIGHT_DESCRIPTION * descriptionLineCount);
 
-            s32 resolution = vi_get_current_size();
+            s32 resolution = viGetCurrentSize();
             s32 width = GET_VIDEO_WIDTH(resolution);
             s32 height = GET_VIDEO_HEIGHT(resolution);
             s32 x;
             s32 y;
             s32 textWindowID = 3;
 
-            font_window_set_coords(textWindowID, 
+            fontWindowSetCoords(textWindowID, 
                 0, 0,
                 width, height
             );
 
-            font_window_flush_strings(textWindowID);
+            fontWindowFlushStrings(textWindowID);
 
             x = width/2;
             y = (height/2) - (totalTextHeight/2) + rsDinomodMessages[rsCurrentMessage - 1].offsetY;
 
             //Print message title, with drop-shadow
             {
-                font_window_use_font(textWindowID, FONT_DINO_MEDIUM_FONT_IN);
+                fontWindowUseFont(textWindowID, FONT_DINO_MEDIUM_FONT_IN);
                 
-                font_window_set_text_colour(textWindowID, 0xFF, 0xFF, 0xFF, 0, rsMessageOpacity);
-                font_window_add_string_xy(textWindowID, x, y, rsDinomodMessages[rsCurrentMessage - 1].title, 1, ALIGN_MIDDLE_CENTER);
+                fontWindowSetTextColour(textWindowID, 0xFF, 0xFF, 0xFF, 0, rsMessageOpacity);
+                fontWindowAddStringXY(textWindowID, x, y, rsDinomodMessages[rsCurrentMessage - 1].title, 1, ALIGN_MIDDLE_CENTER);
 
-                font_window_set_text_colour(textWindowID, 0, 0, 0, 0xFF, rsMessageOpacity);
-                font_window_add_string_xy(textWindowID, TITLE_SHADOW(x), TITLE_SHADOW(y), rsDinomodMessages[rsCurrentMessage - 1].title, 2, ALIGN_MIDDLE_CENTER);
+                fontWindowSetTextColour(textWindowID, 0, 0, 0, 0xFF, rsMessageOpacity);
+                fontWindowAddStringXY(textWindowID, TITLE_SHADOW(x), TITLE_SHADOW(y), rsDinomodMessages[rsCurrentMessage - 1].title, 2, ALIGN_MIDDLE_CENTER);
                 
                 y += LINE_HEIGHT_TITLE;
             }
             
             //Print message description, with drop-shadow
             {
-                font_window_use_font(textWindowID, FONT_FUN_FONT);
+                fontWindowUseFont(textWindowID, FONT_FUN_FONT);
 
                 //Print the text lines
                 for (u32 lineIdx = 0; (lineIdx <= ARRAYCOUNT(rsDescriptionLines) - 1); lineIdx++) {
@@ -870,21 +870,21 @@ static void options_draw_dinomod_message(Gfx** gdl, Mtx **mtxs, Vertex **vtxs) {
                         break;
                     }
 
-                    font_window_set_text_colour(textWindowID, 0xB7, 0x8B, 0x61, 0xFF, rsMessageOpacity);
-                    font_window_add_string_xy(textWindowID, x, y, rsDescriptionLines[lineIdx], 1, ALIGN_MIDDLE_CENTER);
+                    fontWindowSetTextColour(textWindowID, 0xB7, 0x8B, 0x61, 0xFF, rsMessageOpacity);
+                    fontWindowAddStringXY(textWindowID, x, y, rsDescriptionLines[lineIdx], 1, ALIGN_MIDDLE_CENTER);
 
-                    font_window_set_text_colour(textWindowID, 0, 0, 0, 0xFF, rsMessageOpacity);
-                    font_window_add_string_xy(textWindowID, DESC_SHADOW1(x), DESC_SHADOW1(y), rsDescriptionLines[lineIdx], 2, ALIGN_MIDDLE_CENTER);
-                    font_window_add_string_xy(textWindowID, DESC_SHADOW2(x), DESC_SHADOW2(y), rsDescriptionLines[lineIdx], 2, ALIGN_MIDDLE_CENTER);
-                    font_window_add_string_xy(textWindowID, DESC_SHADOW3(x), DESC_SHADOW3(y), rsDescriptionLines[lineIdx], 2, ALIGN_MIDDLE_CENTER);
+                    fontWindowSetTextColour(textWindowID, 0, 0, 0, 0xFF, rsMessageOpacity);
+                    fontWindowAddStringXY(textWindowID, DESC_SHADOW1(x), DESC_SHADOW1(y), rsDescriptionLines[lineIdx], 2, ALIGN_MIDDLE_CENTER);
+                    fontWindowAddStringXY(textWindowID, DESC_SHADOW2(x), DESC_SHADOW2(y), rsDescriptionLines[lineIdx], 2, ALIGN_MIDDLE_CENTER);
+                    fontWindowAddStringXY(textWindowID, DESC_SHADOW3(x), DESC_SHADOW3(y), rsDescriptionLines[lineIdx], 2, ALIGN_MIDDLE_CENTER);
 
                     y += LINE_HEIGHT_DESCRIPTION;
                 }
 
-                font_window_draw(gdl, NULL, NULL, textWindowID);
+                fontWindowDraw(gdl, NULL, NULL, textWindowID);
             }
 
-            font_window_flush_strings(textWindowID);
+            fontWindowFlushStrings(textWindowID);
         }
     }
 }
@@ -943,55 +943,55 @@ RECOMP_PATCH void options_draw(Gfx** gdl, Mtx **mtxs, Vertex **vtxs) {
         return;
     }
 
-    font_window_set_coords(1, 0, 0,
-        GET_VIDEO_WIDTH(vi_get_current_size()),
-        GET_VIDEO_HEIGHT(vi_get_current_size())
+    fontWindowSetCoords(1, 0, 0,
+        GET_VIDEO_WIDTH(viGetCurrentSize()),
+        GET_VIDEO_HEIGHT(viGetCurrentSize())
     );
 
-    font_window_flush_strings(1);
+    fontWindowFlushStrings(1);
 
     if (dMenuID == OPTIONS_PAGE_8_Screen_Position) {
-        rcp_screen_full_write(gdl, sBGTex,               0,   0,   0, 0, 0xFF, 2);
+        rcpScreenFullWrite(gdl, sBGTex,               0,   0,   0, 0, 0xFF, 2);
 
-        rcp_screen_full_write(gdl, sCropFrameVertical,   38,  36,  0, 0, 0xFF, 1);
-        rcp_screen_full_write(gdl, sCropFrameHorizontal, 38,  36,  0, 0, 0xFF, 1);
-        rcp_screen_full_write(gdl, sCropFrameVertical,   599, 36,  0, 0, 0xFF, 1);
-        rcp_screen_full_write(gdl, sCropFrameHorizontal, 38,  438, 0, 0, 0xFF, 1);
+        rcpScreenFullWrite(gdl, sCropFrameVertical,   38,  36,  0, 0, 0xFF, 1);
+        rcpScreenFullWrite(gdl, sCropFrameHorizontal, 38,  36,  0, 0, 0xFF, 1);
+        rcpScreenFullWrite(gdl, sCropFrameVertical,   599, 36,  0, 0, 0xFF, 1);
+        rcpScreenFullWrite(gdl, sCropFrameHorizontal, 38,  438, 0, 0, 0xFF, 1);
 
-        font_window_use_font(1, FONT_DINO_MEDIUM_FONT_IN);
-        font_window_set_text_colour(1, 0xFF, 0xFF, 0xFF, 0, gDLL_74_Picmenu->vtbl->get_highlight_alpha());
-        font_window_add_string_xy(1, 320, 42,  &dDownArrowChar,  1, ALIGN_TOP_CENTER);
-        font_window_add_string_xy(1, 320, 400, &dUpArrowChar,    1, ALIGN_TOP_CENTER);
-        font_window_add_string_xy(1, 48,  235, &dLeftArrowChar,  1, ALIGN_TOP_LEFT);
-        font_window_add_string_xy(1, 578, 235, &dRightArrowChar, 1, ALIGN_TOP_LEFT);
+        fontWindowUseFont(1, FONT_DINO_MEDIUM_FONT_IN);
+        fontWindowSetTextColour(1, 0xFF, 0xFF, 0xFF, 0, gDLL_74_Picmenu->vtbl->get_highlight_alpha());
+        fontWindowAddStringXY(1, 320, 42,  &dDownArrowChar,  1, ALIGN_TOP_CENTER);
+        fontWindowAddStringXY(1, 320, 400, &dUpArrowChar,    1, ALIGN_TOP_CENTER);
+        fontWindowAddStringXY(1, 48,  235, &dLeftArrowChar,  1, ALIGN_TOP_LEFT);
+        fontWindowAddStringXY(1, 578, 235, &dRightArrowChar, 1, ALIGN_TOP_LEFT);
     } else if (dMenuID == OPTIONS_PAGE_7_View_Layout) {
-        rcp_screen_full_write(gdl, sBGTex, 0, 0, 0, 0, 0xFF, 2);
+        rcpScreenFullWrite(gdl, sBGTex, 0, 0, 0, 0, 0xFF, 2);
 
         //Headings (and 4 C-button arrows)
-        font_window_use_font(1, FONT_FUN_FONT);
+        fontWindowUseFont(1, FONT_FUN_FONT);
         i2 = ARRAYCOUNT(dLayoutCoordsHeadings) + ARRAYCOUNT(dLayoutCoordsDescriptions);
         for (end = ARRAYCOUNT(dLayoutCoordsHeadings), i = 0; i < end;) {
             //Print text
-            font_window_set_text_colour(1, 0xE1, 0xAB, 0x61, 0xFF, 0xFF);
-            font_window_add_string_xy(1, dLayoutCoordsHeadings[i][0], dLayoutCoordsHeadings[i][1], dGametextControls->strings[i], 1, ALIGN_TOP_LEFT);
+            fontWindowSetTextColour(1, 0xE1, 0xAB, 0x61, 0xFF, 0xFF);
+            fontWindowAddStringXY(1, dLayoutCoordsHeadings[i][0], dLayoutCoordsHeadings[i][1], dGametextControls->strings[i], 1, ALIGN_TOP_LEFT);
 
             //Print drop-shadow
-            font_window_set_text_colour(1, 0, 0, 0, 0xFF, 0x96);
-            font_window_add_string_xy(1, dLayoutCoordsHeadings[i][0] - 1, dLayoutCoordsHeadings[i][1] - 1, dGametextControls->strings[i], 2, ALIGN_TOP_LEFT);
+            fontWindowSetTextColour(1, 0, 0, 0, 0xFF, 0x96);
+            fontWindowAddStringXY(1, dLayoutCoordsHeadings[i][0] - 1, dLayoutCoordsHeadings[i][1] - 1, dGametextControls->strings[i], 2, ALIGN_TOP_LEFT);
 
             i++;
         }
 
         //Descriptions
-        font_window_use_font(1, FONT_DINO_SUBTITLE_FONT_1);
+        fontWindowUseFont(1, FONT_DINO_SUBTITLE_FONT_1);
         for (end = i2, i2 = 0; i < end;) {
             //Print text
-            font_window_set_text_colour(1, 0xB7, 0x8B, 0x61, 0xFF, 0xFF);
-            font_window_add_string_xy(1, dLayoutCoordsDescriptions[i2][0], dLayoutCoordsDescriptions[i2][1], dGametextControls->strings[i], 1, ALIGN_TOP_LEFT);
+            fontWindowSetTextColour(1, 0xB7, 0x8B, 0x61, 0xFF, 0xFF);
+            fontWindowAddStringXY(1, dLayoutCoordsDescriptions[i2][0], dLayoutCoordsDescriptions[i2][1], dGametextControls->strings[i], 1, ALIGN_TOP_LEFT);
 
             //Print drop-shadow
-            font_window_set_text_colour(1, 0, 0, 0, 0xFF, 0x96);
-            font_window_add_string_xy(1, dLayoutCoordsDescriptions[i2][0] - 1, dLayoutCoordsDescriptions[i2][1] - 1, dGametextControls->strings[i], 2, ALIGN_TOP_LEFT);
+            fontWindowSetTextColour(1, 0, 0, 0, 0xFF, 0x96);
+            fontWindowAddStringXY(1, dLayoutCoordsDescriptions[i2][0] - 1, dLayoutCoordsDescriptions[i2][1] - 1, dGametextControls->strings[i], 2, ALIGN_TOP_LEFT);
 
             i++;
             i2++;
@@ -999,37 +999,37 @@ RECOMP_PATCH void options_draw(Gfx** gdl, Mtx **mtxs, Vertex **vtxs) {
 
     } else {
         if (sRedrawFrames) {
-            rcp_screen_full_write(gdl, sBGTex, 0, 0, 0, 0, 0xFF, 2);
+            rcpScreenFullWrite(gdl, sBGTex, 0, 0, 0, 0, 0xFF, 2);
 
-            font_window_use_font(1, FONT_DINO_MEDIUM_FONT_IN);
+            fontWindowUseFont(1, FONT_DINO_MEDIUM_FONT_IN);
 
             //Print "OPTIONS" title, with drop-shadow
             {
-                font_window_set_text_colour(1, 0xFF, 0xFF, 0xFF, 0, 0xFF);
-                font_window_add_string_xy(1, 568, 63, dGametextMenu->strings[LINE_1_Options], 1, ALIGN_TOP_RIGHT);
+                fontWindowSetTextColour(1, 0xFF, 0xFF, 0xFF, 0, 0xFF);
+                fontWindowAddStringXY(1, 568, 63, dGametextMenu->strings[LINE_1_Options], 1, ALIGN_TOP_RIGHT);
 
-                font_window_set_text_colour(1, 0, 0, 0, 0xFF, 0xFF);
-                font_window_add_string_xy(1, 563, 58, dGametextMenu->strings[LINE_1_Options], 2, ALIGN_TOP_RIGHT);
+                fontWindowSetTextColour(1, 0, 0, 0, 0xFF, 0xFF);
+                fontWindowAddStringXY(1, 563, 58, dGametextMenu->strings[LINE_1_Options], 2, ALIGN_TOP_RIGHT);
             }
 
             //Print a heading label for the page's box, if it uses one
             if (submenu->boxLabel != NONE) {
-                font_window_set_text_colour(1, 0xFF, 0xFF, 0xFF, 0, 0xFF);
-                font_window_add_string_xy(1, 83, 178, dGametextMenu->strings[submenu->boxLabel], 1, ALIGN_TOP_LEFT);
+                fontWindowSetTextColour(1, 0xFF, 0xFF, 0xFF, 0, 0xFF);
+                fontWindowAddStringXY(1, 83, 178, dGametextMenu->strings[submenu->boxLabel], 1, ALIGN_TOP_LEFT);
 
-                font_window_set_text_colour(1, 0, 0, 0, 0xFF, 0xFF);
-                font_window_add_string_xy(1, 78, 173, dGametextMenu->strings[submenu->boxLabel], 2, ALIGN_TOP_LEFT);
+                fontWindowSetTextColour(1, 0, 0, 0, 0xFF, 0xFF);
+                fontWindowAddStringXY(1, 78, 173, dGametextMenu->strings[submenu->boxLabel], 2, ALIGN_TOP_LEFT);
             }
 
             //Print the menu navigation info, if the page uses it (A-SELECT, B-CANCEL)
             if (submenu->navigationInfo != NONE) {
-                font_window_use_font(1, FONT_FUN_FONT);
+                fontWindowUseFont(1, FONT_FUN_FONT);
 
-                font_window_set_text_colour(1, 0xB7, 0x8B, 0x61, 0xFF, 0xFF);
-                font_window_add_string_xy(1, 320, 405, dGametextMenu->strings[submenu->navigationInfo], 1, ALIGN_TOP_CENTER);
+                fontWindowSetTextColour(1, 0xB7, 0x8B, 0x61, 0xFF, 0xFF);
+                fontWindowAddStringXY(1, 320, 405, dGametextMenu->strings[submenu->navigationInfo], 1, ALIGN_TOP_CENTER);
 
-                font_window_set_text_colour(1, 0, 0, 0, 0xFF, 0xFF);
-                font_window_add_string_xy(1, 318, 403, dGametextMenu->strings[submenu->navigationInfo], 2, ALIGN_TOP_CENTER);
+                fontWindowSetTextColour(1, 0, 0, 0, 0xFF, 0xFF);
+                fontWindowAddStringXY(1, 318, 403, dGametextMenu->strings[submenu->navigationInfo], 2, ALIGN_TOP_CENTER);
             }
 
             //Draw the box for the page's controls, if it uses one
@@ -1037,21 +1037,21 @@ RECOMP_PATCH void options_draw(Gfx** gdl, Mtx **mtxs, Vertex **vtxs) {
                 options_draw_box(gdl, 56, 220, 0, 480);
             }
         } else {
-            func_80010158(&ulx, &lrx, &uly, &lry);
-            rcp_screen_scroll_write(gdl, sBGTex, 0, 0, uly, lry, 0xFF, 2);
+            menu_func_80010158(&ulx, &lrx, &uly, &lry);
+            rcpScreenScrollWrite(gdl, sBGTex, 0, 0, uly, lry, 0xFF, 2);
 
             if (submenu->boxLabel != NONE) {
                 options_draw_box(gdl, 56, 220, uly, lry);
             }
 
             if ((dMenuID == OPTIONS_PAGE_0_Main_Page) && (uly < 100)) {
-                font_window_use_font(1, FONT_DINO_MEDIUM_FONT_IN);
+                fontWindowUseFont(1, FONT_DINO_MEDIUM_FONT_IN);
 
-                font_window_set_text_colour(1, 0xFF, 0xFF, 0xFF, 0, 0xFF);
-                font_window_add_string_xy(1, 568, 63, dGametextMenu->strings[LINE_1_Options], 1, ALIGN_TOP_RIGHT);
+                fontWindowSetTextColour(1, 0xFF, 0xFF, 0xFF, 0, 0xFF);
+                fontWindowAddStringXY(1, 568, 63, dGametextMenu->strings[LINE_1_Options], 1, ALIGN_TOP_RIGHT);
 
-                font_window_set_text_colour(1, 0, 0, 0, 0xFF, 0xFF);
-                font_window_add_string_xy(1, 563, 58, dGametextMenu->strings[LINE_1_Options], 2, ALIGN_TOP_RIGHT);
+                fontWindowSetTextColour(1, 0, 0, 0, 0xFF, 0xFF);
+                fontWindowAddStringXY(1, 563, 58, dGametextMenu->strings[LINE_1_Options], 2, ALIGN_TOP_RIGHT);
             }
         }
 
@@ -1069,7 +1069,7 @@ RECOMP_PATCH void options_draw(Gfx** gdl, Mtx **mtxs, Vertex **vtxs) {
     }
 
     gDLL_74_Picmenu->vtbl->draw(gdl);
-    font_window_draw(gdl, NULL, NULL, 1);
+    fontWindowDraw(gdl, NULL, NULL, 1);
 
     sRedrawFrames--;
     if (sRedrawFrames < 0) {
@@ -1167,7 +1167,7 @@ RECOMP_PATCH void options_goto_cheats_page(void) {
         0xFF, 0xD7, 0x3D
     );
 
-    gDLL_75->vtbl->set_highlight_state(sCtrls[OPTIONS_CHEATS_1_CheatShown1], 1);
+    gDLL_75->vtbl->set_highlight_state(sCtrls[OPTIONS_CHEATS_1_CheatShown1], TRUE);
 
     sRedrawFrames = 2;
 }
@@ -1194,7 +1194,7 @@ RECOMP_PATCH void options_goto_cheats_page(void) {
 #ifdef ALLOW_UNLOCKING_CHEATS_WITH_C_LEFT_AND_RIGHT
     {
         //@debug: Unlock the selected cheat with C-right! (Need to back out and re-enter menu before it shows up)
-        if (joy_get_pressed(0) & R_CBUTTONS) {
+        if (joyGetPressed(0) & R_CBUTTONS) {
             gDLL_29_Gplay->vtbl->unlock_cheat(((sCheatsTopIdx + selectedItemIdx) - 1));
             
             //@recomp: unlock the control immediately
@@ -1207,7 +1207,7 @@ RECOMP_PATCH void options_goto_cheats_page(void) {
             options_refresh_draws();
             
         //@recomp: add a way to re-lock cheat as well
-        } else if (joy_get_pressed(0) & L_CBUTTONS) {
+        } else if (joyGetPressed(0) & L_CBUTTONS) {
             sGameOptions->cheatsUnlocked &= ~(1 << ((sCheatsTopIdx + selectedItemIdx) - 1));
             
             //@recomp: lock the control immediately
@@ -1354,21 +1354,21 @@ RECOMP_PATCH void options_goto_cheats_page(void) {
 }
 
 static void dinomod_setup_standard_resolution(void) {
-    extern void func_8001440C(s32 arg0);
+    extern void main_func_8001440C(s32 arg0);
 
-    main_set_bits(BIT_Menus_Selection_Blocked, 0);
+    mainSetBits(BIT_Menus_Selection_Blocked, 0);
     gDLL_29_Gplay->vtbl->load_game_options();
 
-    vi_init(1, get_ossched(), FALSE);
-    track_set_z_buffer_on(1);
-    track_set_sky_on(1);
+    viInit(1, mainGetScheduler(), FALSE);
+    trackSetZBufferOn(1);
+    trackSetSkyOn(1);
 
-    func_8001440C(1);
+    main_func_8001440C(1);
 }
 
 static void dinomod_goto_old_title_screen_menu(void) {
     dinomod_setup_standard_resolution();
-    menu_set(MENU_OLD_TITLE_SCREEN);
+    menuSet(MENU_OLD_TITLE_SCREEN);
 }
 
 /* Add a secret way of accessing the old Title Screen and Level Select */
@@ -1397,7 +1397,7 @@ RECOMP_HOOK_DLL(options_update1) void options_secret_code_goto_old_menus(void) {
         rsTransitionTimer += gUpdateRate;
 
         //Block buttons and joystick during fadeout
-        joy_disable_buttons(0, START_BUTTON | A_BUTTON);
+        joyDisableButtons(0, START_BUTTON | A_BUTTON);
         joy_disable_stick(0);
 
         if (rsTransitionTimer > 70) {
@@ -1410,7 +1410,7 @@ RECOMP_HOOK_DLL(options_update1) void options_secret_code_goto_old_menus(void) {
 
     //Check if the button sequence was entered
     if (!rsOldMenusCheat.finished && button_code_entered(&rsOldMenusCheat)) {
-        gDLL_6_AMSFX->vtbl->play(NULL, 
+        dll_amSfx->Play(NULL, 
             SOUND_5EB_Magic_Refill_Chime, 
             MAX_VOLUME, 0, 0, 0, 0
         );
@@ -1418,7 +1418,7 @@ RECOMP_HOOK_DLL(options_update1) void options_secret_code_goto_old_menus(void) {
         rsTransitionTimer = 1;
         gDLL_28_ScreenFade->vtbl->fade(60, SCREEN_FADE_BLACK);
         
-        joy_disable_buttons(0, START_BUTTON | A_BUTTON);
+        joyDisableButtons(0, START_BUTTON | A_BUTTON);
 
         button_code_reset(&rsOldMenusCheat);
     }    

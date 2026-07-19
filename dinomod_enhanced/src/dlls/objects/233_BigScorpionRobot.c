@@ -51,7 +51,7 @@ extern void BigScorpionRobot_ramp_down_spin_speed(BigScorpionRobot_Data* objdata
 RECOMP_PATCH s32 BigScorpionRobot_state_0_idle(Object* self, ObjFSA_Data* fsa, f32 updateRate) {
     Baddie* baddie = self->data;
     BigScorpionRobot_Data* objdata = baddie->objdata;
-    Object* player = get_player();
+    Object* player = objGetPlayer();
     
     fsa->unk341 = 0;
     if (BigScorpionRobot_is_obj_in_range(self, player, (f32) baddie->unk3E2) != 0
@@ -81,7 +81,7 @@ RECOMP_PATCH s32 BigScorpionRobot_state_2_attacking(Object* self, ObjFSA_Data* f
         objdata->enteredState = 0;
 
         // @recomp: Moved initial anim reset to state entry
-        func_80023D30(self, BIGSCORP_ROBO_MODANIM_0_Unfold, 1.0f, 0);
+        objAnimSet(self, BIGSCORP_ROBO_MODANIM_0_Unfold, 1.0f, 0);
         objdata->animDelta = 0.0f;
     }
     func_80026128(self, 0xA, 1, -1);
@@ -90,7 +90,7 @@ RECOMP_PATCH s32 BigScorpionRobot_state_2_attacking(Object* self, ObjFSA_Data* f
     func_80028D2C(self);
     if (objdata->animFinished) {
         // @recomp: Don't always reset to anim 0 when an anim finishes (causes stutter during turn)
-        //func_80023D30(self, BIGSCORP_ROBO_MODANIM_0_Unfold, 1.0f, 0);
+        //objAnimSet(self, BIGSCORP_ROBO_MODANIM_0_Unfold, 1.0f, 0);
         objdata->animDelta = 0.0f;
     }
     if ((self->curModAnimId == 7) || (self->curModAnimId == 6)) {
@@ -104,10 +104,10 @@ RECOMP_PATCH s32 BigScorpionRobot_state_2_attacking(Object* self, ObjFSA_Data* f
     //if ((self->curModAnimId == 0) && (self->animProgress == 1.0f)) {
     if (objdata->animFinished || self->animProgress == 1.0f) {
         if (fsa->target != NULL) {
-            temp = (u16)arctan2_f(
+            temp = (u16)mathAtan2f(
                 self->srt.transl.x - fsa->target->srt.transl.x, 
                 self->srt.transl.z - fsa->target->srt.transl.z);
-            temp_v0_4 = (u16)rotation16_sub_wrap(
+            temp_v0_4 = (u16)mathDiffAngle(
                 temp, 
                 self->srt.yaw + objdata->spin);
             if (temp_v0_4 > 0x2000) {
@@ -122,17 +122,17 @@ RECOMP_PATCH s32 BigScorpionRobot_state_2_attacking(Object* self, ObjFSA_Data* f
             if (modanimIdx != -1) {
                 objdata->animDelta = 0.04f;
                 objdata->turnStart = self->srt.yaw;
-                func_80023D30(self, modanimIdx, 0.0f, 0);
-                gDLL_6_AMSFX->vtbl->play(self, SOUND_6E5_ScorpionRobot_Moving, MAX_VOLUME, NULL, NULL, 0, NULL);
+                objAnimSet(self, modanimIdx, 0.0f, 0);
+                dll_amSfx->Play(self, SOUND_6E5_ScorpionRobot_Moving, MAX_VOLUME, NULL, NULL, 0, NULL);
             } else if (objdata->fireCooldown == 0) {
-                objdata->fireCooldown = rand_next(0x96, 0x138);
+                objdata->fireCooldown = mathRnd(0x96, 0x138);
                 objdata->fire = 1;
                 objdata->animDelta = 0.04f;
-                func_80023D30(self, BIGSCORP_ROBO_MODANIM_3_Firing, 0.0f, 0);
+                objAnimSet(self, BIGSCORP_ROBO_MODANIM_3_Firing, 0.0f, 0);
             } else {
                 // @recomp: Moved anim reset down here so there's no stutter when turning more than once in a row
                 if (self->curModAnimId != 0) {
-                    func_80023D30(self, BIGSCORP_ROBO_MODANIM_0_Unfold, 1.0f, 0);
+                    objAnimSet(self, BIGSCORP_ROBO_MODANIM_0_Unfold, 1.0f, 0);
                     objdata->animDelta = 0.0f;
                 }
             }

@@ -37,10 +37,10 @@ RECOMP_PATCH void dll_243_func_C44(Object *self, Baddie *baddie, ObjFSA_Data *fs
     TextureAnimator *texAnimator;
 
     objdata = (Lunaimar_ActualData*)baddie->objdata;
-    sidekick = get_sidekick();
-    texAnimator = func_800348A0(self, 0, 0);
+    sidekick = objGetSidekick();
+    texAnimator = objExprGetTexAnimator(self, 0, 0);
     objdata->unk12 += 0x1000;
-    texAnimator->frame = (s32) ((fsin16_precise(objdata->unk12) + 1.0f) * 127.0f);
+    texAnimator->frame = (s32) ((mathSinfInterp(objdata->unk12) + 1.0f) * 127.0f);
 
     // @recomp: Sidekick null check
     if (sidekick != NULL) {
@@ -61,7 +61,7 @@ RECOMP_PATCH void dll_243_func_C44(Object *self, Baddie *baddie, ObjFSA_Data *fs
     if (baddie->unk3B2 & 4) {
         fsa->target = sidekick;
     } else {
-        fsa->target = get_player();
+        fsa->target = objGetPlayer();
     }
 
     dll_243_func_11C0(self, baddie, fsa);

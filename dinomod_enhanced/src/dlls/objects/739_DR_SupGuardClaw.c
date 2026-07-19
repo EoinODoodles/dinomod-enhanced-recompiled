@@ -63,7 +63,7 @@ RECOMP_PATCH int DR_NPC_anim_callback(Object* self, Object*arg1, AnimObj_Data* a
     s32 i;
 
     objData = self->data;
-    player = get_player();
+    player = objGetPlayer();
     objSetup = (DR_NPC_Setup*)self->setup;
 
     func_8002674C(self);
@@ -72,7 +72,7 @@ RECOMP_PATCH int DR_NPC_anim_callback(Object* self, Object*arg1, AnimObj_Data* a
     //GuardClaw sequence subevents
     for (i = 0; i < animData->messageCount; i++) {
         if ((animData->messages[i] == 1) && (objSetup->characterType != DR_NPC_SharpClaw)) {
-            obj_free_tick(self);
+            objDisable(self);
             func_800267A4(self);
             self->srt.flags |= OBJFLAG_INVISIBLE;
         }
@@ -92,7 +92,7 @@ RECOMP_PATCH int DR_NPC_anim_callback(Object* self, Object*arg1, AnimObj_Data* a
             ((DLL_210_Player*)player->dll)->vtbl->func75(player, 0);
             
             //@recomp: don't set gamebit here
-            // main_set_bits(objSetup->gamebitFinished, 1);
+            // mainSetBits(objSetup->gamebitFinished, 1);
             // STUBBED_PRINTF(" \n Have Set Bit %i \n", objSetup->gamebitFinished);
 
             gDLL_3_Animation->vtbl->end_obj_sequence(self->seqSlot);

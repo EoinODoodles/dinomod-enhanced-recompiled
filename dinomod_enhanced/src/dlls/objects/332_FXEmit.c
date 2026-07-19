@@ -76,7 +76,7 @@ RECOMP_PATCH void FXEmit_control(Object* self) {
         self->globalPosition.y = self->srt.transl.y;
         self->globalPosition.z = self->srt.transl.z;
 
-        player = get_player();
+        player = objGetPlayer();
         if (!player || !setup) {
             return;
         }
@@ -87,7 +87,7 @@ RECOMP_PATCH void FXEmit_control(Object* self) {
                 objdata->disabled = FALSE;
                 objdata->intervalTimer = setup->interval * 100;
                 if (setup->intervalSoundID) {
-                    gDLL_6_AMSFX->vtbl->play(self, setup->intervalSoundID, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    dll_amSfx->Play(self, setup->intervalSoundID, MAX_VOLUME, NULL, NULL, 0, NULL);
                 }
             } else {
                 objdata->disabled = TRUE;
@@ -115,13 +115,13 @@ RECOMP_PATCH void FXEmit_control(Object* self) {
         }
 
         //Bail if not enabled
-        if (((objdata->toggleGamebit != NO_GAMEBIT) && main_get_bits(objdata->toggleGamebit) == FALSE) 
+        if (((objdata->toggleGamebit != NO_GAMEBIT) && mainGetBits(objdata->toggleGamebit) == FALSE) 
             || objdata->disabled) {
           return;
         }
 
         //Check if should be disabled (@bug?: continues with this tick when disabled, causing 1 frame flash)
-        if (objdata->disableGamebit != NO_GAMEBIT && main_get_bits(objdata->disableGamebit)) {
+        if (objdata->disableGamebit != NO_GAMEBIT && mainGetBits(objdata->disableGamebit)) {
             objdata->disabled = TRUE;
         }
         if (setup->interval == 0xFF) {

@@ -81,7 +81,7 @@ RECOMP_PATCH s32 diPrintf_func_80061210(Gfx** gdl, char* buffer) {
             alpha = buffer[3];
             buffer += 4;
             if (D_800BEAE8) {
-                dl_set_env_color(gdl, red, green, blue, alpha);
+                dlSetEnvColor(gdl, red, green, blue, alpha);
             }
             break;
         case 0x87:
@@ -94,14 +94,14 @@ RECOMP_PATCH s32 diPrintf_func_80061210(Gfx** gdl, char* buffer) {
                     G_AD_PATTERN | G_CD_MAGICSQ | G_CK_NONE | G_TC_FILT | G_TF_POINT | G_TT_NONE | G_TL_TILE | G_TD_CLAMP | G_TP_NONE | G_CYC_1CYCLE | G_PM_NPRIMITIVE | 0x1,
                     G_AC_NONE | G_ZS_PIXEL | G_RM_XLU_SURF | G_RM_XLU_SURF2
                 );
-                dl_apply_other_mode(gdl);
+                dlApplyOtherMode(gdl);
             } else {
                 gDPSetOtherMode(
                     *gdl,
                     G_AD_PATTERN | G_CD_MAGICSQ | G_CK_NONE | G_TC_FILT | G_TF_BILERP | G_TT_NONE | G_TL_TILE | G_TD_CLAMP | G_TP_NONE | G_CYC_1CYCLE | G_PM_NPRIMITIVE,
                     G_AC_NONE | G_ZS_PIXEL | G_RM_XLU_SURF | G_RM_XLU_SURF2
                 );
-                dl_apply_other_mode(gdl);
+                dlApplyOtherMode(gdl);
             }
             break;
         case 0x85: // Set the background color from the next 4 bytes
@@ -115,7 +115,7 @@ RECOMP_PATCH s32 diPrintf_func_80061210(Gfx** gdl, char* buffer) {
                 D_800BEB05 = green;
                 D_800BEB06 = blue;
                 D_800BEB07 = alpha;
-                dl_set_prim_color(gdl, red, green, blue, alpha);
+                dlSetPrimColor(gdl, red, green, blue, alpha);
             }
             break;
         case 0x82: // Set debug text position from the next 4 bytes

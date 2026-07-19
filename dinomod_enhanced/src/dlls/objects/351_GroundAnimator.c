@@ -63,15 +63,15 @@ RECOMP_PATCH void GroundAnimator_store_shapeIDs_and_vertex_weights(Object* self,
     f32 dz;
     s32 vtxID;
     
-    block = map_get_block_by_index(map_world_coords_to_block_index(self->srt.transl.x, self->srt.transl.y, self->srt.transl.z));
+    block = mapGetBlockByIndex(mapWorldCoordsToBlockIndex(self->srt.transl.x, self->srt.transl.y, self->srt.transl.z));
     
     if ((block == NULL) || !(block->vtxFlags & 8)) {
         return;
     }
         
     //Get the GroundAnimator's position relative to the Blocks model's local origin
-    blockWorldGridX = floor_f((self->srt.transl.x - gWorldX) / 640.0f);
-    blockWorldGridZ = floor_f((self->srt.transl.z - gWorldZ) / 640.0f);
+    blockWorldGridX = floorf((self->srt.transl.x - gWorldX) / 640.0f);
+    blockWorldGridZ = floorf((self->srt.transl.z - gWorldZ) / 640.0f);
 
     digBlockX = self->srt.transl.x - (blockWorldGridX * 640.0f + gWorldX);
     digBlockZ = self->srt.transl.z - (blockWorldGridZ * 640.0f + gWorldZ);

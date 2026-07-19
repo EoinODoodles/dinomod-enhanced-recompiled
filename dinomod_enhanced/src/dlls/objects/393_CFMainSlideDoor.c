@@ -36,6 +36,6 @@ RECOMP_PATCH void CFMainSlideDoor_setup(Object* self, CFMainSlideDoor_Setup* set
     objdata = (CFMainSlideDoor_Data*)self->data;
 
     // @recomp: Don't crash if player isn't found (original patch by MusicalProgrammer)
-    Object *player = get_player();
-    objdata->unk0 = player == NULL ? FALSE : vec3_distance_xz(&self->globalPosition, &player->globalPosition) < 130.0f;
+    Object *player = objGetPlayer();
+    objdata->unk0 = player == NULL ? FALSE : vec3DistanceXZ(&self->globalPosition, &player->globalPosition) < 130.0f;
 }

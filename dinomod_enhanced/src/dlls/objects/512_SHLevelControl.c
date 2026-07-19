@@ -15,21 +15,21 @@
 #include "recomp/dlls/objects/512_SHLevelControl_recomp.h"
 
 static _Bool player_has_spellstone(void) {
-    return (main_get_bits(BIT_SpellStone_DIM_Activated) && !main_get_bits(BIT_877))
-        || (main_get_bits(BIT_SpellStone_WC) && !main_get_bits(BIT_DB_Unlock_Act_Three))
-        || (main_get_bits(BIT_7CC)); // Note: DR SpellStone has no hide bit, instead it gets unset after VFP act 3
+    return (mainGetBits(BIT_SpellStone_DIM_Activated) && !mainGetBits(BIT_877))
+        || (mainGetBits(BIT_SpellStone_WC) && !mainGetBits(BIT_DB_Unlock_Act_Three))
+        || (mainGetBits(BIT_7CC)); // Note: DR SpellStone has no hide bit, instead it gets unset after VFP act 3
 }
 
 static _Bool player_is_postgame(void) {
-    return main_get_bits(BIT_7AF); // Drakor defeated bit
+    return mainGetBits(BIT_7AF); // Drakor defeated bit
 }
 
 static void dinomod_river_control(void) {
-    _Bool boulderBlownUp = main_get_bits(DINOMOD_BIT_920_SH_BoulderBlownUp);
+    _Bool boulderBlownUp = mainGetBits(DINOMOD_BIT_920_SH_BoulderBlownUp);
     // TODO: temporary, link boulder bit to river bit. we can separate these if a seq is made for fixing the river
-    main_set_bits(DINOMOD_BIT_921_SH_RiverUnblocked, boulderBlownUp);
+    mainSetBits(DINOMOD_BIT_921_SH_RiverUnblocked, boulderBlownUp);
 
-    _Bool riverUnblocked = main_get_bits(DINOMOD_BIT_921_SH_RiverUnblocked);
+    _Bool riverUnblocked = mainGetBits(DINOMOD_BIT_921_SH_RiverUnblocked);
 
     // Link custom object groups to the normal groups used to cull objects around the river.
     // We'll show the custom groups only if at least one of these are active.
@@ -51,7 +51,7 @@ static void dinomod_river_control(void) {
 #define VINE_AREA_MAX_Z -1556
 
 static void dinomod_well_control(void) {
-    Object* player = get_player();
+    Object* player = objGetPlayer();
     
     //Don't run if the player isn't in the well
     if (!player || player->srt.transl.y > -845.0f) {
@@ -60,7 +60,7 @@ static void dinomod_well_control(void) {
     
     // Temporary: set gamebit if the player issued Flame command near the lily pond vines
     // (can be removed in future if we create a curve network for Tricky to follow in the well)    
-    _Bool lilyPondVinesGone = main_get_bits(DINOMOD_BIT_922_SH_Well_LilyPondVinesUnblocked);
+    _Bool lilyPondVinesGone = mainGetBits(DINOMOD_BIT_922_SH_Well_LilyPondVinesUnblocked);
     if (lilyPondVinesGone == FALSE) {
 
         //Check if Flame was used
@@ -71,7 +71,7 @@ static void dinomod_well_control(void) {
                 ((VINE_AREA_MIN_X < player->srt.transl.x) && (player->srt.transl.x < VINE_AREA_MAX_X)) &&
                 ((VINE_AREA_MIN_Z < player->srt.transl.z) && (player->srt.transl.z < VINE_AREA_MAX_Z))
             ) {
-                main_set_bits(DINOMOD_BIT_922_SH_Well_LilyPondVinesUnblocked, TRUE);
+                mainSetBits(DINOMOD_BIT_922_SH_Well_LilyPondVinesUnblocked, TRUE);
             }
         }
     }
@@ -80,15 +80,15 @@ static void dinomod_well_control(void) {
 RECOMP_HOOK_DLL(SHLevelControl_setup) void SHLevelControl_setup_hook(Object *self, ObjSetup *setup, s32 arg2) {
     // Wake up trader Thorntail automatically if DIM SpellStone was obtained as a hint to the player
     // that they should explore the burrows and (hopefully) find the explosive barrel.
-    if (main_get_bits(BIT_SpellStone_DIM_Activated)) {
-        main_set_bits(BIT_14, 1);
+    if (mainGetBits(BIT_SpellStone_DIM_Activated)) {
+        mainSetBits(BIT_14, 1);
     }
 }
 
 RECOMP_HOOK_DLL(SHLevelControl_control) void SHLevelControl_control_hook(Object *self) {
     // Drive AMSFX's waterfall sfx logic. This is necessary to stop the waterfallspray sfx that plays
     // in the DB river when coming back to SH.
-    gDLL_6_AMSFX->vtbl->water_falls_control();
+    gDLL_6_AMSFX->vtbl->WaterFallsControl();
 
     // Handle river related stuff
     dinomod_river_control();

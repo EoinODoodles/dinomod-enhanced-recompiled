@@ -92,7 +92,7 @@ RECOMP_PATCH void SidekickToy_setup(Object* self, SidekickToy_Setup* objsetup, s
     u8 colliderArg = 5;
 
     bzero(objdata, sizeof(SidekickToy_Data_Extended));
-    player = get_player();
+    player = objGetPlayer();
 
     objdata->state = TOY_STATE_0_Carried;
     objdata->timer = 0.0f;
@@ -118,8 +118,8 @@ RECOMP_PATCH void SidekickToy_setup(Object* self, SidekickToy_Setup* objsetup, s
     gDLL_27->vtbl->setup_terrain_collider(&objdata->collision, 1, &data_collisionPoint, &objdata->collisionRadius, &colliderArg);
     func_800267A4(self);
     objdata->collision.mode = 0;
-    obj_init_mesg_queue(self, 1);
-    main_set_bits(BIT_Tricky_Ball_Unlocked, FALSE);
+    objInitMesgQueue(self, 1);
+    mainSetBits(BIT_Tricky_Ball_Unlocked, FALSE);
 
     //@recomp: Store radii
     objdata->radius = (self->def) ? (38.0f * self->def->scale) : 4.75f;
@@ -146,7 +146,7 @@ static void ball_handle_river_flow(Object* self) {
 
     pushZ = 0.0f;
     pushX = 0.0f;
-    riverflows = obj_get_all_of_type(OBJTYPE_Riverflow, &objCount);
+    riverflows = objGetAllOfType(OBJTYPE_Riverflow, &objCount);
     pushDivisor = 0;
     for (i = 0; i < objCount; i++) {
         flow = riverflows[i];
@@ -161,8 +161,8 @@ static void ball_handle_river_flow(Object* self) {
                 if (distance < range) {
                     strength = (range - distance) / range;
                     strength *= flow->srt.scale * 10.0f;
-                    pushX += fsin16_precise(flow->srt.yaw) * strength;
-                    pushZ += fcos16_precise(flow->srt.yaw) * strength;
+                    pushX += mathSinfInterp(flow->srt.yaw) * strength;
+                    pushZ += mathCosfInterp(flow->srt.yaw) * strength;
                 }
             }
         }
@@ -252,20 +252,20 @@ static void ball_handle_water_behaviour(Object* self){
                     soundID = SOUND_3D8_Water_Splash;
                 } else {
                     volume = ((f32)4.0f*volumeSpeed);
-                    soundID = (rand_next(0, 1) ? SOUND_3EC_Water_Wade_Slow_A : SOUND_3ED_Water_Wade_Slow_B);
+                    soundID = (mathRnd(0, 1) ? SOUND_3EC_Water_Wade_Slow_A : SOUND_3ED_Water_Wade_Slow_B);
                 }
 
                 if (volume > MAX_VOLUME){
                     volume = MAX_VOLUME;
                 }
                 if (volume > 0){
-                    gDLL_6_AMSFX->vtbl->play(self, soundID, volume, 0, 0, 0, 0);
+                    dll_amSfx->Play(self, soundID, volume, 0, 0, 0, 0);
                 }
 
                 //Create splash effects
                 for (i = 0; i < 2; i++) {
-                    waterX = ((f32) rand_next(-10, 10) / 10.0f) + self->srt.transl.x;
-                    waterZ = ((f32) rand_next(-10, 10) / 10.0f) + self->srt.transl.z;
+                    waterX = ((f32) mathRnd(-10, 10) / 10.0f) + self->srt.transl.x;
+                    waterZ = ((f32) mathRnd(-10, 10) / 10.0f) + self->srt.transl.z;
                     gDLL_24_Waterfx->vtbl->spawn_splash(waterX, objdata->collision.waterY, waterZ, 4.0f);
                     gDLL_24_Waterfx->vtbl->spawn_circular_ripple(waterX, objdata->collision.waterY, waterZ, 0, 0.0f, 3);
                 }
@@ -291,7 +291,7 @@ static void ball_handle_water_behaviour(Object* self){
     }
 
     //Handle player interactions
-    player = get_player();
+    player = objGetPlayer();
     if (!player){
         return;
     }
@@ -336,7 +336,7 @@ static void ball_handle_water_behaviour(Object* self){
         if (playerData->unk708 == self){
             playerData->unk708 = NULL;
         }
-        obj_destroy_object(self);
+        objFreeObject(self);
     } else if (playerIsSwimming){
         //Let player push the ball when it's nearby in the water
         if (playerDistance > objdata->radiusPush){
@@ -447,7 +447,7 @@ RECOMP_PATCH void SidekickToy_control(Object* self) {
         objdata->groundTimer = 0;
     }
 
-    while (obj_recv_mesg(self, &outMessage, 0, 0)){
+    while (objRecvMesg(self, &outMessage, 0, 0)){
         if (outMessage == 0x7000B) {
             objdata->timer = 0.0f;
             objdata->state = TOY_STATE_4_Vanish;
@@ -470,7 +470,7 @@ RECOMP_PATCH void SidekickToy_control(Object* self) {
         //@recomp: allow ball to be caught while in flight
         if (self->unkAF & ARROW_FLAG_1_Interacted) {
             gDLL_3_Animation->vtbl->set_variable_obj(OBJ_SidekickBallAni, 0, 0);
-            obj_send_mesg(get_player(), 0x7000A, self, (void*)BIT_ALWAYS_1);
+            objSendMesg(objGetPlayer(), 0x7000A, self, (void*)BIT_ALWAYS_1);
             objdata->state = TOY_STATE_3_Collected;
         }
         return;
@@ -484,13 +484,13 @@ RECOMP_PATCH void SidekickToy_control(Object* self) {
 
         if (self->unkAF & ARROW_FLAG_1_Interacted) {
             gDLL_3_Animation->vtbl->set_variable_obj(OBJ_SidekickBallAni, 0, 0);
-            obj_send_mesg(get_player(), 0x7000A, self, (void*)BIT_ALWAYS_1);
+            objSendMesg(objGetPlayer(), 0x7000A, self, (void*)BIT_ALWAYS_1);
             objdata->state = TOY_STATE_3_Collected;
         }
         break;
     case TOY_STATE_0_Carried:
         //@recomp: position the ball in player's hands
-        if ((player = get_player()) && (playerData = player->data)) {
+        if ((player = objGetPlayer()) && (playerData = player->data)) {
             if (self == playerData->unk708) {
                 player_get_hand_coords(&rsHandCoords);
                 self->srt.transl = rsHandCoords;
@@ -500,7 +500,7 @@ RECOMP_PATCH void SidekickToy_control(Object* self) {
     case TOY_STATE_4_Vanish:
         objdata->timer += gUpdateRateF;
         if (objdata->timer >= 60.0f) {
-            obj_destroy_object(self);
+            objFreeObject(self);
         } else {
             self->opacity = OBJECT_OPACITY_MAX - (s32) ((objdata->timer * 255.0f) / 60.0f);
             break;
@@ -526,7 +526,7 @@ static void ball_remove_duplicates(Object* player){
         return;
     }
 
-    objects = get_world_objects(&i, &total);
+    objects = objGetObjects(&i, &total);
 
     playerData = player->data;
     for (i = 0; i < total; i++) {
@@ -557,7 +557,7 @@ RECOMP_PATCH void SidekickToy_throw(Object* self, Object* thrownBy, f32 speedX, 
 
     /* @recomp: if the ball was thrown by the player (not by Tricky)
        start throw trajectory from the worldSpace coords of the player's hands */
-    Object* player = get_player();
+    Object* player = objGetPlayer();
     if (player && (thrownBy == player)){
         ball_remove_duplicates(player);
     
@@ -584,7 +584,7 @@ RECOMP_PATCH s32 SidekickToy_tick_flight(Object* self) {
     if (self->srt.transl.y > objdata->collision.floorY) {
         self->velocity.y -= 0.05f * gUpdateRateF;
     }
-    obj_move(self,
+    objMove(self,
         self->velocity.x * gUpdateRateF,
         self->velocity.y * gUpdateRateF,
         self->velocity.z * gUpdateRateF
@@ -609,7 +609,7 @@ RECOMP_PATCH s32 SidekickToy_tick_flight(Object* self) {
             if (volume > 2.0f) {
                 volume = 2.0f;
             }
-            gDLL_6_AMSFX->vtbl->play(self, SOUND_161_Toy_Squeak, volume * 32.0f, 0, 0, 0, 0);
+            dll_amSfx->Play(self, SOUND_161_Toy_Squeak, volume * 32.0f, 0, 0, 0, 0);
         }
 
         //Get velocity unit vector

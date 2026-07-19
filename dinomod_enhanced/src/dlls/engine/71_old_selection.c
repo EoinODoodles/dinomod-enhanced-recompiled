@@ -38,7 +38,7 @@ RECOMP_PATCH void dll_71_ctor(void *dll) {
 
     //@recomp: load DLL 73 as a static, to fix this menu's broken function calls
     if (gDLL_73_PicmenuOld == NULL) {
-        gDLL_73_PicmenuOld = dll_load_deferred(DLL_ID_OLD_PICMENU, 8);
+        gDLL_73_PicmenuOld = dllLoad(DLL_ID_OLD_PICMENU, 8);
     }
 }
 
@@ -46,7 +46,7 @@ RECOMP_PATCH void dll_71_ctor(void *dll) {
 RECOMP_PATCH void dll_71_dtor(void *dll) {
     //@recomp: unload DLL 73 when finished
     if (gDLL_73_PicmenuOld) {
-        dll_unload(gDLL_73_PicmenuOld);
+        dllFree(gDLL_73_PicmenuOld);
         gDLL_73_PicmenuOld = NULL;
     }
 }
@@ -72,25 +72,25 @@ RECOMP_PATCH void dll_71_draw(Gfx** gdl, Mtx** mtx, Vertex** vtx) {
         D_8008C8B4 = TRUE;
         break;
     case SwapStone_Old_Continue:
-        obj_send_mesg_many(/* OBJ_16 (deleted) */16, OBJMSG_SEND_FILTER_ID, NULL, 0, 0);
-        menu_set(MENU_GAMEPLAY);
+        objSendMesgMany(/* OBJ_16 (deleted) */16, OBJMSG_SEND_FILTER_ID, NULL, 0, 0);
+        menuSet(MENU_GAMEPLAY);
         break;
     case SwapStone_Old_Swap:
         warpID = (playerNumber == PLAYER_SABRE) ? WARP_SC_RUBBLE_PODIUM : WARP_SH_ROCKY_PODIUM;
         gDLL_29_Gplay->vtbl->set_playerno((1 - playerNumber));
-        warpPlayer(warpID, TRUE);
-        menu_set(MENU_GAMEPLAY);
+        mapWarpPlayer(warpID, TRUE);
+        menuSet(MENU_GAMEPLAY);
         break;
     case SwapStone_Old_To_Warlock:
         warpID = (playerNumber == PLAYER_SABRE) ? WARP_WM_SABRE_SIDE : WARP_WM_KRYSTAL_SIDE;
-        warpPlayer(warpID, TRUE);
+        mapWarpPlayer(warpID, TRUE);
         break;
     }
     
-    font_window_set_coords(3, 100, 25, 220, 140);
-    font_window_set_bg_colour(3, 0, 0, 0, 0x80);
-    font_window_flush_strings(3);
-    font_window_draw(gdl, 0, 0, 3);
-    font_window_draw(gdl, 0, 0, 1);
+    fontWindowSetCoords(3, 100, 25, 220, 140);
+    fontWindowSetBgColour(3, 0, 0, 0, 0x80);
+    fontWindowFlushStrings(3);
+    fontWindowDraw(gdl, 0, 0, 3);
+    fontWindowDraw(gdl, 0, 0, 1);
     sButtonsEnabled = TRUE;
 }

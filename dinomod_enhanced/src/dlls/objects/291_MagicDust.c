@@ -51,13 +51,13 @@ RECOMP_PATCH void MagicDust_control(Object* self) {
     u8 fxParam;
     u32 outMesgID;
     
-    player = get_player();
+    player = objGetPlayer();
     objData = self->data;
     collision = &objData->collision;
     
     //Wait for the "You have picked up a… MAGIC GEM!" sequence to end (if it's active)
     if (objData->flags & MagicDust_FLAG_Tutorial_Sequence) {
-        while (obj_recv_mesg(self, &outMesgID, NULL, NULL)) {
+        while (objRecvMesg(self, &outMesgID, NULL, NULL)) {
             if (outMesgID == 0x7000B) {
                 MagicDust_collect(self, player, objData);
                 objData->flags &= ~MagicDust_FLAG_Tutorial_Sequence;
@@ -88,8 +88,8 @@ RECOMP_PATCH void MagicDust_control(Object* self) {
         //Play a ringing sound at intervals
         objData->soundTimer -= gUpdateRate;
         if (objData->soundTimer < 0) {
-            gDLL_6_AMSFX->vtbl->play(self, SOUND_BA1_MagicDust_Twinkle, MAX_VOLUME, NULL, NULL, 0, NULL);
-            objData->soundTimer = rand_next(240, 300);
+            dll_amSfx->Play(self, SOUND_BA1_MagicDust_Twinkle, MAX_VOLUME, NULL, NULL, 0, NULL);
+            objData->soundTimer = mathRnd(240, 300);
         }
     }
     
@@ -156,11 +156,11 @@ RECOMP_PATCH void MagicDust_control(Object* self) {
                 }
 
                 self->opacity = 1;
-                gDLL_6_AMSFX->vtbl->play(self, SOUND_B2B_Magic_Chime, MAX_VOLUME, NULL, NULL, 0, NULL);
+                dll_amSfx->Play(self, SOUND_B2B_Magic_Chime, MAX_VOLUME, NULL, NULL, 0, NULL);
             }
 
             //Move
-            obj_move(self, 
+            objMove(self, 
                 self->velocity.x * gUpdateRateF, 
                 self->velocity.y * gUpdateRateF, 
                 self->velocity.z * gUpdateRateF
@@ -174,9 +174,9 @@ RECOMP_PATCH void MagicDust_control(Object* self) {
             //Destroy self when vanish timer's up
             if (objData->timer <= 0.0f) {
                 if (self->srt.flags & OBJFLAG_OWNS_SETUP) {
-                    obj_destroy_object(self);
+                    objFreeObject(self);
                 } else {
-                    obj_free_tick(self);
+                    objDisable(self);
                     self->srt.flags |= OBJFLAG_INVISIBLE;
                 }
             }
@@ -202,7 +202,7 @@ RECOMP_PATCH void MagicDust_control(Object* self) {
                     if (absSpeed > 2.0f) {
                         volumeMultiplier = 2.0f;
                     }
-                    gDLL_6_AMSFX->vtbl->play(self, SOUND_66E_Ting, volumeMultiplier * 32.0f, NULL, NULL, 0, NULL);
+                    dll_amSfx->Play(self, SOUND_66E_Ting, volumeMultiplier * 32.0f, NULL, NULL, 0, NULL);
                 }
                 
                 //Reflect speed vector off surface normal (@recomp: make use of unused reflect calculation!)
@@ -285,15 +285,15 @@ RECOMP_PATCH void MagicDust_control(Object* self) {
         distance = -distance;
     } 
     if (distance < 20.0f) {
-        playerDistance = vec3_distance_xz_squared(&self->globalPosition, &player->globalPosition);
+        playerDistance = vec3DistanceXZSquared(&self->globalPosition, &player->globalPosition);
         distance = objData->collisionRadius + 8.0f;
         if (playerDistance < SQ(distance)) {
             //Display a tutorial box when the player first collects a Magic Crystal
-            if (main_get_bits(BIT_Tutorial_Magic_Crystal) == 0) {
+            if (mainGetBits(BIT_Tutorial_Magic_Crystal) == 0) {
                 gDLL_3_Animation->vtbl->set_variable_obj(objData->animObjectID, NULL, 0);
                 outMesgID = 0;
-                obj_send_mesg(player, 0x7000A, self, NULL);
-                main_set_bits(BIT_Tutorial_Magic_Crystal, 1);
+                objSendMesg(player, 0x7000A, self, NULL);
+                mainSetBits(BIT_Tutorial_Magic_Crystal, 1);
                 objData->flags |= MagicDust_FLAG_Tutorial_Sequence;
             } else {
                 MagicDust_collect(self, player, objData);
@@ -305,7 +305,7 @@ RECOMP_PATCH void MagicDust_control(Object* self) {
                 gDLL_17_partfx->vtbl->spawn(self, objData->fxIDSparkle, NULL, 1, -1, NULL);
             }
             
-            gDLL_6_AMSFX->vtbl->play(self, objData->soundID, MAX_VOLUME, NULL, NULL, 0, NULL);
+            dll_amSfx->Play(self, objData->soundID, MAX_VOLUME, NULL, NULL, 0, NULL);
         }
     }
 }

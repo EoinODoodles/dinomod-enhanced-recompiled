@@ -46,23 +46,23 @@ RECOMP_PATCH void dll_211_func_940C(Object *self, void *state) {
     *unk4c |= 0x1000;
 
     // @recomp: Do null checks before unloading stuff, also reset pointers to null after.
-    //          obj_destroy_object will crash if given a null/invalid pointer.
+    //          objFreeObject will crash if given a null/invalid pointer.
     void **unk0 = (void**)((u32)state + 0x0);
     if (*unk0 != NULL) {
-        dll_unload(*unk0);
+        dllFree(*unk0);
         *unk0 = NULL;
     }
 
     Object **unk5f0 = (Object**)((u32)state + 0x5f0);
     if (*unk5f0 != NULL) {
-        obj_destroy_object(*unk5f0);
+        objFreeObject(*unk5f0);
         *unk5f0 = NULL;
     }
 
     for (s32 i = 0; i < 3; i++) {
         Object **ptr = (Object**)((u32)state + (0x5e4 + (i * 4)));
         if (*ptr != NULL) {
-            obj_destroy_object(*ptr);
+            objFreeObject(*ptr);
             *ptr = NULL;
         }
     }
@@ -77,7 +77,7 @@ RECOMP_PATCH void dll_211_func_8974(Object* self, UnkCurvesStruct* arg1, f32 arg
     
     distanceSquared = (arg2 * gUpdateRateF) * 1.5f;
     square = distanceSquared * distanceSquared;
-    distanceSquared = vec3_distance_xz_squared((Vec3f *) (&arg1->unk0.unk68), &self->srt.transl);
+    distanceSquared = vec3DistanceXZSquared((Vec3f *) (&arg1->unk0.unk68), &self->srt.transl);
     
     if (arg1->unk0.unk80 != 0){
         var_fs0 = -2.0f;
@@ -96,6 +96,6 @@ RECOMP_PATCH void dll_211_func_8974(Object* self, UnkCurvesStruct* arg1, f32 arg
             recomp_printf("[dll_211_func_8974] unk0 1.0f -> 0.99609375f\n");
             arg1->unk0.unk0 = 0.99609375f;
         }
-        distanceSquared = vec3_distance_xz_squared((Vec3f *) (&arg1->unk0.unk68), &self->srt.transl);
+        distanceSquared = vec3DistanceXZSquared((Vec3f *) (&arg1->unk0.unk68), &self->srt.transl);
     }
 }

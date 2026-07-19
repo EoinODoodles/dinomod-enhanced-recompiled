@@ -123,30 +123,30 @@ static void dinomod_load_logo_textures(void) {
     for (s32 i = 0; dTexTiles[i].animProgress != -1; i++) {
         //Special case: handle first texture tile of old DP logo (since it was replaced by a full image of the newer DP logo)
         if (i == 0) {
-            dTexTiles[i].tex = tex_load_deferred(TEXTABLE_254);
+            dTexTiles[i].tex = texLoadTexture(TEXTABLE_254);
             continue;
         }
         
-        dTexTiles[i].tex = tex_load_deferred(TEXTABLE_C5_DinosaurPlanetLogo + i);
+        dTexTiles[i].tex = texLoadTexture(TEXTABLE_C5_DinosaurPlanetLogo + i);
     }    
 }
 
 static void dinomod_unload_logo_textures(void) {
     for (s32 i = 0; dTexTiles[i].animProgress != -1; i++) {
-        tex_free(dTexTiles[i].tex);
+        texFreeTexture(dTexTiles[i].tex);
     }    
 }
 
 static void dinomod_setup_standard_resolution(void) {
-    extern void func_8001440C(s32 arg0);
+    extern void main_func_8001440C(s32 arg0);
 
-    main_set_bits(BIT_Menus_Selection_Blocked, FALSE);
+    mainSetBits(BIT_Menus_Selection_Blocked, FALSE);
 
-    vi_init(1, get_ossched(), FALSE);
-    track_set_z_buffer_on(1);
-    track_set_sky_on(1);
+    viInit(1, mainGetScheduler(), FALSE);
+    trackSetZBufferOn(1);
+    trackSetSkyOn(1);
 
-    func_8001440C(0);
+    main_func_8001440C(0);
 }
 
 static s32 dinomod_is_save_slot_empty(s32 saveSlotIdx) {
@@ -175,7 +175,7 @@ extern void old_levelselect_start(MapIDs mapID, s32 act, PlayerNo playerNo);
 RECOMP_PATCH void old_levelselect_ctor(void *dll) {
     //@recomp: load DLL 73 as a static, to fix this menu's broken function calls
     if (gDLL_73_PicmenuOld == NULL) {
-        gDLL_73_PicmenuOld = dll_load_deferred(DLL_ID_OLD_PICMENU, 8);
+        gDLL_73_PicmenuOld = dllLoad(DLL_ID_OLD_PICMENU, 8);
     }
 
     //@recomp: load logo textures
@@ -194,7 +194,7 @@ RECOMP_PATCH void old_levelselect_ctor(void *dll) {
 RECOMP_PATCH void old_levelselect_dtor(void *dll) {
     //@recomp: unload DLL 73 when finished
     if (gDLL_73_PicmenuOld) {
-        dll_unload(gDLL_73_PicmenuOld);
+        dllFree(gDLL_73_PicmenuOld);
         gDLL_73_PicmenuOld = NULL;
     }
 
@@ -216,12 +216,12 @@ RECOMP_PATCH void old_levelselect_draw(Gfx** gdl, Mtx** mtx, Vertex** vtx) {
     char *string;
     s32 prevSelectedPrintIdx;
 
-    func_80014508(20);
+    main_func_80014508(20);
 
     // gDLL_20_Screens->vtbl->show_screen(2); //NOTE: this screen is missing - it likely contained the old Dinosaur Planet logo composited with the gradient background
     
     // @recomp: put old_mainmenu's unused TextureTiles to use, drawing the old Dinosaur Planet logo (slightly smaller than the missing SCREENS.bin version seen in the One Hour Footage)
-    rcp_tile_write(gdl, dTexTiles, 160, 40, 0xFF, 0xFF, 0xFF, 0xFF);
+    rcpTileWrite(gdl, dTexTiles, 160, 40, 0xFF, 0xFF, 0xFF, 0xFF);
 
     //Display either the Level Select list, or a "LEVEL NOT AVAILABLE" message
     if (dShowLevelUnavailable == FALSE) {
@@ -515,7 +515,7 @@ RECOMP_PATCH void old_levelselect_draw(Gfx** gdl, Mtx** mtx, Vertex** vtx) {
         }
     }
 
-    font_window_draw(gdl, 0, 0, 1);
+    fontWindowDraw(gdl, 0, 0, 1);
 }
 
 // offset: 0xB58 | func: 3
@@ -530,7 +530,7 @@ RECOMP_PATCH void old_levelselect_start(MapIDs mapID, s32 act, PlayerNo playerNo
         gDLL_29_Gplay->vtbl->init_save(0, NULL);
     }
     
-    main_change_map(mapID, act, playerNo, MENU_GAMEPLAY);
+    mainChangeMap(mapID, act, playerNo, MENU_GAMEPLAY);
 
     //@recomp: ensure standard resolution is used
     dinomod_setup_standard_resolution();

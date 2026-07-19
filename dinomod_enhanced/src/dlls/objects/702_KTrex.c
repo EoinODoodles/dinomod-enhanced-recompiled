@@ -356,7 +356,7 @@ RECOMP_PATCH s32 dll_702_anim_state_2(Object* self, ObjFSA_Data* fsa, f32 update
 
     reversed = sKTData->flags & KTFLAG_REVERSED;
     if (fsa->enteredAnimState) {
-        func_80023D30(self, sTurn90ModAnims[sKTData->anger & 0xFFFF][reversed], 0.0f, 0);
+        objAnimSet(self, sTurn90ModAnims[sKTData->anger & 0xFFFF][reversed], 0.0f, 0);
         fsa->animTickDelta = sTurn90AnimTickDeltas[sKTData->anger];
         sKTData->turnStartYaw = self->srt.yaw;
 
@@ -380,8 +380,8 @@ RECOMP_PATCH s32 dll_702_anim_state_2(Object* self, ObjFSA_Data* fsa, f32 update
     tempSRT.transl.y = 0.0f;
     tempSRT.transl.z = 0.0f;
     tempSRT.scale = 1.0f;
-    matrix_from_srt(&tempMtx, &tempSRT);
-    vec3_transform(&tempMtx, fsa->unk27C, 0.0f, -fsa->unk278, &self->velocity.x, &tempY, &self->velocity.z);
+    mathYprXyzMtx(&tempMtx, &tempSRT);
+    mathMtxXFMF(&tempMtx, fsa->unk27C, 0.0f, -fsa->unk278, &self->velocity.x, &tempY, &self->velocity.z);
     if (reversed) {
         self->srt.yaw = (f32) sKTData->turnStartYaw + (16384.0f * self->animProgress);
     } else {
@@ -393,10 +393,10 @@ RECOMP_PATCH s32 dll_702_anim_state_2(Object* self, ObjFSA_Data* fsa, f32 update
 RECOMP_PATCH s32 dll_702_anim_state_5(Object* self, ObjFSA_Data* fsa, f32 updateRate) {
     if (fsa->enteredAnimState) {
         if (!dinomod_kt_enhanced()) {
-            func_80023D30(self, sChargeEndModAnims[sKTData->anger], 0.0f, 0);
+            objAnimSet(self, sChargeEndModAnims[sKTData->anger], 0.0f, 0);
         } else {
             // @recomp: (enhanced) Use unused roar that actually has a speak event
-            func_80023D30(self, KTANIM_Roar_ChargeEnd1, 0.0f, 0);
+            objAnimSet(self, KTANIM_Roar_ChargeEnd1, 0.0f, 0);
         }
         fsa->animTickDelta = 0.005f;
         fsa->unk278 = 0.0f;
@@ -425,7 +425,7 @@ RECOMP_PATCH s32 dll_702_logic_state_1(Object* self, ObjFSA_Data* fsa, f32 updat
         }
 
         if (sKTData->timer <= 0.0f) {
-            main_set_bits(BIT_564, 1);
+            mainSetBits(BIT_564, 1);
             gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, 4, 1);
             gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, 5, 1);
         }
@@ -455,7 +455,7 @@ RECOMP_PATCH s32 dll_702_logic_state_2(Object* self, ObjFSA_Data* fsa, f32 updat
     if (!dinomodInitHack && sKTData->segmentPos >= 0.5f) {
         dinomodInitHack = TRUE;
         gDLL_5_AMSEQ2->vtbl->set(self, 0xD8, 0, 0, 0);
-        main_set_bits(BIT_570, 0); // close KT_RexDoorTrex (not perfect but it works)
+        mainSetBits(BIT_570, 0); // close KT_RexDoorTrex (not perfect but it works)
     }
 
     if (dll_702_move_and_check_turn(fsa, sKTData) != 0) {
@@ -468,7 +468,7 @@ RECOMP_PATCH s32 dll_702_logic_state_2(Object* self, ObjFSA_Data* fsa, f32 updat
         if ((sKTData->fightProgress >= 2) && !(sKTData->flags & KTFLAG_ROLLED_CHANCE) && 
                 ((!reversed && sKTData->segmentPos >= 0.7f) || (reversed && sKTData->segmentPos <= 0.3f))) {
             chanceIdx = sKTData->fightProgress >> 1;
-            if (rand_next(0, 100) <= objsetup->chargeChance[chanceIdx]) {
+            if (mathRnd(0, 100) <= objsetup->chargeChance[chanceIdx]) {
                 sKTData->chargeCounter = 2;
                 dll_702_push_state(KT_LSTATE_5_CHARGE);
                 sKTData->roarType = 1;
@@ -478,7 +478,7 @@ RECOMP_PATCH s32 dll_702_logic_state_2(Object* self, ObjFSA_Data* fsa, f32 updat
                 }
                 return KT_LSTATE_4_ROAR + 1;
             }
-            if (rand_next(0, 100) <= objsetup->reverseChance[chanceIdx]) {
+            if (mathRnd(0, 100) <= objsetup->reverseChance[chanceIdx]) {
                 // @recomp: (enhanced) Don't turn around in front of the player!
                 if (!dinomod_kt_enhanced() || !dinomod_kt_can_see_player()) {
                     sKTData->roarType = 0;
@@ -568,7 +568,7 @@ RECOMP_PATCH s32 dll_702_logic_state_7(Object* self, ObjFSA_Data* fsa, f32 updat
         //          this in logic state 10 if the boss was not damaged to undo this). Mimics SFA behavior.
         //          I think this also helps avoid the camera bugging out in the end cutscene?
         sKTData->fightProgress += 1;
-        main_set_bits(BIT_572_KT_FightProgress, sKTData->fightProgress);
+        mainSetBits(BIT_572_KT_FightProgress, sKTData->fightProgress);
     } else if (fsa->unk33A != 0) {
         return KT_LSTATE_8_ON_GROUND + 1;
     }
@@ -625,7 +625,7 @@ RECOMP_PATCH s32 dll_702_logic_state_9(Object* self, ObjFSA_Data* fsa, f32 updat
         // @recomp: Don't increment fight progress here, we do this in logic state 7 now
         // if (sKTData->flags & KTFLAG_DAMAGED) {
         //     sKTData->fightProgress += 1;
-        //     main_set_bits(BIT_572_KT_FightProgress, sKTData->fightProgress);
+        //     mainSetBits(BIT_572_KT_FightProgress, sKTData->fightProgress);
         // }
         ktflags = sKTData->flags;
         sKTData->standingUpSegment = KTFLAG_GET_SEGMENT(ktflags);
@@ -679,7 +679,7 @@ RECOMP_PATCH s32 dll_702_logic_state_10(Object* self, ObjFSA_Data* fsa, f32 upda
             dll_702_push_state(KT_LSTATE_2_WALK);
         }
         gDLL_2_Camera->vtbl->change_mode(3, 0);
-        main_set_bits(BIT_572_KT_FightProgress, sKTData->fightProgress);
+        mainSetBits(BIT_572_KT_FightProgress, sKTData->fightProgress);
         return KT_LSTATE_6_CHARGE_END + 1;
     }
     return 0;

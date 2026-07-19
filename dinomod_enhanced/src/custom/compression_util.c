@@ -6,7 +6,7 @@
 #include "sys/memory.h"
 
 void* dinomod_model_decompress(void *data, u32 size, u32 *outSize) {
-    s32 decompressedSize = rarezip_uncompress_size((u8*)data + 8);
+    s32 decompressedSize = rarezipUncompressSize((u8*)data + 8);
     if (decompressedSize <= 0) {
         // Already decompressed or zero size
         void *newData = recomp_alloc(size);
@@ -27,7 +27,7 @@ void* dinomod_model_decompress(void *data, u32 size, u32 *outSize) {
 
     bcopy(data, newData, 8); // header
     *((s32*)((u8*)newData + 0x8)) = -1; // decompressedSize
-    rarezip_uncompress((u8*)data + 8, (u8*)newData + newDataOffset, decompressedSize);
+    rarezipUncompress((u8*)data + 8, (u8*)newData + newDataOffset, decompressedSize);
 
     if (outSize != NULL) {
         *outSize = newSize;
@@ -37,7 +37,7 @@ void* dinomod_model_decompress(void *data, u32 size, u32 *outSize) {
 }
 
 void* dinomod_block_decompress(void *data, u32 size, u32 *outSize) {
-    s32 decompressedSize = rarezip_uncompress_size((u8*)data + 4);
+    s32 decompressedSize = rarezipUncompressSize((u8*)data + 4);
     if (decompressedSize <= 0) {
         // Already decompressed or zero size
         void *newData = recomp_alloc(size);
@@ -58,7 +58,7 @@ void* dinomod_block_decompress(void *data, u32 size, u32 *outSize) {
 
     bcopy(data, newData, 4); // header
     *((s32*)((u8*)newData + 0x4)) = -1; // decompressedSize
-    rarezip_uncompress((u8*)data + 4, (u8*)newData + newDataOffset, decompressedSize);
+    rarezipUncompress((u8*)data + 4, (u8*)newData + newDataOffset, decompressedSize);
 
     if (outSize != NULL) {
         *outSize = newSize;

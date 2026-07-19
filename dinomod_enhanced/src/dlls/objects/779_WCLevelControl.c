@@ -50,10 +50,10 @@ RECOMP_PATCH void WCLevelControl_control(Object *self) {
 
     //Check if night-time
     if (gDLL_7_Newday->vtbl->func8(&time)) {
-        main_set_bits(BIT_7F3, 1);
-        main_set_bits(BIT_7F1, 0);
+        mainSetBits(BIT_7F3, 1);
+        mainSetBits(BIT_7F1, 0);
     } else {
-        main_set_bits(BIT_7F3, 0);
-        main_set_bits(BIT_7F1, 1);
+        mainSetBits(BIT_7F3, 0);
+        mainSetBits(BIT_7F1, 1);
     }
 }

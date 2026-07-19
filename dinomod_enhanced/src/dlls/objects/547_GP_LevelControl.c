@@ -33,7 +33,7 @@ static void ensure_pillars_load(){
 
     //Load the object group if any of the pillars' gamebits are set
     for (s32 i = 0; i < 3; i++){
-        if (main_get_bits(GP_ShrinePillar_Gamebits[i].play) || main_get_bits(GP_ShrinePillar_Gamebits[i].played)){
+        if (mainGetBits(GP_ShrinePillar_Gamebits[i].play) || mainGetBits(GP_ShrinePillar_Gamebits[i].played)){
             gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_GOLDEN_PLAINS, 5, 1);
             return;
         }
@@ -51,14 +51,14 @@ RECOMP_PATCH void GP_LevelControl_setup(Object *self, ObjSetup *setup, s32 arg2)
 
     switch (gDLL_29_Gplay->vtbl->get_act(self->mapID)) {
     case 1:
-        main_set_bits(BIT_GP_Sharpclaw_Jetbike_Cutscene2, 1);
+        mainSetBits(BIT_GP_Sharpclaw_Jetbike_Cutscene2, 1);
         break;
     case 3:
-        main_set_bits(BIT_GP_Sharpclaw_Jetbike_Cutscene2, 1);
+        mainSetBits(BIT_GP_Sharpclaw_Jetbike_Cutscene2, 1);
         break;
     }
 
-    main_set_bits(BIT_GP_Bonfire_Kindling_Placed, 1); //@recomp: change initial flag set
+    mainSetBits(BIT_GP_Bonfire_Kindling_Placed, 1); //@recomp: change initial flag set
     objdata->mapID = 0xFF;
 
     //@recomp: GP_ShrinePillar checks

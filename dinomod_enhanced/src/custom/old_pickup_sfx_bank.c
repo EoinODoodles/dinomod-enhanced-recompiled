@@ -14,7 +14,7 @@ ALBank *recomp_oldPickupSfxBank;
  * Create a custom sound bank containing the two variants of the old item pickup jingle.
  * Original patch by nuggs.
  */
-RECOMP_HOOK_RETURN("game_init") void dinomod_init_old_pickup_sound(void) {
+RECOMP_HOOK_RETURN("mainInit") void dinomod_init_old_pickup_sound(void) {
     // The old pickup sounds are actually instrument sounds in the music sound bank.
     // We'll be playing it from the loaded AMSEQ bank data.
     ALBank *musicBank = __dll5_sBankFiles[1]->bankArray[0];

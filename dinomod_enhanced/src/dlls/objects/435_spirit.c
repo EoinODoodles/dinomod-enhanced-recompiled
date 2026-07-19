@@ -54,11 +54,11 @@ RECOMP_PATCH void Spirit_setup(Object* self, AnimObj_Setup* objSetup, s32 arg2) 
         id == OBJ_CCSH_SpiritPriz || 
         id == OBJ_WGSH_SpiritPriz || 
         id == OBJ_NWSH_SpiritPriz) {   
-        data_modGfx = dll_load_deferred(0x102D, 1);
+        data_modGfx = dllLoad(0x102D, 1);
     }
 
     //@recomp: get texture animator
-    objData->animTexture = func_800348A0(self, 0, 0);
+    objData->animTexture = objExprGetTexAnimator(self, 0, 0);
 }
 
 /** Play the Krazoa Spirits' unused trail texture animation */
@@ -70,7 +70,7 @@ RECOMP_PATCH void Spirit_print(Object* self, Gfx **gdl, Mtx **mtxs, Vertex **vtx
     Spirit_Data *objData = self->data;
     TextureAnimator* animatedTexture;
 
-    camera = get_camera();
+    camera = camGet();
     if (self->id == OBJ_ECSH_SpiritCup && camera) {
         self->srt.yaw = 0xFFFF - camera->srt.yaw;
     }
@@ -97,22 +97,22 @@ RECOMP_PATCH void Spirit_print(Object* self, Gfx **gdl, Mtx **mtxs, Vertex **vtx
     }
 
     if (visibility) {
-        draw_object(self, gdl, mtxs, vtxs, pols, 1.0f);
+        objprintDrawModel(self, gdl, mtxs, vtxs, pols, 1.0f);
         if (self->opacity) {
             if (id == OBJ_DFSH_SpiritPriz || id == OBJ_CCSH_SpiritPriz) {
-                if ((s16)rand_next(0, 1)) {
+                if ((s16)mathRnd(0, 1)) {
                     data_modGfx->vtbl->func[0].withSixArgs((s32)self, 0, 0, 4, -1, 0);
                 }
             } else if (id == OBJ_MMSH_SpiritPriz || id == OBJ_WGSH_SpiritPriz) {
-                if ((s16)rand_next(0, 1)) {
+                if ((s16)mathRnd(0, 1)) {
                     data_modGfx->vtbl->func[0].withSixArgs((s32)self, 1, 0, 4, -1, 0);
                 }
             } else if (id == OBJ_ECSH_SpiritPriz || id == OBJ_GPSH_SpiritPriz) {
-                if ((s16)rand_next(0, 1)) {
+                if ((s16)mathRnd(0, 1)) {
                     data_modGfx->vtbl->func[0].withSixArgs((s32)self, 2, 0, 4, -1, 0);
                 }
             } else if (id == OBJ_DBSH_SpiritPriz || id == OBJ_NWSH_SpiritPriz){
-                if ((s16)rand_next(0, 1)) {
+                if ((s16)mathRnd(0, 1)) {
                     data_modGfx->vtbl->func[0].withSixArgs((s32)self, 3, 0, 4, -1, 0);
                 }
             }

@@ -40,7 +40,7 @@ RECOMP_PATCH void dll_32_func_1314(Gfx** gdl, Mtx** mtxs, Object* a2) {
     //sp8C = 8;
     sp90 = *(s8*)((u32)a2->def + 0x68);
     sp8C = *(s8*)((u32)a2->def + 0x69);
-    player = get_player();
+    player = objGetPlayer();
     if (a2->modelInstIdx != 0) {
         return;
     }
@@ -49,7 +49,7 @@ RECOMP_PATCH void dll_32_func_1314(Gfx** gdl, Mtx** mtxs, Object* a2) {
     spD8.roll = 0;
     spD8.pitch = 0;
     spD8.scale = 1.0f;
-    camera = get_camera();
+    camera = camGet();
     if (camera != NULL) {
         VECTOR_SUBTRACT(camera->srt.transl, a2->srt.transl, spA8);
         var_fs0 = VECTOR_MAGNITUDE_SQUARED(spA8);
@@ -64,7 +64,7 @@ RECOMP_PATCH void dll_32_func_1314(Gfx** gdl, Mtx** mtxs, Object* a2) {
         spD8.transl.x = 0.0f;
         spD8.transl.y = 0.0f;
         spD8.transl.z = 0.0f;
-        rotate_vec3(&spD8, sp9C.f);
+        mathRotateRPY(&spD8, sp9C.f);
         spD8.yaw = 0;
     }
     temp_v0_3 = dll_32_func_1D3C(spA8.f, sp9C.f, &spB4);
@@ -98,7 +98,7 @@ RECOMP_PATCH void dll_32_func_1314(Gfx** gdl, Mtx** mtxs, Object* a2) {
                     spD8.transl.z /= temp_t0;
                     //pad = temp_s0->jointID_A;
                     temp = (MtxF *) ((f32**)(temp_s3->matrices)[(temp_s3->unk34 & 1)] + (temp_s0->jointID_A << 4));
-                    vec3_transform(temp,
+                    mathMtxXFMF(temp,
                                    spD8.transl.x, spD8.transl.y, spD8.transl.z, 
                                    &spD8.transl.x, &spD8.transl.y, &spD8.transl.z);
                     spD8.transl.x += gWorldX;
@@ -132,13 +132,13 @@ RECOMP_PATCH void dll_32_func_1314(Gfx** gdl, Mtx** mtxs, Object* a2) {
             spD8.transl.y = temp_a3[4].n.ob[1] + 2.0f;
             spD8.transl.z = temp_a3[4].n.ob[2] + 10.0f;
         }
-        spD8.transl.x += rand_next(-5, 5);
-        spD8.transl.y += rand_next(-5, 5);
-        spD8.transl.z += rand_next(-5, 5);
+        spD8.transl.x += mathRnd(-5, 5);
+        spD8.transl.y += mathRnd(-5, 5);
+        spD8.transl.z += mathRnd(-5, 5);
         spD8.scale = 1.0f;
         //pad = temp_s0->jointID_A;
         temp = (MtxF *) &(((f32 **)temp_s3->matrices)[(temp_s3->unk34 & 1)][temp_s0->jointID_A << 4]);
-        vec3_transform(temp, 
+        mathMtxXFMF(temp, 
                        spD8.transl.x, spD8.transl.y, spD8.transl.z, 
                        &spD8.transl.x, &spD8.transl.y, &spD8.transl.z);
         spD8.transl.x += gWorldX;

@@ -95,7 +95,7 @@ static Object* GP_ShrinePillar_getDoor(Object* pillar){
             return NULL;
     }
 
-    objects = get_world_objects(&objIndex, &objCount);
+    objects = objGetObjects(&objIndex, &objCount);
     for (i = objIndex; i < objCount; i++) {
         if (!objects[i] || !objects[i]->setup){
             continue;
@@ -112,16 +112,16 @@ static void play_sound_freezing(Object* self){
     GP_ShrinePillar_Data *objData = self->data;
     if (objData->soundTimerCool == 0){
         objData->soundTimerCool = 120;
-        gDLL_6_AMSFX->vtbl->play(self, SOUND_80B_Crackling_Freezing, 0x50, NULL, NULL, 0, NULL);
+        dll_amSfx->Play(self, SOUND_80B_Crackling_Freezing, 0x50, NULL, NULL, 0, NULL);
     }
 }
 
 static void play_sound_thawing(Object* self){
     GP_ShrinePillar_Data *objData = self->data;
-    Object* player = get_player();
+    Object* player = objGetPlayer();
     if (player && objData->soundTimerHot == 0){
         objData->soundTimerHot = 120;
-        gDLL_6_AMSFX->vtbl->play(player, SOUND_80C_Steam_Hissing, 0x40, NULL, NULL, 0, NULL);
+        dll_amSfx->Play(player, SOUND_80C_Steam_Hissing, 0x40, NULL, NULL, 0, NULL);
     }
 }
 
@@ -129,7 +129,7 @@ static void play_sound_deflect(Object* self){
     GP_ShrinePillar_Data *objData = self->data;
     if (objData->soundTimerDeflect == 0){
         objData->soundTimerDeflect = 20;
-        gDLL_6_AMSFX->vtbl->play(self, rand_next(0, 5) ? SOUND_25B_Magic_Attack_Deflected : SOUND_25C_Melee_Attack_Deflected, 0x40, NULL, NULL, 0, NULL);
+        dll_amSfx->Play(self, mathRnd(0, 5) ? SOUND_25B_Magic_Attack_Deflected : SOUND_25C_Melee_Attack_Deflected, 0x40, NULL, NULL, 0, NULL);
     }
 }
 
@@ -147,12 +147,12 @@ RECOMP_PATCH void GP_ShrinePillar_setup(Object *self, GP_ShrinePillar_Setup *set
 
     objdata = (GP_ShrinePillar_Data*)self->data;
 
-    animTexture = func_800348A0(self, 0, 0);
+    animTexture = objExprGetTexAnimator(self, 0, 0);
 
     //Set initial state based on gamebits
-    if (main_get_bits(BIT_7D0)){
+    if (mainGetBits(BIT_7D0)){
         objdata->state = STATE_Finished;
-    } else if ((setup->gamebitRaised != NO_GAMEBIT) && main_get_bits(setup->gamebitRaised)) {
+    } else if ((setup->gamebitRaised != NO_GAMEBIT) && mainGetBits(setup->gamebitRaised)) {
         objdata->state = STATE_Raised;
     } else {
         objdata->state = STATE_Underground;
@@ -168,7 +168,7 @@ RECOMP_PATCH void GP_ShrinePillar_setup(Object *self, GP_ShrinePillar_Setup *set
     }
 
     //@recomp: Check sound-related gamebits
-    if (main_get_bits(setup->gamebitDoorOpen)){
+    if (mainGetBits(setup->gamebitDoorOpen)){
         objdata->kyteLandedPlayed = TRUE;
         objdata->doorOpenPlayed = TRUE;
     }
@@ -188,7 +188,7 @@ RECOMP_PATCH void GP_ShrinePillar_control(Object* self) {
 
     //@recomp: don't do anything until local Block loaded (stops GP_ShrineDoors from blasting off into outer space due to sequence)
     //TODO: figure out a better fix for this bug?
-    block = map_get_block_by_index(map_world_coords_to_block_index(self->srt.transl.x, self->srt.transl.y + 200, self->srt.transl.z));
+    block = mapGetBlockByIndex(mapWorldCoordsToBlockIndex(self->srt.transl.x, self->srt.transl.y + 200, self->srt.transl.z));
     if (!block){
         return;
     }
@@ -236,7 +236,7 @@ RECOMP_PATCH int GP_ShrinePillar_anim_callback(Object* self, Object* animObj, An
     switch (objdata->state) {
     case STATE_Underground:
         //Waiting for gamebit (set when leaving each act of Desert Force Point Temple)
-        if (main_get_bits(setup->gamebitRise)) {
+        if (mainGetBits(setup->gamebitRise)) {
             objdata->state = STATE_Rising;
         }
         break;
@@ -246,20 +246,20 @@ RECOMP_PATCH int GP_ShrinePillar_anim_callback(Object* self, Object* animObj, An
             if (animObjData->messages[index] == 1) {
                 objdata->state = STATE_Raised;
                 if (setup->gamebitRaised != NO_GAMEBIT) {
-                    main_set_bits(setup->gamebitRaised, 1);
+                    mainSetBits(setup->gamebitRaised, 1);
                 }
             }
         }
         break;
     case STATE_Raised:
         //Waiting for door opening gamebit to be set (when Kyte lands on pillar)
-        if (main_get_bits(setup->gamebitDoorOpen)) {
+        if (mainGetBits(setup->gamebitDoorOpen)) {
             objdata->state = STATE_Waiting_for_Door_Open;
 
             //@recomp: play sound when Kyte lands, to help indicate something's happened
             if (!objdata->kyteLandedPlayed){
-                gDLL_6_AMSFX->vtbl->play(self, SOUND_36E_Lever_Clunk, 0x50, &objdata->soundHandleSwitch, NULL, 0, NULL);
-                gDLL_6_AMSFX->vtbl->set_pitch(objdata->soundHandleSwitch, 0.75f);
+                dll_amSfx->Play(self, SOUND_36E_Lever_Clunk, 0x50, &objdata->soundHandleSwitch, NULL, 0, NULL);
+                dll_amSfx->SetPitch(objdata->soundHandleSwitch, 0.75f);
 
                 objdata->kyteLandedPlayed = TRUE;
                 objdata->soundDelayStone = 50;
@@ -280,8 +280,8 @@ RECOMP_PATCH int GP_ShrinePillar_anim_callback(Object* self, Object* animObj, An
             if (objdata->soundDelayStone <= 0){
                 objdata->soundDelayStone = 0;
                 objdata->doorOpenPlayed = TRUE;
-                gDLL_6_AMSFX->vtbl->play(self, SOUND_43E_Stone_Block_Moving, MAX_VOLUME, &objdata->soundHandleDoor, NULL, 0, NULL);
-                gDLL_6_AMSFX->vtbl->set_pitch(objdata->soundHandleDoor, 1.05f);
+                dll_amSfx->Play(self, SOUND_43E_Stone_Block_Moving, MAX_VOLUME, &objdata->soundHandleDoor, NULL, 0, NULL);
+                dll_amSfx->SetPitch(objdata->soundHandleDoor, 1.05f);
             }
         }
 
@@ -325,7 +325,7 @@ RECOMP_PATCH int GP_ShrinePillar_anim_callback(Object* self, Object* animObj, An
         break;
     case STATE_Fade_Texture_to_Cooled:
     //Fading animated texture from hot stone frame to iced-over stone frame
-        animatedTexture = func_800348A0(self, 0, 0);
+        animatedTexture = objExprGetTexAnimator(self, 0, 0);
         if (animatedTexture != NULL) {
             opacity = animatedTexture->frame + (gUpdateRate * 8);
             if (opacity > 0x100) {
@@ -340,7 +340,7 @@ RECOMP_PATCH int GP_ShrinePillar_anim_callback(Object* self, Object* animObj, An
         break;
     case STATE_Fade_Texture_to_Hot:
         //Fading texture from hot stone frame to iced-over stone frame
-        animatedTexture = func_800348A0(self, 0, 0);
+        animatedTexture = objExprGetTexAnimator(self, 0, 0);
         if (animatedTexture != NULL) {
             opacity = animatedTexture->frame - (gUpdateRate * 2); //@recomp: slower
             if (opacity < 0) {
@@ -358,14 +358,14 @@ RECOMP_PATCH int GP_ShrinePillar_anim_callback(Object* self, Object* animObj, An
         }
         break;
     case STATE_Finished:
-        animatedTexture = func_800348A0(self, 0, 0);
+        animatedTexture = objExprGetTexAnimator(self, 0, 0);
         if (animatedTexture != NULL) {
             animatedTexture->frame = 0;
         }
 
         /** Destroy door (avoids bug where it goes into an opening/closing loop after puzzle complete) */
         if (objdata->door){
-            obj_destroy_object(objdata->door);
+            objFreeObject(objdata->door);
             objdata->door = NULL;
         }
         break;
@@ -374,21 +374,21 @@ RECOMP_PATCH int GP_ShrinePillar_anim_callback(Object* self, Object* animObj, An
     //@recomp: Play heavy rumbling sound as shrine rises
     if (objdata->playShrineRiseSound){
         objdata->playShrineRiseSound = FALSE;
-        player = get_player();
+        player = objGetPlayer();
         if (player){
-            gDLL_6_AMSFX->vtbl->play(player, SOUND_15_Heavy_Stone_Moving, MAX_VOLUME, NULL, 0, 0, 0);
+            dll_amSfx->Play(player, SOUND_15_Heavy_Stone_Moving, MAX_VOLUME, NULL, 0, 0, 0);
         }
     }
 
     //@recomp: uncovering the Shrine when all 3 pillars activated
     if (GP_ShrinePillar_Counter >= 3){
-        if (!main_get_bits(BIT_7D0)){
-            main_set_bits(BIT_7D0, 1);
+        if (!mainGetBits(BIT_7D0)){
+            mainSetBits(BIT_7D0, 1);
             //TO-DO: lock player control (via the sequence file itself), since moving around causes camera issues
 
-            player = get_player();
+            player = objGetPlayer();
             if (player){
-                gDLL_6_AMSFX->vtbl->play(player, SOUND_B89_Puzzle_Solved, MAX_VOLUME, NULL, 0, 0, 0);
+                dll_amSfx->Play(player, SOUND_B89_Puzzle_Solved, MAX_VOLUME, NULL, 0, 0, 0);
                 //Change player FSA state to remove aiming reticle (TODO: remove once player added to sequence)
                 gDLL_18_objfsa->vtbl->set_anim_state(player, player->data, 1);
             }
@@ -417,12 +417,12 @@ RECOMP_PATCH void GP_ShrinePillar_free(Object *self, s32 a1) {
 
     //@recomp: free soundHandles
     if (objData->soundHandleSwitch) {
-        gDLL_6_AMSFX->vtbl->stop(objData->soundHandleSwitch);
+        dll_amSfx->Stop(objData->soundHandleSwitch);
         objData->soundHandleSwitch = 0;
     }
 
     if (objData->soundHandleDoor) {
-        gDLL_6_AMSFX->vtbl->stop(objData->soundHandleDoor);
+        dll_amSfx->Stop(objData->soundHandleDoor);
         objData->soundHandleDoor = 0;
     }
 }

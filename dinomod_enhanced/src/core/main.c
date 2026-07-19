@@ -19,10 +19,10 @@ extern GameState *gGplayState;
 extern BitTableEntry *gFile_BITTABLE;
 extern s16 gSizeBittable;
 
-extern void func_8001440C(s32 arg0);
+extern void main_func_8001440C(s32 arg0);
 
 /** Prevents cases where the game would try to set out of bounds flags, which would cause data corruption */
-RECOMP_PATCH void main_set_bits(s32 entry, u32 value) {
+RECOMP_PATCH void mainSetBits(s32 entry, u32 value) {
     u8 *bitString;
     u8 _pad[12]; // fake match
     s32 idx;
@@ -73,7 +73,7 @@ RECOMP_PATCH void main_set_bits(s32 entry, u32 value) {
 }
 
 /** Prevents cases where the game would try to increment out of bounds flags, which would cause data corruption */
-RECOMP_PATCH s32 main_increment_bits(s32 entry) {
+RECOMP_PATCH s32 mainIncrementBits(s32 entry) {
     s32 val;
     s32 maxVal;
 
@@ -86,12 +86,12 @@ RECOMP_PATCH s32 main_increment_bits(s32 entry) {
         return 0;
     }
 
-    val = main_get_bits(entry) + 1;
+    val = mainGetBits(entry) + 1;
 
     maxVal = 1 << ((gFile_BITTABLE[entry].field_0x2 & 0x1f) + 1);
 
     if (val < maxVal) {
-        main_set_bits(entry, val);
+        mainSetBits(entry, val);
     } else {
         val -= 1;
     }
@@ -100,8 +100,8 @@ RECOMP_PATCH s32 main_increment_bits(s32 entry) {
 }
 
 /** Prevents cases where the game would try to decrement out of bounds flags, which would cause data corruption */
-RECOMP_PATCH s32 main_decrement_bits(s32 entry) {
-    s32 val = main_get_bits(entry);
+RECOMP_PATCH s32 mainDecrementBits(s32 entry) {
+    s32 val = mainGetBits(entry);
 
     //@recomp: Prevent data corruption
     if (entry == -1) {
@@ -113,7 +113,7 @@ RECOMP_PATCH s32 main_decrement_bits(s32 entry) {
     }
 
     if (val != 0) {
-        main_set_bits(entry, --val);
+        mainSetBits(entry, --val);
         return val;
     }
 
@@ -126,7 +126,7 @@ static s8 rsBlockPausing = PauseBlock_Off;
 /** Allows pausing to be blocked temporarily */
 void main_block_pausing(PauseBlockingStates value) {
     rsBlockPausing = value;
-    func_8001440C(value ? 1 : 0); // tell main code to disallow/allow pausing
+    main_func_8001440C(value ? 1 : 0); // tell main code to disallow/allow pausing
 }
 
 extern s8 func_800143FC(void);
@@ -140,7 +140,7 @@ extern Triangle *gCurPol;
 extern s8 gPauseState;
 
 /** Allow pausing to be blocked temporarily */
-RECOMP_HOOK("func_80013D80") void func_80013D80_hook(void) {
+RECOMP_HOOK("main_func_80013D80") void main_func_80013D80_hook(void) {
     if (rsBlockPausing) {
         gPauseState = 0;
         
@@ -148,11 +148,11 @@ RECOMP_HOOK("func_80013D80") void func_80013D80_hook(void) {
             main_block_pausing(PauseBlock_Off);
         }
 
-        if (menu_get_current() == MENU_PAUSE) {
+        if (menuGetCurrent() == MENU_PAUSE) {
             if (credits_get_frame() > 0) {
-                menu_set(MENU_CREDITS);
+                menuSet(MENU_CREDITS);
             } else {
-                menu_set(MENU_GAMEPLAY);
+                menuSet(MENU_GAMEPLAY);
             }
         }
     }

@@ -116,7 +116,7 @@ RECOMP_PATCH void SHrocketmushroom_setup(Object* self, SHrocketmushroom_Setup* o
     objData->scaleInitial = self->srt.scale;
     
     if (reset == FALSE) {
-        if ((objSetup->gamebitGrow != NO_GAMEBIT) && (main_get_bits(objSetup->gamebitGrow) == FALSE)) {
+        if ((objSetup->gamebitGrow != NO_GAMEBIT) && (mainGetBits(objSetup->gamebitGrow) == FALSE)) {
             //If the plant only grows when a gamebit is set, start out hidden
             SHrocketmushroom_reset(self, objData, TRUE);
             objData->state = STATE_1_Hidden;
@@ -170,7 +170,7 @@ RECOMP_PATCH void SHrocketmushroom_control(Object* self) {
         func_80025F40(self, &hitBy, &hitSphereID, &hitDamage) && 
         (hitDamage != 0)
     ) {
-        gDLL_6_AMSFX->vtbl->play(self, SOUND_744_Mushroom_Hit, MAX_VOLUME, NULL, NULL, 0, NULL);
+        dll_amSfx->Play(self, SOUND_744_Mushroom_Hit, MAX_VOLUME, NULL, NULL, 0, NULL);
         SHrocketmushroom_set_state(objData, STATE_4_Damaged);
 
         //Create big explosion effect
@@ -181,8 +181,8 @@ RECOMP_PATCH void SHrocketmushroom_control(Object* self) {
         srt.transl.y = 0.0f;
         srt.transl.z = 0.0f;
         srt.scale = 1.0f;
-        matrix_from_srt(&mtx, &srt);
-        vec3_transform(&mtx, 0.0f, 1.0f, 0.0f, &offset.x, &offset.y, &offset.z);
+        mathYprXyzMtx(&mtx, &srt);
+        mathMtxXFMF(&mtx, 0.0f, 1.0f, 0.0f, &offset.x, &offset.y, &offset.z);
         srt.transl.x = self->srt.transl.x + (offset.x * 23.0f);
         srt.transl.y = self->srt.transl.y + (offset.y * 23.0f);
         srt.transl.z = self->srt.transl.z + (offset.z * 23.0f);
@@ -251,11 +251,11 @@ RECOMP_PATCH void SHrocketmushroom_control(Object* self) {
 
     //Change modAnim when needed
     if (self->curModAnimId != modAnimID) {
-        func_80023D30(self, modAnimID, 0.0f, 0);
+        objAnimSet(self, modAnimID, 0.0f, 0);
     }
     
     //Track when the current animation is finished
-    if (func_80024108(self, animSpeed, gUpdateRateF, NULL) != 0) {
+    if (objAnimAdvance(self, animSpeed, gUpdateRateF, NULL) != 0) {
         objData->flags |= FLAG_Animation_Finished;
     } else {
         objData->flags &= ~FLAG_Animation_Finished;
@@ -270,7 +270,7 @@ RECOMP_PATCH void SHrocketmushroom_handle_state_3_launch_spore(Object* self, SHr
     if (objData->flags & FLAG_State_Entered) {
         //@recomp: play sound when squashing down
         if (objData->isPurpleMushroom) {
-            gDLL_6_AMSFX->vtbl->play(self, SOUND_8A3_Rocket_Mushroom_Grow, MAX_VOLUME, NULL, NULL, 0, NULL);
+            dll_amSfx->Play(self, SOUND_8A3_Rocket_Mushroom_Grow, MAX_VOLUME, NULL, NULL, 0, NULL);
         }
         objData->flags &= ~(FLAG_Spore_Launched | FLAG_State_Entered);
     }
@@ -282,7 +282,7 @@ RECOMP_PATCH void SHrocketmushroom_handle_state_3_launch_spore(Object* self, SHr
         )
         && !(objData->flags & FLAG_Spore_Launched)
     ) {
-        gDLL_6_AMSFX->vtbl->play(self, SOUND_8A1_Spore_Launched, MAX_VOLUME, NULL, NULL, 0, NULL);
+        dll_amSfx->Play(self, SOUND_8A1_Spore_Launched, MAX_VOLUME, NULL, NULL, 0, NULL);
         SHrocketmushroom_create_spore(self, objData);
         objData->flags |= FLAG_Spore_Launched;
 
@@ -307,14 +307,14 @@ RECOMP_PATCH void SHrocketmushroom_print(Object *self, Gfx **gdl, Mtx **mtxs, Ve
     SHrocketmushroom_Data_Extended* objData = self->data;
 
     if (visibility) {
-        draw_object(self, gdl, mtxs, vtxs, pols, 1.0f);
+        objprintDrawModel(self, gdl, mtxs, vtxs, pols, 1.0f);
 
         //Store attach point coords (for particle effects)
         if (objData->isPurpleMushroom && 
             (objData->state == STATE_3_Launch_Spore) &&
             !(objData->flags & FLAG_Spore_Launched)
         ) {
-            func_80031F6C(self, 0,
+            objGetAttachPointWorldSpace(self, 0,
                 &objData->attach.x,
                 &objData->attach.y,
                 &objData->attach.z,

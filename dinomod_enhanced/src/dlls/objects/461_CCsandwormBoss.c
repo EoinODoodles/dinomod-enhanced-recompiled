@@ -101,7 +101,7 @@ void CCsandwormBoss_tick_battle(Object *self, CCsandwormBoss_Data *objData) {
     setup = self->setup;
     objData->timer += gUpdateRateF;
     dist = M_INFINITY_F;
-    obj_get_nearest_type_to(OBJTYPE_Pickup, self, &dist);
+    objGetNearestTypeTo(OBJTYPE_Pickup, self, &dist);
 
     // @recomp: Bail if player pointer isn't setup
     //          (original patch by MusicalProgrammer)
@@ -109,21 +109,21 @@ void CCsandwormBoss_tick_battle(Object *self, CCsandwormBoss_Data *objData) {
         return;
     }
 
-    diPrintf("worm %d, barrel %d\n", (s32) vec3_distance_xz(&self->globalPosition, &objData->player->globalPosition), (s32) dist);
+    diPrintf("worm %d, barrel %d\n", (s32) vec3DistanceXZ(&self->globalPosition, &objData->player->globalPosition), (s32) dist);
     
     switch (objData->state) {
     case CCsandwormBoss_STATE_4_Idle:
         CCsandwormBoss_turn_towards_object(self, objData->player);
 
         //Attack the player when nearby
-        if (vec3_distance_xz_squared(&self->globalPosition, &objData->player->globalPosition) < SQ(180)) {
+        if (vec3DistanceXZSquared(&self->globalPosition, &objData->player->globalPosition) < SQ(180)) {
             CCsandwormBoss_attack(self, objData->player, objData, CCsandwormBoss_STATE_5_Idle_Attacking_Krystal);
         
         //Become distracted when Kyte uses her Distract Command
         } else {
             if (((DLL_ISidekick*)objData->sidekick->dll)->vtbl->func24(objData->sidekick)) {
-                diPrintf("kyte dist %d interest range 50.0F\n", (s32) vec3_distance_xz(&self->globalPosition, &objData->sidekick->globalPosition));
-                if (vec3_distance_xz_squared(&self->globalPosition, &objData->sidekick->globalPosition) < SQ(60)) {
+                diPrintf("kyte dist %d interest range 50.0F\n", (s32) vec3DistanceXZ(&self->globalPosition, &objData->sidekick->globalPosition));
+                if (vec3DistanceXZSquared(&self->globalPosition, &objData->sidekick->globalPosition) < SQ(60)) {
                     CCsandwormBoss_enter_distracted_state(self, objData);
                     objData->timer = 0.0f;
                 }
@@ -153,7 +153,7 @@ void CCsandwormBoss_tick_battle(Object *self, CCsandwormBoss_Data *objData) {
         if (self->animProgress > 0.95f) {
             objData->state = CCsandwormBoss_STATE_13_Hurt_by_Barrel;
             objData->animSpeed = 0.005f;
-            func_80023D30(self, CCsandwormBoss_MODANIM_A_5_Idle_LOOP, 0, 0);
+            objAnimSet(self, CCsandwormBoss_MODANIM_A_5_Idle_LOOP, 0, 0);
         }
         CCsandwormBoss_check_for_projectile_spell(self, objData);
         break;
@@ -162,37 +162,37 @@ void CCsandwormBoss_tick_battle(Object *self, CCsandwormBoss_Data *objData) {
 
         if (objData->timer > 300.0f) {
             STUBBED_PRINTF("setting flight group to %d\n", 0x65);
-            main_set_bits(BIT_Kyte_Flight_Curve, 0x65);
+            mainSetBits(BIT_Kyte_Flight_Curve, 0x65);
         } else {
             STUBBED_PRINTF("setting flight group to %d\n", 0xC3);
-            main_set_bits(BIT_Kyte_Flight_Curve, 0xC3);
+            mainSetBits(BIT_Kyte_Flight_Curve, 0xC3);
         }
 
         //Attack the player when they're in range
-        if (vec3_distance_xz_squared(&self->globalPosition, &objData->player->globalPosition) < SQ(180)) {
+        if (vec3DistanceXZSquared(&self->globalPosition, &objData->player->globalPosition) < SQ(180)) {
             CCsandwormBoss_attack(self, objData->player, objData, CCsandwormBoss_STATE_6_Distracted_Attacking_Krystal);
         
         //Attack Kyte when she's in range
-        } else if (vec3_distance_xz_squared(&self->globalPosition, &objData->sidekick->globalPosition) < SQ(180)) {
+        } else if (vec3DistanceXZSquared(&self->globalPosition, &objData->sidekick->globalPosition) < SQ(180)) {
             CCsandwormBoss_attack(self, objData->sidekick, objData, CCsandwormBoss_STATE_7_Distracted_Attacking_Kyte);
         
         //Follow Kyte if she's still nearby or using the Distract Command
         } else if (
             (((DLL_ISidekick*)objData->sidekick->dll)->vtbl->func24(objData->sidekick)) || 
-            (vec3_distance_xz_squared(&self->globalPosition, &objData->sidekick->globalPosition) < SQ(300))
+            (vec3DistanceXZSquared(&self->globalPosition, &objData->sidekick->globalPosition) < SQ(300))
         ) {
-            func_8002493C(self, 1.5f, &objData->animSpeed);
+            objGetAnimChange(self, 1.5f, &objData->animSpeed);
             CCsandwormBoss_move_towards_point(self, &objData->sidekick->srt.transl, 1.5f);
         
         //Otherwise, return to idle state if the worm's base position is nearby
-        } else if (vec3_distance_xz_squared(&self->globalPosition, (Vec3f* ) &setup->x) < SQ(100)) {
+        } else if (vec3DistanceXZSquared(&self->globalPosition, (Vec3f* ) &setup->x) < SQ(100)) {
             CCsandwormBoss_enter_idle_state(self, objData);
 
         //Otherwise, stop being distracted and dive under the sand
         } else {
             objData->state = CCsandwormBoss_STATE_10_Diving_Under_Sand;
             objData->animSpeed = 0.01f;
-            func_80023D30(self, CCsandwormBoss_MODANIM_A_2_Diving, 0, 0);
+            objAnimSet(self, CCsandwormBoss_MODANIM_A_2_Diving, 0, 0);
         }
         break;
     case CCsandwormBoss_STATE_10_Diving_Under_Sand:
@@ -205,7 +205,7 @@ void CCsandwormBoss_tick_battle(Object *self, CCsandwormBoss_Data *objData) {
         if (((s32) setup->x == (s32) self->srt.transl.f[0]) && ((s32) setup->z == (s32) self->srt.transl.f[2])) {
             
             //Get distance to player
-            dist = vec3_distance_xz_squared(&self->globalPosition, &objData->player->globalPosition);
+            dist = vec3DistanceXZSquared(&self->globalPosition, &objData->player->globalPosition);
 
             //Eat the player if they're directly above the home position (Game Over)
             if (dist < SQ(50)) {
@@ -220,15 +220,15 @@ void CCsandwormBoss_tick_battle(Object *self, CCsandwormBoss_Data *objData) {
 
                 objData->state = CCsandwormBoss_STATE_12_Underground_Attacking_Krystal;
                 objData->animSpeed = 0.005f;
-                func_80023D30(self, CCsandwormBoss_MODANIM_A_8_Emerge_and_Snap_Attack, 0, 0);
-                gDLL_6_AMSFX->vtbl->play(self, dAttackSoundIDs[rand_next(0, 3)], MAX_VOLUME, NULL, NULL, 0, NULL);
+                objAnimSet(self, CCsandwormBoss_MODANIM_A_8_Emerge_and_Snap_Attack, 0, 0);
+                dll_amSfx->Play(self, dAttackSoundIDs[mathRnd(0, 3)], MAX_VOLUME, NULL, NULL, 0, NULL);
                 objData->isUnderHome = FALSE;
                 objData->particleTickCount = 3;
             
             } else {
                 //Otherwise, check if there's a barrel directly above the worm's home position
                 dist = 50.0f;
-                objData->barrel = obj_get_nearest_type_to(OBJTYPE_Pickup, self, &dist);
+                objData->barrel = objGetNearestTypeTo(OBJTYPE_Pickup, self, &dist);
                 
                 //If the barrel's not being held, eat it and become vulnerable
                 if (objData->barrel && (gDLL_54_pickup->vtbl->get_state(objData->barrel->data) == PICKUP_NotHeld)) {
@@ -245,7 +245,7 @@ void CCsandwormBoss_tick_battle(Object *self, CCsandwormBoss_Data *objData) {
 
                     objData->state = CCsandwormBoss_STATE_12_Underground_Attacking_Krystal;
                     objData->animSpeed = 0.01f;
-                    func_80023D30(self, CCsandwormBoss_MODANIM_A_11_Emerge, 0, 0);
+                    objAnimSet(self, CCsandwormBoss_MODANIM_A_11_Emerge, 0, 0);
                     objData->isUnderHome = FALSE;
                     objData->particleTickCount = 3;
                 }
@@ -253,7 +253,7 @@ void CCsandwormBoss_tick_battle(Object *self, CCsandwormBoss_Data *objData) {
         } else {
             //Return home
             CCsandwormBoss_move_towards_point(self, (Vec3f* ) &setup->x, 3.0f);
-            if (vec3_distance_xz_squared(&self->globalPosition, (Vec3f* ) &setup->x) < SQ(100)) {
+            if (vec3DistanceXZSquared(&self->globalPosition, (Vec3f* ) &setup->x) < SQ(100)) {
                 objData->isUnderHome = TRUE;
             }
         }
@@ -281,7 +281,7 @@ void CCsandwormBoss_tick_battle(Object *self, CCsandwormBoss_Data *objData) {
             objData->state = CCsandwormBoss_STATE_4_Idle;
         
         //Attack the player when nearby
-        } else if (vec3_distance_xz_squared(&self->globalPosition, &objData->player->globalPosition) < SQ(180)) {
+        } else if (vec3DistanceXZSquared(&self->globalPosition, &objData->player->globalPosition) < SQ(180)) {
             CCsandwormBoss_attack(self, objData->player, objData, CCsandwormBoss_STATE_8_Hurt_Attacking_Krystal);
         }
 
@@ -293,13 +293,13 @@ void CCsandwormBoss_tick_battle(Object *self, CCsandwormBoss_Data *objData) {
         self->srt.flags |= OBJFLAG_INVISIBLE;
         func_800267A4(self);
         func_80026160(self);
-        main_set_bits(BIT_CC_SandWormBoss_Defeated, TRUE);
+        mainSetBits(BIT_CC_SandWormBoss_Defeated, TRUE);
         break;
     case CCsandwormBoss_STATE_15_Defeated:
         return;
     }
 
-    func_80024108(self, objData->animSpeed, gUpdateRateF, 0);
+    objAnimAdvance(self, objData->animSpeed, gUpdateRateF, 0);
 
     CCsandwormBoss_create_particles(self, objData);
 }

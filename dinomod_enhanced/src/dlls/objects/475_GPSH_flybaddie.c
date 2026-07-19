@@ -23,7 +23,7 @@ RECOMP_PATCH void GPSH_flybaddie_func_7F8(Object* self) {
     f32 dirVec[3];
     f32 magnitude;
 
-    player = get_player();
+    player = objGetPlayer();
     self->globalPosition.x = self->srt.transl.x;
     self->globalPosition.y = self->srt.transl.y;
     self->globalPosition.z = self->srt.transl.z;
@@ -39,7 +39,7 @@ RECOMP_PATCH void GPSH_flybaddie_func_7F8(Object* self) {
     objsetup->x = self->srt.transl.x;
     objsetup->y = self->srt.transl.y;
     objsetup->z = self->srt.transl.z;
-    obj = obj_create(objsetup, OBJINIT_STANDALONE, -1, -1, NULL);
+    obj = objSetupObject(objsetup, OBJINIT_STANDALONE, -1, -1, NULL);
     if (obj != NULL) {
         obj->srt.flags |= OBJFLAG_OWNS_SETUP;
         dirVec[0] = player->srt.transl.x - self->srt.transl.x;
@@ -66,6 +66,6 @@ RECOMP_PATCH void GPSH_flybaddie_func_7F8(Object* self) {
         obj->globalPosition.x = obj->srt.transl.x;
         obj->globalPosition.y = obj->srt.transl.y;
         obj->globalPosition.z = obj->srt.transl.z;
-        gDLL_6_AMSFX->vtbl->play(obj, SOUND_730_Electrified_Blast, 0x50, NULL, NULL, 0, NULL);
+        dll_amSfx->Play(obj, SOUND_730_Electrified_Blast, 0x50, NULL, NULL, 0, NULL);
     }
 }

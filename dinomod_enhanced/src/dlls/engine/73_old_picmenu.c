@@ -40,9 +40,9 @@ void dll_73_set_fontIDs(FontID light, FontID dark) {
     rsFontLight = light;
     rsFontDark = dark;
 
-    font_load(light);
+    fontLoad(light);
     if (light != dark) {
-        font_load(dark);
+        fontLoad(dark);
     }
 }
 
@@ -88,15 +88,15 @@ extern void dll_73_set_font_and_colour(s32 dimmed);
 RECOMP_PATCH void dll_73_init_text_window_with_margin(s32 marginX, s32 y) {
     u32 halfWidth;
 
-    halfWidth = (GET_VIDEO_WIDTH(vi_get_current_size()) - marginX) / 2;
+    halfWidth = (GET_VIDEO_WIDTH(viGetCurrentSize()) - marginX) / 2;
     
-    font_window_set_coords(1, halfWidth, 0, 
-        GET_VIDEO_WIDTH(vi_get_current_size()) - halfWidth, 
-        GET_VIDEO_HEIGHT(vi_get_current_size())
+    fontWindowSetCoords(1, halfWidth, 0, 
+        GET_VIDEO_WIDTH(viGetCurrentSize()) - halfWidth, 
+        GET_VIDEO_HEIGHT(viGetCurrentSize())
     );
     
-    font_window_use_font(1, rsFontLight);
-    font_window_flush_strings(1);
+    fontWindowUseFont(1, rsFontLight);
+    fontWindowFlushStrings(1);
     sTextY = y;
     sTotalItems = 0;
     sValueExit = DLL73_ACTION_None;
@@ -127,35 +127,35 @@ RECOMP_PATCH void dll_73_add_string(s32 valueEnter, char* text, s32 lineHeight, 
         
         //Drop-shadows
         if (rsUseDropShadow) {
-            font_window_use_font(1, rsFontLight);
-            font_window_set_text_colour(1, rsFontColourShadow[0], rsFontColourShadow[1], rsFontColourShadow[2], rsFontColourShadow[3], (s32)opacity);
-            font_window_add_string_xy(1, -0x8000, sTextY + rsDropShadowCoords[1], text, 2, ALIGN_TOP_CENTER);
+            fontWindowUseFont(1, rsFontLight);
+            fontWindowSetTextColour(1, rsFontColourShadow[0], rsFontColourShadow[1], rsFontColourShadow[2], rsFontColourShadow[3], (s32)opacity);
+            fontWindowAddStringXY(1, -0x8000, sTextY + rsDropShadowCoords[1], text, 2, ALIGN_TOP_CENTER);
             
-            font_window_use_font(1, rsFontDark);
-            font_window_set_text_colour(1, rsFontColourShadow[0], rsFontColourShadow[1], rsFontColourShadow[2], rsFontColourShadow[3], (s32)opacityRemainder);
-            font_window_add_string_xy(1, -0x8000, sTextY + rsDropShadowCoords[1], text, 2, ALIGN_TOP_CENTER);
+            fontWindowUseFont(1, rsFontDark);
+            fontWindowSetTextColour(1, rsFontColourShadow[0], rsFontColourShadow[1], rsFontColourShadow[2], rsFontColourShadow[3], (s32)opacityRemainder);
+            fontWindowAddStringXY(1, -0x8000, sTextY + rsDropShadowCoords[1], text, 2, ALIGN_TOP_CENTER);
         }
         
         //Light
-        font_window_use_font(1, rsFontLight);
-        font_window_set_text_colour(1, rsFontColourLight[0], rsFontColourLight[1], rsFontColourLight[2], rsFontColourLight[3], (s32)opacity);
-        font_window_add_string_xy(1, -0x8000, sTextY, text, 1, ALIGN_TOP_CENTER);
+        fontWindowUseFont(1, rsFontLight);
+        fontWindowSetTextColour(1, rsFontColourLight[0], rsFontColourLight[1], rsFontColourLight[2], rsFontColourLight[3], (s32)opacity);
+        fontWindowAddStringXY(1, -0x8000, sTextY, text, 1, ALIGN_TOP_CENTER);
         
         //Dark
-        font_window_set_text_colour(1, rsFontColourDark[0], rsFontColourDark[1], rsFontColourDark[2], rsFontColourLight[3], (s32)opacityRemainder);
-        font_window_use_font(1, rsFontDark);
+        fontWindowSetTextColour(1, rsFontColourDark[0], rsFontColourDark[1], rsFontColourDark[2], rsFontColourLight[3], (s32)opacityRemainder);
+        fontWindowUseFont(1, rsFontDark);
     } else {
         //Drop-shadow
         if (rsUseDropShadow) {
-            font_window_use_font(1, rsFontDark);
-            font_window_set_text_colour(1, rsFontColourShadow[0], rsFontColourShadow[1], rsFontColourShadow[2], rsFontColourShadow[3], 0xFF);
-            font_window_add_string_xy(1, -0x8000, sTextY + rsDropShadowCoords[1], text, 2, ALIGN_TOP_CENTER);
+            fontWindowUseFont(1, rsFontDark);
+            fontWindowSetTextColour(1, rsFontColourShadow[0], rsFontColourShadow[1], rsFontColourShadow[2], rsFontColourShadow[3], 0xFF);
+            fontWindowAddStringXY(1, -0x8000, sTextY + rsDropShadowCoords[1], text, 2, ALIGN_TOP_CENTER);
         }
 
         //Dark
-        font_window_set_text_colour(1, rsFontColourDark[0], rsFontColourDark[1], rsFontColourDark[2], rsFontColourLight[3], 0xFF);
+        fontWindowSetTextColour(1, rsFontColourDark[0], rsFontColourDark[1], rsFontColourDark[2], rsFontColourLight[3], 0xFF);
     }
-    font_window_add_string_xy(1, -0x8000, sTextY, text, 1, ALIGN_TOP_CENTER);
+    fontWindowAddStringXY(1, -0x8000, sTextY, text, 1, ALIGN_TOP_CENTER);
     
     sTextY += lineHeight;
     sTotalItems++;
@@ -164,10 +164,10 @@ RECOMP_PATCH void dll_73_add_string(s32 valueEnter, char* text, s32 lineHeight, 
 // offset: 0x6D0 | func: 6 | export: 6
 RECOMP_PATCH void dll_73_set_font_and_colour(s32 dimmed) {
     if (dimmed == FALSE) {
-        font_window_set_text_colour(1, rsFontColourLight[0], rsFontColourLight[1], rsFontColourLight[2], rsFontColourLight[3], 0xFF);
-        font_window_use_font(1, rsFontLight);
+        fontWindowSetTextColour(1, rsFontColourLight[0], rsFontColourLight[1], rsFontColourLight[2], rsFontColourLight[3], 0xFF);
+        fontWindowUseFont(1, rsFontLight);
     } else {
-        font_window_set_text_colour(1, rsFontColourDark[0], rsFontColourDark[1], rsFontColourDark[2], rsFontColourLight[3], 0xFF);
-        font_window_use_font(1, rsFontDark);
+        fontWindowSetTextColour(1, rsFontColourDark[0], rsFontColourDark[1], rsFontColourDark[2], rsFontColourLight[3], 0xFF);
+        fontWindowUseFont(1, rsFontDark);
     }
 }

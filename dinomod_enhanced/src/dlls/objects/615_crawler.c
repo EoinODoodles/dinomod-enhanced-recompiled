@@ -10,10 +10,10 @@
 RECOMP_PATCH void dll_615_func_1AE8(Object* self) {
     //@recomp: remove ID condition and always free object
     func_800267A4(self);
-    obj_destroy_object(self);
+    objFreeObject(self);
     
-    obj_free_tick(self);
+    objDisable(self);
     func_800267A4(self);
-    obj_free_object_type(self, 4);    
+    objFreeObjectType(self, 4);    
     self->srt.flags |= OBJFLAG_INVISIBLE;
 }

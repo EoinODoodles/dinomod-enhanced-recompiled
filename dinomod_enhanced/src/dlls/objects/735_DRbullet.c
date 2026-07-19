@@ -56,14 +56,14 @@ RECOMP_PATCH void DRbullet_recycle(Object* self, SRT* pFired, SRT* pTarget, f32 
     self->velocity.y = velocity.f[1];
     self->velocity.z = velocity.f[2];    
     lateralSpeed = sqrtf((self->velocity.x * self->velocity.x) + (self->velocity.z * self->velocity.z));
-    self->srt.yaw = arctan2_f(self->velocity.x, self->velocity.z);
-    self->srt.pitch = -arctan2_f(self->velocity.y, lateralSpeed);
+    self->srt.yaw = mathAtan2f(self->velocity.x, self->velocity.z);
+    self->srt.pitch = -mathAtan2f(self->velocity.y, lateralSpeed);
     self->srt.roll = 0;
     func_8002674C(self);
     
     //Set bullet to "fired" state and play sound
     objData->state = BULLET_STATE_FIRED;
-    gDLL_6_AMSFX->vtbl->play(self, 0x927, 0x7F, &objData->whooshSoundHandle, NULL, 0, NULL);
+    dll_amSfx->Play(self, 0x927, 0x7F, &objData->whooshSoundHandle, NULL, 0, NULL);
 
     //Set bullet's expiry timer based on 10 second trajectory after being fired
     futurePosition.x = self->velocity.x * 600.0f;
@@ -72,11 +72,11 @@ RECOMP_PATCH void DRbullet_recycle(Object* self, SRT* pFired, SRT* pTarget, f32 
     futurePosition.x += self->srt.transl.x;
     futurePosition.y += self->srt.transl.y;
     futurePosition.z += self->srt.transl.z;
-    func_80007EE0(&self->srt.transl, &sCurrentPosition);
-    func_80007EE0(&futurePosition, &sFuturePosition);
+    vox_func_80007EE0(&self->srt.transl, &sCurrentPosition);
+    vox_func_80007EE0(&futurePosition, &sFuturePosition);
     
-    if (func_80008048(&sCurrentPosition, &sFuturePosition, &sp44, NULL, 0) == 0){
-        func_80007E2C(&futurePosition, &sp44);
+    if (vox_func_80008048(&sCurrentPosition, &sFuturePosition, &sp44, NULL, 0) == 0){
+        vox_func_80007E2C(&futurePosition, &sp44);
         displacement.f[0] = futurePosition.f[0] - self->srt.transl.f[0];
         displacement.f[1] = futurePosition.f[1] - self->srt.transl.f[1];
         displacement.f[2] = futurePosition.f[2] - self->srt.transl.f[2];
@@ -88,7 +88,7 @@ RECOMP_PATCH void DRbullet_recycle(Object* self, SRT* pFired, SRT* pTarget, f32 
     //Create new lfxEmitter
     lfxEmitter = objData->lfxEmitter;
     if (lfxEmitter != NULL){
-        obj_destroy_object(lfxEmitter);
+        objFreeObject(lfxEmitter);
     }    
     // lfxEmitter = DRbullet_create_lfxEmitter(self, 0x24B); //@recomp: don't create new lfxEmitters
     objData->lfxEmitter = lfxEmitter;

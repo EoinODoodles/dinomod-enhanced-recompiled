@@ -46,7 +46,7 @@ RECOMP_PATCH void dll_27_func_1E8(Object *obj, DLL27_Data *data, f32 updateRate)
         return;
     }
 
-    transform_point_by_object(
+    camTransformPointByObject(
         obj->srt.transl.f[0], obj->srt.transl.f[1], obj->srt.transl.f[2], 
         &obj->globalPosition.x, &obj->globalPosition.y, &obj->globalPosition.z, 
         obj->parent);
@@ -54,7 +54,7 @@ RECOMP_PATCH void dll_27_func_1E8(Object *obj, DLL27_Data *data, f32 updateRate)
     dll_27_get_obj_world_matrix(obj, data, &worldMtx);
 
     for (var_s4 = 0, i = 0; var_s4 < ((s32) data->numTestPoints >> 4); ) {
-        vec3_transform(&worldMtx, 
+        mathMtxXFMF(&worldMtx, 
                        data->unk4[var_s4].x, data->unk4[var_s4].y, data->unk4[var_s4].z, 
                        &spE0[var_s4].x, &spE0[var_s4].y, &spE0[var_s4].z);
         spD0[i] = data->unk68.unk40[i];
@@ -142,7 +142,7 @@ RECOMP_PATCH void dll_27_func_1E8(Object *obj, DLL27_Data *data, f32 updateRate)
 RECOMP_PATCH void dll_27_reset(Object *obj, DLL27_Data *data) {
     s32 i;
 
-    transform_point_by_object(
+    camTransformPointByObject(
         obj->srt.transl.x, obj->srt.transl.y, obj->srt.transl.z, 
         &obj->globalPosition.x, &obj->globalPosition.y, &obj->globalPosition.z, 
         obj->parent);

@@ -21,7 +21,7 @@ extern void VFP_LevelControl_func_AAC(Object *self);
 RECOMP_PATCH void VFP_LevelControl_setup(Object* self, ObjSetup* setup, s32 a2) {
     u8 mapSetupID;
 
-    obj_add_object_type(self, OBJTYPE_LevelControl);
+    objAddObjectType(self, OBJTYPE_LevelControl);
     // @recomp: Don't force act 1
     //gDLL_29_Gplay->vtbl->set_act(self->mapID, 1);
     mapSetupID = gDLL_29_Gplay->vtbl->get_act(self->mapID);
@@ -54,8 +54,8 @@ RECOMP_PATCH void VFP_LevelControl_control(Object* self) {
     Object* player;
     u8 mapSetupID;
 
-    player = get_player();
-    map_world_xz_to_map_id(player->srt.transl.x, player->srt.transl.z);
+    player = objGetPlayer();
+    mapWorldXZToMapID(player->srt.transl.x, player->srt.transl.z);
     diPrintf("ACT %d \n", gDLL_29_Gplay->vtbl->get_act(self->mapID));
     mapSetupID = gDLL_29_Gplay->vtbl->get_act(self->mapID);
     switch (mapSetupID) {
@@ -74,7 +74,7 @@ RECOMP_PATCH void VFP_LevelControl_control(Object* self) {
                 func_80000450(self, self, 0x174, 0, 0, 0);
                 func_80000450(self, self, 0x178, 0, 0, 0);
                 // @recomp: Don't give SpellStone back (breaks progression)
-                //main_set_bits(BIT_SpellStone_DIM, 1); // spellstone 1
+                //mainSetBits(BIT_SpellStone_DIM, 1); // spellstone 1
             }
         }
         VFP_LevelControl_func_8EC(self);
@@ -85,7 +85,7 @@ RECOMP_PATCH void VFP_LevelControl_control(Object* self) {
             _data_0 -= (s16)gUpdateRateF;
             if (_data_0 <= 0) {
                 _data_0 = 0;
-                main_set_bits(BIT_DB_Unlock_Act_Two, 1);
+                mainSetBits(BIT_DB_Unlock_Act_Two, 1);
                 func_80000860(self, self, 0x105, 0);
                 func_80000860(self, self, 0x106, 0);
                 func_80000860(self, self, 0x107, 0);
@@ -96,8 +96,8 @@ RECOMP_PATCH void VFP_LevelControl_control(Object* self) {
                 func_80000450(self, self, 0x174, 0, 0, 0);
                 func_80000450(self, self, 0x178, 0, 0, 0);
                 // @recomp: Don't give SpellStone back (breaks progression)
-                //main_set_bits(BIT_SpellStone_WC, 1); // spellstone 2
-                main_set_bits(BIT_SpellStone_DIM_Activated, 1);
+                //mainSetBits(BIT_SpellStone_WC, 1); // spellstone 2
+                mainSetBits(BIT_SpellStone_DIM_Activated, 1);
             }
         }
         VFP_LevelControl_func_A08(self);
@@ -107,8 +107,8 @@ RECOMP_PATCH void VFP_LevelControl_control(Object* self) {
             _data_0 -= (s16)gUpdateRateF;
             if (_data_0 <= 0) {
                 _data_0 = 0;
-                main_set_bits(BIT_DB_Unlock_Act_Two, 1);
-                main_set_bits(BIT_DB_Unlock_Act_Three, 1);
+                mainSetBits(BIT_DB_Unlock_Act_Two, 1);
+                mainSetBits(BIT_DB_Unlock_Act_Three, 1);
                 func_80000860(self, self, 0x105, 0);
                 func_80000860(self, self, 0x106, 0);
                 func_80000860(self, self, 0x107, 0);
@@ -117,7 +117,7 @@ RECOMP_PATCH void VFP_LevelControl_control(Object* self) {
                 func_80000450(self, self, 0x168, 0, 0, 0);
                 func_80000450(self, self, 0x169, 0, 0, 0);
                 func_80000450(self, self, 0x174, 0, 0, 0);
-                main_set_bits(BIT_SpellStone_DR, 1);
+                mainSetBits(BIT_SpellStone_DR, 1);
             }
         }
         VFP_LevelControl_func_AAC(self);

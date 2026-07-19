@@ -30,35 +30,35 @@ RECOMP_PATCH void CCkrazoabright_handle_lever_puzzle_2(Object* self, CCkrazoabri
         //Handle resetting levers and gamebits after each pull
         objData->timer += gUpdateRateF;
         if (objData->timer > 300.0f) {
-            main_set_bits(BIT_636, 0);
-            main_set_bits(BIT_CC_Courtyard_Kyte_Pulled_4th_Lever, 0);
-            main_set_bits(BIT_638, 0);
-            main_set_bits(BIT_CC_Courtyard_Kyte_Pulled_3rd_Lever, 0);
-            main_set_bits(BIT_4D5, 0);
-            main_set_bits(BIT_CC_Courtyard_Kyte_Pulled_2nd_Lever, 0);
-            main_set_bits(BIT_637, 0);
-            main_set_bits(BIT_CC_Courtyard_Kyte_Pulled_1st_Lever, 0);
+            mainSetBits(BIT_636, 0);
+            mainSetBits(BIT_CC_Courtyard_Kyte_Pulled_4th_Lever, 0);
+            mainSetBits(BIT_638, 0);
+            mainSetBits(BIT_CC_Courtyard_Kyte_Pulled_3rd_Lever, 0);
+            mainSetBits(BIT_4D5, 0);
+            mainSetBits(BIT_CC_Courtyard_Kyte_Pulled_2nd_Lever, 0);
+            mainSetBits(BIT_637, 0);
+            mainSetBits(BIT_CC_Courtyard_Kyte_Pulled_1st_Lever, 0);
             objData->updateNeeded = FALSE;
         }
     } else {
         //Check if Kyte pulls levers (positions noted from left, while facing towards ocean)
-        if (main_get_bits(BIT_CC_Courtyard_Kyte_Pulled_4th_Lever)) {
+        if (mainGetBits(BIT_CC_Courtyard_Kyte_Pulled_4th_Lever)) {
             objData->pointsLit[2] = objData->prevPoints[2] ^ 1;
             objData->pointsLit[3] = objData->prevPoints[3] ^ 1;
             objData->pointsLit[4] = objData->prevPoints[4] ^ 1;
             objData->updateNeeded = TRUE;
-        } else if (main_get_bits(BIT_CC_Courtyard_Kyte_Pulled_3rd_Lever)) {
+        } else if (mainGetBits(BIT_CC_Courtyard_Kyte_Pulled_3rd_Lever)) {
             objData->pointsLit[3] = objData->prevPoints[3] ^ 1;
             objData->pointsLit[4] = objData->prevPoints[4] ^ 1;
             objData->pointsLit[5] = objData->prevPoints[5] ^ 1;
             objData->updateNeeded = TRUE;
-        } else if (main_get_bits(BIT_CC_Courtyard_Kyte_Pulled_2nd_Lever)) {
+        } else if (mainGetBits(BIT_CC_Courtyard_Kyte_Pulled_2nd_Lever)) {
             objData->pointsLit[5] = objData->prevPoints[5] ^ 1;
             objData->pointsLit[0] = objData->prevPoints[0] ^ 1;
             objData->pointsLit[1] = objData->prevPoints[1] ^ 1;
             objData->pointsLit[2] = objData->prevPoints[2] ^ 1;
             objData->updateNeeded = TRUE;
-        } else if (main_get_bits(BIT_CC_Courtyard_Kyte_Pulled_1st_Lever)) {
+        } else if (mainGetBits(BIT_CC_Courtyard_Kyte_Pulled_1st_Lever)) {
             objData->pointsLit[0] = objData->prevPoints[0] ^ 1;
             objData->pointsLit[1] = objData->prevPoints[1] ^ 1;
             objData->pointsLit[3] = objData->prevPoints[3] ^ 1;

@@ -33,7 +33,7 @@ RECOMP_PATCH void PortalSpellDoor_control(Object* self) {
     PortalSpellDoor_Data* objData;
     PortalSpellDoor_Setup* objSetup;
 
-    player = get_player();
+    player = objGetPlayer();
     objData = self->data;
     objSetup = (PortalSpellDoor_Setup*)self->setup;
     
@@ -43,7 +43,7 @@ RECOMP_PATCH void PortalSpellDoor_control(Object* self) {
         
         //Destroy secondary door object
         if (objData->portalDoorAnim != NULL) {
-            obj_destroy_object(objData->portalDoorAnim);
+            objFreeObject(objData->portalDoorAnim);
             objData->portalDoorAnim = NULL;
         }
         
@@ -51,7 +51,7 @@ RECOMP_PATCH void PortalSpellDoor_control(Object* self) {
 
         ((DLL_210_Player*)player->dll)->vtbl->func51(player, -1);
 
-        main_set_bits(objSetup->gamebitActivated, TRUE);
+        mainSetBits(objSetup->gamebitActivated, TRUE);
 
         //Remove HITS line
         if (objSetup->hitsAnimatorID && !func_80058F50()) {
@@ -71,7 +71,7 @@ RECOMP_PATCH void PortalSpellDoor_control(Object* self) {
             self->unkAF |= 8;
             self->def->scale *= 0.5f;
             objData->portalDoorAnim = PortalSpellDoor_create_anim_obj(self);
-            gDLL_3_Animation->vtbl->func31(fsin16_precise(self->srt.yaw) * objData->scale, 0.0f, fcos16_precise(self->srt.yaw) * objData->scale);
+            gDLL_3_Animation->vtbl->func31(mathSinfInterp(self->srt.yaw) * objData->scale, 0.0f, mathCosfInterp(self->srt.yaw) * objData->scale);
             gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
             objData->sequencePlayed = TRUE;
             objData->timer = -1;

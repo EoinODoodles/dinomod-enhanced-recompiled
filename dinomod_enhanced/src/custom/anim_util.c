@@ -6,6 +6,9 @@
 #include "sys/joypad.h"
 #include "sys/main.h"
 
+extern u8 gVirtualContPortMap[MAXCONTROLLERS];
+extern OSContPad gContPads[MAXCONTROLLERS];
+
 /** Inspect an Object's animations using the D-pad.
   * - D-left: previous animation
   * - D-right: next animation
@@ -149,23 +152,23 @@ int object_modanim_debugger(Object* obj) {
 
     //Reposition object in front of player with D-down
     if ((pressedButtons | heldButtons) & D_JPAD) {
-        Object* player = get_player();
+        Object* player = objGetPlayer();
         f32 radius = 30.0f;
         if (player) {
             s32 yaw = player->srt.yaw + M_180_DEGREES;
             CIRCLE_WRAP(yaw)
-            obj->srt.transl.x = player->srt.transl.x + fsin16_precise(yaw)*radius;
+            obj->srt.transl.x = player->srt.transl.x + mathSinfInterp(yaw)*radius;
             obj->srt.transl.y = player->srt.transl.y;
-            obj->srt.transl.z = player->srt.transl.z + fcos16_precise(yaw)*radius;
+            obj->srt.transl.z = player->srt.transl.z + mathCosfInterp(yaw)*radius;
             obj->srt.yaw = player->srt.yaw;
         }
     }
 
     //Change and advance animation
     if (obj->curModAnimId != rsModAnimOverrideIdx) {
-        func_80023D30(obj, rsModAnimOverrideIdx, 0.0f, 0);
+        objAnimSet(obj, rsModAnimOverrideIdx, 0.0f, 0);
     }
-    func_80024108(obj, 0.005f, gUpdateRate, NULL);
+    objAnimAdvance(obj, 0.005f, gUpdateRate, NULL);
 
     //Print info
     if (obj->def) {

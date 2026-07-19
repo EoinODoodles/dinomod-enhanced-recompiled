@@ -41,14 +41,14 @@ static void handle_mushroom_gamebit_contradictions(){
 
     //Check how many White Mushrooms have been collected (and no longer appear in the world)
     for (i = 0; i < ARRAYCOUNT(mushroomCollectionGamebits); i++){
-        if (main_get_bits(mushroomCollectionGamebits[i])){
+        if (mainGetBits(mushroomCollectionGamebits[i])){
             mushroomsCollected++;
         }
     }
 
     //Get inventory mushrooms count and Queen's received mushroom count
-    mushroomsHeld = main_get_bits(BIT_Inventory_White_Mushrooms);
-    mushroomsGiven = main_get_bits(BIT_SH_Queen_EW_White_Mushrooms_Eaten);
+    mushroomsHeld = mainGetBits(BIT_Inventory_White_Mushrooms);
+    mushroomsGiven = mainGetBits(BIT_SH_Queen_EW_White_Mushrooms_Eaten);
 
     if (mushroomsHeld > ARRAYCOUNT(mushroomCollectionGamebits)){
         mushroomsHeld = ARRAYCOUNT(mushroomCollectionGamebits);
@@ -69,8 +69,8 @@ static void handle_mushroom_gamebit_contradictions(){
         }
         #endif
 
-        main_set_bits(BIT_Inventory_White_Mushrooms, mushroomsCollected - mushroomsGiven);
-        main_set_bits(BIT_SH_Queen_EW_White_Mushrooms_Eaten, mushroomsGiven);
+        mainSetBits(BIT_Inventory_White_Mushrooms, mushroomsCollected - mushroomsGiven);
+        mainSetBits(BIT_SH_Queen_EW_White_Mushrooms_Eaten, mushroomsGiven);
 
         #if DEBUG_MUSHROOMS
         {
@@ -94,9 +94,9 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
     prevQuestProgress = objdata->questProgress;
     self->unkAF &= ~8;
     if (self->curModAnimId != 1) {
-        func_80023D30(self, 1, 0.0f, 0);
+        objAnimSet(self, 1, 0.0f, 0);
     }
-    func_80024108(self, 0.005f, gUpdateRate, NULL);
+    objAnimAdvance(self, 0.005f, gUpdateRate, NULL);
     switch (objdata->questProgress) {
 
     case 1:
@@ -104,9 +104,9 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
         break;
     case 2:
         if (self->unkAF & 1) {
-            joy_disable_buttons(0, A_BUTTON);
+            joyDisableButtons(0, A_BUTTON);
             gDLL_3_Animation->vtbl->start_obj_sequence(1, self, -1);
-            main_set_bits(BIT_SH_Move_Thorntail_Blocking_Hollow_Log, 1);
+            mainSetBits(BIT_SH_Move_Thorntail_Blocking_Hollow_Log, 1);
             objdata->questProgress = 3;
         }
         break;
@@ -125,20 +125,20 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
             }
 
             if (gDLL_1_cmdmenu->vtbl->was_this_item_used(BIT_Inventory_White_Mushrooms) != 0) {
-                joy_disable_buttons(0, A_BUTTON);
-                objdata->eatenWhiteMushrooms += main_get_bits(BIT_Inventory_White_Mushrooms);
+                joyDisableButtons(0, A_BUTTON);
+                objdata->eatenWhiteMushrooms += mainGetBits(BIT_Inventory_White_Mushrooms);
                 // @recomp: Require all ten white mushrooms instead of just one. (originally by MusicalProgrammer)
                 if (objdata->eatenWhiteMushrooms < 10) {
                     gDLL_3_Animation->vtbl->start_obj_sequence(3, self, -1);
                 } else {
                     objdata->questProgress = 4U;
                     gDLL_30_Task->vtbl->mark_task_completed(0xB);
-                    main_set_bits(BIT_SH_Move_Thorntail_Blocking_Swapstone, 1);
+                    mainSetBits(BIT_SH_Move_Thorntail_Blocking_Swapstone, 1);
                 }
-                main_set_bits(BIT_Inventory_White_Mushrooms, 0);
-                main_set_bits(BIT_SH_Queen_EW_White_Mushrooms_Eaten, objdata->eatenWhiteMushrooms);
+                mainSetBits(BIT_Inventory_White_Mushrooms, 0);
+                mainSetBits(BIT_SH_Queen_EW_White_Mushrooms_Eaten, objdata->eatenWhiteMushrooms);
             } else if (self->unkAF & 1) {
-                joy_disable_buttons(0, A_BUTTON);
+                joyDisableButtons(0, A_BUTTON);
                 gDLL_3_Animation->vtbl->start_obj_sequence(4, self, -1);
             }
         }
@@ -160,7 +160,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
         break;
     }
     if (prevQuestProgress != objdata->questProgress) {
-        main_set_bits(BIT_SH_Queen_EW_Quest_Progress, objdata->questProgress);
+        mainSetBits(BIT_SH_Queen_EW_Quest_Progress, objdata->questProgress);
     }
 }
 

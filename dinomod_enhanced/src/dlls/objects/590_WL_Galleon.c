@@ -43,7 +43,7 @@ RECOMP_PATCH void WLgalleon_control(Object* self) {
     WLGalleonObjdata* objData;
     u8 colourRGBA[4] = {0xe4, 0x9c, 0x44, 0xff}; //unused orange colour?
     
-    if (main_get_bits(BIT_Play_Seq_00EF_Scales_Escapes_With_Kyte)) {
+    if (mainGetBits(BIT_Play_Seq_00EF_Scales_Escapes_With_Kyte)) {
         return;
     }
 
@@ -52,25 +52,25 @@ RECOMP_PATCH void WLgalleon_control(Object* self) {
         return;
     }
     
-    player = get_player();
+    player = objGetPlayer();
     objData = self->data;
     
-    if (main_get_bits(BIT_429)) {
+    if (mainGetBits(BIT_429)) {
         if (gDLL_29_Gplay->vtbl->get_obj_group_status(self->mobileMapID, 2)) {
             gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 1, 0);
             gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 2, 0);
         }
     } else if (
-            // !main_get_bits(BIT_WM_Played_Randorn_First_Meeting) && //@recomp: remove check
+            // !mainGetBits(BIT_WM_Played_Randorn_First_Meeting) && //@recomp: remove check
             !gDLL_29_Gplay->vtbl->get_obj_group_status(self->mobileMapID, 2)) {
         gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 1, 1);
         gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 2, 1);
     }
     
     if (1 
-        // && !main_get_bits(BIT_WM_Played_Randorn_First_Meeting) //@recomp: remove check 
+        // && !mainGetBits(BIT_WM_Played_Randorn_First_Meeting) //@recomp: remove check 
         ) {
-        if (!objData->unk10 && !main_get_bits(BIT_429)) {
+        if (!objData->unk10 && !mainGetBits(BIT_429)) {
             gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 1, 1);
             gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 2, 1);
             objData->unk10 = TRUE;
@@ -84,7 +84,7 @@ RECOMP_PATCH void WLgalleon_control(Object* self) {
         }
     }
     
-    arrivedAtWM = main_get_bits(BIT_Galleon_Arrived_at_Warlock_Mountain);
+    arrivedAtWM = mainGetBits(BIT_Galleon_Arrived_at_Warlock_Mountain);
 
     if (arrivedAtWM) {
         self->unkDC = 0xA;

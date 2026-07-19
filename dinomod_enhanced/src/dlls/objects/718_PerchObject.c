@@ -37,21 +37,21 @@ RECOMP_PATCH int perchobject_anim_callback(Object* self, Object* animObj, AnimOb
     }
 
     //@recomp: bail if Kyte is missing
-    kyte = get_sidekick();
+    kyte = objGetSidekick();
     if (!kyte){
         return 0;
     }
 
     //@recomp: bail if Krystal is missing
-    player = get_player();
+    player = objGetPlayer();
     if (!player){
         return 0;
     }
 
-    if (vec3_distance_squared(&get_player()->globalPosition, (Vec3f*)&(objData->curveSetup)->pos.x) <= (objSetup->interactionDistance * objSetup->interactionDistance)) {
+    if (vec3DistanceSquared(&objGetPlayer()->globalPosition, (Vec3f*)&(objData->curveSetup)->pos.x) <= (objSetup->interactionDistance * objSetup->interactionDistance)) {
         ((DLL_Unknown*)kyte->dll)->vtbl->func[14].withTwoArgs((s32)kyte, 1);
         if (gDLL_1_cmdmenu->vtbl->was_this_item_used(Sidekick_Command_INDEX_1_Find)) {
-            main_set_bits(BIT_Kyte_Flight_Curve, objSetup->kyteFlightGroup);
+            mainSetBits(BIT_Kyte_Flight_Curve, objSetup->kyteFlightGroup);
         }
     }
     return 0;
