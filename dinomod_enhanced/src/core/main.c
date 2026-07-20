@@ -72,6 +72,67 @@ RECOMP_PATCH void mainSetBits(s32 entry, u32 value) {
     }
 }
 
+RECOMP_PATCH u32 mainGetBits(s32 entry) {
+    u8 *bitString;
+    u32 value;
+    s32 idx;
+    s32 mask;
+    s32 endBit;
+    s32 startBit;
+
+    if (entry == BIT_ALWAYS_1) {
+        return 1;
+    } else if (entry == BIT_ALWAYS_0) {
+        return 0;
+    } else if (entry == -1) {
+        return 0;
+    } else if (entry < 0 || entry >= gSizeBittable) {
+        return 0;
+    } else {
+        switch (gFile_BITTABLE[entry].field_0x2 >> 6) {
+        case 0: // Never saved to savegame
+            bitString = &gGplayState->bitString[0];
+            break;
+        case 1: // Saved with savepoints
+            bitString = &gGplayState->save.main.bitString[0];
+            break;
+        case 2: // Always saved
+            bitString = &gGplayState->save.file.bitString[0];
+            break;
+        case 3: // Saved with savepoints that include a map save
+            bitString = &gGplayState->save.map.bitString[0];
+            break;
+        }
+
+        startBit = gFile_BITTABLE[entry].start;
+        endBit = (gFile_BITTABLE[entry].field_0x2 & 0x1f) + 1;
+        value = 0;
+        mask = 1;
+
+        for (idx = startBit; idx < (startBit + endBit); idx++) {
+            // A clever way to read from bitString bit by bit
+            if ((*(u8 *)((u32)bitString + (idx >> 3)) & (1 << (idx & 7))) != 0) {
+                value |= mask;
+            }
+
+            mask = mask << 1;
+        }
+    }
+
+    /*
+     * BIT_83F stores how many Diamonds have been used to open the VFP door. You
+     * usually get locked inside and can't leave until VFP is completed, but you
+     * can easily get around the door via the beach and go through multiple
+     * times in a row. When > 3, this causes DBStaticDiamond to do OOB memory
+     * writes and breaks the game very quickly. So we just clamp to 3.
+     */
+    if (entry == BIT_83F && value > 3) {
+        value = 3;
+    }
+
+    return value;
+}
+
 /** Prevents cases where the game would try to increment out of bounds flags, which would cause data corruption */
 RECOMP_PATCH s32 mainIncrementBits(s32 entry) {
     s32 val;
