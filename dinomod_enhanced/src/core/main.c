@@ -5,13 +5,11 @@
 #include "PR/ultratypes.h"
 #include "game/gamebits.h"
 #include "sys/main.h"
-#include "sys/joypad.h"
 #include "sys/menu.h"
-#include "sys/objects.h"
-#include "sys/print.h"
 #include "types.h"
 #include "dlls/engine/29_gplay.h"
 
+#include "core/mp3/mp3.h"
 #include "core/main.h"
 #include "engine/78_credits.h"
 
@@ -156,4 +154,24 @@ RECOMP_HOOK("main_func_80013D80") void main_func_80013D80_hook(void) {
             }
         }
     }
+}
+
+extern s8 gPauseState;
+
+RECOMP_PATCH void mainSetPauseState(s32 state) {
+    gPauseState = state;
+
+    //@recomp: pause/unpause MP3s as well
+    if (state) {
+        mp3PauseIfPlaying();
+    } else {
+        mp3UnpauseIfPaused();
+    }
+}
+
+RECOMP_PATCH void mainUnpause(void) {
+    gPauseState = 0;
+
+    //@recomp: unpause MP3s as well
+    mp3UnpauseIfPaused();
 }
