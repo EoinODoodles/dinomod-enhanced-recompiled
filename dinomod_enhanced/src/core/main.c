@@ -123,7 +123,7 @@ RECOMP_PATCH u32 mainGetBits(s32 entry) {
      * BIT_83F stores how many Diamonds have been used to open the VFP door. You
      * usually get locked inside and can't leave until VFP is completed, but you
      * can easily get around the door via the beach and go through multiple
-     * times in a row. When > 3, this causes DBStaticDiamond to do OOB memory
+     * times in a row. When > 3, this causes DB_SuperSymbol to do OOB memory
      * writes and breaks the game very quickly. So we just clamp to 3.
      */
     if (entry == BIT_83F && value > 3) {
