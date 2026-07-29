@@ -2,11 +2,12 @@
 #include "recomputils.h"
 
 #include "PR/ultratypes.h"
+#include "dll.h"
+#include "dlls/engine/6_amsfx.h"
+#include "dlls/engine/29_gplay.h"
 #include "game/gamebits.h"
 #include "sys/map_enums.h"
 #include "sys/main.h"
-#include "dll.h"
-#include "dlls/engine/6_amsfx.h"
 
 #include "recomp/dlls/engine/29_gplay_recomp.h"
 
@@ -27,6 +28,18 @@ RECOMP_HOOK_DLL(gplay_ctor) void gplay_patch_map_object_group_flags(void) {
 RECOMP_HOOK_RETURN_DLL(gplay_start_game) void dll_gplay_hook_enable_scarabs_if_already_collected(void) {
     if (mainGetBits(BIT_Tutorial_Collected_Scarab) && mainGetBits(BIT_UI_Scarab_Counter_Enabled) == FALSE){
         mainSetBits(BIT_UI_Scarab_Counter_Enabled, TRUE);
+    }
+}
+
+/**
+  * Ensures the player doesn't start at 0 health after saving and quitting on the Game Over screen
+  */
+RECOMP_HOOK_RETURN_DLL(gplay_start_game) void hook_start_game_fix_zero_health(void) {
+    PlayerStats* stats = gDLL_29_Gplay->vtbl->get_player_stats();
+
+    //Set health to 3 apples when reloading after saving on the Game Over screen
+    if (stats && (stats->health <= 0)) {
+        stats->health = 3 * 4;
     }
 }
 
