@@ -33,6 +33,7 @@ extern void MagicDust_collect(Object* self, Object* player, MagicDust_Data* objD
 /**
   * - Remove code setting shadow fade-in/fade-out flag (originally by MusicalProgrammer).
   * - Stop Magic Gem from falling past a certain point (originally by MusicalProgrammer).
+  * - Stop stationary Magic Gems from rapidly playing sounds when touched (unloads them instead)
   */
 RECOMP_PATCH void MagicDust_control(Object* self) {
     Object *player;
@@ -279,6 +280,20 @@ RECOMP_PATCH void MagicDust_control(Object* self) {
         }
     }
     
+    diPrintf("\n%s - timer: %f\n", self->def->name, &objData->timer);
+
+    //@recomp: fix a bug where the stationary gems would rapidly play sounds while being touched
+    /* TODO: double-check this is safe! 
+       (I'm not sure what the "OBJFLAG_OWNS_SETUP" SRT flag does, or
+       how/if it might interact negatively with freeing the gem here) */
+    if (objData->flags & MagicDust_FLAG_Vanish) {
+        objData->timer -= gUpdateRateF;
+        if (objData->timer < 0.0f) {
+            objFreeObject(self);
+        }
+        return;
+    }
+
     //Collect the gem when close
     distance = self->srt.transl.y - player->srt.transl.y;
     if (distance < 0.0f) {
