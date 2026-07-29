@@ -279,8 +279,6 @@ RECOMP_PATCH void MagicDust_control(Object* self) {
             }
         }
     }
-    
-    diPrintf("\n%s - timer: %f\n", self->def->name, &objData->timer);
 
     //@recomp: fix a bug where the stationary gems would rapidly play sounds while being touched
     /* TODO: double-check this is safe! 
