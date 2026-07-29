@@ -1,5 +1,7 @@
+#include "dll_util.h"
 #include "modding.h"
 #include "recomputils.h"
+#include "rt64_extended_gbi.h"
 
 #include "recomp/dlls/engine/63_gameselect_recomp.h"
 #include "dlls/engine/63_gameselect.h"
@@ -10,6 +12,7 @@
 #include "dlls/engine/28_screen_fade.h"
 #include "dlls/engine/29_gplay.h"
 #include "dlls/engine/74_picmenu.h"
+#include "sys/dll.h"
 #include "sys/gfx/texture.h"
 #include "sys/fonts.h"
 #include "sys/main.h"
@@ -21,6 +24,7 @@
 #include "types.h"
 #include "macros.h"
 
+#include "core/fonts.h"
 #include "player_stats.h"
 
 extern GameSelectSubmenu sSubmenus[8];
@@ -280,4 +284,180 @@ RECOMP_PATCH void dll_63_init_submenu(GameSelectSubmenu *submenu) {
             }
         }
     }
+}
+
+static char *recent_task_strs[3];
+static s32 num_recent_task_strs = 0;
+
+static void free_recent_task_strs() {
+    for (s32 i = 0; i < num_recent_task_strs; i++) {
+        mmFree(recent_task_strs[i]);
+        recent_task_strs[i] = NULL;
+    }
+
+    num_recent_task_strs = 0;
+}
+
+/**
+  * A copy of base recomp's patches for dll_63_draw, but with an extra patch fixing a bug where the "Previously On"
+  * screen's task strings could overlap with each other when one wrapped onto 3 lines instead of the usual 2.
+  *
+  * TODO: The text will probably trail too far down the screen if there are multiple tasks that wrap onto 3 lines, 
+  *       but hopefully there are no 3 adjacent tasks where that happens?
+  */ 
+static void dll_63_draw_custom(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
+    s32 numRecentTasks;
+    s32 uly;
+    s32 lry;
+    s32 ulx;
+    s32 lrx;
+    s32 y;
+    s32 i;
+    GameSelectSubmenu *submenu;
+    /* RECOMP */
+    s32 lineCount;
+
+    submenu = &sSubmenus[sSubmenuIdx];
+
+    // @recomp: Always redraw
+    sRedrawFrames = 100;
+
+    if ((sExitToGame || sExitToMainMenu) && (sExitTransitionTimer <= 10)) {
+        return;
+    }
+    
+    fontWindowSetCoords(1, 0, 0,
+        GET_VIDEO_WIDTH(viGetCurrentSize()) - 100,
+        GET_VIDEO_HEIGHT(viGetCurrentSize()));
+    fontWindowFlushStrings(1);
+
+    fontWindowSetCoords(3, 105, 0,
+        GET_VIDEO_WIDTH(viGetCurrentSize()) - 200,
+        GET_VIDEO_HEIGHT(viGetCurrentSize()));
+    fontWindowFlushStrings(3);
+
+    if (sRedrawFrames != 0) {
+        // @recomp: Center background
+        // TODO: the clear screen is only necessary because coming from the rolling demo, some 3d stuff still draws??
+        rcpClearScreen(gdl, mtxs, CLEAR_COLOR);
+        gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_CENTER, G_EX_ORIGIN_CENTER, (-640 / 2) * 4, 0, (640 / 2) * 4, 0);
+        rcpScreenFullWrite(gdl, sBackgroundTexture, 0, 0, 0, 0, 0xFF, SCREEN_WRITE_CYC_COPY);
+        gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
+
+        if (sSubmenuIdx == SUBMENU_GAME_RECAP) {
+            rcpScreenFullWrite(gdl, sLogoShadowTexture, 119, 92, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
+            rcpScreenFullWrite(gdl, sLogoTexture, 129, 100, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
+
+            numRecentTasks = gDLL_30_Task->vtbl->get_num_recently_completed();
+            if (numRecentTasks > 3) {
+                numRecentTasks = 3;
+            }
+
+            fontWindowEnableWordwrap(3);
+            fontWindowUseFont(1, FONT_FUN_FONT);
+            fontWindowUseFont(3, FONT_FUN_FONT);
+            fontWindowSetTextColour(1, 183, 139, 97, 255, 255);
+            fontWindowSetTextColour(3, 183, 139, 97, 255, 255);
+
+            // @recomp: Fix memory leak with task strings
+            free_recent_task_strs();
+            for (i = 0; i < numRecentTasks; i++) {
+                recent_task_strs[i] = gDLL_30_Task->vtbl->get_recently_completed_task_text(i);
+            }
+            num_recent_task_strs = numRecentTasks;
+
+            y = 232;
+            for (i = 0; i < numRecentTasks; i++) {
+                sprintf(sRecentTaskNumStrs[i], "%1d.", (int)(i + 1));
+                fontWindowAddStringXY(1, 75, y, sRecentTaskNumStrs[i], 1, ALIGN_TOP_LEFT);
+                fontWindowAddStringXY(3, 2, y, recent_task_strs[i], 1, ALIGN_TOP_LEFT);
+                
+                //@recomp: count how many lines the string will wrap onto, and insert extra vertical space if needed (to fix lines overlapping)
+                lineCount = fontCountLinesWordwrap(3, recent_task_strs[i], 2);
+                if (lineCount > 2) {
+                    y += 40 + (13 * (lineCount - 2));
+                } else {
+                    y += 40;
+                }
+            }
+
+            // @recomp: Fix text wrap for dropshadow (it can wrap differently if the window size isn't adjusted due to the offset)
+            fontWindowSetCoords(1, 0, 0, 
+                GET_VIDEO_WIDTH(viGetCurrentSize()) - 100 - 2, 
+                GET_VIDEO_HEIGHT(viGetCurrentSize()) - 2);
+            fontWindowSetCoords(3, 105, 0, 
+                GET_VIDEO_WIDTH(viGetCurrentSize()) - 200 - 2, 
+                GET_VIDEO_HEIGHT(viGetCurrentSize()) - 2);
+
+            y = 232;
+            fontWindowSetTextColour(1, 0, 0, 0, 255, 255);
+            fontWindowSetTextColour(3, 0, 0, 0, 255, 255);
+            for (i = 0; i < numRecentTasks; i++) {
+                sprintf(sRecentTaskNumStrs[i], "%1d.", (int)(i + 1));
+                fontWindowAddStringXY(1, 73, y - 2, sRecentTaskNumStrs[i], 1, ALIGN_TOP_LEFT);
+                fontWindowAddStringXY(3, 0, y - 2, recent_task_strs[i], 1, ALIGN_TOP_LEFT);
+                
+                //@recomp: count how many lines the string will wrap onto, and insert extra vertical space if needed (to fix lines overlapping)
+                lineCount = fontCountLinesWordwrap(3, recent_task_strs[i], 2);
+                if (lineCount > 2) {
+                    y += 40 + (13 * (lineCount - 2));
+                } else {
+                    y += 40;
+                }
+            }
+        } else {
+            if (sSelectedSaveIdx != -1) {
+                dll_63_draw_save_game_box(gdl, sSaveGameBoxX, sSaveGameBoxY, &sSaveGameInfo[sSelectedSaveIdx]);
+            }
+
+            fontWindowUseFont(1, FONT_FUN_FONT);
+            fontWindowSetTextColour(1, 183, 139, 97, 255, 255);
+
+            fontWindowAddStringXY(1, 320, 405, sGameTextChunk->strings[submenu->buttonLegendTextIdx], 1, ALIGN_TOP_CENTER);
+            fontWindowSetTextColour(1, 0, 0, 0, 255, 255);
+            fontWindowAddStringXY(1, 318, 403, sGameTextChunk->strings[submenu->buttonLegendTextIdx], 2, ALIGN_TOP_CENTER);
+        }
+
+        fontWindowSetCoords(2, 0, 0, 
+            GET_VIDEO_WIDTH(viGetCurrentSize()) - 100, 
+            GET_VIDEO_HEIGHT(viGetCurrentSize()));
+        fontWindowFlushStrings(2);
+        fontWindowUseFont(2, FONT_DINO_MEDIUM_FONT_IN);
+        fontWindowEnableWordwrap(2);
+        fontWindowSetTextColour(2, 255, 255, 255, 0, 255);
+
+        fontWindowAddStringXY(2, 69, 61, sGameTextChunk->strings[submenu->titleTextIdx], 1, ALIGN_TOP_LEFT);
+        fontWindowSetTextColour(2, 0, 0, 0, 255, 255);
+        fontWindowAddStringXY(2, 64, 56, sGameTextChunk->strings[submenu->titleTextIdx], 2, ALIGN_TOP_LEFT);
+
+        fontWindowDraw(gdl, NULL, NULL, 2);
+    } else {
+        // Always redraw background in case picmenu redraws
+        menu_func_80010158(&ulx, &lrx, &uly, &lry);
+        rcpScreenScrollWrite(gdl, sBackgroundTexture, 0, 0, uly, lry, 0xFF, SCREEN_WRITE_CYC_COPY);
+    }
+
+    // @recomp: Always redraw all
+    gDLL_74_Picmenu->vtbl->redraw_all();
+    gDLL_74_Picmenu->vtbl->draw(gdl);
+
+    fontWindowDraw(gdl, NULL, NULL, 1);
+    fontWindowDraw(gdl, NULL, NULL, 3);
+
+    sRedrawFrames -= 1;
+    if (sRedrawFrames < 0) {
+        sRedrawFrames = 0;
+    }
+}
+
+/** Hijack the print function, since base recomp already patches `dll_63_print` */
+typedef s32 (*MenuPrint)(Gfx **gdl, Mtx **mtxs, Vertex **vtxs);
+static MenuPrint gameselect_print_func; 
+
+RECOMP_HOOK_DLL(dll_63_ctor) void gameselect_ctor_hook(DLLFile *dll) {
+    gameselect_print_func = dinomod_hijack_dll_export(dll, 2, dll_63_draw_custom);
+}
+
+RECOMP_HOOK_RETURN_DLL(dll_63_dtor) void gameselect_dtor_hook() {
+    gameselect_print_func = NULL;
 }
