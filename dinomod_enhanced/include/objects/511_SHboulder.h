@@ -13,4 +13,3 @@ typedef struct {
     u8 invincible : 1;      //Boulder can't be destroyed by explosions (for the custom one blocking Willow Grove)
     u8 debris : 1;          //Boulder creates debris when destroyed (for the river sequence)
 } SHboulder_Setup;          //@recomp: custom setup struct
-
