@@ -532,6 +532,22 @@ options = [ "Off", "On (Fade-Out)", "On (Persist)" ]
 default = "On (Fade-Out)"
 
 [[manifest.config_options]]
+id = "dim_cannon_sounds"
+name = "Cannons: Add Sounds"
+description = '''
+The cannon turrets found throughout the game are completely silent in the original unmodified prototype.
+
+Enabling this config adds some sound design to them! Here are the options:
+
+- On (Blast Only): A cannon fire sound is added.
+- On (Full): Machinery sounds and CannonClaw voice clips are added too. 
+
+'''
+type = "Enum"
+options = [ "Off", "On (Blast Only)", "On (Full)" ]
+default = "On (Full)"
+
+[[manifest.config_options]]
 id = "cmdmenu_icons_fox"
 name = "Illusion Spell: Fox Icon"
 description = '''

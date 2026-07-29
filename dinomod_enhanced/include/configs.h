@@ -47,6 +47,15 @@ typedef enum {
     DIM_TENT_CINDERS_ON_PERSIST     //DIMTents leave behind a charred frame, which stays around
 } DIMTentModes;
 
+// Configs for DIMCannon's sound design
+typedef enum {
+    DIM_CANNON_SFX_OFF,        //The cannon is silent (unedited)
+    DIM_CANNON_SFX_ON_BASIC,   //A cannon blast is played when firing
+    DIM_CANNON_SFX_ON_FULL     //Lots more machinery sounds and CannonClaw voice clips are added too
+} DIMCannonSounds;
+
+#define DIMCannonSounds_Config "dim_cannon_sounds"
+
 typedef enum {
     PLAY_AS_SABRE_WITH_FOX_AS_ILLUSION,     //Play as Sabre, aside from Illusion Spell (which shows Fox as a little swapped homage to the prototype's behaviour)
     PLAY_AS_FOX_ALWAYS                      //Play as Fox regardless of Illusion Spell

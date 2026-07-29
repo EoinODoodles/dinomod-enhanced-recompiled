@@ -40,6 +40,9 @@ INCBIN(block580, "blocks_0580_SHwell_lily_pond_vines.bin");
 INCBIN(block581, "blocks_0581_SHwell_entrance.bin");
 INCBIN(block582, "blocks_0582_SHwell_stalactite_tunnels.bin");
 INCBIN(block583, "blocks_0583_SHwell_river_end.bin");
+INCBIN(block718, "blocks_0718_DIM1_river_crossing.bin");
+INCBIN(block724, "blocks_0724_DIM1_cannon_silo.bin");
+INCBIN(block725, "blocks_0725_DIM1_snowball_track_start.bin");
 INCBIN(block989, "blocks_0989_DBriver_waterfall_basin_1.bin");
 INCBIN(hits989, "hits_0989_DBriver_waterfall_basin_1.bin");
 INCBIN(block995, "blocks_0995_DBriver_bend_1.bin");
@@ -1319,7 +1322,6 @@ static void swapstone_hollow_well_additions(void) {
 static void swapstone_hollow_well_modifications(void) {
     ReAssetID shWellTrkblk = reasset_base_id(19);
     u32 shWellBlocksBase = 579;
-    u32 shWellBlocks;
 
     //SwapStone Hollow Well: Fix mesh holes, fog issues (on dig spot decals), vines, stalactite animatorIDs, UVs
     BLOCKS_REPLACE_BASE(shWellTrkblk, shWellBlocksBase, 579, block579);
@@ -1506,6 +1508,66 @@ static void df_modifications(void) {
 PRAGMA_IGNORE_POP()
 
 static void darkice_mines_modifications(void) {
+    ReAssetID dim1MapID = reasset_base_id(MAP_DARK_ICE_MINES_1);
+
+    //BLOCKS edits
+    {
+        ReAssetID dim1Trkblk = reasset_base_id(26);
+        u32 dim1BlocksBase = 711;
+
+        //Fix the river crossing area's invisible rock climbing decal setup (it was being drawn in the wrong order and getting erased by the underlay)
+        BLOCKS_REPLACE_BASE(dim1Trkblk, dim1BlocksBase, 718, block718);
+        
+        //Adjust the invisible terrain around the cannon silo, so Sabre doesn't stand in midair above it while it's closed
+        BLOCKS_REPLACE_BASE(dim1Trkblk, dim1BlocksBase, 724, block724);
+
+        //Fix a seam in the mountain walls, just beside the SnowHorn platform in the cannon/tents area
+        BLOCKS_REPLACE_BASE(dim1Trkblk, dim1BlocksBase, 725, block725);
+    }
+
+    //Fix the cannon silo's broken HitAnimator setups
+    {
+        #define GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo 0x157
+
+        HitAnimator_Setup* siloFlatHitAnim = reasset_map_objects_get(dim1MapID, reasset_base_id(0x1D2D), NULL);
+        siloFlatHitAnim->gamebitActivate = GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo;
+        siloFlatHitAnim->mode = hitanimator_configure_mode_flags(TRUE, TRUE, FALSE);
+
+        HitAnimator_Setup* siloRaisedHitAnim = reasset_map_objects_get(dim1MapID, reasset_base_id(0x1D2E), NULL);
+        siloRaisedHitAnim->gamebitActivate = GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo;
+        siloRaisedHitAnim->mode = hitanimator_configure_mode_flags(FALSE, TRUE, FALSE);
+    }
+
+    //Fix DIMCannonCover1's objSeq handling 
+    //(there was a bug where it was starting off in its closed position when the CannonClaw has already appeared)
+    {
+        typedef struct {
+            ObjSetup base;
+            s16 unk18;
+            s16 gamebitRestoreState;
+            s16 preemptTime;
+            s8 objSeqIdx;
+            u8 yaw;
+            u8 enabledActors;
+            u8 scale;
+            s16 unk22;
+            s16 unk24;
+            s16 unk26;
+            u8 unk28;
+            u8 unk29;
+        } DLL307_Setup;
+
+        DLL307_Setup* cannonCover = reasset_map_objects_get(dim1MapID, reasset_base_id(0x17F4), NULL);
+        cannonCover->gamebitRestoreState = NO_GAMEBIT;
+    }
+
+    //Delete a DIMExplosion (causes random explosion sound when approaching tent area)
+    {
+        //Maybe they placed this here temporarily to help debug the mistake in DIMCannonBall's DIMExplosion-creating code?
+        ReAssetID dimExplosion = reasset_base_id(0x1DA4);
+        reasset_map_objects_delete(dim1MapID, dimExplosion);
+    }
+
     //Edit DIMTent's burnt model, adding draw modes for handling opacity
     {
         ReAssetID models_dimtent_burnt_ID = reasset_base_id(886);
