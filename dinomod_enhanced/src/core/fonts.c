@@ -18,8 +18,11 @@ extern s32 gFontSquash;
  *
  *  This function is used to fix a bug where task lines overlapped on the "Previously On" screen
  *  when they wrapped onto 3 lines instead of the usual 2.
+ *
+ * `posX` is a left margin offset (assuming left-aligned text) for the font window, useful
+ *  since the equivalent margin used by `fontWindowAddStringXY` may not have updated the FontWindow's xpos yet.
  */
-s32 fontCountLinesWordwrap(s32 windowID, char* text, s32 x) {
+s32 fontCountLinesWordwrap(s32 windowID, char* text, s32 posX) {
     s32 loopCond;
     FontData* fontData;
     s32 ypos;
@@ -55,7 +58,7 @@ s32 fontCountLinesWordwrap(s32 windowID, char* text, s32 x) {
         return 0;
     }
     
-    xpos = window->xpos + x;
+    xpos = window->xpos + posX;
     ypos = window->ypos;
     fontData = &gFile_FONTS_BIN[window->font];
     
@@ -63,8 +66,9 @@ s32 fontCountLinesWordwrap(s32 windowID, char* text, s32 x) {
     
     while (loopCond >= 0) {
         if (xpos >= window->width) {
-            xpos = window->xpos;
+            xpos = window->xpos + posX;
             ypos += fontData->y;
+            lineCount++;
             wordWrapped = 1;
         } else {
             wordWrapped = 0;
@@ -90,7 +94,7 @@ s32 fontCountLinesWordwrap(s32 windowID, char* text, s32 x) {
                     break;
                 case '\n':
                     wordWrapped = 0;
-                    xpos = window->xpos;
+                    xpos = window->xpos + posX;
                     ypos += fontData->y;
                     lineCount++;
                     break;
@@ -101,7 +105,7 @@ s32 fontCountLinesWordwrap(s32 windowID, char* text, s32 x) {
                     break;
                 case '\r':
                     wordWrapped = 0;
-                    xpos = window->xpos;
+                    xpos = window->xpos + posX;
                     break;
                 default:
                     if (wordWrapped == 0) {
@@ -110,11 +114,10 @@ s32 fontCountLinesWordwrap(s32 windowID, char* text, s32 x) {
                     break;
                 }
                 if (xpos >= window->width) {
-                    xpos = window->xpos;
+                    xpos = window->xpos + posX;
                     ypos += fontData->y;
-                    wordWrapped = 1;
-
                     lineCount++;
+                    wordWrapped = 1;
                 }
                 if ((window->textOffsetY + ypos) >= window->height) {
                     loopCond = -1;
@@ -150,7 +153,7 @@ s32 fontCountLinesWordwrap(s32 windowID, char* text, s32 x) {
             PRAGMA_IGNORE_POP()
 
             if (((xpos + wordWidth) >= window->width) && (xpos != 0)) {
-                xpos = window->xpos;
+                xpos = window->xpos + posX;
                 ypos += fontData->y;
                 lineCount++;
             }

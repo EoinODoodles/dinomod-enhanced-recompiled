@@ -7,14 +7,18 @@
 #include "dlls/engine/63_gameselect.h"
 
 #include "PR/gbi.h"
+#include "PR/os.h"
 #include "PR/ultratypes.h"
 #include "dlls/engine/21_gametext.h"
 #include "dlls/engine/28_screen_fade.h"
 #include "dlls/engine/29_gplay.h"
 #include "dlls/engine/74_picmenu.h"
+#include "game/gamebits.h"
+#include "game/gametexts.h"
 #include "sys/dll.h"
 #include "sys/gfx/texture.h"
 #include "sys/fonts.h"
+#include "sys/joypad.h"
 #include "sys/main.h"
 #include "sys/menu.h"
 #include "sys/memory.h"
@@ -26,6 +30,8 @@
 
 #include "core/fonts.h"
 #include "player_stats.h"
+
+// #define DEBUG_TASKS
 
 extern GameSelectSubmenu sSubmenus[8];
 
@@ -186,7 +192,7 @@ RECOMP_PATCH void dll_63_load_save_game_info() {
             if (!saveFile->isEmpty) {
                 sSaveGameInfo[i].playerno = saveFile->playerno;
                 // sSaveGameInfo[i].spiritBits = get_gplay_bitstring(0x489);
-                sSaveGameInfo[i].spiritBits = getCountSpirits(); //@recomp: Changing flag for consistency with Pause Menu, but may switch to 0x489 later
+                sSaveGameInfo[i].spiritBits = getCountSpirits(); //@recomp: Changing gamebit for consistency with Pause Menu, but may switch to 0x489 later
                 sSaveGameInfo[i].unk3  = getCountSpellStones(); //@recomp: Store SpellStone count in unused field (which may have been intended for it!)
 
                 filenamePtr = sSaveGameInfo[i].filename;
@@ -302,8 +308,12 @@ static void free_recent_task_strs() {
   * A copy of base recomp's patches for dll_63_draw, but with an extra patch fixing a bug where the "Previously On"
   * screen's task strings could overlap with each other when one wrapped onto 3 lines instead of the usual 2.
   *
-  * TODO: The text will probably trail too far down the screen if there are multiple tasks that wrap onto 3 lines, 
-  *       but hopefully there are no 3 adjacent tasks where that happens?
+  * The text might trail too far down the screen if there are multiple tasks that wrap onto 3 lines, 
+  * but luckily there are no 3 adjacent gameplay tasks where that happens, at least playing through the
+  * game without sequence breaks, with the language set to English. All languages need to be tested for this though!
+  *
+  * For fan translations: it's recommended to try to keep task descriptions to 2 lines on this screen.
+  * Use 3 lines at most, and not on successive tasks if it can be avoided.
   */ 
 static void dll_63_draw_custom(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
     s32 numRecentTasks;
@@ -336,6 +346,14 @@ static void dll_63_draw_custom(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
         GET_VIDEO_HEIGHT(viGetCurrentSize()));
     fontWindowFlushStrings(3);
 
+    //@recomp: set up a separate window for the dropshadow text, to ensure it wraps the same as the main text
+    if (sSubmenuIdx == SUBMENU_GAME_RECAP) {
+        fontWindowSetCoords(4, 105 - 2, 0,
+            GET_VIDEO_WIDTH(viGetCurrentSize()) - 200 - 2,
+            GET_VIDEO_HEIGHT(viGetCurrentSize()) - 2);
+        fontWindowFlushStrings(4);
+    }
+
     if (sRedrawFrames != 0) {
         // @recomp: Center background
         // TODO: the clear screen is only necessary because coming from the rolling demo, some 3d stuff still draws??
@@ -347,6 +365,34 @@ static void dll_63_draw_custom(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
         if (sSubmenuIdx == SUBMENU_GAME_RECAP) {
             rcpScreenFullWrite(gdl, sLogoShadowTexture, 119, 92, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
             rcpScreenFullWrite(gdl, sLogoTexture, 129, 100, 0, 0, 0xFF, SCREEN_WRITE_TRANSLUCENT);
+
+#ifdef DEBUG_TASKS
+            //Log tasks to the console
+            static u8 tasksChanged = TRUE;
+            if (tasksChanged) {
+                tasksChanged = FALSE;
+
+                for (s32 i = 0; i < 5; i++) {
+                    recomp_printf("Task history #%d: %d (%s)\n", 
+                        i, 
+                        mainGetBits(BIT_Recent_Task_1 + i), 
+                        gDLL_21_Gametext->vtbl->get_text(GAMETEXT_0F4_Task_Header + mainGetBits(BIT_Recent_Task_1 + i), 0)
+                    );
+                }
+                recomp_printf("Next task: %d (%s)\n\n", 
+                    mainGetBits(BIT_Recent_Task_1 + 5), 
+                    gDLL_21_Gametext->vtbl->get_text(GAMETEXT_0F4_Task_Header + mainGetBits(BIT_Recent_Task_1 + 5), 0)
+                );
+            }
+
+            //Use C-Down to move down the task list, allowing the full list to be checked quickly
+            if (joyGetPressed(0) & D_CBUTTONS) {
+                tasksChanged = TRUE;
+                gDLL_30_Task->vtbl->mark_task_completed(mainGetBits(BIT_Furthest_Completed_Task));
+                gDLL_30_Task->vtbl->load_recently_completed();
+                sRedrawFrames = 2;
+            }
+#endif
 
             numRecentTasks = gDLL_30_Task->vtbl->get_num_recently_completed();
             if (numRecentTasks > 3) {
@@ -381,24 +427,20 @@ static void dll_63_draw_custom(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
                 }
             }
 
-            // @recomp: Fix text wrap for dropshadow (it can wrap differently if the window size isn't adjusted due to the offset)
-            fontWindowSetCoords(1, 0, 0, 
-                GET_VIDEO_WIDTH(viGetCurrentSize()) - 100 - 2, 
-                GET_VIDEO_HEIGHT(viGetCurrentSize()) - 2);
-            fontWindowSetCoords(3, 105, 0, 
-                GET_VIDEO_WIDTH(viGetCurrentSize()) - 200 - 2, 
-                GET_VIDEO_HEIGHT(viGetCurrentSize()) - 2);
-
-            y = 232;
+            // @recomp: Use a separate window for the dropshadow, the same as window 3 but shifted by (-2, -2) 
+            // This ensures the dropshadow text always wraps the same way as the main text
+            y = 232 - 2;
             fontWindowSetTextColour(1, 0, 0, 0, 255, 255);
-            fontWindowSetTextColour(3, 0, 0, 0, 255, 255);
+            fontWindowSetTextColour(4, 0, 0, 0, 255, 255);
+            fontWindowEnableWordwrap(4);
+            fontWindowUseFont(4, FONT_FUN_FONT);
             for (i = 0; i < numRecentTasks; i++) {
                 sprintf(sRecentTaskNumStrs[i], "%1d.", (int)(i + 1));
-                fontWindowAddStringXY(1, 73, y - 2, sRecentTaskNumStrs[i], 1, ALIGN_TOP_LEFT);
-                fontWindowAddStringXY(3, 0, y - 2, recent_task_strs[i], 1, ALIGN_TOP_LEFT);
+                fontWindowAddStringXY(1, 75, y, sRecentTaskNumStrs[i], 1, ALIGN_TOP_LEFT);
+                fontWindowAddStringXY(4, 2, y, recent_task_strs[i], 1, ALIGN_TOP_LEFT);
                 
                 //@recomp: count how many lines the string will wrap onto, and insert extra vertical space if needed (to fix lines overlapping)
-                lineCount = fontCountLinesWordwrap(3, recent_task_strs[i], 2);
+                lineCount = fontCountLinesWordwrap(4, recent_task_strs[i], 2);
                 if (lineCount > 2) {
                     y += 40 + (13 * (lineCount - 2));
                 } else {
@@ -441,6 +483,10 @@ static void dll_63_draw_custom(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
     gDLL_74_Picmenu->vtbl->redraw_all();
     gDLL_74_Picmenu->vtbl->draw(gdl);
 
+    if (sSubmenuIdx == SUBMENU_GAME_RECAP) {
+        fontWindowDraw(gdl, NULL, NULL, 4);
+        fontWindowFlushStrings(4);
+    }
     fontWindowDraw(gdl, NULL, NULL, 1);
     fontWindowDraw(gdl, NULL, NULL, 3);
 
