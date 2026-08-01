@@ -32,48 +32,48 @@
 #include "sys/math.h"
 #include "sys/memory.h"
 
-INCBIN(block611, "blocks_0611_WC_central_temple_south.bin");
-INCBIN(block628, "blocks_0628_WC_moon_temple_viewing_tile.bin");
-INCBIN(block351, "blocks_0351_SHriver_rocky_waterfall.bin");
-INCBIN(block358, "blocks_0358_SH_reflection_pool.bin");
-INCBIN(block579, "blocks_0579_SHwell_lily_pond_climb.bin");
-INCBIN(block580, "blocks_0580_SHwell_lily_pond_vines.bin");
-INCBIN(block581, "blocks_0581_SHwell_entrance.bin");
-INCBIN(block582, "blocks_0582_SHwell_stalactite_tunnels.bin");
-INCBIN(block583, "blocks_0583_SHwell_river_end.bin");
-INCBIN(block718, "blocks_0718_DIM1_river_crossing.bin");
-INCBIN(block724, "blocks_0724_DIM1_cannon_silo.bin");
-INCBIN(block725, "blocks_0725_DIM1_snowball_track_start.bin");
-INCBIN(block989, "blocks_0989_DBriver_waterfall_basin_1.bin");
-INCBIN(hits989, "hits_0989_DBriver_waterfall_basin_1.bin");
-INCBIN(block995, "blocks_0995_DBriver_bend_1.bin");
-INCBIN(block994, "blocks_0994_DBriver_waterfall_basin_2.bin");
-// INCBIN(block338, "0338 0152.bin");
+INCBIN(block611, "inc/blocks_0611_WC_central_temple_south.bin");
+INCBIN(block628, "inc/blocks_0628_WC_moon_temple_viewing_tile.bin");
+INCBIN(block351, "inc/blocks_0351_SHriver_rocky_waterfall.bin");
+INCBIN(block358, "inc/blocks_0358_SH_reflection_pool.bin");
+INCBIN(block579, "inc/blocks_0579_SHwell_lily_pond_climb.bin");
+INCBIN(block580, "inc/blocks_0580_SHwell_lily_pond_vines.bin");
+INCBIN(block581, "inc/blocks_0581_SHwell_entrance.bin");
+INCBIN(block582, "inc/blocks_0582_SHwell_stalactite_tunnels.bin");
+INCBIN(block583, "inc/blocks_0583_SHwell_river_end.bin");
+INCBIN(block718, "inc/blocks_0718_DIM1_river_crossing.bin");
+INCBIN(block724, "inc/blocks_0724_DIM1_cannon_silo.bin");
+INCBIN(block725, "inc/blocks_0725_DIM1_snowball_track_start.bin");
+INCBIN(block989, "inc/blocks_0989_DBriver_waterfall_basin_1.bin");
+INCBIN(hits989, "inc/hits_0989_DBriver_waterfall_basin_1.bin");
+INCBIN(block995, "inc/blocks_0995_DBriver_bend_1.bin");
+INCBIN(block994, "inc/blocks_0994_DBriver_waterfall_basin_2.bin");
+// INCBIN(block338, "inc/blocks_0338 0152.bin");
 
-INCBIN(tex0_kiosk_gold_key,             "tex0_kiosk_gold_key.bin");
-INCBIN(tex0_kiosk_silver_key,           "tex0_kiosk_silver_key_custom.bin");
-INCBIN(tex0_kiosk_firefly,              "tex0_kiosk_firefly_custom.bin");
-// INCBIN(tex0_kiosk_replay_disk,          "tex0_kiosk_replay_disk_custom.bin");
-INCBIN(tex0_custom_energy_egg,          "tex0_energy_egg_custom.bin");
-INCBIN(tex0_custom_energy_egg_moldy,    "tex0_energy_egg_moldy_custom.bin");
-INCBIN(tex0_kiosk_fox,                  "tex0_kiosk_fox_icon_custom.bin");
+INCBIN(tex0_kiosk_gold_key,             "inc/tex0_kiosk_gold_key.bin");
+INCBIN(tex0_kiosk_silver_key,           "inc/tex0_kiosk_silver_key_custom.bin");
+INCBIN(tex0_kiosk_firefly,              "inc/tex0_kiosk_firefly_custom.bin");
+// INCBIN(tex0_kiosk_replay_disk,          "inc/tex0_kiosk_replay_disk_custom.bin");
+INCBIN(tex0_custom_energy_egg,          "inc/tex0_energy_egg_custom.bin");
+INCBIN(tex0_custom_energy_egg_moldy,    "inc/tex0_energy_egg_moldy_custom.bin");
+INCBIN(tex0_kiosk_fox,                  "inc/tex0_kiosk_fox_icon_custom.bin");
 
-INCBIN(models_dimtent_burnt,    "models_0886_DIMtent_burnt_opacity.bin");
-INCBIN(objects_dimtent,         "objects_0320 0140 DIMTent.bin");
+INCBIN(models_dimtent_burnt,    "inc/models_0886_DIMtent_burnt_opacity.bin");
+INCBIN(objects_dimtent,         "inc/objects_0320_DIMTent.bin");
 
-INCBIN(models_purple_mushroom,  "models_purple_mushroom_recreation.bin");
-INCBIN(modanim_purple_mushroom, "modanim_purple_mushroom_recreation.bin");
-INCBIN(amap_purple_mushroom,    "amap_purple_mushroom_recreation.bin");
-INCBIN(objects_purple_mushroom, "objects_0571 023B SHrocketmushroo.bin");
+INCBIN(models_purple_mushroom,  "inc/models_purple_mushroom_recreation.bin");
+INCBIN(modanim_purple_mushroom, "inc/modanim_purple_mushroom_recreation.bin");
+INCBIN(amap_purple_mushroom,    "inc/amap_purple_mushroom_recreation.bin");
+INCBIN(objects_purple_mushroom, "inc/objects_0571_SHrocketmushroo.bin");
 
-INCBIN(objects_shseqobject,     "objects_0561_SHseqobject.bin");
-INCBIN(objects_shboulder,       "objects_0583 0247 SHboulder.bin");
+INCBIN(objects_shseqobject,     "inc/objects_0561_SHseqobject.bin");
+INCBIN(objects_shboulder,       "inc/objects_0583_SHboulder.bin");
 
-INCBIN(objects_shbarrel,        "SHbarrel.bin");
-INCBIN(objects_shbarrelcreator, "SHbarrelcreator.bin");
+INCBIN(objects_shbarrel,        "inc/objects_SHbarrel.bin");
+INCBIN(objects_shbarrelcreator, "inc/objects_SHbarrelcreator.bin");
 
-INCBIN(models_wcslabdoor,       "models_0942_WCSlabDoor.bin");
-INCBIN(models_wcbossdoor,       "models_0943_WCBossDoor.bin");
+INCBIN(models_wcslabdoor,       "inc/models_0942_WCSlabDoor.bin");
+INCBIN(models_wcbossdoor,       "inc/models_0943_WCBossDoor.bin");
 
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 
