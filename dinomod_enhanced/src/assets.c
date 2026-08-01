@@ -375,6 +375,27 @@ static void walled_city_modifications(void) {
             reasset_models_set(models_wcbossdoor_ID, REASSET_BASE_NAMESPACE, models_wcbossdoor, models_wcbossdoor_end - models_wcbossdoor);
         }
     }
+
+    //WCPressureSwitch (Moon)
+    {
+        typedef struct {
+        /*00*/ ObjSetup base;
+        /*18*/ u8 yaw;
+        /*19*/ u8 modelIdx;
+        /*1A*/ s16 gameBitPressed;             //Gamebit to set when switch is pressed down
+        /*1C*/ u8 yOffsetAnimation;            //How far down the switch should move when pressed
+        /*1D*/ u8 yThreshold;                  //Threshold for other objects pressing switch
+        /*1E*/ u8 distanceGuardCommand;        //Player distance at which Guard sidekick command is selectable
+        /*20*/ s16 gamebitActivated;           //Gamebit to check if switch is deactivated
+        } PressureSwitch_Setup;
+
+        //MAPS - Restore Moon switch's model
+        {
+            PressureSwitch_Setup* pSwitch = (PressureSwitch_Setup*)reasset_map_objects_get(walledCity, 
+                reasset_base_id(0x411b6), NULL);
+            pSwitch->modelIdx = 1;
+        }
+    }
 }
 
 static void shrine_fxemit_modifications(void) {

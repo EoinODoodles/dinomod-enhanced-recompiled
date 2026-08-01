@@ -1,14 +1,13 @@
 #include "modding.h"
-#include "recomputils.h"
 
-#include "dll.h"
-#include "sys/dll.h"
 #include "game/objects/object.h"
-#include "sys/main.h"
-#include "sys/objects.h"
-#include "sys/objtype.h"
 
 #include "recomp/dlls/objects/781_WCpressureswitch_recomp.h"
+
+//TEMPORARY DEFINES
+#define WCPressureSwitch_obj_GetModelFlags WCpressureswitch_get_model_flags
+#define WCPressureSwitch_addObject WCpressureswitch_add_object
+//END OF TEMPORARY DEFINES
 
 typedef struct {
 f32 x;
@@ -24,7 +23,7 @@ typedef struct {
 } PressureSwitch_Data;
 
 // Prevents the pressure switches' object arrays from overflowing and crashing (originally by MusicalProgrammer)
-RECOMP_PATCH void WCpressureswitch_add_object(Object* self, Object* objectOnSwitch) {
+RECOMP_PATCH void WCPressureSwitch_addObject(Object* self, Object* objectOnSwitch) {
     PressureSwitch_Data *objdata = self->data;
     u8 objectIndex;
     
@@ -39,4 +38,9 @@ RECOMP_PATCH void WCpressureswitch_add_object(Object* self, Object* objectOnSwit
     objdata->objectsOnSwitch[objectIndex] = objectOnSwitch;    
     objdata->objCoords[objectIndex].x = objectOnSwitch->srt.transl.x;
     objdata->objCoords[objectIndex].z = objectOnSwitch->srt.transl.z;
+}
+
+/* Ensure both models are loaded, so the Moon switch's polyHits work */
+RECOMP_PATCH u32 WCPressureSwitch_obj_GetModelFlags(Object* self) {
+    return MODFLAGS_1;
 }
