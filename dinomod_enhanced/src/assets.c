@@ -32,7 +32,8 @@
 #include "sys/math.h"
 #include "sys/memory.h"
 
-INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
+INCBIN(block611, "blocks_0611_WC_central_temple_south.bin");
+INCBIN(block628, "blocks_0628_WC_moon_temple_viewing_tile.bin");
 INCBIN(block351, "blocks_0351_SHriver_rocky_waterfall.bin");
 INCBIN(block358, "blocks_0358_SH_reflection_pool.bin");
 INCBIN(block579, "blocks_0579_SHwell_lily_pond_climb.bin");
@@ -70,6 +71,8 @@ INCBIN(objects_shboulder,       "objects_0583 0247 SHboulder.bin");
 
 INCBIN(objects_shbarrel,        "SHbarrel.bin");
 INCBIN(objects_shbarrelcreator, "SHbarrelcreator.bin");
+
+INCBIN(models_wcslabdoor,       "models_0942_WCSlabDoor.bin");
 
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 
@@ -232,14 +235,37 @@ static void walled_city_additions(void) {
 
         reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &fxemit, sizeof(fxemit));
     }
+
+    //Add a HitAnimator to ensure ledge grab HITS aren't active until WCSlabDoor moves out of the way
+    {
+        HitAnimator_Setup hitAnimator = {
+            .base = {
+                .objId = OBJ_HitAnimator,
+                .actExclusions1 = 0,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 32,
+                .fadeDistance = 32,
+                .x = 959,
+                .y = -858,
+                .z = -5601
+            },
+            .mode = HitAnimator_Mode_HITS, //HITS line switched on when gamebit set
+            .gamebitActivate = 0x7F8, //WCSlabDoor open
+            .hitsAnimatorID = 8 //tag for the ledge grab line
+        };
+
+        reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitAnimator, sizeof(hitAnimator));
+    }
 }
 
 static void walled_city_modifications(void) {
     ReAssetID walledCity = reasset_base_id(MAP_WALLED_CITY);
     ReAssetID wcTrkblk = reasset_base_id(20);
+    int wcBlocksBase = 585;
 
     // Fix terrain ID of moon temple viewing tile (to let the aperture work correctly)
-    reasset_blocks_set(wcTrkblk, reasset_base_id(628 - 585), REASSET_BASE_NAMESPACE, block628, block628_end - block628);
+    BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 628, block628);
 
     // Revert dinomod's removal of the moon temple lift sequences, so it can be used again
     {
@@ -292,6 +318,41 @@ static void walled_city_modifications(void) {
             reasset_base_id(0x411B0), NULL);
         cageDoor->gamebitOpenA = NO_GAMEBIT;
         cageDoor->gamebitRestoreState = BIT_7F5;
+    }
+
+    // WCSlabDoor
+    {
+        // Fix the small gap between the slab and its surroundings
+        {
+            //MAPS
+            {
+                SeqDoor_Setup* slab = (SeqDoor_Setup*)reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x411b7), NULL);
+                slab->base.x = 959.000;
+                slab->base.y = -874.000;
+                slab->base.z = -5681.000;
+            }
+
+            //MODELS
+            {
+                ReAssetID models_wcslabdoor_ID = reasset_base_id(942);
+                reasset_models_set(models_wcslabdoor_ID, REASSET_BASE_NAMESPACE, models_wcslabdoor, models_wcslabdoor_end - models_wcslabdoor);
+            }
+
+            //BLOCKS
+            {
+                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 611, block611);
+            }
+        }
+
+        //Ensure ledge grab HITS aren't active until WCSlabDoor moves out of the way
+        {
+            //HITS (tag line #6 with an animatorID)
+            {
+                HitsLine* line = reasset_hits_get(wcTrkblk, reasset_base_id(611 - wcBlocksBase), reasset_base_id(6));
+                line->animatorID = 8;
+            }
+        }
     }
 }
 
