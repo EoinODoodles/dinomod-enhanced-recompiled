@@ -73,6 +73,7 @@ INCBIN(objects_shbarrel,        "SHbarrel.bin");
 INCBIN(objects_shbarrelcreator, "SHbarrelcreator.bin");
 
 INCBIN(models_wcslabdoor,       "models_0942_WCSlabDoor.bin");
+INCBIN(models_wcbossdoor,       "models_0943_WCBossDoor.bin");
 
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 
@@ -352,6 +353,26 @@ static void walled_city_modifications(void) {
                 HitsLine* line = reasset_hits_get(wcTrkblk, reasset_base_id(611 - wcBlocksBase), reasset_base_id(6));
                 line->animatorID = 8;
             }
+        }
+    }
+
+    // WCBossDoor
+    // Fix the small gap between the boss door and its surroundings, and tweak the UVs to reduce seams
+    {
+        //MAPS
+        {
+            SeqDoor_Setup* door = (SeqDoor_Setup*)reasset_map_objects_get(walledCity, 
+                reasset_base_id(0x41392), NULL);
+            door->base.x = 959.506;
+            door->base.y = -1123.000;
+            door->base.z = -4800.000;
+            door->scale = 65;
+        }
+
+        //MODELS
+        {
+            ReAssetID models_wcbossdoor_ID = reasset_base_id(943);
+            reasset_models_set(models_wcbossdoor_ID, REASSET_BASE_NAMESPACE, models_wcbossdoor, models_wcbossdoor_end - models_wcbossdoor);
         }
     }
 }

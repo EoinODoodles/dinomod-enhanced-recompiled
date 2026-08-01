@@ -1,0 +1,41 @@
+#WCBossDoor opening sequence (SeqDoor opening->open behaviour)
+
+#Send an ObjSeq message (SeqDoor_SEQCMD_2_Finished_Opening) to ensure door's state gamebit is set,
+#so the door skips to its preemptTime next time it loads, instead of replaying out the opening animation.
+
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x1000
+  objectID: 0xFFFF # Self (WCBossDoor)
+
+curves:
+# Curve 0
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 180 } # SETDURATION @ 0
+  - { type: 3, delay: 180, params: 0x0 } # OVERRIDE @ 0
+  
+# Change from Opening to Open state (setting SeqDoor's `gamebitRestoreState` to 1)
+  - { type: 0, delay: 0, params: 170 } # SETTIME @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 170
+  - { code_type: 2, val1: 0x0, val2: 0x2 } # SET (MESSAGE)
+
+  - { type: 0, delay: 0, params: 180 } # SETTIME @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 180
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ROTATE_X
+  - { channel: 8, time: 10, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 8, time: 170, value: 24.0, interp: 0, weight: 0 }
+# Curve 1
+- events:
+  - { type: 0, delay: 0, params: 39 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 180 } # SETDURATION @ 39
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 39
+
+  - { type: 1, delay: 141, params: 0x0 } # MOVEMODE @ 39
+
+  - { type: 11, delay: 0, params: 1 } # CODE @ 180
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
