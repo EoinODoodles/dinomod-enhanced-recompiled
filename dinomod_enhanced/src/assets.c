@@ -25,12 +25,12 @@
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
 #include "game/gamebits.h"
+#include "macros.h"
 #include "sys/pi.h"
 #include "sys/map.h"
 #include "sys/map_enums.h"
 #include "sys/math.h"
 #include "sys/memory.h"
-#include "macros.h"
 
 INCBIN(block628, "0628 0274_moon_temple_viewing_tile.bin");
 INCBIN(block351, "blocks_0351_SHriver_rocky_waterfall.bin");
@@ -268,6 +268,31 @@ static void walled_city_modifications(void) {
     // Delete DummyObjects in Moon/Sun temple basements (these are objects with an unmapped OBJINDEX.bin entry)
     reasset_map_objects_delete(walledCity, reasset_base_id(0x41AFC));
     reasset_map_objects_delete(walledCity, reasset_base_id(0x41B35));
+
+    typedef struct {
+        ObjSetup base;
+        s16 gamebitOpenA;           //animCallback advances door to "Opening" state when this gamebit (and gamebitOpenB if specified) is set, or to "Closing" state when unset (obj must be in a sequence!)
+        s16 gamebitRestoreState;    //Restores state when the door loads (either "Open" or "Closed" state) - objSeq will use a preemptTime to skip the door to its open position when restoring "Open" state.
+        s16 preemptTime;            //The sequence time to jump to when the object loads in its "Open" state (state restored via `gamebitRestoreState`).
+        s8 objSeqIdx;               //The door opening cutscene's objSeqIdx
+        u8 yaw;
+        u8 preemptEnabledActors;    //Configures which actors to include when the door's sequence is played using a preemptTime
+        u8 scale;                   //Scale factor for the door (0x40 is 1x scale)
+        s16 gamebitOpenB;           //When specified, animCallback advances door to "Opening" state when this gamebit and gamebitOpenA are set (obj must be in a sequence!)
+        s16 gamebitCameraBack;      //When specified, animCallback flips part (`flipBitsCameraBack`) of this gamebit's value if the camera is behind the door when the door finishes opening/closing (obj must be in a sequence!)
+        s16 gamebitCameraFront;     //When specified, animCallback flips part (`flipBitsCameraFront`) of this gamebit's value if the camera is in front of the door when the door finishes opening/closing (obj must be in a sequence!)
+        u8 flipBitsCameraBack;      //The section of `gamebitCameraBack`'s value to flip when `gamebitCameraBack`'s value is updated
+        u8 flipBitsCameraFront;     //The section of `gamebitCameraFront`'s value to flip when `gamebitCameraFront`'s value is updated
+    } SeqDoor_Setup;
+
+    // WCCageDoor
+    // Fix the door playing a sound from far away whenever you approach Walled City
+    {
+        SeqDoor_Setup* cageDoor = (SeqDoor_Setup*)reasset_map_objects_get(walledCity, 
+            reasset_base_id(0x411B0), NULL);
+        cageDoor->gamebitOpenA = NO_GAMEBIT;
+        cageDoor->gamebitRestoreState = BIT_7F5;
+    }
 }
 
 static void shrine_fxemit_modifications(void) {
