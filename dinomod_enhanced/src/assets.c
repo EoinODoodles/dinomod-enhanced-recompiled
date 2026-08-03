@@ -75,6 +75,8 @@ INCBIN(objects_shbarrelcreator, "inc/objects_SHbarrelcreator.bin");
 INCBIN(models_wcslabdoor,       "inc/models_0942_WCSlabDoor.bin");
 INCBIN(models_wcbossdoor,       "inc/models_0943_WCBossDoor.bin");
 
+INCBIN(objects_vampirebat,      "inc/objects_0053_VampireBat.bin");
+
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 
 #define COORDS_SETUP(coordX, coordY, coordZ) .base.x = coordX, .base.y = coordY, .base.z = coordZ
@@ -1765,6 +1767,12 @@ static void purple_mushroom_patch(void) {
     }
 }
 
+//Revert changes to VampireBat object, allowing lock-on
+static void vampire_bat_patch(void) {
+    ReAssetID objects_vampirebat_id = reasset_base_id(53); //OBJ_VampireBat
+    reasset_objects_set(objects_vampirebat_id, REASSET_BASE_NAMESPACE, objects_vampirebat, objects_vampirebat_end - objects_vampirebat);
+}
+
 static void diamond_bay_additions(void) {
     ReAssetID db = reasset_base_id(MAP_DIAMOND_BAY);
 
@@ -2304,6 +2312,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     collectables_animobj_patch();
     cmdmenu_icons_patch();
     purple_mushroom_patch();
+    vampire_bat_patch();
 
     shrine_fxemit_modifications();
     warlock_mountain_platform_modifications();
