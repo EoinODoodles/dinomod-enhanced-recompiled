@@ -511,6 +511,23 @@ options = [ "Off", "On" ]
 default = "Off"
 
 [[manifest.config_options]]
+id = "vampirebat_config"
+name = "Vampire Bat: Battling"
+description = '''
+Vampire Bats are intangible in the unmodified prototype. They can't be attacked, and they clip through Krystal/Sabre's model when flying at them. The bats can sometimes be a nuisance too, since their Z-targetting Lock Icon can take priority over other nearby targets.
+
+Despite being invincible in the prototype, the bats do have a fully-programmed dying behaviour! It's just inaccessible because of a small detail in the object's collision configuration. This mod config fixes that collision problem, allowing the bats to be battled!
+
+Alternatively, these options can be used if you'd prefer not to fight the bats:
+
+- Off (Ignore Player): bats can't be harmed and ignore the player
+- Off (Follow Player): bats can't be harmed and flutter around the player
+'''
+type = "Enum"
+options = [ "Off (Ignore Player)", "Off (Follow Player)", "On" ]
+default = "On"
+
+[[manifest.config_options]]
 id = "dim_tent_cinders"
 name = "DIM Tents: Show Cinders"
 description = '''

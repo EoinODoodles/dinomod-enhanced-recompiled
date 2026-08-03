@@ -1,10 +1,13 @@
+#include "configs.h"
 #include "modding.h"
-#include "recomputils.h"
+#include "recompconfig.h"
 
 #include "dll.h"
 #include "dlls/engine/33_BaddieControl.h"
+#include "game/objects/interaction_arrow.h"
 #include "sys/main.h"
 #include "sys/objects.h"
+#include "sys/rand.h"
 
 #include "recomp/dlls/objects/232_VampireBat_recomp.h"
 
@@ -14,6 +17,8 @@
 
 #define VampireBat_obj_Setup dll_232_setup
 #define VampireBat_obj_Control dll_232_control
+#define VampireBat_handleMotion dll_232_func_AB8
+#define VampireBat_logicState2FlyRandom dll_232_func_CF0
 
 #define dHitAnimStateMap _data_0
 #define dHitDamageMap _data_70
@@ -26,7 +31,8 @@ typedef struct {
     Vec3f goal;
     f32 prevVelocityY;
     f32 heightAboveFloor;
-    u16 _unk20;
+    u8 prevConfig; //@recomp: repurposing unused field
+    u8 _unk21;
     s16 dyingPitchSpeed;
     s16 dyingYawSpeed;
     s16 dyingRollSpeed;
@@ -51,6 +57,55 @@ typedef enum {
 
 /*0x0*/ extern ObjFSA_StateCallback sAnimStateCallbacks[2];
 /*0x8*/ extern ObjFSA_StateCallback sLogicStateCallbacks[5];
+
+extern void VampireBat_handleMotion(Object* self, VampireBat_Data* objData);
+
+static VampireBat_BattleMode VampireBat_getConfig(void) {
+    return recomp_get_config_u32(VampireBat_Config);
+}
+
+static void VampireBat_handleConfigChange(Object* self) {
+    VampireBat_BattleMode config = VampireBat_getConfig();
+    Baddie* baddie;
+    VampireBat_Data* objData;
+
+    baddie = self->data;
+    if (baddie == NULL) {
+        return;
+    }
+
+    objData = baddie->objdata;
+    if (objData == NULL) {
+        return;
+    }
+
+    //Check if config changed (and the relevant changes were applied to this bat)
+    if (objData->prevConfig == config) {
+        return;
+    }
+
+    objData->prevConfig = config;
+
+    //Toggle collision and targetting
+    if ((baddie->fsa.logicState != VampireBat_LSTATE_4_Dead) && (config == VAMPIREBAT_BATTLE_ON)) {
+        if (self->objhitInfo) {
+            self->objhitInfo->unk58 |= 1;
+        }
+
+        self->unkAF &= ~ARROW_FLAG_8_No_Targetting;
+    } else {
+        if (self->objhitInfo) {
+            self->objhitInfo->unk58 &= ~1;
+        }
+
+        self->unkAF |= ARROW_FLAG_8_No_Targetting;
+    }
+
+    //Optionally ignore the player
+    if (baddie->fsa.logicState > VampireBat_LSTATE_1_Fly_Around_Randomly) {
+        baddie->fsa.logicState = VampireBat_LSTATE_0_Top; 
+    }
+}
 
 RECOMP_PATCH void VampireBat_obj_Setup(Object* self, Baddie_Setup* setup, s32 reset) {
     VampireBat_Data* objData;
@@ -96,10 +151,9 @@ RECOMP_PATCH void VampireBat_obj_Setup(Object* self, Baddie_Setup* setup, s32 re
 
     func_800267A4(self);
 
-    //@recomp: enable objHits
-    if (self->objhitInfo) {
-        self->objhitInfo->unk58 |= 1;
-    }
+    //@recomp: handle bat battle configs
+    objData->prevConfig = -1;
+    VampireBat_handleConfigChange(self);
 }
 
 RECOMP_PATCH void VampireBat_obj_Control(Object* self) {
@@ -125,6 +179,9 @@ RECOMP_PATCH void VampireBat_obj_Control(Object* self) {
     if (self->unkDC) {
         return;
     }
+
+    //@recomp: handle bat battle configs
+    VampireBat_handleConfigChange(self);
 
     if (self->unkE0 == 0) {
         self->srt.transl.x = objSetup->base.x;
@@ -234,4 +291,32 @@ RECOMP_PATCH void VampireBat_obj_Control(Object* self) {
     self->animObj = NULL;
     gDLL_18_objfsa->vtbl->tick(self, &baddie->fsa, gUpdateRateF, gUpdateRateF, sAnimStateCallbacks, sLogicStateCallbacks);
     self->animObj = baddie->unk3AC;
+}
+
+RECOMP_PATCH s32 VampireBat_logicState2FlyRandom(Object* self, ObjFSA_Data* fsa, f32 updateRate) {
+    Baddie* baddie;
+    VampireBat_Data* objData;
+    s16 randomAngle;
+    f32 distance;
+
+    baddie = self->data;
+    objData = baddie->objdata;
+
+    //Randomise the goal point: a fixed distance from home laterally in a random direction, at a random height
+    randomAngle = mathRnd(-M_180_DEGREES, M_180_DEGREES - 1);
+    distance = baddie->unk3E2 * 0.75f;
+    objData->goal.x = objData->home.x + Sinf(randomAngle) * distance;
+    objData->goal.y = objData->home.y + mathRnd(30, 100);
+    objData->goal.z = objData->home.z + Cosf(randomAngle) * distance;
+
+    VampireBat_handleMotion(self, objData);
+
+    //Advance state when a target is acquired
+    if ((baddie->unk3B6 == 1) 
+        && (VampireBat_getConfig() != VAMPIREBAT_BATTLE_OFF_IGNORE) //@recomp: optionally ignore the player
+    ) {
+        return FSA_NEXTSTATE_SYNC(VampireBat_LSTATE_2_Fly_To_Target);
+    }
+
+    return 0;
 }
