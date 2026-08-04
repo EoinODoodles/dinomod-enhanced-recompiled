@@ -94,7 +94,7 @@ extern void CCsandwormBoss_move_towards_point(Object* self, Vec3f* point, f32 sp
 extern void CCsandwormBoss_check_for_projectile_spell(Object* self, CCsandwormBoss_Data* objData);
 extern void CCsandwormBoss_create_particles(Object* self, CCsandwormBoss_Data* objData);
 
-void CCsandwormBoss_tick_battle(Object *self, CCsandwormBoss_Data *objData) {
+RECOMP_PATCH void CCsandwormBoss_tick_battle(Object *self, CCsandwormBoss_Data *objData) {
     ObjSetup* setup;
     f32 dist;
   
