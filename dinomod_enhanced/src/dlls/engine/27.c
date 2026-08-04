@@ -11,7 +11,7 @@
 extern Object *bss_0;
 
 extern void dll_27_get_obj_world_matrix(Object* obj, DLL27_Data* data, MtxF* mtx);
-extern Func_80057F1C_Struct* dll_27_func_C7C(Object* arg0, f32 arg1, f32 arg2, s32* arg3, s32 arg4);
+extern TrackHeightResult* dll_27_func_C7C(Object* arg0, f32 arg1, f32 arg2, s32* arg3, s32 arg4);
 
 /*
     @rom-patch only:
@@ -177,72 +177,73 @@ RECOMP_PATCH void dll_27_reset(Object *obj, DLL27_Data *data) {
     }
 }
 
-RECOMP_PATCH void dll_27_func_15C0(Object* arg0, DLL27_Data* arg1) {
-    Func_80057F1C_Struct* temp_v0;
-    s32 sp60;
-    s32 var_t1;
-    s32 var_t4;
-    s8 var_t2;
-    u8 var_v0;
+RECOMP_PATCH void dll_27_func_15C0(Object* obj, DLL27_Data* arg1) {
+    TrackHeightResult* temp_v0;
+    s32 count;
+    s32 j;
+    s32 i;
+    s8 floorFound;
+    u8 numTerrainPoints;
 
-    var_v0 = arg1->numTestPoints >> 4;
+    numTerrainPoints = arg1->numTestPoints >> 4;
     if (!(arg1->flags & DLL27FLAG_8000000)) {
-        var_v0 = 1;
+        numTerrainPoints = 1;
     }
-    for (var_t4 = 0; var_t4 < var_v0; var_t4++) { 
-        if (var_v0 >= 2) {
+
+    for (i = 0; i < numTerrainPoints; i++) { 
+        if (numTerrainPoints >= 2) {
             bss_0 = NULL;
         }
 
-        var_t2 = 0;
+        floorFound = FALSE;
 
-        temp_v0 = dll_27_func_C7C(arg0, arg1->unk8[var_t4].x, arg1->unk8[var_t4].z, &sp60, 0);
+        temp_v0 = dll_27_func_C7C(obj, arg1->unk8[i].x, arg1->unk8[i].z, &count, 0);
         
-        arg1->waterYList[var_t4] = SEARCH_BASE;
-        arg1->floorYList[var_t4] = SEARCH_BASE;
-        arg1->unk1CC[var_t4] = SEARCH_CEILING;
-        arg1->underwaterDistList[var_t4] = 0;
-        arg1->floorDistList[var_t4] = 0;
-        arg1->waterNormalXList[var_t4] = 0.0f;
-        arg1->waterNormalZList[var_t4] = 0.0f;
-        arg1->waterNormalYList[var_t4] = 1.0f;
+        arg1->waterYList[i] = SEARCH_BASE;
+        arg1->floorYList[i] = SEARCH_BASE;
+        arg1->unk1CC[i] = SEARCH_CEILING;
+        arg1->underwaterDistList[i] = 0;
+        arg1->floorDistList[i] = 0;
+        arg1->waterNormalXList[i] = 0.0f;
+        arg1->waterNormalZList[i] = 0.0f;
+        arg1->waterNormalYList[i] = 1.0f;
 
-        for (var_t1 = 0; var_t1 < sp60; var_t1++) {
-            if (temp_v0[var_t1].unk14 != 0xE) {
-                if ((var_t2 == 0) && (temp_v0[var_t1].unk0[0] < (arg0->globalPosition.y + 5.0f)) && (temp_v0[var_t1].unk0[2] > 0.707f)) {
-                    arg1->floorYList[var_t4] = temp_v0[var_t1].unk0[0];
-                    var_t2 = 1;
-                    arg1->floorDistList[var_t4] = (f32) (arg0->globalPosition.y - temp_v0[var_t1].unk0[0]);
+        for (j = 0; j < count; j++) {
+            if (temp_v0[j].unk14 != 0xE) {
+                if ((floorFound == FALSE) && (temp_v0[j].y < (obj->globalPosition.y + 5.0f)) && (temp_v0[j].norm[1] > 0.707f)) {
+                    arg1->floorYList[i] = temp_v0[j].y;
+                    floorFound = TRUE;
+                    arg1->floorDistList[i] = (obj->globalPosition.y - temp_v0[j].y);
                 } else {
-                    if (((arg0->globalPosition.y + 5.0f) <= temp_v0[var_t1].unk0[0]) && (temp_v0[var_t1].unk0[2] < 0.0f)) {
-                        arg1->unk1CC[var_t4] = temp_v0[var_t1].unk0[0];
+                    if (((obj->globalPosition.y + 5.0f) <= temp_v0[j].y) && (temp_v0[j].norm[1] < 0.0f)) {
+                        arg1->unk1CC[i] = temp_v0[j].y;
                     }
                 }
             }
         }
 
-        if (var_t2 == 0) {
+        if (floorFound == FALSE) {
             // No floor found, assume high above one
-            arg1->floorDistList[var_t4] = 100.0f;
+            arg1->floorDistList[i] = 100.0f;
         }
 
-        if (arg1->unk25C & (0x10 << var_t4)) {
-            arg1->floorDistList[var_t4] = 0.0f;
+        if (arg1->unk25C & (0x10 << i)) {
+            arg1->floorDistList[i] = 0.0f;
         }
 
-        for (var_t1 = 0; var_t1 < sp60; var_t1++) {
-            if (temp_v0[var_t1].unk14 == 0xE) {
-                if ((temp_v0[var_t1].unk0[0] < arg1->unk1CC[var_t4]) && (arg1->floorYList[var_t4] < temp_v0[var_t1].unk0[0])) {
-                    arg1->waterYList[var_t4] = temp_v0[var_t1].unk0[0];
-                    arg1->waterNormalXList[var_t4] = (f32) temp_v0[var_t1].unk0[1];
-                    arg1->waterNormalYList[var_t4] = (f32) temp_v0[var_t1].unk0[2];
-                    arg1->waterNormalZList[var_t4] = (f32) temp_v0[var_t1].unk0[3];
+        for (j = 0; j < count; j++) {
+            if (temp_v0[j].unk14 == 0xE) {
+                if ((temp_v0[j].y < arg1->unk1CC[i]) && (arg1->floorYList[i] < temp_v0[j].y)) {
+                    arg1->waterYList[i] = temp_v0[j].y;
+                    arg1->waterNormalXList[i] = temp_v0[j].norm[0];
+                    arg1->waterNormalYList[i] = temp_v0[j].norm[1];
+                    arg1->waterNormalZList[i] = temp_v0[j].norm[2];
                 }
             }
         }
 
-        if (arg1->waterYList[var_t4] != SEARCH_BASE) {
-            arg1->underwaterDistList[var_t4] = arg1->waterYList[var_t4] - arg0->globalPosition.y;
+        if (arg1->waterYList[i] != SEARCH_BASE) {
+            arg1->underwaterDistList[i] = arg1->waterYList[i] - obj->globalPosition.y;
         }
     }
     arg1->waterY = arg1->waterYList[0];

@@ -18,7 +18,6 @@
 #include "sys/objmsg.h"
 #include "sys/objtype.h"
 #include "sys/print.h"
-#include "sys/segment_1460.h"
 #include "dll.h"
 #include "types.h"
 
@@ -303,13 +302,13 @@ RECOMP_PATCH int GPSH_Shrine_func_1024(Object* a0, Object* a1, AnimObj_Data* a2,
         if (temp_v0_2 != 0) {
             switch (temp_v0_2) {
             case 1:
-                func_80000860(a0, a0, 0xCD, 0);
+                envfxAction(a0, a0, 0xCD, 0);
                 break;
             case 2:
                 if (D_80092A7C[0] == -1) {
-                    func_80000860(a0, a0, 0x14, 0);
+                    envfxAction(a0, a0, 0x14, 0);
                 } else {
-                    func_80000860(a0, a0, D_80092A7C[0], 0);
+                    envfxAction(a0, a0, D_80092A7C[0], 0);
                 }
                 break;
             case 3:

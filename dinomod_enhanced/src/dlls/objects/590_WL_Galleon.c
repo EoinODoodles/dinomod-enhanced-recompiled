@@ -18,8 +18,6 @@
 
 #include "recomp/dlls/objects/590_WL_Galleon_recomp.h"
 
-void func_8005B5B8(Object*, Object*, s32);
-
 #define CREDITS_SKIP_TO_FRAME 2982
 
 typedef struct {
@@ -107,7 +105,7 @@ RECOMP_PATCH void WLgalleon_control(Object* self) {
             credits_sync_frame(CREDITS_SKIP_TO_FRAME);
         }
 
-        func_8005B5B8(player, self, 0);
+        trackIntersect_func_8005B5B8(player, self, 0);
         ((DLL_Unknown*)player->dll)->vtbl->func[68].withOneArg((s32)player);
         self->unkE0 = 1;
         return;

@@ -3,6 +3,45 @@
 #include "game/objects/object.h"
 #include "sys/objexpr.h"
 #include "sys/main.h"
+#include "sys/rand.h"
+
+typedef struct {
+    /** Head aim */
+    /* 0x00 */ s8 aimIsActive;
+    /* 0x01 */ u8 blinkFrames;      //@recomp: using unused field
+    /* 0x02 */ u8 blinkRollTimer;   //@recomp: using unused field
+    /* 0x03 */ u8 pad3;
+    /* 0x04 */ f32 headAimX;
+    /* 0x08 */ f32 headAimY;
+    /* 0x0C */ f32 headAimZ;
+    /* 0x10 */ f32 headAimUnk;
+    
+    /** Randomised head turn */
+    /* 0x14 */ s16 headGoalAngle;   
+    /* 0x16 */ s16 headStartAngle;
+    /* 0x18 */ s16 unk18;           //unused?
+    /* 0x1A */ s16 headTurnState;
+    /* 0x1C */ s16 headTurnDelay;   //random delay before next head turn
+
+    /** Randomised blinks */
+    /* 0x1E */ s8 blinkState;
+    /* 0x1F */ s8 blinkDelayTimer;
+
+    /** Randomised pupil darts */
+    /* 0x20 */ s8 pupilSpeed;       
+    /* 0x21 */ s8 pupilDelayTimer;  //frames until next eye dart
+    /* 0x22 */ s8 pupilGoal;        //goal position for current eye dart
+} HeadAnimation_Recomp;
+
+enum SnowHornAnims {
+    MODANIM_SnowHorn_Idle = 0,
+    MODANIM_SnowHorn_Talk = 2,
+    MODANIM_SnowHorn_Walk = 3,
+    MODANIM_SnowHorn_Sleep_Intro = 4,
+    MODANIM_SnowHorn_Sleep = 5,
+    MODANIM_SnowHorn_Wake_Up = 6,
+    MODANIM_SnowHorn_Hit_React = 47
+};
 
 extern struct {
     u8 unk0_0 : 1;
@@ -22,7 +61,7 @@ RECOMP_PATCH s32 objExpr_func_800334A4(Object* obj, Object* lookat, Vec3f* refPo
     s16 var_a1;
     s32 pad;
     s32 var_v1;
-    s16* bone;
+    SeqJoint* seqJoint;
     u8 sp6B;
     s32 temp_ft0;
     s16* var_t3;
@@ -43,8 +82,8 @@ RECOMP_PATCH s32 objExpr_func_800334A4(Object* obj, Object* lookat, Vec3f* refPo
         sp84[1] = -sp84[1];
     }
     for (i = 0; i < 10; i++) {
-        bone = objExpr_func_80034804(obj, D_80091720[i]);
-        if (bone == NULL) {
+        seqJoint = objExpr_func_80034804(obj, D_80091720[i]);
+        if (seqJoint == NULL) {
             // @recomp: Reset flag that flips the lookat direction. For some reason, this early return does not reset
             //          the flag like the end of the function does. This causes the flag to leak over into other calls
             //          causing various NPCs to have a messed up head lookat. Notably, the shop keeper sets this flag.
@@ -70,14 +109,14 @@ RECOMP_PATCH s32 objExpr_func_800334A4(Object* obj, Object* lookat, Vec3f* refPo
         }
         if (anims != NULL) {
             anims->headGoalAngle = goal[0];
-            objExpr_func_80034250(anims, bone);
+            objExpr_func_80034250(anims, seqJoint);
             anims[1].headGoalAngle = goal[1];
-            objExpr_func_80034518(anims + 1, bone, 10.0f, 500.0f);
+            objExpr_func_80034518(anims + 1, seqJoint, 10.0f, 500.0f);
             anims += 2;
         } else {
             var_t3 = arg4 + 15;
-            var_a1 = (bone[1] + goal[0]) >> 1;
-            var_a1 -= bone[1];
+            var_a1 = (seqJoint->yaw + goal[0]) >> 1;
+            var_a1 -= seqJoint->yaw;
             temp_lo = ((s16) (-arg4[i] * 182.04f) / 10) * gUpdateRate;
             if (var_a1 < temp_lo) {
                 var_a1 = temp_lo;
@@ -90,8 +129,8 @@ RECOMP_PATCH s32 objExpr_func_800334A4(Object* obj, Object* lookat, Vec3f* refPo
                 }
                 var_a1 = var_v1;
             }
-            var_a0 = (bone[0] + goal[1]) >> 1;
-            var_a0 -= bone[0];
+            var_a0 = (seqJoint->pitch + goal[1]) >> 1;
+            var_a0 -= seqJoint->pitch;
             temp_ft0 = (s16) (var_t3[i] * 182.04f);
             pad = (- temp_ft0 / 10) * gUpdateRate;
             if (var_a0 < pad) {
@@ -104,17 +143,139 @@ RECOMP_PATCH s32 objExpr_func_800334A4(Object* obj, Object* lookat, Vec3f* refPo
                 }
                 var_a0 = var_v1;
             }
-            bone[0] += var_a0;
-            bone[1] += var_a1;
+            seqJoint->pitch += var_a0;
+            seqJoint->yaw += var_a1;
         }
         if (i == 0) {
-            var_v1 = (goal[0] - 4) < bone[1];
+            var_v1 = (goal[0] - 4) < seqJoint->yaw;
             if (var_v1 != 0) {
-                var_v1 = bone[1] < (goal[0] + 4);
+                var_v1 = seqJoint->yaw < (goal[0] + 4);
             }
             sp6B = var_v1;
         }
     }
     D_800B2E00.unk0_0 = 0;
     return sp84[0];
+}
+
+/* 
+    These patches address behaviour issues while SnowHorn are asleep.
+    The ROM patch version of Dinomod Enhanced patches the SnowHorn DLL's update function directly, but
+    a different approach is taken in recomp for the moment since the matched SnowHorn function is producing
+    slightly different object behaviour. Hopefully this core patch can be replaced with a direct SnowHorn DLL
+    function edit once the SnowHorn DLL's decomp is more complete! It currently accomplishes the same thing, in any case.
+*/
+
+//Prevent head turn while asleep
+RECOMP_PATCH void objExpr_func_80033B68(Object* obj, HeadAnimation* headAnim, f32 arg2) {
+    SeqJoint* headJoint;
+    s32 var_v0;
+
+    //@recomp: checks if the object is a SnowHorn, and returns early if the SnowHorn is asleep
+    if (obj->controlNo == OBJCONTROL_SnowHorn){
+        if (obj->curModAnimId == MODANIM_SnowHorn_Sleep_Intro ||
+            obj->curModAnimId == MODANIM_SnowHorn_Sleep){
+            return;
+        }
+    }
+
+    headJoint = objExpr_func_80034804(obj, 0);
+    if (headJoint == NULL) {
+        return;
+    }
+
+    if (headJoint->pitch != 0) {
+        headJoint->pitch = (headJoint->pitch * 3) / 4;
+    }
+
+    if (arg2 < 0.0f) {
+        arg2 = -arg2;
+    }
+    if (arg2 <= 0.1f) {
+        objExpr_func_80033C54(obj, headAnim, arg2, headJoint);
+    } else {
+        objExpr_func_80033FD8(obj, headAnim, arg2, headJoint);
+    }
+    
+    var_v0 = arg2 > 0.1f ? 1 : 0;
+    headAnim->headTurnState = (var_v0 << 8) | (headAnim->headTurnState & 0xFF);
+}
+
+// Prevent SnowHorn from blinking while asleep, 
+// and ensure all randomised blink animation is framerate independent
+RECOMP_PATCH void objExprEyeIdle(Object* obj, HeadAnimation* headAnimator) {
+    TextureAnimator* eyelidR;
+    TextureAnimator* eyelidL;
+    s32 eyelidValue;
+    HeadAnimation_Recomp* headAnim = (HeadAnimation_Recomp*)headAnimator;
+    u8 currentFrame;
+
+    //@recomp: checks if the object is a SnowHorn, and returns early if the SnowHorn is asleep
+    if (obj->controlNo == OBJCONTROL_SnowHorn){
+        if (obj->curModAnimId == MODANIM_SnowHorn_Sleep_Intro ||
+            obj->curModAnimId == MODANIM_SnowHorn_Sleep){
+            return;
+        }
+    }
+
+    eyelidR = objExprGetTexAnimator(obj, HEAD_ANIMATION_TAG_Eyelid_R, 0);
+    eyelidL = objExprGetTexAnimator(obj, HEAD_ANIMATION_TAG_Eyelid_L, 0);
+
+    if (!eyelidR || !eyelidL) {
+        return;
+    }
+
+    eyelidValue = eyelidL->frame;
+
+    //@recomp: framerate independent blinking
+    switch (headAnim->blinkState & 0xF) {
+    case BLINK_Wait:
+        headAnim->blinkFrames = 0;
+        if (headAnim->blinkDelayTimer > 0) {
+            //Wait for timer to run out
+            headAnim->blinkDelayTimer -= gUpdateRate;
+        } else {
+            //@recomp: framerate independent probability
+            headAnim->blinkRollTimer += gUpdateRate;
+            if (headAnim->blinkRollTimer >= 2){
+                headAnim->blinkRollTimer = 0;
+                if (mathRnd(0, 1000) > 985) {
+                    //(Every 3 frames) 1.5% chance of going into a blink
+                    headAnim->blinkState = BLINK_Animate;
+                    headAnim->blinkDelayTimer = 0;
+                }
+            }
+        }
+        break;
+    case BLINK_Animate:
+        //@recomp: framerate independent texture flipbooking
+        headAnim->blinkFrames += gUpdateRate;
+        
+        currentFrame = headAnim->blinkFrames/3;
+        // diPrintf("blink: %d\n", currentFrame);
+        switch (currentFrame){
+            case 0:
+                eyelidValue = 0x100;
+                break;
+            case 1:
+            case 2:
+                eyelidValue = 0x200;
+                break;
+            case 3:
+                eyelidValue = 0x100;
+                break;
+            default:
+                eyelidValue = 0x000;
+                headAnim->blinkState = BLINK_Wait;
+                headAnim->blinkDelayTimer = 0;
+                headAnim->blinkFrames = 0;
+                break;
+        }
+
+        eyelidR->frame = eyelidValue;
+        eyelidL->frame = eyelidValue;
+        break;
+    }
+
+    objExprEyeDart(obj, headAnimator, 0);
 }

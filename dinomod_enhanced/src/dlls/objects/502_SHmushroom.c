@@ -18,7 +18,7 @@
 #include "sys/objtype.h"
 #include "sys/print.h"
 #include "sys/rand.h"
-#include "sys/segment_53F00.h"
+#include "sys/intersect.h"
 #include "dll.h"
 #include "dlls/engine/6_amsfx.h"
 #include "dlls/objects/common/sidekick.h"
@@ -299,12 +299,12 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 	s32 pad;
 	f32 playerDistanceSquared;
 	s32 count;
-	Func_80057F1C_Struct** spBC;
+	TrackHeightResult** spBC;
 	SHmushroom_Data_Extended* objData;
 	f32 sidekickDistanceSquared;
 	Object* player;
 	u32 outMesgID;
-	Func_80059C40_Struct sp58;
+	TrackLineIntersectResult sp58;
 	s32 temp;
 
 	objData = self->data;
@@ -398,10 +398,10 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 
 	if (objData->flags & SHmushroom_FLAG_Moving) {
 		//Snap Y to ground
-		count = func_80057F1C(self, self->srt.transl.x, self->srt.transl.y, self->srt.transl.z, &spBC, 0, 0);
+		count = trackGetHeight(self, self->srt.transl.x, self->srt.transl.y, self->srt.transl.z, &spBC, 0, 0);
 		for (i = 0; i < count; i++) {
-			if (spBC[i]->unk0[0] < (self->srt.transl.y + 10.0f)) {
-				self->srt.transl.y = spBC[i]->unk0[0];
+			if (spBC[i]->y < (self->srt.transl.y + 10.0f)) {
+				self->srt.transl.y = spBC[i]->y;
 				break;
 			}
 		}
@@ -413,7 +413,7 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 		   Considering the "MUSHROOM: trapped" string, maybe the mushroom's intended to stop fleeing
 		   if its path around the pond is blocked by dropping the cave stalactites?
 		*/
-		temp = func_80059C40(&self->prevLocalPosition, &self->srt.transl, 6.0f, 2, &sp58, self, 8, -1, 0xFF, 0x14);
+		temp = trackGetLineIntersect(&self->prevLocalPosition, &self->srt.transl, 6.0f, 2, &sp58, self, 8, -1, 0xFF, 0x14);
 		if ((objSetup->index == 4) && (temp) && (sp58.unk50 == 0xD)) {
 			objData->flags |= SHmushroom_FLAG_No_Fleeing;
 			STUBBED_PRINTF("MUSHROOM: trapped!!!!\n");

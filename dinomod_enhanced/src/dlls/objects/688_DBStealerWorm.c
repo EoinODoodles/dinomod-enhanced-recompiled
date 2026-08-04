@@ -7,7 +7,7 @@
 #include "sys/objtype.h"
 #include "sys/rand.h"
 
-#include "recomp/dlls/objects/688_DBStealerWorm_recomp.h"
+#include "recomp/dlls/objects/688_DBstealerworm_recomp.h"
 
 typedef struct {
     f32 resetTimer;

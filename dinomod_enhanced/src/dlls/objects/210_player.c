@@ -22,7 +22,7 @@
 #include "sys/objmsg.h"
 #include "sys/objlib.h"
 #include "sys/print.h"
-#include "sys/segment_53F00.h"
+#include "sys/intersect.h"
 #include "sys/gfx/model.h"
 #include "sys/gfx/animseq.h"
 #include "dll.h"
@@ -1234,7 +1234,7 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     f32 temp_fv0;
     SRT sp54;
     ModelInstance* sp50;
-    s16* sp4C;
+    SeqJoint* seqJointEarL;
 
     if (fsa->enteredAnimState != 0) {
         fsa->unk270 = PLAYER_ASTATE_Vehicle_Getting_Off;
@@ -1260,8 +1260,8 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
         } else {
             gDLL_2_Camera->vtbl->change_mode(0, 1);
         }
-        dismountSide = ((DLL_IVehicle*)vehicle->dll)->vtbl->GetDismountSide(vehicle);
-        ((DLL_IVehicle*)vehicle->dll)->vtbl->SetMountState(vehicle, VEHICLE_Dismounting);
+        dismountSide = dll_vehicle(vehicle)->GetDismountSide(vehicle);
+        dll_vehicle(vehicle)->SetMountState(vehicle, VEHICLE_Dismounting);
         switch (dismountSide) {
             case 1:
             var_v0_2 = 8;
@@ -1298,21 +1298,21 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     temp_fv0 = (1.0f - player->animProgress);
     player->srt.transl.y = objdata->unk738.y + (objdata->unk744.y * temp_fv0);
     sp54.transl.x = temp_fv0;
-    sp4C = objExpr_func_80034804(player, 5);
+    seqJointEarL = objExpr_func_80034804(player, 5);
     temp_fv0 = sp54.transl.x;
     // @fake
-    sp4C++;
-    sp4C--;
-    if (sp4C != NULL) {
-        sp4C[0] = vehicle->srt.pitch * temp_fv0;
-        sp4C[2] = vehicle->srt.roll * temp_fv0;
+    seqJointEarL++;
+    seqJointEarL--;
+    if (seqJointEarL != NULL) {
+        seqJointEarL->pitch = vehicle->srt.pitch * temp_fv0;
+        seqJointEarL->roll = vehicle->srt.roll * temp_fv0;
     }
-    ((DLL_IVehicle*)vehicle->dll)->vtbl->GetCameraPosition(vehicle, &sp70, &sp74, &sp78);
+    dll_vehicle(vehicle)->GetCameraPosition(vehicle, &sp70, &sp74, &sp78);
     gDLL_2_Camera->vtbl->reposition_player(((objdata->unk738.x - sp70) * player->animProgress) + sp70, ((objdata->unk738.y - sp74) * player->animProgress) + sp74, temp= ((objdata->unk738.z - sp78) * player->animProgress) + sp78);
     if ((fsa->enteredAnimState == 0) && (fsa->unk33A != 0)) {
-        if (sp4C != NULL) {
-            sp4C[0] = 0;
-            sp4C[2] = 0;
+        if (seqJointEarL != NULL) {
+            seqJointEarL->pitch = 0;
+            seqJointEarL->roll = 0;
         }
         player->shadow->flags &= ~OBJ_SHADOW_FLAG_FADE_OUT;
         player->globalPosition.x = objdata->unk7EC.x;
@@ -1325,7 +1325,7 @@ RECOMP_PATCH s32 dll_210_func_14BE8(Object* player, ObjFSA_Data* fsa, f32 arg2) 
         }
         objAnimSet(player, 0, 0.0f, 1U);
         objAnim_func_80024DD0(player, 0, 0, 0);
-        ((DLL_IVehicle*)vehicle->dll)->vtbl->SetMountState(vehicle, VEHICLE_NoRider);
+        dll_vehicle(vehicle)->SetMountState(vehicle, VEHICLE_NoRider);
         dll_210_func_7260(player, (Player_Data* ) objdata);
         func_8002674C(player);
         objdata->vehicle = 0;
@@ -1502,7 +1502,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
     f32 spA4;
     f32 temp_fv0_4;
     f32 sp9C;
-    s16* temp_s0_2;
+    SeqJoint* seqJoint;
     s32 temp_t1;
     s32 temp_v1_8;
     Object* vehicle; // sp8C
@@ -1603,7 +1603,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
             arg2->unk58 = 0.0f;
             arg2->unk24 = 0.083333336f;
             arg2->unk62 = 5;
-            objdata->unk354.headStartAngle = objExpr_func_80034804(arg0, 0)[1];
+            objdata->unk354.headStartAngle = objExpr_func_80034804(arg0, 0)->yaw;
             objdata->unk378.headStartAngle = 0;
             objdata->unk354.headGoalAngle = arg2->yawDiff;
             objdata->unk378.headGoalAngle = arg2->pitchDiff;
@@ -1618,7 +1618,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
         } else if (arg2->unk62 == 5) {
             arg2->unk7A &= ~0x4;
             func_8002674C(arg0);
-            temp_s0_2 = objExpr_func_80034804(arg0, 0);
+            seqJoint = objExpr_func_80034804(arg0, 0);
             if (_bss_0 == 3) {
                 if ((arg2->unk58 >= 1.0f) && (gDLL_2_Camera->vtbl->has_interpolation_finished() == FALSE)) {
                     if (arg3 == 0) {
@@ -1640,16 +1640,16 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                 }
                 temp_fv0_2 = arg2->unk58 - temp_fv0_2;
                 arg0->srt.yaw += (s16) (temp_fv0_2 * arg2->yawDiff);
-                temp_s0_2[1] = _bss_2 - (arg0->srt.yaw & 0xFFFF);
+                seqJoint->yaw = _bss_2 - (arg0->srt.yaw & 0xFFFF);
                 // @recomp: CIRCLE_WRAP with s32 instead of s16
                 {
-                    s32 temp_s0_2_1 = temp_s0_2[1];
+                    s32 temp_s0_2_1 = seqJoint->yaw;
                     CIRCLE_WRAP(temp_s0_2_1);
-                    temp_s0_2[1] = temp_s0_2_1;
+                    seqJoint->yaw = temp_s0_2_1;
                 }
             } else {
-                _bss_0 |= objExpr_func_800343B8(&objdata->unk354, temp_s0_2, 100.0f, 2000.0f);
-                _bss_0 |= objExpr_func_80034518(&objdata->unk378, temp_s0_2, 100.0f, 2000.0f) * 2;
+                _bss_0 |= objExpr_func_800343B8(&objdata->unk354, seqJoint, 100.0f, 2000.0f);
+                _bss_0 |= objExpr_func_80034518(&objdata->unk378, seqJoint, 100.0f, 2000.0f) * 2;
             }
             return 1;
         } else if (arg2->unk62 == 6) {
@@ -1878,13 +1878,13 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
                 dll_210_func_1D8B8(arg0);
                 break;
             case 15:
-                func_8005B5B8(arg0, NULL, 1);
+                trackIntersect_func_8005B5B8(arg0, NULL, 1);
                 break;
             case 16:
                 sp60 = 400.0f;
                 tempObj = objGetNearestTypeTo(OBJTYPE_MobileMap, arg0, &sp60);
                 if (tempObj != NULL) {
-                    func_8005B5B8(arg0, tempObj, 1);
+                    trackIntersect_func_8005B5B8(arg0, tempObj, 1);
                 }
                 break;
             case 23:
@@ -1941,7 +1941,7 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
 
 RECOMP_PATCH void dll_210_func_1AAD8(Object* player, ObjFSA_Data *fsa) {
     Object* temp_a0;
-    s16* temp_v0;
+    SeqJoint* seqJoint;
     s32 i;
     Player_Data* temp_s0;
 
@@ -1970,9 +1970,9 @@ RECOMP_PATCH void dll_210_func_1AAD8(Object* player, ObjFSA_Data *fsa) {
             _bss_210[i] = 0;
         }
     }
-    temp_v0 = objExpr_func_80034804(player, 9);
-    temp_v0[1] = 0;
-    temp_v0[0] = 0;
+    seqJoint = objExpr_func_80034804(player, 9);
+    seqJoint->yaw = 0;
+    seqJoint->pitch = 0;
 }
 
 static s16 iceblast_timer = 0;
@@ -2293,7 +2293,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
         } else {
             objAnimSetBlend(player, 0x440, -objdata->unk830 * 1023.0f);
         }
-        objExpr_func_80034804(player, 9)[1] = objdata->unk82C * -10240.0f;
+        objExpr_func_80034804(player, 9)->yaw = objdata->unk82C * -10240.0f;
         objdata->flags &= ~0x400;
         if ((fsa->target == NULL) && (dll_210_func_1A9D4(player, &objdata->aimX, &objdata->aimY, &objdata->aimZ, objdata->unk82C, objdata->unk830) != 0)) {
             objdata->flags |= 0x400;
@@ -2402,7 +2402,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
             objAnimSetBlend(player, 0x44A, -objdata->unk830 * 1023.0f);
         }
         // @recomp: Update bone even while firing, so it's correct if the aim lock is disabled
-        objExpr_func_80034804(player, 9)[1] = objdata->unk82C * -10240.0f;
+        objExpr_func_80034804(player, 9)->yaw = objdata->unk82C * -10240.0f;
         objdata->flags &= ~0x400;
         if ((fsa->target == NULL) && (dll_210_func_1A9D4(player, &objdata->aimX, &objdata->aimY, &objdata->aimZ, objdata->unk82C, objdata->unk830) != 0)) {
             objdata->flags |= 0x400;
@@ -2483,11 +2483,11 @@ RECOMP_HOOK_DLL(dll_210_control) void stopIceBlastOnDeplete(Object* self) {
 /** After leaving a sequence, reset the player's head/body expression since some seqs fail to reset it. */
 RECOMP_HOOK_DLL(dll_210_func_60A8) void dll_210_func_60A8_hook(Object *self, Object *animObj, AnimObj_Data* st) {
     // Reset head tilt
-    s16* temp_v0 = objExpr_func_80034804(self, 0);
+    SeqJoint* temp_v0 = objExpr_func_80034804(self, 0);
     if (temp_v0 != NULL) {
-        temp_v0[0] = 0;
-        temp_v0[1] = 0;
-        temp_v0[2] = 0;
+        temp_v0->pitch = 0;
+        temp_v0->yaw = 0;
+        temp_v0->roll = 0;
     }
 
     // Reset fullbody tilt
@@ -2496,9 +2496,9 @@ RECOMP_HOOK_DLL(dll_210_func_60A8) void dll_210_func_60A8_hook(Object *self, Obj
     for (s32 i = 1; i < 9; i++){
         temp_v0 = objExpr_func_80034804(self, boneList[i]);
         if (temp_v0 != NULL){
-            temp_v0[0] = 0;
-            temp_v0[1] = 0;
-            temp_v0[2] = 0;
+            temp_v0->pitch = 0;
+            temp_v0->yaw = 0;
+            temp_v0->roll = 0;
         }
     }
 }

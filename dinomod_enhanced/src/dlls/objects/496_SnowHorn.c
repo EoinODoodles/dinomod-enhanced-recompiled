@@ -7,7 +7,7 @@
 #include "sys/objtype.h"
 #include "dlls/objects/227_tumbleweed.h"
 
-#include "recomp/dlls/objects/496_snowhorn_recomp.h"
+#include "recomp/dlls/objects/496_SnowHorn_recomp.h"
 
 extern s32 objCheckPlayerInteract(Object* self);
 

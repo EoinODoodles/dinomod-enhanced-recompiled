@@ -10,7 +10,6 @@
 #include "sys/memory.h"
 #include "sys/menu.h"
 #include "sys/objects.h"
-#include "sys/segment_1460.h"
 #include "dll.h"
 
 #include "recomp/dlls/engine/3_ANIM_recomp.h"
@@ -403,7 +402,7 @@ RECOMP_PATCH s32 anim_process_event(Object* animObj, ModelInstance* animObjModel
         if (evt->type == ANIM_EVT_ENVFX) {
             switch ((evt->params >> 0xC) & 0xF) {
             case ANIM_EVT_ENVFX_APPLY:
-                func_80000860(actor, actor, evt->params & 0xFFF, 0);
+                envfxAction(actor, actor, evt->params & 0xFFF, 0);
                 break;
             case ANIM_EVT_ENVFX_WARP:
                 mapWarpPlayer(evt->params & 0xFFF, 0);
@@ -451,7 +450,7 @@ RECOMP_PATCH s32 anim_process_event(Object* animObj, ModelInstance* animObjModel
             gDLL_5_AMSEQ2->vtbl->set(animObj, (evt->params & 0xFFF) + 1, STUBBED_STR("anim.c"), 0, STUBBED_STR("(e->val&0xfff)+1"));
             break;
         case ANIM_EVT_ENVFX_APPLY:
-            func_80000860(actor, actor, evt->params & 0xFFF, 0);
+            envfxAction(actor, actor, evt->params & 0xFFF, 0);
             break;
         case ANIM_EVT_ENVFX_WARP:
             if (arg3_8) { break; }

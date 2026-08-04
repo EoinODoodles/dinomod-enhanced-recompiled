@@ -39,20 +39,6 @@
 #define CANNON_STOP_SFX_MIN_MOVE 200
 
 //TEMPORARY DEFINES
-#define DIMCannon_obj_Setup dll_537_setup
-#define DIMCannon_obj_Control dll_537_control
-#define DIMCannon_obj_Print dll_537_print
-#define DIMCannon_obj_Free dll_537_free
-#define DIMCannon_obj_GetDataSize dll_537_get_data_size
-#define DIMCannon_animCallback dll_537_func_A94
-#define DIMCannon_aimCannonClaw dll_537_func_DAC
-#define DIMCannon_fireWhenReady dll_537_func_1150
-#define DIMCannon_setupCannonBall dll_537_func_1314
-#define DIMCannon_tickCannonBall dll_537_func_1430
-#define DIMCannon_freeCannonBall dll_537_func_1640
-#define DIMCannon_createCannonBallExplosion dll_537_func_16AC
-
-#define dModGfxDLL _data_0
 
 #define SOUND_1D4_Metal_Ratcheting_Loop 0x1D4
 #define SOUND_1D5_Metal_Squeak 0x1D5
@@ -1176,7 +1162,7 @@ RECOMP_PATCH void DIMCannon_aimCannonClaw(Object* self, f32 x, f32 y, f32 z, f32
 RECOMP_PATCH void DIMCannon_fireWhenReady(Object* self) {
     DIMCannonBall_Setup* shotSetup;
     Object* shot;
-    s16* angle;
+    SeqJoint* barrelJoint;
     DIMCannon_Data* objData;
     DIMCannon_Setup* objSetup;
 
@@ -1192,7 +1178,7 @@ RECOMP_PATCH void DIMCannon_fireWhenReady(Object* self) {
             dll_amSfx->Play(self, SOUND_96_Cannon, MAX_VOLUME, NULL, NULL, 0, NULL);
         }
 
-        angle = objExpr_func_80034804(self, 0);
+        barrelJoint = objExpr_func_80034804(self, 0);
         
         shotSetup = (DIMCannonBall_Setup*)objAllocSetup(sizeof(DIMCannonBall_Setup), OBJ_DIMCannonBall);
         // shotSetup->base.loadFlags = objSetup->base.loadFlags;
@@ -1212,8 +1198,8 @@ RECOMP_PATCH void DIMCannon_fireWhenReady(Object* self) {
         shotSetup->base.y = objData->muzzleCoords.y;
         shotSetup->base.z = objData->muzzleCoords.z;
         shotSetup->yaw = self->srt.yaw >> 8;
-        shotSetup->velocityY = mathSinfInterp(*angle) * 50.0f;
-        shotSetup->velocityX = mathCosfInterp(*angle) * 50.0f;
+        shotSetup->velocityY = mathSinfInterp(barrelJoint->pitch) * 50.0f;
+        shotSetup->velocityX = mathCosfInterp(barrelJoint->pitch) * 50.0f;
         
         shot = objSetupObject((ObjSetup*)shotSetup, 5, self->mapID, -1, NULL);
         shot->unkC4 = self;

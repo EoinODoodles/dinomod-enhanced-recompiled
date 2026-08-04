@@ -14,7 +14,6 @@ extern u8 *gObjDefRefCount;
 extern s32  *gFile_OBJECTS_TAB;
 
 extern ModLine *objLoadObjdefModlines(s32 modLineNo, s16 *modLineCount);
-extern void func_800596BC(ObjDef*);
 extern u32 objGetModelFlags(Object *obj);
 extern u32 objCalcMemSize(Object *obj, ObjDef *def, u32 flags);
 extern void objFreeObjdef(s32 tabIdx);
@@ -150,7 +149,7 @@ RECOMP_PATCH ObjDef *objLoadObjdef(s32 tabIdx) {
 
         if (def->modLineNo > -1) {
             def->pModLines = objLoadObjdefModlines(def->modLineNo, &def->modLineCount);
-            func_800596BC(def);
+            trackIntersectModLineBuild(def);
         }
 
         gLoadedObjDefs[tabIdx] = def;
@@ -241,7 +240,7 @@ RECOMP_PATCH Object *objSetupObjectActual(ObjSetup *setup, u32 initFlags, s32 ma
 
     objId = setup->objId;
 
-    update_pi_manager_array(0, objId);
+    diCpuTraceObject(0, objId);
 
     if (initFlags & OBJINIT_BY_TABIDX) {
         tabIdx = objId;
@@ -249,7 +248,7 @@ RECOMP_PATCH Object *objSetupObjectActual(ObjSetup *setup, u32 initFlags, s32 ma
         if (objId > gObjIndexCount) {
             // @recomp: Restore printf
             recomp_eprintf("objSetupObjectActual objtype out of range %d/%d\n", objId, gObjIndexCount);
-            update_pi_manager_array(0, -1);
+            diCpuTraceObject(0, -1);
             return NULL;
         }
 

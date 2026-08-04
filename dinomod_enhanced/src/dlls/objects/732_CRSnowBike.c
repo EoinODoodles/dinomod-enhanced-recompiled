@@ -6,7 +6,7 @@
 #include "sys/gfx/modgfx.h"
 #include "sys/rand.h"
 
-#include "recomp/dlls/objects/732_CRsnowbike_recomp.h"
+#include "recomp/dlls/objects/732_CRSnowBike_recomp.h"
 
 typedef struct {
     s8 unk0[0xE];

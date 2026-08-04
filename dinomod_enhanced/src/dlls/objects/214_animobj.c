@@ -9,7 +9,7 @@
 #include "sys/objtype.h"
 #include "dlls/objects/common/vehicle.h"
 
-#include "recomp/dlls/objects/214_animobj_recomp.h"
+#include "recomp/dlls/objects/214_AnimObj_recomp.h"
 
 typedef struct {
     AnimObj_Data base;
@@ -22,7 +22,7 @@ typedef enum {
     ANIMCMD_Unparent_from_Vehicle = 4
 } AnimCommands_Custom;
 
-RECOMP_PATCH u32 animobj_get_data_size(Object *self, s32 arg1) {
+RECOMP_PATCH u32 AnimObj_obj_GetDataSize(Object *self, s32 arg1) {
     return sizeof(AnimObj_Data_Extended);
 }
 
@@ -113,12 +113,12 @@ static void animobj_krystal_handle_rolling_demo_ending(Object* self) {
 }
 
 //@recomp: call custom function fixing AnimKrystal's Rolling Demo behaviour
-RECOMP_PATCH void animobj_update(Object *self) { 
+RECOMP_PATCH void AnimObj_obj_Update(Object *self) { 
     animobj_krystal_handle_rolling_demo_ending(self);
 }
 
 //@recomp: apply AnimKrystal's parent coords here too, so they're not a frame behind when printing
-RECOMP_PATCH void animobj_print(Object *self, Gfx **gdl, Mtx **mtxs, Vertex **vtxs, Triangle **pols, s8 visibility) {
+RECOMP_PATCH void AnimObj_obj_Print(Object *self, Gfx **gdl, Mtx **mtxs, Vertex **vtxs, Triangle **pols, s8 visibility) {
     if (!visibility) {
         return;
     }

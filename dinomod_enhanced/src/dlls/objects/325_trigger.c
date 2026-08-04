@@ -20,9 +20,7 @@
 #include "sys/objects.h"
 #include "sys/objmsg.h"
 #include "sys/objtype.h"
-#include "sys/segment_1D900.h"
-#include "sys/segment_1050.h"
-#include "sys/segment_1460.h"
+#include "sys/lighting.h"
 #include "sys/vi.h"
 #include "dll.h"
 #include "dlls/objects/common/sidekick.h"
@@ -442,10 +440,10 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 break;
             case 6:
                 if (cmd->param2 > 0) {
-                    func_8001EBD0(1);
+                    lightSetInside(1);
                     // "Trigger [%d], newlightInside(1)" (default.dol)
                 } else {
-                    func_8001EBD0(0);
+                    lightSetInside(0);
                     // "Trigger [%d], newlightInside(0)" (default.dol)
                 }
                 break;
@@ -467,11 +465,11 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             break;
         case TRG_CMD_ENV_FX:
             // "Trigger [%d], Environment Effect, Action Num [%d], Range [%d]"
-            func_80000860(self, activator, (cmd->param2 | (cmd->param1 << 8)), activatorDistSquared);
+            envfxAction(self, activator, (cmd->param2 | (cmd->param1 << 8)), activatorDistSquared);
             break;
         case TRG_CMD_LIGHTING:
             // "Trigger [%d], Lighting,           Action      [%d], Range [%d], PassDir [%d]"
-            func_80000450(self, activator, (cmd->param2 | (cmd->param1 << 8)), dir, activatorDistSquared, 0);
+            lfxAction(self, activator, (cmd->param2 | (cmd->param1 << 8)), dir, activatorDistSquared, 0);
             break;
         case TRG_CMD_ANIM_SEQ:
             switch (cmd->param1) {

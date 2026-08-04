@@ -5,7 +5,6 @@
 #include "game/gametexts.h"
 #include "sys/gfx/animseq.h"
 #include "sys/objanim.h"
-#include "sys/segment_1050.h"
 
 #include "recomp/dlls/objects/713_DR_EarthWarrior_recomp.h"
 
@@ -84,10 +83,10 @@ RECOMP_PATCH s32 DRearthwalk_func_32EC(Object* self, u8 arg1) {
             break; //@recomp: don't fallthrough
         case 1:
             objdata->talkSeq = EWSEQ_2_LetsGoStopTheDragon;
-            func_80000450(self, self, 0x22C, 0, 0, 0);
+            lfxAction(self, self, 0x22C, 0, 0, 0);
             break;
         case 2:
-            func_80000450(self, self, 0x22E, 0, 0, 0);
+            lfxAction(self, self, 0x22E, 0, 0, 0);
             objdata->unkA58 &= ~0x80;
             //Set Mind Read text
             gDLL_22_Subtitles->vtbl->func_21C0(self->id, GAMETEXT_0D0_DR_Mind_Read_messages_5);

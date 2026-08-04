@@ -11,7 +11,6 @@
 #include "sys/map.h"
 #include "sys/objects.h"
 #include "sys/objtype.h"
-#include "sys/segment_1460.h"
 #include "dll.h"
 
 #include "recomp/dlls/objects/607_WL_LevelControl_recomp.h"
@@ -51,7 +50,7 @@ RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
 
     //Disable HITS line (TO-DO: find where this line is)
     if (mainGetBits(BIT_2DB)) {
-        func_80059038(0x18, 0, 0);
+        trackToggleHitLine(0x18, 0, 0);
     }
 
     //Delete the dock's GuardClaw after dropping a crate from above
@@ -180,8 +179,8 @@ RECOMP_PATCH void WL_LevelControl_setup7_tick(Object* self) {
         objData->timer = 1;
 
         //Use envFxActions
-        func_80000860(self, self, 0x32, 0);
-        func_80000860(self, self, 0x33, 0);
+        envfxAction(self, self, 0x32, 0);
+        envfxAction(self, self, 0x33, 0);
         
         mainSetBits(BIT_221, 1);
     }
