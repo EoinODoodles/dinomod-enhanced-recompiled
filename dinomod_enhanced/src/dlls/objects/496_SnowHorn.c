@@ -82,7 +82,7 @@ static _Bool getFrostWeedTwigsConfigs() {
 }
 
 // Adds config options for Garunda Te's FrostWeed quest
-RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHorn_Setup* setup) {
+RECOMP_PATCH void SnowHorn_garundaTeControl(Object* self, SnowHorn_Data* objdata, SnowHorn_Setup* setup) {
     Object* frostWeed;
     s32 weeds;
     s8 FROSTWEED_MAX_OVERRIDE = getFrostWeedMaxOverride(); //@recomp

@@ -58,7 +58,7 @@ extern const f32 sMaskSpeeds[1];
 #define THRESHOLD_SNOW_EVAPORATE 60.0f
 #define THRESHOLD_END_FADEOUT 68.0f
 
-extern void DIMTent_draw_mask(Object* self, Gfx** gdl, Mtx** mtxs, Vtx_t** vtxs, Triangle** pols);
+extern void DIMTent_drawMask(Object* self, Gfx** gdl, Mtx** mtxs, Vtx_t** vtxs, Triangle** pols);
 
 // Split the tent's Bridge Cog behaviour out into its own function
 static void DIMTent_createCog(Object* self, DIMTent_Setup* objSetup, DIMTent_Data_Extended* objData) {
@@ -98,7 +98,7 @@ static void DIMTent_createCog(Object* self, DIMTent_Setup* objSetup, DIMTent_Dat
     }
 }
 
-RECOMP_PATCH void DIMTent_setup(Object* self, DIMTent_Setup* objSetup, s32 arg2) {
+RECOMP_PATCH void DIMTent_obj_Setup(Object* self, DIMTent_Setup* objSetup, s32 arg2) {
     DIMTent_Data_Extended* objData = self->data;
     /* RECOMP */
     u8 tentConfig = recomp_get_config_u32("dim_tent_cinders");
@@ -133,7 +133,7 @@ RECOMP_PATCH void DIMTent_setup(Object* self, DIMTent_Setup* objSetup, s32 arg2)
   * - Fix a bug where the tents' burn animation could ping-pong and play in reverse 
   *   (it would happen if they're off-screen/not being drawn around the intended endpoint of the behaviour)
   */
-RECOMP_PATCH void DIMTent_control(Object* self) {
+RECOMP_PATCH void DIMTent_obj_Control(Object* self) {
     Object* listedObject;
     DIMTent_Setup* objSetup;
     DIMTent_Data_Extended* objData;
@@ -247,7 +247,7 @@ RECOMP_PATCH void DIMTent_control(Object* self) {
     }
 }
 
-RECOMP_PATCH void DIMTent_print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** vtxs, Triangle** pols, s8 visibility) {
+RECOMP_PATCH void DIMTent_obj_Print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** vtxs, Triangle** pols, s8 visibility) {
     /* RECOMP */
     DIMTent_Data_Extended* objData = self->data;
     u8 prevOpacity = self->opacity;
@@ -289,7 +289,7 @@ RECOMP_PATCH void DIMTent_print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** vt
             }
 
             if (objData->outerOpacity > 0) {
-                DIMTent_draw_mask(self, gdl, mtxs, (Vtx_t**)vtxs, pols);
+                DIMTent_drawMask(self, gdl, mtxs, (Vtx_t**)vtxs, pols);
             }
         }
 
@@ -321,7 +321,7 @@ RECOMP_PATCH void DIMTent_print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** vt
 }
 
 // Moving opacity handling to control, to fix the bug where the burning can continue in reverse
-RECOMP_PATCH void DIMTent_draw_mask(Object* self, Gfx** gdl, Mtx** mtxs, Vtx_t** vtxs, Triangle** pols) {
+RECOMP_PATCH void DIMTent_drawMask(Object* self, Gfx** gdl, Mtx** mtxs, Vtx_t** vtxs, Triangle** pols) {
     Vtx_t* initVtx;
     DIMTent_Data_Extended* objData;
     s32 index;
@@ -425,7 +425,7 @@ RECOMP_PATCH void DIMTent_draw_mask(Object* self, Gfx** gdl, Mtx** mtxs, Vtx_t**
     *vtxs = vtx;
 }
 
-RECOMP_PATCH void DIMTent_free(Object* self, s32 arg1) {
+RECOMP_PATCH void DIMTent_obj_Free(Object* self, s32 arg1) {
     DIMTent_Data_Extended* objData = self->data; //@recomp
 
     if (dModGfxDLL) {
@@ -439,6 +439,6 @@ RECOMP_PATCH void DIMTent_free(Object* self, s32 arg1) {
     }
 }
 
-RECOMP_PATCH u32 DIMTent_get_data_size(Object *self, u32 a1) {
+RECOMP_PATCH u32 DIMTent_obj_GetDataSize(Object *self, u32 a1) {
     return sizeof(DIMTent_Data_Extended);
 }

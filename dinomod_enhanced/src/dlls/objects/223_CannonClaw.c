@@ -512,6 +512,6 @@ RECOMP_PATCH void CannonClaw_obj_Print(Object* self, Gfx** gdl, Mtx** mtxs, Vert
     }
 }
 
-RECOMP_PATCH u32 cannon_claw_get_data_size(Object* self, u32 offsetAddr) {
+RECOMP_PATCH u32 CannonClaw_obj_GetDataSize(Object* self, u32 offsetAddr) {
     return sizeof(CannonClaw_Data);
 }

@@ -53,7 +53,7 @@ extern int MoonSeedReceptacle_animCallback(Object* self, Object *animObj, AnimOb
     Changes the gamebitIDs used to track whether MoonSeeds have been planted, allowing game progress
     to continue despite MoonSeed item collection not having been implemented (originally by jeebs2kx)
 */
-RECOMP_PATCH void MoonSeedReceptacle_setup(Object* self, MoonSeedReceptacle_Setup* setup, s32 reset) {
+RECOMP_PATCH void MoonSeedReceptacle_obj_Setup(Object* self, MoonSeedReceptacle_Setup* setup, s32 reset) {
     MoonSeedReceptacle_Data* objData;
 
     objData = self->data;
