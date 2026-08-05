@@ -1,7 +1,8 @@
+#include "configs.h"
+#include "custom_sound_ids.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
-#include "configs.h"
 
 #include "common.h"
 #include "game/gamebits.h"
@@ -239,7 +240,7 @@ RECOMP_PATCH void DIMTent_obj_Control(Object* self) {
 
         //@recomp: Start burning sound loop
         if (objData->soundHandle == 0) {
-            dll_amSfx->Play(self, SOUND_50b_Fire_Burning_High_Loop, 0x60, &objData->soundHandle, NULL, 0, NULL);
+            dll_amSfx->Play(self, SOUND_BC0_DIM_Tent_Burn_LOOP, 0x60, &objData->soundHandle, NULL, 0, NULL);
         }
 
         //Drop the bridge cog if this tent's index matches the random one picked by DIMLevelControl

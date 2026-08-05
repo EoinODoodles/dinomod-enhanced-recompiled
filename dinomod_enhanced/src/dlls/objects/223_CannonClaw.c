@@ -1,3 +1,4 @@
+#include "custom_sound_ids.h"
 #include "math_util.h"
 #include "modding.h"
 #include "recomputils.h"
@@ -5,7 +6,7 @@
 #include "dll.h"
 #include "dlls/engine/6_amsfx.h"
 #include "dlls/objects/common/sidekick.h"
-// #include "dlls/objects/537_DIMCannon.h"
+#include "dlls/objects/537_DIMcannon.h"
 #include "game/objects/interaction_arrow.h"
 #include "game/objects/object_id.h"
 #include "game/objects/object.h"
@@ -33,30 +34,6 @@
 #define VANISH_TIME_SWITCH 1.8f
 #define VANISH_TIME_FX_END 2.0f
 #define VANISH_TIME_FINISHED 5.5f
-
-//TEMPORARY DEFINES
-#define PARTICLE_52A 0x52A
-#define SOUND_237_SharpClaw_Arghhh 0x237
-#define SOUND_238_SharpClaw_Snort 0x238
-#define SOUND_239_SharpClaw_Rah_Snort 0x239
-#define SOUND_23A_SharpClaw_Ugh_Snort 0x23A
-
-typedef struct {
-/*00*/  ObjSetup base;
-/*18*/  s16 gamebitSiloCoverOpen;
-/*1A*/  s16 gamebitCannonClawDead;
-/*1C*/  s16 gamebitCannonClawAboard;
-/*1E*/  s16 gamebitCannonClawTruce;
-/*20*/  s16 gamebitSiloEnter;
-/*22*/  s16 gamebitSiloExit;
-/*24*/  s16 unk24;
-/*26*/  s16 hostileRange;
-/*28*/  s8 yaw;
-/*29*/  u8 cooldownMin;
-/*2A*/  u8 cooldownMax;
-/*2B*/  u8 rangeSiloRetreat;
-} DIMCannon_Setup;
-//END OF TEMPORARY DEFINES
 
 typedef struct {
     f32 prevAnimProgress;
@@ -184,14 +161,14 @@ static void CannonClaw_handleVoiceLines(Object* self) {
     } CannonClawSounds;
 
     static CannonClawSounds rsCannonClawVoiceLinesLaugh[] = {
-        {0x411, MAX_VOLUME},
+        {0x411, MAX_VOLUME}, //TODO: use sound enum
         {0x5BC, MAX_VOLUME/2},
-        {0x8D2, MAX_VOLUME/2}
+        {SOUND_BC2_SharpClaw_Laugh, MAX_VOLUME/2}
     };
     static CannonClawSounds rsCannonClawVoiceLinesAngry[] = {
         {0x4D0, MAX_VOLUME/2},
         {0x4D1, MAX_VOLUME/2},
-        {0xB26, MAX_VOLUME}
+        {SOUND_BC3_SharpClaw_Nyeh, MAX_VOLUME}
     };
     static CannonClawSounds rsCannonClawVoiceLinesHurt[] = {
         {SOUND_236_SharpClaw_Argh,      MAX_VOLUME},

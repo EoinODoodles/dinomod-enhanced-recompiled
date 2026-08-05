@@ -1,6 +1,5 @@
 #include "configs.h"
-#include "game/gamebits.h"
-#include "macros.h"
+#include "custom_sound_ids.h"
 #include "math_util.h"
 #include "modding.h"
 #include "recompconfig.h"
@@ -10,9 +9,11 @@
 #include "dlls/engine/6_amsfx.h"
 #include "dlls/objects/common/sidekick.h"
 #include "dlls/objects/210_player.h"
+#include "game/gamebits.h"
 #include "game/objects/interaction_arrow.h"
 #include "game/objects/object_id.h"
 #include "game/objects/object.h"
+#include "macros.h"
 #include "sys/gfx/modgfx.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
@@ -39,15 +40,7 @@
 #define CANNON_STOP_SFX_MIN_MOVE 200
 
 //TEMPORARY DEFINES
-
-#define SOUND_1D4_Metal_Ratcheting_Loop 0x1D4
-#define SOUND_1D5_Metal_Squeak 0x1D5
-#define SOUND_125_Metal_Clunk 0x125
-#define SOUND_12C_Metal_Unclunk 0x12C
 #define SOUND_780_Hatch_Opening 0x780
-#define SOUND_809_Mechanical_Ratcheting_Loop 0x809
-
-#define M_1_DEGREE    0xB6
 //END OF TEMPORARY DEFINES
 
 typedef struct {
@@ -388,7 +381,7 @@ static void DIMCannon_handleSoundsAndFX(Object* self, s32 stickXMagnitude, SeqJo
 
             //@recomp: play sound when moving
             if (objData->soundHandleMove == 0) {
-                objData->soundHandleMove = dll_amSfx->Play(self, SOUND_1D4_Metal_Ratcheting_Loop, MAX_VOLUME, NULL, NULL, 0, NULL);
+                objData->soundHandleMove = dll_amSfx->Play(self, SOUND_BC1_DIM_Cannon_Rotate_LOOP, MAX_VOLUME, NULL, NULL, 0, NULL);
             } else {
                 //Adjust pitch/volume with stickX magnitude
                 objData->prevStickXStrength = (objData->prevStickXStrength + stickXMagnitude/70.0f) / 2.0f;
@@ -455,7 +448,7 @@ static void DIMCannon_handleSoundsAndFX(Object* self, s32 stickXMagnitude, SeqJo
 
             //Start sound loop
             if (objData->soundHandleAim == 0) {
-                objData->soundHandleAim = dll_amSfx->Play(self, SOUND_1D4_Metal_Ratcheting_Loop, MAX_VOLUME, NULL, NULL, 0, NULL);
+                objData->soundHandleAim = dll_amSfx->Play(self, SOUND_BC1_DIM_Cannon_Rotate_LOOP, MAX_VOLUME, NULL, NULL, 0, NULL);
             } else {
                 //Adjust pitch
                 dll_amSfx->SetPitch(objData->soundHandleAim, lerp_float(tValueAim, 0.3f, 1.5f));
