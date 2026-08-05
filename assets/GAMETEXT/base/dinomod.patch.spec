@@ -835,7 +835,7 @@ FILE,193
 1841 "Nice lady your mother."
 2654 -255 "She said you'd know something about a SpellStone?"
 979
-3561 -247 "A SpellStone? Hmmmmmm..."
+3561 -247 "A SpellStone! Hmmmmmm."
 2751 "My name is Garunda Te."
 2012 "I am a SpellStone Guardian."
 
@@ -1600,8 +1600,8 @@ FILE,515
 
 FILE,516
 1868 -175 "Oh no."
-1730 -175 "AAAaa" -174 "aa" -173 "aa" -172 "h..."
-1802 -119 "AAAaaa" -118 "aa" -117 "aa" -116 "h..."
+1730 -175 "AAAaa" -174 "aa" -173 "aa" -172 "a..."
+1802 -119 "AAAaaa" -118 "aa" -117 "aa" -116 "a..."
 3367 -175 "(SPLASH)"
 4000 -119 "(Groans)"
 3357 -247 "Hurry\, grab his belt!"
