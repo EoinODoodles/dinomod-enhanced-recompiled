@@ -1,7 +1,7 @@
 LANG,0
 
 FILE,2
-6000 -247 "Chomp Chomp Hmmm... That tastes great." 0 "Hurry up\, boy. You're a bit slow\, aren't you?"
+6000 -247 "(Chomp Chomp) Hmmm... That tastes great." 0 "Hurry up\, boy. You're a bit slow\, aren't you?"
 
 FILE,3
 0 "HEEL| Returns your Sidekick| back to you"
@@ -271,7 +271,7 @@ FILE,24
 3000 -55 "Thanks\, Krystal. Because of you" 0 "I no longer suffer from vertigo."
 
 FILE,25
-2334 -119 "Guard!"
+2334 -119 "Guard?"
 1711 -119 "Guard!"
 3281 -119 "Is all the CloudRunners' gold on-board?"
 5352 -227 "No\, sir\, we're still removing it" 0 "from the Treasure Room."
@@ -312,7 +312,7 @@ FILE,44
 3282 -243 "Goodbye\, Sabre... Good luck."
 
 FILE,45
-3369 -243 "Fairwell\, Sabre... I'll see you soon."
+3369 -243 "Farewell\, Sabre... I'll see you soon."
 
 FILE,46
 4602 -247 "Cross the river and enter DarkIce Mines."
@@ -436,9 +436,14 @@ FILE,68
 1829 "We'll take care of him."
 2540 "Go patrol the main chamber."
 
+FILE,69
+1856 -255 "Father?"
+585
+1899 "Father!"
+
 FILE,70
 2286 -255 "Can you hear me?"
-1880 "It's me Sabre."
+1880 "It's me\, Sabre!"
 2252
 2064 -3 "... My son ..."
 
@@ -520,7 +525,7 @@ FILE,91
 5375 -51 "You've got lots of time to do that\," 0 "let me show you how the swap works."
 
 FILE,92
-2206 -231 "Grrrrrr grrrrrr" 0 -255 "Sssh\, keep quiet."
+2206 -231 "Grrrrrr... Grrrrrr..." 0 -255 "Sssh\, keep quiet."
 1754 "He's on his own."
 1272 "Maybe we can sneak by."
 940 "Tricky!!"
@@ -584,7 +589,7 @@ FILE,109
 3039 "then we'll pay your mother a visit."
 
 FILE,114
-4282 -231 "Aaaaahh\, That hit the spot."
+4282 -231 "Aaaaahh\, that hit the spot."
 2956 "Tell you what\, young 'un\, I'll help you out."
 9622
 1830 "Here you are\, my boy."
@@ -629,7 +634,7 @@ FILE,126
 3869 -51 "Hurry! The storm is getting worse."
 
 FILE,130
-3580 -243 "Have you woken the SwapStone yet."
+3580 -243 "Have you woken the SwapStone yet?"
 
 FILE,133
 3580 -243 "Why\, if it isn't the young EarthWalker."
@@ -830,7 +835,7 @@ FILE,193
 1841 "Nice lady your mother."
 2654 -255 "She said you'd know something about a SpellStone?"
 979
-3561 -247 "A SpellStone! Hmmmmmm."
+3561 -247 "A SpellStone? Hmmmmmm..."
 2751 "My name is Garunda Te."
 2012 "I am a SpellStone Guardian."
 
@@ -950,8 +955,8 @@ FILE,227
 5520 -51 "I will throw them into this cave\, and you" 0 "have to collect them within my time limit."
 
 FILE,228
-1945 -243 "Aaaaa Haa HAAA!"
-4689 -51 "Not so good this time\, aye." 0 "I'll keep what you didn't collect."
+1945 -243 "Aaaaah haa HAAA!"
+4689 -51 "Not so good this time\, aye?" 0 "I'll keep what you didn't collect."
 
 FILE,230
 2581 -227 "Your final challenge!"
@@ -1062,6 +1067,10 @@ FILE,299
 FILE,300
 0 "CHIEF GIVES YOU THE MOON MOUNTAIN PASS KEY"
 0 "THERE'S NO CLUE\, YOU JUST GET THE KEY!!"
+
+FILE,302
+0 "GOT PAST SHARPCLAWS AND THEIR BARRELS"
+0 "DODGE THE BARRELS AND USE THE KEY"
 
 FILE,304
 0 "GENERAL SCALES KILLED KYTE'S MOTHER"
@@ -1484,7 +1493,7 @@ FILE,435
 0 "TIME TO SHOW OFF YOUR SPELLSTONE"
 
 FILE,436
-0 "PLACED THE FINAL SPELLSTONE..."
+0 "PLACED THE FINAL SPELLSTONE"
 0 "FIND THE HOLDER"
 
 FILE,437
@@ -1591,8 +1600,8 @@ FILE,515
 
 FILE,516
 1868 -175 "Oh no."
-1730 -175 "AAAaa" -174 "aa" -173 "aa" -172 "a..."
-1802 -119 "AAAaaa" -118 "aa" -117 "aa" -116 "a..."
+1730 -175 "AAAaa" -174 "aa" -173 "aa" -172 "h..."
+1802 -119 "AAAaaa" -118 "aa" -117 "aa" -116 "h..."
 3367 -175 "(SPLASH)"
 4000 -119 "(Groans)"
 3357 -247 "Hurry\, grab his belt!"
@@ -1699,11 +1708,11 @@ FILE,524
 
 FILE,526
 4012 -255 "You would not believe what we had to do to get this!"
-2032 -247 "Aahhh\, Yes."
+2032 -247 "Aahhh\, yes."
 3696 "I forgot to tell you about the CLANNAD-ack."
 5283 "I had a run in with him a few years back\," 0 "but I managed to freeze him in a waterfall."
 2350 "I hope you gave him my greetings."
-2113 -227 "Father\, Father!!"
+2113 -227 "Father\, father!!"
 4000 -247 "Belina!"
 3771 -227 "I'm sorry\, Father\, I made a big mistake."
 5101 -247 "No\, I am sorry. You did the right thing."
@@ -1847,9 +1856,29 @@ FILE,584
 0 " "
 0 "They come in many different colours"
 0 "and are used to power Magic Spells."
-0 "Just walk over them to collect."
+0 "Just walk over them to collect them."
 0 "Keep a look out as they are not only"
 0 "found on baddies!"
+
+FILE,585
+0 "These are ..."
+0 "ENERGY EGGS!"
+0 "  "
+0 "The SharpClaws keep them hidden in"
+0 "crates and baskets."
+0 "  "
+0 "Walk over them to collect them and they'll"
+0 "recharge your energy!"
+
+FILE,586
+0 "These are ..."
+0 "DINO FRUITS!"
+0 "They are found growing in the trees."
+0 "Sometimes you'll have to shoot"
+0 "them out\, or just hang around and"
+0 "maybe they will fall out!"
+0 "Walk over them to collect them and they'll"
+0 "recharge your energy!"
 
 FILE,588
 0 "This is a ..."
@@ -2006,7 +2035,7 @@ FILE,604
 1468 -95 "Get that hidden!"
 
 FILE,605
-1495 -255 "Shhhh."
+1495 -255 "Shhhh..."
 3910
 2379 -227 "Step on Switch!"
 4980
