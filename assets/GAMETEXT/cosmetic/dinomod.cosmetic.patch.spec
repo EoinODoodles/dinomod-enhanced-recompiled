@@ -496,7 +496,7 @@ FILE,69
 
 FILE,70
 2286 -255 "Can you hear me?"
-1880 "It's me Sabre."
+1880 "It's me, Sabre."
 2252
 2064 -211 "[groans]"
 
@@ -1101,8 +1101,8 @@ FILE,227
 5520 "I will throw them into this cave\, and you" 0 "have to collect them within my time limit."
 
 FILE,228
-1945 -35 "Aaaaah haa HAAA!"
-2918 "Not so good this time\, aye?"
+1945 -35 "Aaaaa haa HAAA!"
+2918 "Not so good this time\, eh?"
 2693 "I'll keep what you didn't collect."
 
 FILE,229

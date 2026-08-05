@@ -956,7 +956,7 @@ FILE,227
 
 FILE,228
 1945 -243 "Aaaaah haa HAAA!"
-4689 -51 "Not so good this time\, aye?" 0 "I'll keep what you didn't collect."
+4689 -51 "Not so good this time\, eh?" 0 "I'll keep what you didn't collect."
 
 FILE,230
 2581 -227 "Your final challenge!"
@@ -1856,19 +1856,9 @@ FILE,584
 0 " "
 0 "They come in many different colours"
 0 "and are used to power Magic Spells."
-0 "Just walk over them to collect them."
+0 "Just walk over them to collect."
 0 "Keep a look out as they are not only"
 0 "found on baddies!"
-
-FILE,585
-0 "These are ..."
-0 "ENERGY EGGS!"
-0 "  "
-0 "The SharpClaws keep them hidden in"
-0 "crates and baskets."
-0 "  "
-0 "Walk over them to collect them and they'll"
-0 "recharge your energy!"
 
 FILE,586
 0 "These are ..."
@@ -1877,7 +1867,7 @@ FILE,586
 0 "Sometimes you'll have to shoot"
 0 "them out\, or just hang around and"
 0 "maybe they will fall out!"
-0 "Walk over them to collect them and they'll"
+0 "Walk over them to collect and they'll"
 0 "recharge your energy!"
 
 FILE,588
