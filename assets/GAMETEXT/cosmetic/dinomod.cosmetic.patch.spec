@@ -1809,7 +1809,7 @@ FILE,630
 2507 -231 "Yeah\, you look kinda scary."
 4122 -159 "Do not be shocked by my appearance!"
 4935 "I became trapped here when the" 0 "trouble that Dragon Rock began."
-7184 "The deadly powers their unleashing\," 0 "mutated me into... this."
+7184 "The deadly powers they're unleashing\," 0 "mutated me into... this."
 2180
 5470 "The ThornTails are a bunch of cowards\," 0 "they wouldn't let me out."
 3647 "They thought I was some kind of monster."
