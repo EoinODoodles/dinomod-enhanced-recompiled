@@ -31,6 +31,13 @@
 
 // #define DEBUG_CANNON_CLAW
 
+//TEMPORARY DEFINES
+#define SOUND_411_SharpClaw_Laughing 0x411
+#define SOUND_4D0_SharpClaw_Grunt 0x4D0
+#define SOUND_4D1_SharpClaw_Growl 0x4D1
+#define SOUND_5BC_SharpClaw_Laughing 0x5BC
+//END OF TEMPORARY DEFINES
+
 #define VANISH_TIME_SWITCH 1.8f
 #define VANISH_TIME_FX_END 2.0f
 #define VANISH_TIME_FINISHED 5.5f
@@ -161,14 +168,14 @@ static void CannonClaw_handleVoiceLines(Object* self) {
     } CannonClawSounds;
 
     static CannonClawSounds rsCannonClawVoiceLinesLaugh[] = {
-        {0x411, MAX_VOLUME}, //TODO: use sound enum
-        {0x5BC, MAX_VOLUME/2},
-        {SOUND_BC2_SharpClaw_Laugh, MAX_VOLUME/2}
+        {SOUND_411_SharpClaw_Laughing,  MAX_VOLUME},
+        {SOUND_5BC_SharpClaw_Laughing,  MAX_VOLUME/2},
+        {SOUND_BC2_SharpClaw_Laugh,     MAX_VOLUME/2}
     };
     static CannonClawSounds rsCannonClawVoiceLinesAngry[] = {
-        {0x4D0, MAX_VOLUME/2},
-        {0x4D1, MAX_VOLUME/2},
-        {SOUND_BC3_SharpClaw_Nyeh, MAX_VOLUME}
+        {SOUND_4D0_SharpClaw_Grunt,     MAX_VOLUME/2},
+        {SOUND_4D1_SharpClaw_Growl,     MAX_VOLUME/2},
+        {SOUND_BC3_SharpClaw_Nyeh,      MAX_VOLUME}
     };
     static CannonClawSounds rsCannonClawVoiceLinesHurt[] = {
         {SOUND_236_SharpClaw_Argh,      MAX_VOLUME},
