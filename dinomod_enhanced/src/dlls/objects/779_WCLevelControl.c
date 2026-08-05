@@ -6,8 +6,6 @@
 #include "sys/dll.h"
 #include "sys/main.h"
 #include "sys/objects.h"
-#include "sys/segment_1050.h"
-#include "sys/segment_1460.h"
 #include "dll.h"
 
 #include "recomp/dlls/objects/779_WCLevelControl_recomp.h"
@@ -33,11 +31,11 @@ RECOMP_PATCH void WCLevelControl_control(Object *self) {
     u8 act;
 
     if (self->unkDC == 0) {
-        func_80000860(self, self, 0x1FB, 0);
-        func_80000860(self, self, 0x1FC, 0);
-        // func_80000860(self, self, 0x149, 0); //@recomp: stop blinding fog
-        func_80000450(self, self, 0x97, 0, 0, 0);
-        func_80000450(self, self, 0x24F, 0, 0, 0);
+        envfxAction(self, self, 0x1FB, 0);
+        envfxAction(self, self, 0x1FC, 0);
+        // envfxAction(self, self, 0x149, 0); //@recomp: stop blinding fog
+        lfxAction(self, self, 0x97, 0, 0, 0);
+        lfxAction(self, self, 0x24F, 0, 0, 0);
         self->unkDC = 1;
     }
 

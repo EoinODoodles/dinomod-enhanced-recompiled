@@ -10,7 +10,6 @@
 #include "sys/objmsg.h"
 #include "sys/objprint.h"
 #include "sys/objtype.h"
-#include "sys/segment_1460.h"
 #include "dll.h"
 
 #include "recomp/dlls/objects/486_CCSH_Shrine_recomp.h"

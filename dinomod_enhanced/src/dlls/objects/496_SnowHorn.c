@@ -7,7 +7,7 @@
 #include "sys/objtype.h"
 #include "dlls/objects/227_tumbleweed.h"
 
-#include "recomp/dlls/objects/496_snowhorn_recomp.h"
+#include "recomp/dlls/objects/496_SnowHorn_recomp.h"
 
 extern s32 objCheckPlayerInteract(Object* self);
 
@@ -82,7 +82,7 @@ static _Bool getFrostWeedTwigsConfigs() {
 }
 
 // Adds config options for Garunda Te's FrostWeed quest
-RECOMP_PATCH void dll_496_func_1D68(Object* self, SnowHorn_Data* objdata, SnowHorn_Setup* setup) {
+RECOMP_PATCH void SnowHorn_garundaTeControl(Object* self, SnowHorn_Data* objdata, SnowHorn_Setup* setup) {
     Object* frostWeed;
     s32 weeds;
     s8 FROSTWEED_MAX_OVERRIDE = getFrostWeedMaxOverride(); //@recomp

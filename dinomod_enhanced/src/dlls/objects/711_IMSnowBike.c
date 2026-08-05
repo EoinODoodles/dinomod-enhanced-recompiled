@@ -302,7 +302,7 @@ RECOMP_PATCH void dll_711_control(Object *self) {
                             objdata->unk3CE = self->srt.pitch;
                             objdata->unk3D0 = self->srt.roll;
                             dll_711_func_3C30(self, objdata);
-                            func_80058680(self, self->srt.transl.x, self->srt.transl.y, self->srt.transl.z, &spB8, 0);
+                            trackGetHeightNearest(self, self->srt.transl.x, self->srt.transl.y, self->srt.transl.z, &spB8, 0);
                             self->srt.transl.y -= spB8;
                             objdata->flags &= ~SNOWBIKEFLAG_2;
                         }

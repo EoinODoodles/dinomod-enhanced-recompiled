@@ -2,162 +2,186 @@
 
 #include "game/objects/object.h"
 #include "game/gamebits.h"
+#include "dlls/engine/53_movelib.h"
+#include "dlls/objects/496_SnowHorn.h"
 #include "sys/main.h"
 #include "sys/objects.h"
 #include "sys/objanim.h"
 #include "sys/objtype.h"
+#include "sys/print.h"
 #include "dll.h"
+#include "macros.h"
 
 #include "recomp/dlls/objects/712_DIMSnowHorn1_recomp.h"
-#include "sys/print.h"
 
-extern s16 _data_80[];
-extern f32 _data_84[];
+extern s16 dWalkingAnims[2];
+extern f32 dWalkSpeedThresholds[4];
 
 typedef struct {
-    s32 unk0;
-    s8 unk4[0x272 - 0x4];
-    s8 unk272;
-    f32 unk274;
-    f32 unk278;
-    f32 unk27C;
-    s8 unk280[0x28C - 0x280];
-    f32 unk28C;
-    f32 unk290;
-    f32 unk294;
-    f32 unk298;
-    s8 unk29C[0x2B0 - 0x29C];
-    f32 unk2B0;
-    s8 unk2B4[0x310 - 0x2B4];
-    s32 unk310;
-    s8 unk314[0x328 - 0x314];
-    s16 unk328;
-    s16 unk32A;
-    s8 unk32C[0x33A - 0x32C];
-    s8 unk33A;
-    s8 unk33B[0x900 - 0x33B];
-    s16 unk900;
-    s16 unk902;
-    s16 unk904;
-    s16 unk906;
-    s16 unk908;
-    s16 unk90A;
+    ObjFSA_Data fsa;
+    MoveLibData moveData;
+    HeadAnimation headAnim;
+    Vec3f particleAttachCoords[4];
+    s32 unk858;
+    s32 unk85C;
+    Vec3f riderPosition;
+    s8 unk86C[0x8FC - 0x86C];
+    s16 fidgetTimer;
+    s16 minTurn;
+    s16 energy;
+    u8 mountState;
+    u8 unk903;
+    u8 characterIdx;
+    u8 chatSequenceIdx;
+    u8 flags;
+    u8 dismountToRight;
+    u8 mountFromLeft;
 } DIMSnowHorn_Data;
 
+typedef enum {
+    DIMSnowHorn_ASTATE_0_Init,                      //Switches state based on the character
+    DIMSnowHorn_ASTATE_1_Shackled_Idle,             //Shackled SnowHorn standing around
+    DIMSnowHorn_ASTATE_2_Shackled_Fidget,           //Shackled SnowHorn scratching back/shaking off snow
+    DIMSnowHorn_ASTATE_3_Leap_Idle,                 //Leap of Faith cave SnowHorn standing around
+    DIMSnowHorn_ASTATE_4_Leap_Fidget,               //Leap of Faith cave SnowHorn scratching back/shaking off snow
+    DIMSnowHorn_ASTATE_5_Famished_Fallen,           //Famished SnowHorn being attacked by a SharpClaw
+    DIMSnowHorn_ASTATE_6_Famished_Met,              //Famished SnowHorn saved from the SharpClaw, but still needs feeding
+    DIMSnowHorn_ASTATE_7_Famished_Fed_Once,     //Fanished SnowHorn fed one Alpine Root, and waiting for a second one
+    DIMSnowHorn_ASTATE_8_Vehicle_Idle,              //SnowHorn standing around, waiting for the player
+    DIMSnowHorn_ASTATE_9_Vehicle_Sit,               //SnowHorn sitting down and getting back up again after an input (unused?)
+    DIMSnowHorn_ASTATE_10_Vehicle_Turn_on_Spot,     //SnowHorn turning (without walking forward)
+    DIMSnowHorn_ASTATE_11_Vehicle_Walking,          //SnowHorn walking (can turn slightly)
+    DIMSnowHorn_ASTATE_12_Vehicle_Tusk_Attack       //SnowHorn attacking with tusks
+} DIMSnowHorn_AnimStates;
+
 // Prevent a softlock that occurs when the SnowHorn runs out of energy (originally by MusicalProgrammer)
-RECOMP_PATCH s32 dll_712_func_2EEC(Object* self, DIMSnowHorn_Data* objData, f32 arg2) {
+RECOMP_PATCH s32 DIMSnowHorn_animState11VehicleWalk(Object* self, ObjFSA_Data* fsa, f32 updateRate) {
     u8 one;
-    DIMSnowHorn_Data *objData2 = self->data;
-    f32 temp_fv0;
-    f32 var_fa0;
-    f32 var_fv1;
+    DIMSnowHorn_Data *objData = self->data;
+    s32 pad;
+    f32 walkFactor;
+    f32 walkSpeed;
     f32 animProgress;
     s16 curModAnimId;
-    f32 new_var2;
-    s32 animCondition1;
+    s32 animChanged;
     s32 returnValue;
-    s32 animCondition2;
-    s32 animIndex;
-    f32 *temp_v0;
+    s32 startingWalk;
+    s32 walkAnimIdx;
+    f32 *thresholds;
 
-    objData->unk0 |= 0x200000;
+    fsa->flags |= OBJFSA_FLAG_200000;
 
-    if (objData->unk272){
-        self->srt.yaw += objData->unk32A * 0xB6;
-        objData->unk328 = 0;
-        objData->unk32A = 0;
-    }
-    if (objData->unk290 < 0.05f){
-        objData->unk290 = 0.0f;
-        objData->unk328 = 0;
-        objData->unk32A = 0;
+    if (fsa->enteredAnimState) {
+        self->srt.yaw += fsa->unk32A * M_1_DEGREE;
+        fsa->unk328 = 0;
+        fsa->unk32A = 0;
     }
 
-    if (objData->unk328 < 90){
-        self->srt.yaw += ((objData->unk32A * arg2) / 36.0f) * 182.0f;
+    //Handle joystick deadzone
+    if (fsa->analogInputPower < 0.05f){
+        fsa->analogInputPower = 0.0f;
+        fsa->unk328 = 0;
+        fsa->unk32A = 0;
+    }
+
+    //Turn while walking
+    if (fsa->unk328 < 90){
+        self->srt.yaw += ((fsa->unk32A * updateRate) / 36.0f) * 182.0f;
     } else {
-        return 9;
+        return FSA_NEXTSTATE_SYNC(DIMSnowHorn_ASTATE_8_Vehicle_Idle);
     }
 
-    var_fa0 = objData->unk290;
-    if (objData->unk290 < 0.0f){
-        var_fa0 = 0.0f;
-    }
-    if (var_fa0 > 1.0f){
-        var_fa0 = 1.0f;
-    }
-
-    //Handle SnowHorn running out of energy 
-    //(@bug: causes a softlock since there's no fail state cutscene to reset you back to before the blizzard)
-    //@recomp: allow SnowHorn to continue moving when exhausted
-    if (objData2->unk900 == 0){
-        // var_fa0 = 0;
-    }
-
-    var_fv1 = var_fa0 * 0.85f;
-    if (var_fv1 < 0){
-        var_fv1 = 0;
-    }
-
-    objData->unk28C += ((var_fv1 - objData->unk28C) / objData->unk2B0) * arg2;
-    if (self->srt.pitch > 0){
-        var_fv1 -= mathSinfInterp(self->srt.pitch) * 0.3f;
-    } else {
-        var_fv1 -= mathSinfInterp(self->srt.pitch) * 0.15f;
-    }
-    if (var_fv1 < _data_84[2]){
-        var_fv1 = _data_84[2];
-    }
-
-    objData->unk278 += ((var_fv1 - objData->unk278) / objData->unk2B0) * arg2;
-
-    animCondition1 = 0;
-    one = 1;
-
-    animProgress = self->animProgress;
-
-    for (animIndex = 0; self->curModAnimId != _data_80[animIndex] && animIndex < 2; animIndex++);
-
-    if (animIndex >= 2){
-        animIndex = 0;
-    }
-
-    if (self->curModAnimId == 0x208){
-        animIndex = 1;
-    }
-
-    temp_v0 = &_data_84[animIndex * 2];
-    if (objData->unk28C < temp_v0[0]){
-        animCondition1 = 1;
-        if (animIndex == 1){
-            return 9;
+    //Handle walk speed
+    {
+        walkFactor = fsa->analogInputPower;
+        if (walkFactor < 0.0f){
+            walkFactor = 0.0f;
         }
-        animIndex -= one;
-    } else if (temp_v0[1] <= objData->unk28C){
-        animCondition1 = 1;
-        if (animIndex == 0){
-            animProgress = 0.0f;
+        if (walkFactor > 1.0f){
+            walkFactor = 1.0f;
         }
-        animIndex++;
-    }
 
-    animCondition2 = 1;
-    if (objData->unk33A && self->curModAnimId == 0x208){
-        animCondition1 = 1;
-        animCondition2 = 0;
-    }
+        // Handle SnowHorn running out of energy 
+        //@recomp: allow SnowHorn to continue moving when exhausted
+        if (objData->energy == 0){
+            //walkFactor = 0;
+        }
 
-    if (animCondition1){
-        if ((animIndex == 1) && animCondition2){
-            objAnimSet(self, 0x208, animProgress, 0);
+        walkSpeed = walkFactor * 0.85f;
+        if (walkSpeed < 0){
+            walkSpeed = 0;
+        }
+
+        fsa->speed += ((walkSpeed - fsa->speed) / fsa->unk2B0) * updateRate;
+        if (self->srt.pitch > 0){
+            walkSpeed -= mathSinfInterp(self->srt.pitch) * 0.3f;
         } else {
-            objAnimSet(self, _data_80[animIndex], animProgress, 0);
+            walkSpeed -= mathSinfInterp(self->srt.pitch) * 0.15f;
         }
-    }
-    objGetAnimChange(self, objData->unk278, &objData->unk298);
 
-    if (objData->unk310 & 0x8000){
-        return 0xD;
+        if (walkSpeed < dWalkSpeedThresholds[2]){
+            walkSpeed = dWalkSpeedThresholds[2];
+        }
+
+        fsa->unk278 += ((walkSpeed - fsa->unk278) / fsa->unk2B0) * updateRate;
+    }
+
+    //Handle animations
+    {
+        animChanged = FALSE;
+        one = 1;
+
+        animProgress = self->animProgress;
+
+        //Find the current walkAnimIdx
+        {
+            for (walkAnimIdx = 0; self->curModAnimId != dWalkingAnims[walkAnimIdx] && walkAnimIdx < ARRAYCOUNT_S(dWalkingAnims); walkAnimIdx++);
+            
+            if (walkAnimIdx > 1){
+                walkAnimIdx = 0;
+            }
+
+            if (self->curModAnimId == SnowHorn_MODANIM2_8_Walk_Intro){
+                walkAnimIdx = 1;
+            }
+        }
+
+        //Compare the walk speed with the walk anims' min/max speed thresholds, to determine whether anim should change
+        thresholds = &dWalkSpeedThresholds[walkAnimIdx * 2];
+        if (fsa->speed < thresholds[0]){
+            animChanged = TRUE;
+            if (walkAnimIdx == 1){
+                return FSA_NEXTSTATE_SYNC(DIMSnowHorn_ASTATE_8_Vehicle_Idle);
+            }
+            walkAnimIdx -= one;
+        } else if (thresholds[1] <= fsa->speed){
+            animChanged = TRUE;
+            if (walkAnimIdx == 0){
+                animProgress = 0.0f;
+            }
+            walkAnimIdx++;
+        }
+
+        //Check whether a walk intro animation should be played
+        startingWalk = TRUE;
+        if (fsa->unk33A && (self->curModAnimId == SnowHorn_MODANIM2_8_Walk_Intro)){
+            animChanged = TRUE;
+            startingWalk = FALSE;
+        }
+
+        //Play/advance walk animations
+        if (animChanged){
+            if ((walkAnimIdx == 1) && startingWalk){
+                objAnimSet(self, SnowHorn_MODANIM2_8_Walk_Intro, animProgress, 0);
+            } else {
+                objAnimSet(self, dWalkingAnims[walkAnimIdx], animProgress, 0);
+            }
+        }
+        objGetAnimChange(self, fsa->unk278, &fsa->animTickDelta);
+    }
+
+    if (fsa->unk310 & A_BUTTON){
+        return FSA_NEXTSTATE_SYNC(DIMSnowHorn_ASTATE_12_Vehicle_Tusk_Attack);
     } else {
         return 0;
     }

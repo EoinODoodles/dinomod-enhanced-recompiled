@@ -20,7 +20,7 @@
 typedef struct {
     Pickup pickup;
     struct {
-        Unk80027934 col;
+        TrackIntersectResult col;
         AABBs32 aabb;
         Vec3f trackPrevPos[1];
         f32 hitsTestRadii[1];
@@ -111,7 +111,7 @@ static void SHbarrel_physics(Object* self, SHbarrel_Data* objdata) {
     s32 i;
     f32 delta;
     f32 diffMagnitude;
-    Func_80057F1C_Struct** collisionInfo;
+    TrackHeightResult** collisionInfo;
     f32 minDiffMagnitude;
     f32 yDiff;
 
@@ -128,7 +128,7 @@ static void SHbarrel_physics(Object* self, SHbarrel_Data* objdata) {
     //Float on water
     {
         //Find the nearest water plane
-        count = func_80057F1C(self, self->srt.transl.x, self->srt.transl.y, self->srt.transl.z, &collisionInfo, 0, 0);
+        count = trackGetHeight(self, self->srt.transl.x, self->srt.transl.y, self->srt.transl.z, &collisionInfo, 0, 0);
         if (count) {
             delta = 10000.0f;
             s32 floorFound = FALSE;
@@ -136,7 +136,7 @@ static void SHbarrel_physics(Object* self, SHbarrel_Data* objdata) {
             
             for (i = 0; i < count; i++){
                 if (collisionInfo[i]->unk14 == 14) { //water only
-                    yDiff = self->srt.transl.y - collisionInfo[i]->unk0[0];
+                    yDiff = self->srt.transl.y - collisionInfo[i]->y;
                     if (yDiff >= 0) {
                         diffMagnitude = yDiff;
                     } else {
@@ -151,11 +151,11 @@ static void SHbarrel_physics(Object* self, SHbarrel_Data* objdata) {
                     
                     if (diffMagnitude < minDiffMagnitude) {
                         delta = yDiff;
-                        objdata->waterY = collisionInfo[i]->unk0[0];
+                        objdata->waterY = collisionInfo[i]->y;
                     }
                 } else {
-                    if (!floorFound && collisionInfo[i]->unk0[0] < (self->srt.transl.y + 5.0f) && collisionInfo[i]->unk0[2] > 0.707f) {
-                        floorDist = self->globalPosition.y - collisionInfo[i]->unk0[0];
+                    if (!floorFound && collisionInfo[i]->y < (self->srt.transl.y + 5.0f) && collisionInfo[i]->norm[1] > 0.707f) {
+                        floorDist = self->globalPosition.y - collisionInfo[i]->y;
                         floorFound = TRUE;
                     }
                 }
@@ -201,7 +201,7 @@ static void SHbarrel_collision(Object* self, SHbarrel_Data* objdata, s32 pickupS
     if (pickupState == PICKUP_NotHeld) {
         // Do hit line collision detection
         Vec3f currPos[1] = {self->srt.transl};
-        func_80059C40(
+        trackGetLineIntersect(
             &objdata->collider.hitsPrevPos[0], 
             &currPos[0], 
             objdata->collider.hitsTestRadii[0], 
@@ -233,17 +233,17 @@ static void SHbarrel_collision(Object* self, SHbarrel_Data* objdata, s32 pickupS
     f32 radius[1] = {objdata->collider.col.unk40[0]};
     radius[0] = sqrtf((2 * radius[0]) * radius[0]);
 
-    fit_aabb_around_cubes(&objdata->collider.aabb, currPos, objdata->collider.trackPrevPos, radius, 1);
+    trackIntersectBuildAABB(&objdata->collider.aabb, currPos, objdata->collider.trackPrevPos, radius, 1);
 
     // Do track collision detection
-    func_80053750(self, &objdata->collider.aabb, 1);
+    trackIntersectBroadphase(self, &objdata->collider.aabb, 1);
 
     if (pickupState == PICKUP_NotHeld) {
         // Do track collision resolution
         Vec3f newPos[1] = {self->globalPosition};
         objdata->collider.col.unk50[0] = -1;
 
-        func_8005509C(self, 
+        trackGetIntersect(self, 
             objdata->collider.trackPrevPos[0].f, newPos[0].f, 1, 
             &objdata->collider.col, 0);
 

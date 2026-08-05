@@ -302,11 +302,11 @@ static void thorntail_anim_end_callback(Object *self, Object *override, AnimObj_
     //       don't really look right a lot of the time to begin with.
     s32 *boneList = objExpr_func_800349B0();
     for (s32 i = 0; i < 9; i++){
-        s16* bone = objExpr_func_80034804(self, boneList[i]);
+        SeqJoint* bone = objExpr_func_80034804(self, boneList[i]);
         if (bone != NULL){
-            bone[0] = 0;
-            bone[1] = 0;
-            bone[2] = 0;
+            bone->pitch = 0;
+            bone->yaw = 0;
+            bone->roll = 0;
         }
     }
 }

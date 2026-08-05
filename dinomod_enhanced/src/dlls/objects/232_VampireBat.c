@@ -12,7 +12,6 @@
 #include "recomp/dlls/objects/232_VampireBat_recomp.h"
 
 //TEMPORARY DEFINES
-#define trackGetHeightFloor func_800588D4
 #define dll_baddieControl (gDLL_33_BaddieControl->vtbl)
 
 #define VampireBat_obj_Setup dll_232_setup

@@ -47,17 +47,17 @@ typedef enum {
     MMP_MoonSeedReceptacle_ID_4 = 0x41A5D  //Along the path with the first Lunaimar encounters, leading up to the dark tunnel that winds back towards the SharpClaw outpost. 
 } MoonSeedReceptacle_uIDs;
 
-extern int MoonSeedReceptacle_anim_callback(Object* self, Object *animObj, AnimObj_Data* animObjData, s8 arg3);
+extern int MoonSeedReceptacle_animCallback(Object* self, Object *animObj, AnimObj_Data* animObjData, s8 arg3);
 
 /** 
     Changes the gamebitIDs used to track whether MoonSeeds have been planted, allowing game progress
     to continue despite MoonSeed item collection not having been implemented (originally by jeebs2kx)
 */
-RECOMP_PATCH void MoonSeedReceptacle_setup(Object* self, MoonSeedReceptacle_Setup* setup, s32 reset) {
+RECOMP_PATCH RECOMP_PATCH void MoonSeedReceptacle_obj_Setup(Object* self, MoonSeedReceptacle_Setup* setup, s32 reset) {
     MoonSeedReceptacle_Data* objData;
 
     objData = self->data;
-    self->animCallback = MoonSeedReceptacle_anim_callback;
+    self->animCallback = MoonSeedReceptacle_animCallback;
     self->srt.yaw = setup->yaw << 8;
     objData->state = MoonSeedReceptacle_STATE_0_Init;
     

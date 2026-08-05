@@ -7,8 +7,6 @@
 #include "recomp/dlls/objects/305_PortalSpellDoor_recomp.h"
 #include "sys/print.h"
 
-int func_80058F50(void);
-
 typedef struct {
     ObjSetup base;
     s8 yaw;
@@ -54,8 +52,8 @@ RECOMP_PATCH void PortalSpellDoor_control(Object* self) {
         mainSetBits(objSetup->gamebitActivated, TRUE);
 
         //Remove HITS line
-        if (objSetup->hitsAnimatorID && !func_80058F50()) {
-            func_80059038(objSetup->hitsAnimatorID, self->parent, 0);
+        if (objSetup->hitsAnimatorID && !trackIntersectNeedsUpdate()) {
+            trackToggleHitLine(objSetup->hitsAnimatorID, self->parent, 0);
         }
     } else if ((((DLL_210_Player*)player->dll)->vtbl->func50(player) == BIT_Spell_Portal) && (objData->timer == -1)) {
         //Start countdown to door transformation

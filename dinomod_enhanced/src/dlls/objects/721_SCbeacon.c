@@ -12,7 +12,6 @@
 #include "sys/objects.h"
 #include "sys/objtype.h"
 #include "sys/print.h"
-#include "sys/segment_1050.h"
 #include "dlls/engine/6_amsfx.h"
 #include "dlls/objects/common/sidekick.h"
 #include "dlls/objects/210_player.h"
@@ -247,9 +246,9 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
         
         //Use LightActions to emit a warm glow (or remove it)
         if ((objData->flags & SCbeacon_FLAG_Emit_Light) && !(objData->prevFlags & SCbeacon_FLAG_Emit_Light)) {
-            func_80000450(self, self, 0x59, 0, 0, 0);
+            lfxAction(self, self, 0x59, 0, 0, 0);
         } else if (!(objData->flags & SCbeacon_FLAG_Emit_Light) && (objData->prevFlags & SCbeacon_FLAG_Emit_Light)) {
-            func_80000450(self, self, 0x5A, 0, 0, 0);
+            lfxAction(self, self, 0x5A, 0, 0, 0);
         }
 
         //Create smoke
@@ -403,9 +402,9 @@ RECOMP_PATCH int SCbeacon_anim_callback(Object* self, Object* override, AnimObj_
         }
         
         if ((objData->flags & SCbeacon_FLAG_Emit_Light) && !(objData->prevFlags & SCbeacon_FLAG_Emit_Light)) {
-            func_80000450(self, self, 0x59, 0, 0, 0);
+            lfxAction(self, self, 0x59, 0, 0, 0);
         } else if (!(objData->flags & SCbeacon_FLAG_Emit_Light) && (objData->prevFlags & SCbeacon_FLAG_Emit_Light)) {
-            func_80000450(self, self, 0x5A, 0, 0, 0);
+            lfxAction(self, self, 0x5A, 0, 0, 0);
         }
 
         gDLL_17_partfx->vtbl->spawn(self, PARTICLE_425, NULL, 2, -1, NULL);

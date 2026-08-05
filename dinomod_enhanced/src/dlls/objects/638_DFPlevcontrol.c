@@ -8,7 +8,6 @@
 #include "sys/map_enums.h"
 #include "sys/objects.h"
 #include "sys/objtype.h"
-#include "sys/segment_1460.h"
 
 #include "dlls/objects/638_DFPlevcontrol.h"
 
@@ -31,23 +30,23 @@ RECOMP_PATCH void DFP_LevelControl_setup(Object* self, ObjSetup *setup, s32 arg2
 
     switch (act) { 
         case 0:
-            func_80000860(self, self, 261, 0);
-            func_80000860(self, self, 262, 0);
-            func_80000860(self, self, 263, 0);
+            envfxAction(self, self, 261, 0);
+            envfxAction(self, self, 262, 0);
+            envfxAction(self, self, 263, 0);
             gDLL_29_Gplay->vtbl->set_obj_group_status(
                 MAP_DESERT_FORCE_POINT_TEMPLE_TOP, DFPT_ObjGroup2_Bottom_BigDoor, 1);
             break;
         case 1:
-            func_80000860(self, self, 415, 0);
+            envfxAction(self, self, 415, 0);
             // mainSetBits(BIT_SpellStone_CRF, 1); //@recomp: don't set gamebit
             break;
         case 2:
-            func_80000860(self, self, 415, 0);
+            envfxAction(self, self, 415, 0);
             mainSetBits(BIT_SpellStone_BWC, 1);
             mainSetBits(BIT_Spell_Grenade, 1);
             break;
         case 3:
-            func_80000860(self, self, 415, 0);
+            envfxAction(self, self, 415, 0);
             mainSetBits(BIT_SpellStone_KP, 1);
             mainSetBits(BIT_Spell_Grenade, 1);
             break;

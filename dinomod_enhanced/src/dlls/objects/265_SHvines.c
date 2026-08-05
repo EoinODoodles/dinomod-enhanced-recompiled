@@ -56,7 +56,7 @@ RECOMP_PATCH void SHvines_setup(Object* self, SHvines_Setup* objSetup, s32 arg2)
         }
     }
     
-    mainCreateTempDLL(DLL_ID_53_MOVELIB);
+    mainCreateTempDLL(DLL_ID_MOVELIB);
 
     modelInstance = self->modelInsts[self->modelInstIdx];
     model = modelInstance->model;

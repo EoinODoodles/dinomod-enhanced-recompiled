@@ -14,11 +14,11 @@
 // #define DEBUG_SEQDOOR
 
 //TEMPORARY DEFINES
-#define SeqDoor_obj_Setup dll_307_setup
-#define SeqDoor_obj_Control dll_307_control
-#define SeqDoor_obj_GetDataSize dll_307_get_data_size
-#define SeqDoor_animCallback dll_307_func_33C
-#define SeqDoor_setCameraPositionGamebits dll_307_func_6E4
+#define SeqDoor_obj_Setup DLL307_obj_Setup
+#define SeqDoor_obj_Control DLL307_obj_Control
+#define SeqDoor_obj_GetDataSize DLL307_obj_GetDataSize
+#define SeqDoor_animCallback DLL307_animCallback
+#define SeqDoor_setCameraPositionGamebits DLL307_func_6E4
 //END OF TEMPORARY DEFINES
 
 typedef struct {

@@ -425,7 +425,7 @@ RECOMP_PATCH void collectable_setup(Object* self, Collectable_Setup* objSetup, s
 
     //Setup light effects (TODO: update with cleaner match when available)
     if (self->def->unk87 & 0x10) {
-        lfxAction.unk12.asByte = 25;
+        lfxAction.unk12 = 25;
         lfxAction.unke = 0;
         lfxAction.unk15 = 0;
         lfxAction.unk16 = 0;
@@ -828,7 +828,7 @@ RECOMP_PATCH void collectable_collect(Object* self) {
             break;
         case OBJ_DIMAlpineRoot2: 
             dll_amSfx->Play(self, SOUND_506_Chomping_Food, MAX_VOLUME, 0, 0, 0, 0);
-            mainSetBits(BIT_3E9, 1);
+            mainSetBits(BIT_DIM_Blizzard_Alpine_Root_Eaten, 1);
             self->unkDC = 1;
             objData->rootTimer = 1200;
             return;
@@ -878,7 +878,7 @@ RECOMP_PATCH void collectable_collect(Object* self) {
     self->srt.scale = objdef->scale;
     self->unkDC = 1;
     if (objdef->unk87 & 0x10) {
-        lfxAction.unk12.asByte = 2;
+        lfxAction.unk12 = 2;
         lfxAction.unke = 0;
         lfxAction.unk1b = 0;
         lfxAction.unk10 = self->unkD6;

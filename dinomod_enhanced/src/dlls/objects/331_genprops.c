@@ -6,7 +6,7 @@
 #include "sys/camera.h"
 #include "sys/map_enums.h"
 #include "sys/objmsg.h"
-#include "sys/segment_1050.h"
+#include "sys/lfx.h"
 #include "dlls/objects/210_player.h"
 
 extern MapHeader* gMapActiveStreamMap;
@@ -1036,10 +1036,10 @@ RECOMP_PATCH void dll_331_control(Object* self) {
         distance = sqrtf(SQ(dx) + SQ(dz) + SQ(dy));
         if ((distance < 75.0f) && (objData->lampBool == TRUE)) {
             objData->lampBool = FALSE;
-            func_80000450(self, self, 0x5C, 0, 0, 0);
+            lfxAction(self, self, 0x5C, 0, 0, 0);
         } else if ((distance > 75.0f) && (objData->lampBool == FALSE)) {
             objData->lampBool = TRUE;
-            func_80000450(self, self, 0x5D, 0, 0, 0);
+            lfxAction(self, self, 0x5D, 0, 0, 0);
         }
         break;
     }

@@ -10,7 +10,6 @@
 #include "sys/objtype.h"
 #include "sys/print.h"
 #include "sys/rand.h"
-#include "sys/segment_1460.h"
 #include "dlls/engine/6_amsfx.h"
 
 #include "recomp/dlls/objects/572_SB_Galleon_recomp.h"

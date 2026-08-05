@@ -26,7 +26,7 @@
 
 #include "objects/223_CannonClaw.h"
 
-#include "recomp/dlls/objects/223_cannon_claw_recomp.h"
+#include "recomp/dlls/objects/223_CannonClaw_recomp.h"
 
 // #define DEBUG_CANNON_CLAW
 
@@ -35,10 +35,6 @@
 #define VANISH_TIME_FINISHED 5.5f
 
 //TEMPORARY DEFINES
-#define CannonClaw_obj_Setup cannon_claw_setup
-#define CannonClaw_obj_Control cannon_claw_control
-#define CannonClaw_obj_Print cannon_claw_print
-#define CannonClaw_die cannon_claw_func_1B4
 #define PARTICLE_52A 0x52A
 #define SOUND_237_SharpClaw_Arghhh 0x237
 #define SOUND_238_SharpClaw_Snort 0x238
@@ -509,13 +505,13 @@ RECOMP_PATCH void CannonClaw_obj_Print(Object* self, Gfx** gdl, Mtx** mtxs, Vert
     //@Recomp: Draw dying effects
     if ((objData->vanishTimer > 0.0f) && (objData->state != CannonClaw_STATE_3_Dead)) {
         if (objData->vanishTimer >= VANISH_TIME_SWITCH) {
-            gDLL_32->vtbl->func2(self, PARTICLE_330, NULL);
+            gDLL_32_modelfx->vtbl->func2(self, PARTICLE_330, NULL);
         } else if (objData->vanishTimer < VANISH_TIME_FX_END) {
-            gDLL_32->vtbl->func2(self, PARTICLE_32F, &objData->vanishTimer);
+            gDLL_32_modelfx->vtbl->func2(self, PARTICLE_32F, &objData->vanishTimer);
         }
     }
 }
 
-RECOMP_PATCH u32 cannon_claw_get_data_size(Object* self, u32 offsetAddr) {
+RECOMP_PATCH u32 CannonClaw_obj_GetDataSize(Object* self, u32 offsetAddr) {
     return sizeof(CannonClaw_Data);
 }

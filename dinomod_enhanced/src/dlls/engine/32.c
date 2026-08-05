@@ -4,7 +4,7 @@
 #include "game/objects/object_id.h"
 #include "common.h"
 
-#include "recomp/dlls/engine/32_recomp.h"
+#include "recomp/dlls/engine/32_modelfx_recomp.h"
 
 extern s32 _data_1864;
 
