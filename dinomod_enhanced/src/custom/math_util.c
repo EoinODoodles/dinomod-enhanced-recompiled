@@ -18,6 +18,19 @@ f32 lerp_float(f32 tValue, f32 start, f32 end){
     return start + (end - start)*tValue;
 }
 
+/** Linear interpolation of two RGB colour arrays, storing the result to `oColour`. All arrays must be u8, with length of 3! */
+void lerpColoursRGB(f32 tValue, u8* colourA, u8* colourB, u8* oColour) {
+    u32 i;
+
+    if ((colourA == NULL) || (colourB == NULL) || (oColour == NULL)) {
+        return;
+    }
+    
+    for (i = 0; i < 3; i++) {
+        oColour[i] = colourA[i] + tValue * (colourB[i] - colourA[i]);
+    }
+}
+
 f32 ease_in_quad(f32 x) {
     return x * x;
 }

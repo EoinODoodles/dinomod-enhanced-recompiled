@@ -19,6 +19,7 @@ extern f32 sinf(f32 angle);
 f32 cosf(f32 angle);
 
 f32 lerp_float(f32 tValue, f32 start, f32 end);
+void lerpColoursRGB(f32 tValue, u8* colourA, u8* colourB, u8* oColour);
 
 f32 ease_in_quad(f32 tValue);
 f32 ease_in_cubic(f32 tValue);
