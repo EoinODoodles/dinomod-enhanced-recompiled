@@ -1,3 +1,4 @@
+#include "cheats.h"
 #include "configs.h"
 #include "custom_textable_ids.h"
 #include "dll_util.h"
@@ -25,9 +26,10 @@
 #include "sys/objmsg.h"
 #include "sys/print.h"
 #include "dll.h"
-#include "dlls/engine/29_gplay.h"
-#include "dlls/engine/6_amsfx.h"
 #include "dlls/engine/1_cmdmenu.h"
+#include "dlls/engine/6_amsfx.h"
+#include "dlls/engine/21_gametext.h"
+#include "dlls/engine/29_gplay.h"
 #include "dlls/objects/common/sidekick.h"
 #include "dlls/objects/210_player.h"
 
@@ -35,6 +37,7 @@
 #include "recomp/dlls/engine/2_camcontrol_recomp.h"
 
 #include "core/joypad.h"
+#include "core/main.h"
 #include "engine/1_cmdmenu.h"
 #include "engine/59_minimap.h"
 
@@ -2782,6 +2785,18 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     #ifndef DINOMOD_ROM_PATCH
     gEXSetScissorAlign((*gdl)++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     #endif
+
+    // @recomp: print cheat
+    cheatMessagePrint(gdl, mtxs, vtxs);
+}
+
+/* Update cheat message too */
+RECOMP_PATCH s32 cmdmenu_update1(void) {
+    cmdmenu_tick_inventory_page();
+    cmdmenu_tick_tutorial_textbox();
+    cheatMessageTick();
+
+    return 0;
 }
 
 /**
