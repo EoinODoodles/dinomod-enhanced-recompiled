@@ -78,6 +78,7 @@ INCBIN(models_wcbossdoor,       "inc/models_0943_WCBossDoor.bin");
 INCBIN(objects_vampirebat,      "inc/objects_0053_VampireBat.bin");
 
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
+#define MODELS_REPLACE_BASE(modelID, file) (reasset_models_set(modelID, REASSET_BASE_NAMESPACE, file, file##_end  - file))
 
 #define COORDS_SETUP(coordX, coordY, coordZ) .base.x = coordX, .base.y = coordY, .base.z = coordZ
 #define TRIGGER_YAW(degrees) ((u8)((float)degrees*0x10/90.0f + 0.5f)) //Yaw for TriggerPlanes etc. (other axes use DEGREES_TO_ANGLE8)
@@ -289,9 +290,9 @@ static void walled_city_modifications(void) {
     int wcBlocksBase = 585;
 
     // WCCageDoor
-    // Fix the door playing a sound from far away whenever you approach Walled City
+    // Fix the door playing a sound from far away as you approach Walled City
     {
-        SeqDoor_Setup* cageDoor = (SeqDoor_Setup*)reasset_map_objects_get(walledCity, 
+        SeqDoor_Setup* cageDoor = reasset_map_objects_get(walledCity, 
             reasset_base_id(0x411B0), NULL);
         cageDoor->gamebitOpenA = NO_GAMEBIT;
         cageDoor->gamebitRestoreState = BIT_7F5;
@@ -312,8 +313,7 @@ static void walled_city_modifications(void) {
 
             //MODELS
             {
-                ReAssetID models_wcslabdoor_ID = reasset_base_id(942);
-                reasset_models_set(models_wcslabdoor_ID, REASSET_BASE_NAMESPACE, models_wcslabdoor, models_wcslabdoor_end - models_wcslabdoor);
+                MODELS_REPLACE_BASE(reasset_base_id(942), models_wcslabdoor);
             }
 
             //BLOCKS
