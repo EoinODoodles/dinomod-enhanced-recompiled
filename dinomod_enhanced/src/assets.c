@@ -267,53 +267,6 @@ static void walled_city_modifications(void) {
     ReAssetID wcTrkblk = reasset_base_id(20);
     int wcBlocksBase = 585;
 
-    // Fix terrain ID of moon temple viewing tile (to let the aperture work correctly)
-    BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 628, block628);
-
-    // Revert dinomod's removal of the moon temple lift sequences, so it can be used again
-    {
-        ObjDef *moonTempleLiftDef = reasset_objects_get(reasset_base_id(276), NULL);
-        s16 *seq = (s16*)((u8*)moonTempleLiftDef + (u32)moonTempleLiftDef->pSeq);
-        seq[0] = 0x3D4;
-        seq[1] = 0x3D6;
-    }
-
-    // Moon door seqobj
-    // Revert dinomod's gamebit change, so the door only opens after the aperture sequence
-    {
-        SeqObj_Setup *seqobj = (SeqObj_Setup*)reasset_map_objects_get(walledCity, 
-            reasset_base_id(0x41474), NULL);
-        seqobj->gamebitPlay = 0x829;
-    }
-
-    // Moon Aperture
-    // Set to always enabled (the sun aperture is always enabled as well)
-    {
-        WCApertureSymbol_Setup *moonAperture = (WCApertureSymbol_Setup*)reasset_map_objects_get(walledCity, 
-            reasset_base_id(0x41463), NULL);
-        moonAperture->unk20 = BIT_ALWAYS_1;
-    }
-
-    // Delete DummyObjects in Moon/Sun temple basements (these are objects with an unmapped OBJINDEX.bin entry)
-    reasset_map_objects_delete(walledCity, reasset_base_id(0x41AFC));
-    reasset_map_objects_delete(walledCity, reasset_base_id(0x41B35));
-
-    typedef struct {
-        ObjSetup base;
-        s16 gamebitOpenA;           //animCallback advances door to "Opening" state when this gamebit (and gamebitOpenB if specified) is set, or to "Closing" state when unset (obj must be in a sequence!)
-        s16 gamebitRestoreState;    //Restores state when the door loads (either "Open" or "Closed" state) - objSeq will use a preemptTime to skip the door to its open position when restoring "Open" state.
-        s16 preemptTime;            //The sequence time to jump to when the object loads in its "Open" state (state restored via `gamebitRestoreState`).
-        s8 objSeqIdx;               //The door opening cutscene's objSeqIdx
-        u8 yaw;
-        u8 preemptEnabledActors;    //Configures which actors to include when the door's sequence is played using a preemptTime
-        u8 scale;                   //Scale factor for the door (0x40 is 1x scale)
-        s16 gamebitOpenB;           //When specified, animCallback advances door to "Opening" state when this gamebit and gamebitOpenA are set (obj must be in a sequence!)
-        s16 gamebitCameraBack;      //When specified, animCallback flips part (`flipBitsCameraBack`) of this gamebit's value if the camera is behind the door when the door finishes opening/closing (obj must be in a sequence!)
-        s16 gamebitCameraFront;     //When specified, animCallback flips part (`flipBitsCameraFront`) of this gamebit's value if the camera is in front of the door when the door finishes opening/closing (obj must be in a sequence!)
-        u8 flipBitsCameraBack;      //The section of `gamebitCameraBack`'s value to flip when `gamebitCameraBack`'s value is updated
-        u8 flipBitsCameraFront;     //The section of `gamebitCameraFront`'s value to flip when `gamebitCameraFront`'s value is updated
-    } SeqDoor_Setup;
-
     // WCCageDoor
     // Fix the door playing a sound from far away whenever you approach Walled City
     {
@@ -329,7 +282,7 @@ static void walled_city_modifications(void) {
         {
             //MAPS
             {
-                SeqDoor_Setup* slab = (SeqDoor_Setup*)reasset_map_objects_get(walledCity, 
+                SeqDoor_Setup* slab = reasset_map_objects_get(walledCity, 
                     reasset_base_id(0x411b7), NULL);
                 slab->base.x = 959.000;
                 slab->base.y = -874.000;
@@ -363,7 +316,7 @@ static void walled_city_modifications(void) {
     {
         //MAPS
         {
-            SeqDoor_Setup* door = (SeqDoor_Setup*)reasset_map_objects_get(walledCity, 
+            SeqDoor_Setup* door = reasset_map_objects_get(walledCity, 
                 reasset_base_id(0x41392), NULL);
             door->base.x = 959.506;
             door->base.y = -1123.000;
@@ -398,6 +351,40 @@ static void walled_city_modifications(void) {
             pSwitch->modelIdx = 1;
         }
     }
+
+    //Sun/Moon Apertures
+    {
+        // Fix terrain ID of moon temple viewing tile (to let the aperture work correctly)
+        BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 628, block628);
+
+        // Revert dinomod's removal of the moon temple lift sequences, so it can be used again
+        {
+            ObjDef* moonTempleLiftDef = reasset_objects_get(reasset_base_id(276), NULL);
+            s16* seq = (s16*)((u8*)moonTempleLiftDef + (u32)moonTempleLiftDef->pSeq);
+            seq[0] = 0x3D4;
+            seq[1] = 0x3D6;
+        }
+
+        // Moon door seqobj
+        // Revert dinomod's gamebit change, so the door only opens after the aperture sequence
+        {
+            SeqObj_Setup* seqobj = reasset_map_objects_get(walledCity, 
+                reasset_base_id(0x41474), NULL);
+            seqobj->gamebitPlay = 0x829;
+        }
+
+        // Moon Aperture
+        // Set to always enabled (the sun aperture is always enabled as well)
+        {
+            WCApertureSymbol_Setup* moonAperture = reasset_map_objects_get(walledCity, 
+                reasset_base_id(0x41463), NULL);
+            moonAperture->unk20 = BIT_ALWAYS_1;
+        }
+    }
+
+    // Delete DummyObjects in Moon/Sun temple basements (these are objects with an unmapped OBJINDEX.bin entry)
+    reasset_map_objects_delete(walledCity, reasset_base_id(0x41AFC));
+    reasset_map_objects_delete(walledCity, reasset_base_id(0x41B35));
 }
 
 static void shrine_fxemit_modifications(void) {
