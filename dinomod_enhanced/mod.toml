@@ -512,7 +512,7 @@ default = "Off"
 
 [[manifest.config_options]]
 id = "vampirebat_config"
-name = "Vampire Bat: Battling"
+name = "Vampire Bats: Battling"
 description = '''
 Vampire Bats are intangible in the unmodified prototype. They can't be attacked, and they clip through Krystal/Sabre's model when flying at them. The bats can sometimes be a nuisance too, since their Z-targetting Lock Icon can take priority over other nearby targets.
 

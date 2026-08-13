@@ -90,3 +90,29 @@ void playerUtil_clear_collected_object(Object* player, Object* collected) {
         objData->unk8A9 = FALSE;
     }
 }
+
+/** 
+  * Checks whether an important cutscene is currently playing (one that takes over player control). 
+  * Returns TRUE if: 
+  * - The player isn't in a sequence but their control is locked.
+  * - The player is in a sequence.
+  */
+_Bool playerUtil_isImportantSequencePlaying(void) {
+    Object* player = objGetPlayer();
+    if (!player) {
+        return FALSE;
+    }
+
+    //Check if the player Object isn't involved in a sequence
+    if ((player->stateFlags & OBJSTATE_IN_SEQ) == FALSE) {
+
+        //If the player control is unlocked, assume there isn't an important sequence playing
+        Player_Data* playerData = player->data;
+        if (playerData && !(playerData->flags & 0x200000)) {
+            return FALSE;
+        }
+    }
+    
+    //Otherwise, assume an important sequence is playing
+    return TRUE;
+}

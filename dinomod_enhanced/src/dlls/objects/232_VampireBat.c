@@ -1,5 +1,6 @@
 #include "configs.h"
 #include "modding.h"
+#include "player_util.h"
 #include "recompconfig.h"
 
 #include "dll.h"
@@ -196,6 +197,14 @@ RECOMP_PATCH void VampireBat_obj_Control(Object* self) {
         return;
     }
 
+    //@recomp: ignore the player while they're in important cutscenes
+    if (baddie->fsa.logicState == VampireBat_LSTATE_2_Fly_To_Target && 
+        player && baddie->fsa.target == player && 
+        playerUtil_isImportantSequencePlaying()
+    ) {
+        baddie->fsa.logicState = VampireBat_LSTATE_0_Top; 
+    }
+
     //Advance animation based on change in velocityY
     dVelocityY = self->velocity.y - objData->prevVelocityY;
     objData->prevVelocityY = self->velocity.y;
@@ -313,6 +322,7 @@ RECOMP_PATCH s32 VampireBat_logicState2FlyRandom(Object* self, ObjFSA_Data* fsa,
     //Advance state when a target is acquired
     if ((baddie->unk3B6 == 1) 
         && (VampireBat_getConfig() != VAMPIREBAT_BATTLE_OFF_IGNORE) //@recomp: optionally ignore the player
+        && playerUtil_isImportantSequencePlaying() == FALSE         //@recomp: ignore the player if an important sequence is playing
     ) {
         return FSA_NEXTSTATE_SYNC(VampireBat_LSTATE_2_Fly_To_Target);
     }
