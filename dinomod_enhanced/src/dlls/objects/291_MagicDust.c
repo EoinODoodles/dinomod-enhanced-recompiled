@@ -36,10 +36,10 @@ extern void MagicDust_collect(Object* self, Object* player, MagicDust_Data* objD
   * - Stop stationary Magic Gems from rapidly playing sounds when touched (unloads them instead)
   */
 RECOMP_PATCH void MagicDust_control(Object* self) {
-    Object *player;
-    MagicDust_Data *objData;
+    Object* player;
+    MagicDust_Data* objData;
     f32 playerDistance;
-    DLL27_Data *collision;
+    DLL27_Data* collision;
     Vec3f negativeS;
     Vec3f vReflect;
     Vec3f nSurface;
@@ -327,7 +327,7 @@ RECOMP_PATCH void MagicDust_control(Object* self) {
   * @recomp: Fix a potential crash in the MagicPlant object's print function,
   * by clearing its references to this MagicDust object when freed.
   */
-RECOMP_PATCH void MagicDust_free(Object *self, s32 a1) {
+RECOMP_PATCH void MagicDust_free(Object* self, s32 onlySelf) {
 	Object* parent;
 	MagicPlant_Data* magicPlantData;
 
