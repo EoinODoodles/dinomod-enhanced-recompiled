@@ -76,6 +76,7 @@ INCBIN(models_wcslabdoor,       "inc/models_0942_WCSlabDoor.bin");
 INCBIN(models_wcbossdoor,       "inc/models_0943_WCBossDoor.bin");
 
 INCBIN(objects_vampirebat,      "inc/objects_0053_VampireBat.bin");
+INCBIN(objects_warppoint,       "inc/objects_1124_WarpPoint.bin");
 
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 #define MODELS_REPLACE_BASE(modelID, file) (reasset_models_set(modelID, REASSET_BASE_NAMESPACE, file, file##_end  - file))
@@ -286,8 +287,26 @@ static void walled_city_additions(void) {
 
 static void walled_city_modifications(void) {
     ReAssetID walledCity = reasset_base_id(MAP_WALLED_CITY);
+    ReAssetID wcBossRoom = reasset_base_id(MAP_BOSS_KLANADACK);
     ReAssetID wcTrkblk = reasset_base_id(20);
     int wcBlocksBase = 585;
+
+    //TEMPORARY DEFINES (TODO: remove once these are in decomp)
+    {
+        #define BIT_WC_Sun_Pressure_Switch_Active 0x7ED
+        #define BIT_WC_Sun_Beacon_Raised 0x7EF
+        #define BIT_WC_Sun_Beacon_Lit 0x7F9
+        #define BIT_WC_SlabDoor_Sun_Symbol_Lit 0x7F7
+
+        #define BIT_WC_Moon_Pressure_Switch_Active 0x7EE
+        #define BIT_WC_Moon_Beacon_Raised 0x7F0
+        #define BIT_WC_Moon_Beacon_Lit 0x7FA
+        #define BIT_WC_SlabDoor_Moon_Symbol_Lit 0x802
+        
+        #define BIT_WC_SlabDoor_Opened 0x813
+        #define BIT_WC_Boss_Door_Opened 0x819
+        #define BIT_WC_King_EarthWalker_Cage_Opened 0x7F5
+    }
 
     // WCCageDoor
     // Fix the door playing a sound from far away as you approach Walled City
@@ -370,6 +389,90 @@ static void walled_city_modifications(void) {
             PressureSwitch_Setup* pSwitch = (PressureSwitch_Setup*)reasset_map_objects_get(walledCity, 
                 reasset_base_id(0x411b6), NULL);
             pSwitch->modelIdx = 1;
+        }
+    }
+
+    // Boss Room Warps
+    {
+        //Lobby room
+        {
+            //WarpPoint (handles inbound and outbound warps)
+            {
+                WarpPoint_Setup* warp = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x413ae), NULL);
+                warp->mode = WarpPoint_CUSTOMMODE_5;
+                warp->isInboundWarp = TRUE; //NOTE: it's both inbound and outbound!
+                warp->objectSeqIndex = 10;       //Custom sequence (arrival)
+                warp->objectSeqIndexDepart = 11; //Custom sequence (departure)
+
+                //Ensures the arrival sequence doesn't overlap/interfere with the post-boss sequence
+                warp->gamebit = BIT_WC_King_EarthWalker_Cage_Opened; //Post-boss sequence needs to have been viewed
+
+                warp->gamebitDepart = BIT_81B; //Set via a TriggerPlane to activate the warp, becomes unset afterwards
+            
+                warp->zShiftArrival = -3;
+                warp->zShiftDeparture = -1;
+            }
+
+            //TriggerPlane (activates outbound warp into boss room, but only if the entrance ramp is lowered)
+            {
+                Trigger_Setup* plane = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x413af), NULL);
+                plane->base.z = -4642; //Shift out slightly, so the player isn't too close to the WarpPoint when the departure sequence plays
+                plane->rotationX = DEGREES_TO_ANGLE8(336); //Tilt plane backwards, to help ensure player can't drop down from above and miss it
+                plane->sizeX = TRIGGER_SCALE(0.64f); //Scale up slightly
+                plane->conditionBitFlagIDs[0] = BIT_WC_Boss_Door_Opened; //@recomp: make sure ramp is lowered (sorry speedrunners!)
+            }
+        }
+
+        //Boss room
+        {
+            //WarpPoint (handles inbound and outbound warp)
+            //Has a custom arrival sequence and departure sequence, which only play on revisits
+            {
+                WarpPoint_Setup* warp = reasset_map_objects_get(wcBossRoom, 
+                    reasset_base_id(0x413B0), NULL);
+                warp->base.x = 1376.557;
+                warp->base.z = -1680.0;
+                warp->mode = WarpPoint_CUSTOMMODE_5;
+                warp->isInboundWarp = TRUE; //NOTE: it's both inbound and outbound!
+                warp->yaw = DEGREES_TO_ANGLE8(180);
+                warp->quarterRange = 120;
+                warp->warpID = 91; //Walled City boss lobby
+                warp->objectSeqIndex = 10;       //Custom sequence (arrival)
+                warp->objectSeqIndexDepart = 11; //Custom sequence (departure)
+
+                //Ensures the arrival sequence only plays on revisits, and doesn't overlap/interfere with the boss intro sequence
+                warp->gamebit = BIT_SpellStone_WC;
+
+                warp->gamebitDepart = DINOMOD_BIT_962_Placeholder; //Set via a TriggerPlane to activate the warp, becomes unset afterwards
+            }
+
+            //TriggerPlane (activates outbound warp back to lobby)
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 64,
+                        .fadeDistance = 64,
+                        .x = 1378.742,
+                        .y = 0,
+                        .z = -1725.389
+                    },
+                    .commands[0] = {
+                        .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
+                        .id = TRG_CMD_BITS,
+                        .paramCombined = TRIG_BITS_MODE(TRUE) | DINOMOD_BIT_962_Placeholder //Set gamebit
+                    },
+                    .sizeX = TRIGGER_SCALE(0.812),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = BIT_SpellStone_WC //Only works after finishing the boss battle
+                };
+                reasset_map_objects_set(wcBossRoom, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
         }
     }
 
@@ -829,7 +932,7 @@ static void swapstone_hollow_additions(void) {
                 {
                     .condition = CMD_COND_IN,
                     .id = TRG_CMD_BITS,
-                    TRIG_PARAMS_COMBINED( TRIG_BITS_MODE(0) | BIT_SP_Exiting_Shop ) //Unset gamebit
+                    .paramCombined = TRIG_BITS_MODE(FALSE) | BIT_SP_Exiting_Shop //Unset gamebit
                 },
             },
             .timerDuration = 60
@@ -1838,6 +1941,12 @@ static void vampire_bat_patch(void) {
     reasset_objects_set(objects_vampirebat_id, REASSET_BASE_NAMESPACE, objects_vampirebat, objects_vampirebat_end - objects_vampirebat);
 }
 
+//Add extra objSeqs to WarpPoint
+static void warp_point_patch(void) {
+    ReAssetID objects_warppoint_id = reasset_base_id(1124); //OBJ_WarpPoint
+    reasset_objects_set(objects_warppoint_id, REASSET_BASE_NAMESPACE, objects_warppoint, objects_warppoint_end - objects_warppoint);
+}
+
 static void diamond_bay_additions(void) {
     ReAssetID db = reasset_base_id(MAP_DIAMOND_BAY);
 
@@ -1989,7 +2098,6 @@ static void diamond_bay_modifications(void) {
         BLOCKS_REPLACE_BASE(dbTrkblk, dbTrkblkBase, 989, block989); //Waterfall basin 1 (dropping down from SwapStone Hollow)
         BLOCKS_REPLACE_BASE(dbTrkblk, dbTrkblkBase, 995, block995); //River bend 1 (near SwapStone Hollow)
         BLOCKS_REPLACE_BASE(dbTrkblk, dbTrkblkBase, 994, block994); //Waterfall basin 2 (second drop along river, approaching where rocks fall)
-
     }
 
     // Delete the dockpoints at the start of the DB river
@@ -2202,8 +2310,8 @@ static void gpsh_modifications(void) {
         WarpPoint_Setup* completionWarp = reasset_map_objects_get(gpsh, reasset_base_id(0x2C8D), NULL);
         completionWarp->base.objId = OBJ_WarpPoint; // WM_WarpPoint -> WarpPoint (same DLL, but the other shrines use WarpPoint)
         completionWarp->warpID = 31; // go to GP -> GPSH transporter
-        completionWarp->unk1C = 0; // this is an exit warp (why is this 1 normally?? you never warp to here?)
-        completionWarp->unk1D = 2; // warp only when bit is set (the bit is correctly 0xFD but the condition field is wrong)
+        completionWarp->isInboundWarp = FALSE; // this is an exit warp (why is this 1 normally?? you never warp to here?)
+        completionWarp->mode = 2; // warp only when bit is set (the bit is correctly 0xFD but the condition field is wrong)
     }
 
     // Edit trigger planes so the player cannot go back into the entrance hall while the test is active.
@@ -2240,7 +2348,7 @@ static void mmsh_modifications(void) {
     // Fix transporter so the player can leave
     {
         Transporter_Setup* transporter = reasset_map_objects_get(mmsh, reasset_base_id(0xC5D), NULL);
-        transporter->gamebit = -1; // 0 -> -1 (so it's always enabled)
+        transporter->gamebit = NO_GAMEBIT; // 0 -> -1 (so it's always enabled)
         transporter->warpID = 73; // 77 -> 73 (MMP shrine transporter)
     }
 }
@@ -2251,7 +2359,7 @@ static void ecsh_modifications(void) {
     // Fix transporter so the player can leave
     {
         Transporter_Setup* transporter = reasset_map_objects_get(ecsh, reasset_base_id(0xC5D), NULL);
-        transporter->gamebit = -1; // 0 -> -1 (so it's always enabled)
+        transporter->gamebit = NO_GAMEBIT; // 0 -> -1 (so it's always enabled)
     }
 }
 
@@ -2274,7 +2382,7 @@ static void ccsh_modifications(void) {
     // Fix transporter so the player can leave
     {
         Transporter_Setup* transporter = reasset_map_objects_get(ccsh, reasset_base_id(0xC5D), NULL);
-        transporter->gamebit = -1; // 0 -> -1 (so it's always enabled)
+        transporter->gamebit = NO_GAMEBIT; // 0 -> -1 (so it's always enabled)
     }
 }
 
@@ -2297,7 +2405,7 @@ static void wgsh_modifications(void) {
     // Fix transporter so the player can leave
     {
         Transporter_Setup* transporter = reasset_map_objects_get(wgsh, reasset_base_id(0xC5D), NULL);
-        transporter->gamebit = -1; // 0 -> -1 (so it's always enabled)
+        transporter->gamebit = NO_GAMEBIT; // 0 -> -1 (so it's always enabled)
     }
 }
 
@@ -2323,7 +2431,7 @@ REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     diamond_bay_additions();
 }
 
-/** Fixes probems in the seqJoint jointID mapping for each of Sabre's models */
+/** Fixes problems in the seqJoint jointID mapping for each of Sabre's models */
 static void sabre_seqjoints_patch(void) {
     ReAssetID objectIndex;
     ObjDef *objDef;
@@ -2378,6 +2486,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     cmdmenu_icons_patch();
     purple_mushroom_patch();
     vampire_bat_patch();
+    warp_point_patch();
 
     shrine_fxemit_modifications();
     warlock_mountain_platform_modifications();

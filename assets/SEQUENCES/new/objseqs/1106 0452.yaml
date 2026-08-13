@@ -1,0 +1,68 @@
+# Warp Point departure 
+# Camera trucks in gently behind player, player walks forward, fade to black.
+# (Based on seq 0x42A, but doesn't include/require Tricky, and the player doesn't draw their weapon or halt near the end)
+# Animator: Banjeoin
+
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x800
+  objectID: 0xFFFF # Self (WarpPoint)
+# Actor 1
+- uid: 0x0
+  settings: 0x9000
+  objectID: 0xFFFE # Camera
+# Actor 2
+- uid: 0x0
+  settings: 0xD000
+  objectID: 0x1F # Krystal
+
+curves:
+# Curve 0 (WarpPoint)
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 300 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 0, delay: 0, params: 300 } # SETTIME @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 300
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+# Curve 1 (Camera)
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 300 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 1, delay: 125, params: 0x0 } # MOVEMODE @ 0
+  - { type: 11, delay: 175, params: 1 } # CODE @ 125        #Fade out
+  - { code_type: 6, val1: 0xE, val2: 0x96 } # 6 (14)
+  - { type: 11, delay: 0, params: 1 } # CODE @ 300
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ROTATE_X
+  - { channel: 8, time: 0, value: -20.0, interp: 0, weight: 0 }
+  - { channel: 8, time: 294, value: -7.2790703773498535, interp: 0, weight: 0 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 0, value: 150.0, interp: 0, weight: 0 }
+  - { channel: 11, time: 290, value: 50.0, interp: 0, weight: 0 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 0, value: 47.235801696777344, interp: 0, weight: 0 }
+  - { channel: 12, time: 290, value: 7.182476043701172, interp: 0, weight: 0 }
+    # TRANSLATE_X
+  - { channel: 13, time: 0, value: 5.0, interp: 0, weight: 0 }
+# Curve 2 (Krystal/Sabre)
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 300 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 1, delay: 0, params: 0x0 } # MOVEMODE @ 0
+  - { type: 2, delay: 0, params: 0x1 } # ANIM @ 0
+  - { type: 7, delay: 0, params: 0x0 } # GROUND_MODE @ 0
+  - { type: 0, delay: 0, params: 300 } # SETTIME @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 300
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # TRANSLATE_Z
+  - { channel: 11, time: 0, value: 80.0, interp: 1, weight: 43 }
+  - { channel: 11, time: 400, value: -70.0, interp: 0, weight: 0 }
+    # TRANSLATE_X
+  - { channel: 13, time: 0, value: 0.0, interp: 0, weight: 0 }

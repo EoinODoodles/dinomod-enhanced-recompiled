@@ -109,7 +109,6 @@ typedef enum {
 } SeqObj_PlaybackOptions;
 
 #define TRIG_BITS_MODE(mode) (mode << 14)
-#define TRIG_PARAMS_COMBINED(params) .param1 = (u8)((params) >> 8), .param2 = ((u8)params)
 
 typedef struct {
 /*00*/ ObjSetup base;
@@ -215,14 +214,32 @@ typedef struct {
 typedef struct {
 /*00*/ ObjSetup base;
 /*18*/ u8 yaw;
-/*19*/ u8 unk19;
+/*19*/ s8 objectSeqIndexDepart; //departure sequence, using custom mode 5 (@recomp: repurpose unused field)
 /*1A*/ s8 warpID;
-/*1B*/ s8 objectSeqIndex;
-/*1C*/ s8 unk1C;
-/*1D*/ s8 unk1D;
-/*1E*/ s8 dist;
+/*1B*/ s8 objectSeqIndex;    //arrival sequence for inbound warp
+/*1C*/ s8 zShiftArrival : 3;        //@recomp: custom mode 5, optional z-shift for arrival sequence (stored at 16th size)
+/*1C*/ s8 zShiftDeparture : 3;      //@recomp: custom mode 5, optional z-shift for departure sequence (stored at 16th size)
+/*1C*/ u8 noRotateOnDeparture : 1;  //@recomp: custom mode 5, optionally skip rotating by 180 for departure sequence
+/*1C*/ u8 isInboundWarp : 1;
+/*1D*/ s8 mode;
+/*1E*/ s8 quarterRange;
 /*20*/ s16 gamebit;
+/*22*/ s16 gamebitDepart;    //departure sequence, using custom mode 5 (@recomp: repurpose padding as new field)
 } WarpPoint_Setup;
+
+typedef enum {
+    WarpPoint_MODE_0, //Play an arrival objSeq (fade in); warp when nearby (fade out) (ignores delay timer)
+    WarpPoint_MODE_1, //Play arrival objSeq1 (uncurling from ball) (fade in); warp via objSeq0 (no fade out) (use delay timer)
+    WarpPoint_MODE_2, //Play an arrival objSeq if a gamebit it set (no fade in); warp and unset gamebit if gamebit set (no fade out) (checks delay timer, but ignores it in practice by setting it to 0)
+    WarpPoint_MODE_3, //(Inbound only) Play an arrival objSeq if a gamebit is set (no fade in) and unset the gamebit; no warp away
+    WarpPoint_MODE_4  //Play an arrival objSeq if a warpID is specified (fade in); warp if a gamebit is set, unsetting gamebit (fade out) (uses delay timer)
+} WarpPoint_Modes;
+
+typedef enum {
+    WarpPoint_CUSTOMMODE_5 = 5, //Play an arrival objSeq if gamebitA is set (no fade); play a departure objSeq and unset gamebitB if gamebitB is set (no fade) (ignores delay timer)
+} WarpPoint_CustomModes;
+
+#define NO_WARP_ID -1
 
 typedef struct {
 /*00*/ ObjSetup base;
