@@ -480,6 +480,7 @@ static void walled_city_modifications(void) {
                 Trigger_Setup plane = {
                     .base = {
                         .objId = OBJ_TriggerPlane,
+                        .actExclusions1 = MAP_ACT(1), //Only appears after finishing the boss battle
                         .loadFlags = OBJSETUP_LOAD_MAIN,
                         .fadeFlags = OBJSETUP_FADE_CAMERA,
                         .loadDistance = 64,
@@ -501,6 +502,26 @@ static void walled_city_modifications(void) {
                 reasset_map_objects_set(wcBossRoom, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
             }
         }
+    }
+
+    //Boss Room - Adding Act values to all boss fight objects (so they can be hidden on revisit)
+    {
+        
+        ReAssetIterator iterator = reasset_map_objects_create_iterator(wcBossRoom);
+        ReAssetID id;
+        while (reasset_iterator_next(iterator, &id)) {
+            ObjSetup* setup = reasset_map_objects_get(wcBossRoom, id, NULL);
+            switch (setup->objId) {
+            case OBJ_KT_Rex:
+            case OBJ_KT_Fallingrocks:
+            case OBJ_KT_RexSequences:
+            case OBJ_KT_RexFloorSwit:
+            case OBJ_KT_Lazerwall:
+            case OBJ_KT_Lazerlight:
+                setup->actExclusions1 = ~MAP_ACT(1);
+            }
+        }
+        reasset_iterator_destroy(iterator);
     }
 
     //Sun/Moon Apertures
