@@ -94,7 +94,9 @@ INCBIN(objects_warppoint,       "inc/objects_1124_WarpPoint.bin");
 #define COORDS_SETUP(coordX, coordY, coordZ) .base.x = coordX, .base.y = coordY, .base.z = coordZ
 #define TRIGGER_YAW(degrees) ((u8)((float)degrees*0x10/90.0f + 0.5f)) //Yaw for TriggerPlanes etc. (other axes use DEGREES_TO_ANGLE8)
 #define TRIGGER_SCALE(scaleFloat) ((u8)(scaleFloat*0x10 + 0.5f))
-#define GET_TRIGGER(mapID, uID) ((Trigger_Setup*)reasset_map_objects_get(mapID, reasset_base_id(uID), NULL))
+
+#define GET_MAPS_OBJECT(mapID, uID) (reasset_map_objects_get(mapID, reasset_base_id(uID), NULL))
+#define GET_TRIGGER(mapID, uID) ((Trigger_Setup*)GET_MAPS_OBJECT(mapID, uID))
 
 //A quick way to add ObjectGroup on/off commands to Trigger Objects (enter: on, exit: off)
 #define DIRECTIONAL_OBJGROUP_TRIGGER(groupID, triggerObject, cmdSlotIn, cmdSlotOut)\
@@ -115,6 +117,30 @@ INCBIN(objects_warppoint,       "inc/objects_1124_WarpPoint.bin");
     triggerObject->commands[cmdSlotOut].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
     triggerObject->commands[cmdSlotOut].id = TRG_CMD_ENABLE_OBJ_GROUP;\
     triggerObject->commands[cmdSlotOut].paramCombined = groupID;
+
+//A quick way to add World ObjectGroup on/off commands to Trigger Objects (enter: on, exit: off)
+#define DIRECTIONAL_WORLD_OBJGROUP_TRIGGER(groupID, mapID, triggerObject, cmdSlotIn, cmdSlotOut)\
+    triggerObject->commands[cmdSlotIn].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    triggerObject->commands[cmdSlotIn].id = TRG_CMD_WORLD_ENABLE_OBJ_GROUP;\
+    triggerObject->commands[cmdSlotIn].param1 = groupID;\
+    triggerObject->commands[cmdSlotIn].param2 = mapID;\
+    \
+    triggerObject->commands[cmdSlotOut].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    triggerObject->commands[cmdSlotOut].id = TRG_CMD_WORLD_DISABLE_OBJ_GROUP;\
+    triggerObject->commands[cmdSlotOut].param1 = groupID;\
+    triggerObject->commands[cmdSlotOut].param2 = mapID;
+
+//A quick way to add World ObjectGroup on/off commands to Trigger Objects (enter: off, exit: on)
+#define DIRECTIONAL_WORLD_OBJGROUP_TRIGGER_REVERSE(groupID, mapID, triggerObject, cmdSlotIn, cmdSlotOut)\
+    triggerObject->commands[cmdSlotIn].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    triggerObject->commands[cmdSlotIn].id = TRG_CMD_WORLD_DISABLE_OBJ_GROUP;\
+    triggerObject->commands[cmdSlotIn].param1 = groupID;\
+    triggerObject->commands[cmdSlotIn].param2 = mapID;\
+    \
+    triggerObject->commands[cmdSlotOut].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    triggerObject->commands[cmdSlotOut].id = TRG_CMD_WORLD_ENABLE_OBJ_GROUP;\
+    triggerObject->commands[cmdSlotOut].param1 = groupID;\
+    triggerObject->commands[cmdSlotOut].param2 = mapID;
 
 #define INCFST(fileID, filename, ext) \
     INCBIN(fst_assets_##filename##_##ext, "assets/" #filename "."#ext); \
@@ -627,9 +653,9 @@ static void shrine_fxemit_modifications(void) {
         ReAssetIterator iterator = reasset_map_objects_create_iterator(mapID);
         ReAssetID id;
         while (reasset_iterator_next(iterator, &id)) {
-            ObjSetup *setup = reasset_map_objects_get(mapID, id, NULL);
+            ObjSetup* setup = reasset_map_objects_get(mapID, id, NULL);
             if (setup->objId == OBJ_FXEmit) {
-                FXEmit_Setup *fxemit = (FXEmit_Setup*)setup;
+                FXEmit_Setup* fxemit = (FXEmit_Setup*)setup;
                 if (fxemit->disableGamebit == 0x5) {
                     fxemit->disableGamebit = -1;
                 }
@@ -687,7 +713,7 @@ static void warlock_mountain_platform_modifications(void) {
     ReAssetID wlTrkblk = reasset_base_id(15);
 
     // Modify the ledge grab HITS lines at the lifts' upper destinations, adding HitAnimator tags
-    HitsLine *line;
+    HitsLine* line;
 
     //Krystal's side
     line = reasset_hits_get(wlTrkblk, reasset_base_id(459 - 438), reasset_base_id(0));
@@ -747,7 +773,7 @@ static void golden_plains_modifications(void) {
     ReAssetIterator iterator = reasset_map_objects_create_iterator(mapID);
     ReAssetID id;
     while (reasset_iterator_next(iterator, &id)) {
-        ObjSetup *setup = reasset_map_objects_get(mapID, id, NULL);
+        ObjSetup* setup = reasset_map_objects_get(mapID, id, NULL);
         if (setup->objId == OBJ_GP_PillarDoor || setup->objId == OBJ_GP_ShrinePillar) {
             setup->fadeFlags = OBJSETUP_FADE_MANUAL;
         }
@@ -768,7 +794,7 @@ static void collectables_animobj_patch(void) {
     };
 
     ReAssetID objectIndex;
-    ObjDef *objDef;
+    ObjDef* objDef;
     CollectableDef* collectable;
 
     for (u32 i = 0; i < ARRAYCOUNT(collectables); i++) {
@@ -799,7 +825,7 @@ static void cape_claw_modifications(void) {
 
     // Causes Cape Claw's Shiny Nugget to increment the same gamebit used by SwapStone Circle's Shiny Nuggets
     {
-        Collectable_Setup *gold = (Collectable_Setup*)reasset_map_objects_get(capeClaw, 
+        Collectable_Setup* gold = (Collectable_Setup*)reasset_map_objects_get(capeClaw, 
                 reasset_base_id(0x42DFD), NULL);
         if (gold->base.objId == OBJ_CCgoldnuggetPic) {
             gold->gamebitCount = BIT_627;
@@ -811,7 +837,7 @@ static void cape_claw_modifications(void) {
         u32 waterFallSprays[] = {0x42E2C, 0x42E2D, 0x42E2E};
 
         for (u8 i = 0, end = ARRAYCOUNT(waterFallSprays); i < end; i ++) {
-            WaterFallSpray_Setup *spray = (WaterFallSpray_Setup*)reasset_map_objects_get(capeClaw, 
+            WaterFallSpray_Setup* spray = (WaterFallSpray_Setup*)reasset_map_objects_get(capeClaw, 
                     reasset_base_id(waterFallSprays[i]), NULL);
             if (spray->base.objId == OBJ_WaterFallSpray) {
                 spray->gamebit = BIT_144;
@@ -1086,13 +1112,7 @@ static void swapstone_hollow_additions(void) {
                 plane->base.loadDistance = 0x40,
                 plane->base.fadeDistance = 0x40,
 
-                plane->commands[0].condition = CMD_COND_IN | CMD_COND_RE_ENTER;
-                plane->commands[0].id = TRG_CMD_ENABLE_OBJ_GROUP;
-                plane->commands[0].param2 = OBJGROUP_REFLECTION_POOL;
-
-                plane->commands[1].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;
-                plane->commands[1].id = TRG_CMD_DISABLE_OBJ_GROUP;
-                plane->commands[1].param2 = OBJGROUP_REFLECTION_POOL;
+                DIRECTIONAL_OBJGROUP_TRIGGER(OBJGROUP_REFLECTION_POOL, plane, 0, 1);
 
                 plane->sizeY = 0x10;
                 plane->sizeZ = 0x10;
@@ -1124,6 +1144,7 @@ static void swapstone_hollow_additions(void) {
 
         //Add a SharpClaw guarding the barrel
         {
+            //TO-DO: use Baddie_Setup
             u8 sharpClaw_Setup[] = {
                 /*00*/ 0x00, 0x11, 0x0E, 0x00, 
                 /*04*/ 0x00, 0x00, 0x7F, 0x60,
@@ -1149,7 +1170,6 @@ static void swapstone_hollow_additions(void) {
             sharpClaw->fadeFlags = OBJSETUP_FADE_CAMERA;
             sharpClaw->mapObjGroup = OBJGROUP_REFLECTION_POOL;
             sharpClaw->fadeDistance = 140;
-            // sharpClaw->x = 2467.278f; sharpClaw->y = -658.742f; sharpClaw->z = 2183.488f;
             sharpClaw->x = 2370.327f; sharpClaw->y = -674.900f; sharpClaw->z = 2259.521f;
 
             reasset_map_objects_set(mapID, reasset_id(dinomodNs, UID_SH_BurrowsSharpClaw), &sharpClaw_Setup, sizeof(sharpClaw_Setup));
@@ -1456,7 +1476,7 @@ static void swapstone_hollow_modifications(void) {
 
     // Move river sfx TriggerPoints into obj group 11
     {
-        ObjSetup *triggerPoint;
+        ObjSetup* triggerPoint;
         
         triggerPoint = reasset_map_objects_get(sHollow, reasset_base_id(0x31CDD), NULL);
         triggerPoint->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
@@ -1469,7 +1489,7 @@ static void swapstone_hollow_modifications(void) {
 
     // Move dockpoint into obj group 12
     {
-        ObjSetup *dockpoint = reasset_map_objects_get(sHollow, reasset_base_id(0x42BAA), NULL);
+        ObjSetup* dockpoint = reasset_map_objects_get(sHollow, reasset_base_id(0x42BAA), NULL);
         dockpoint->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
         dockpoint->mapObjGroup = 12;
     }
@@ -1477,15 +1497,8 @@ static void swapstone_hollow_modifications(void) {
     // Edit trigger plane at the start of the DB side of the river to enable the DB
     // river object group that contains river flows etc.
     {
-        Trigger_Setup *trigger = reasset_map_objects_get(sHollow, reasset_base_id(0x18EB), NULL);
-        trigger->commands[1].id = TRG_CMD_WORLD_ENABLE_OBJ_GROUP;
-        trigger->commands[1].condition = CMD_COND_IN | CMD_COND_RE_ENTER;
-        trigger->commands[1].param1 = 0;
-        trigger->commands[1].param2 = MAP_DIAMOND_BAY;
-        trigger->commands[2].id = TRG_CMD_WORLD_DISABLE_OBJ_GROUP;
-        trigger->commands[2].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;
-        trigger->commands[2].param1 = 0;
-        trigger->commands[2].param2 = MAP_DIAMOND_BAY;
+        Trigger_Setup* plane = reasset_map_objects_get(sHollow, reasset_base_id(0x18EB), NULL);
+        DIRECTIONAL_WORLD_OBJGROUP_TRIGGER(0, MAP_DIAMOND_BAY, plane, 1, 2);
     }
 
     //Add a HITS line so you dangle off SwapStone Hollow's waterfall when attempting to run off it
@@ -1520,22 +1533,18 @@ static void swapstone_hollow_modifications(void) {
 
     // Edit TriggerCylinder around Rocky, so it unsets the "Exiting the Shop" gamebit
     {
-        Trigger_Setup *trigger = reasset_map_objects_get(
-            sHollow, reasset_base_id(0xbe040a9), NULL);
-        trigger->commands[1].id = TRG_CMD_BITS;
-        trigger->commands[1].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
-        trigger->commands[1].param1 = (BIT_SP_Exiting_Shop >> 8);
-        trigger->commands[1].param2 = (BIT_SP_Exiting_Shop);
+        Trigger_Setup* cylinder = GET_TRIGGER(sHollow, 0xbe040a9);
+        cylinder->commands[1].id = TRG_CMD_BITS;
+        cylinder->commands[1].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
+        cylinder->commands[1].paramCombined = BIT_SP_Exiting_Shop;
     }
 
     // Edit TriggerPlane approaching Rocky, so it unsets the "Exiting the Shop" gamebit too (just in case)
     {
-        Trigger_Setup *trigger = reasset_map_objects_get(
-            sHollow, reasset_base_id(0x34732), NULL);
-        trigger->commands[7].id = TRG_CMD_BITS;
-        trigger->commands[7].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
-        trigger->commands[7].param1 = (BIT_SP_Exiting_Shop >> 8);
-        trigger->commands[7].param2 = (BIT_SP_Exiting_Shop);
+        Trigger_Setup* plane = GET_TRIGGER(sHollow, 0x34732);
+        plane->commands[7].id = TRG_CMD_BITS;
+        plane->commands[7].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
+        plane->commands[7].paramCombined = BIT_SP_Exiting_Shop;
     }
 }
 
@@ -1790,37 +1799,37 @@ static void swapstone_hollow_well_modifications(void) {
 
 static void cc_lightfoot_patch(void) {
     // Change CClightfoot model from chief to normal red-colored LightFoot
-    ObjDef *ccLightfootObjDef = reasset_objects_get(reasset_base_id(430), NULL);
-    u32 *ccLightfootModelList = (u32*)((u8*)ccLightfootObjDef + (u32)ccLightfootObjDef->pModelList);
+    ObjDef* ccLightfootObjDef = reasset_objects_get(reasset_base_id(430), NULL);
+    u32* ccLightfootModelList = (u32*)((u8*)ccLightfootObjDef + (u32)ccLightfootObjDef->pModelList);
     ccLightfootModelList[0] = 0x00CB;
 }
 
 /** Fix DIM and Galadon related music actions. Original patch by nuggs. */
 static void music_actions_patch(void) {
     // Galadon
-    MusicAction *action103 = reasset_music_actions_get(reasset_base_id(103 - 1));
+    MusicAction* action103 = reasset_music_actions_get(reasset_base_id(103 - 1));
     action103->seqID = 60;
-    MusicAction *action104 = reasset_music_actions_get(reasset_base_id(104 - 1));
+    MusicAction* action104 = reasset_music_actions_get(reasset_base_id(104 - 1));
     action104->seqID = 60;
-    MusicAction *action106 = reasset_music_actions_get(reasset_base_id(106 - 1));
+    MusicAction* action106 = reasset_music_actions_get(reasset_base_id(106 - 1));
     action106->seqID = 60;
-    MusicAction *action108 = reasset_music_actions_get(reasset_base_id(108 - 1));
+    MusicAction* action108 = reasset_music_actions_get(reasset_base_id(108 - 1));
     action108->seqID = 60;
     
     // DIM
-    MusicAction *action109 = reasset_music_actions_get(reasset_base_id(109 - 1));
+    MusicAction* action109 = reasset_music_actions_get(reasset_base_id(109 - 1));
     action109->seqID = 66;
-    MusicAction *action110 = reasset_music_actions_get(reasset_base_id(110 - 1));
+    MusicAction* action110 = reasset_music_actions_get(reasset_base_id(110 - 1));
     action110->seqID = 66;
-    MusicAction *action111 = reasset_music_actions_get(reasset_base_id(111 - 1));
+    MusicAction* action111 = reasset_music_actions_get(reasset_base_id(111 - 1));
     action111->seqID = 66;
-    MusicAction *action135 = reasset_music_actions_get(reasset_base_id(135 - 1));
+    MusicAction* action135 = reasset_music_actions_get(reasset_base_id(135 - 1));
     action135->seqID = 66;
-    MusicAction *action136 = reasset_music_actions_get(reasset_base_id(136 - 1));
+    MusicAction* action136 = reasset_music_actions_get(reasset_base_id(136 - 1));
     action136->seqID = 66;
-    MusicAction *action138 = reasset_music_actions_get(reasset_base_id(138 - 1));
+    MusicAction* action138 = reasset_music_actions_get(reasset_base_id(138 - 1));
     action138->seqID = 66;
-    MusicAction *action140 = reasset_music_actions_get(reasset_base_id(140 - 1));
+    MusicAction* action140 = reasset_music_actions_get(reasset_base_id(140 - 1));
     action140->seqID = 66;
 }
 
@@ -1832,10 +1841,10 @@ static void df_patches_shinx(void) {
     // Fix block shapes that are missing the fog render flag
     ReAssetID blockID = reasset_base_id(338 - 319);
     u32 blockDataSize;
-    u8 *blockData = reasset_blocks_get(dfTrkblk, blockID, &blockDataSize);
+    u8* blockData = reasset_blocks_get(dfTrkblk, blockID, &blockDataSize);
     blockData = dinomod_block_decompress(blockData, blockDataSize, &blockDataSize);
-    Block *block = (Block*)(blockData + 8);
-    BlockShape *shapes = (BlockShape*)((u8*)block + (u32)block->shapes);
+    Block* block = (Block*)(blockData + 8);
+    BlockShape* shapes = (BlockShape*)((u8*)block + (u32)block->shapes);
     // Shape index 2 is also missing fog but i don't know where it is?
     shapes[26].flags |= RENDER_FOG_ACTIVE; // The shapes around the climbable bit at the start of DF
     shapes[27].flags |= RENDER_FOG_ACTIVE;
@@ -1901,7 +1910,7 @@ static void darkice_mines_modifications(void) {
             s16 unk26;
             u8 unk28;
             u8 unk29;
-        } DLL307_Setup;
+        } DLL307_Setup; //TODO: use SeqDoor_Setup
 
         DLL307_Setup* cannonCover = reasset_map_objects_get(dim1MapID, reasset_base_id(0x17F4), NULL);
         cannonCover->gamebitRestoreState = NO_GAMEBIT;
@@ -2030,7 +2039,7 @@ static void diamond_bay_additions(void) {
     // this way without a log. The fall reset trigger only applies when the river is dry, so
     // we need something to stop players from fixing the river but not getting the DIM SpellStone.
     {
-        Trigger_Setup drownTrigger = {
+        Trigger_Setup drownArea = {
             .base = {
                 .objId = OBJ_TriggerArea,
                 .loadFlags = OBJSETUP_LOAD_LEVEL,
@@ -2062,12 +2071,12 @@ static void diamond_bay_additions(void) {
             .rotationX = 0
         };
 
-        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &drownTrigger, sizeof(drownTrigger));
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &drownArea, sizeof(drownArea));
     }
 
     // Add another drown trigger after the second drop in the river (the deep spot where the vines can knock you down into)
     {
-        Trigger_Setup drownTrigger = {
+        Trigger_Setup drownArea = {
             .base = {
                 .objId = OBJ_TriggerArea,
                 .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
@@ -2099,7 +2108,7 @@ static void diamond_bay_additions(void) {
             .rotationX = 0
         };
 
-        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &drownTrigger, sizeof(drownTrigger));
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &drownArea, sizeof(drownArea));
     }
 
     //Add HitAnimator for the top of SwapStone Hollow's waterfall
@@ -2160,21 +2169,21 @@ static void diamond_bay_modifications(void) {
     // Increase the size of the trigger plane at the start of the DB river that
     // sets tricky's goal point and sets up some envfx. In vanilla, it's very easy to miss it.
     {
-        Trigger_Setup *trigger = reasset_map_objects_get(db, reasset_base_id(0x41EF0), NULL);
-        trigger->sizeX = 34; // scale 0.75 -> 2.125
-        trigger->base.loadDistance = 48; // increase load dist to compensate
+        Trigger_Setup* plane = reasset_map_objects_get(db, reasset_base_id(0x41EF0), NULL);
+        plane->sizeX = 34; // scale 0.75 -> 2.125
+        plane->base.loadDistance = 48; // increase load dist to compensate
     }
 
     // Add a gamebit to the SideLoad at the start of the DB river
     // (stops Tricky from warping down there when river's missing)
     {
-        SideLoad_Setup *sideLoad = reasset_map_objects_get(db, reasset_base_id(0x42B6F), NULL);
+        SideLoad_Setup* sideLoad = reasset_map_objects_get(db, reasset_base_id(0x42B6F), NULL);
         sideLoad->gamebitUnlocked = RIVER_BIT;
     }
 
     // Add a gamebit to the WaterFallSpray at the start of the DB river
     {
-        WaterFallSpray_Setup *spray = reasset_map_objects_get(db, reasset_base_id(0x4205B), NULL);
+        WaterFallSpray_Setup* spray = reasset_map_objects_get(db, reasset_base_id(0x4205B), NULL);
         spray->gamebit = RIVER_BIT;
         spray->invertGamebit = TRUE;
     }
@@ -2185,7 +2194,7 @@ static void discovery_falls_hit_edits(void) {
     ReAssetID dfTrkblk = reasset_base_id(11);
     const int dfTrkblkBase = 319;
 
-    HitsLine *hit;
+    HitsLine* hit;
 
     // Rough edits to make it possible to go down to the waterfall leading to the shrine. These hits
     // in vanilla are for an older DF layout so this patch adjusts them so they don't block the path.
@@ -2256,12 +2265,12 @@ static void add_wctrex_hit_spheres(void) {
     ReAssetID id = reasset_base_id(100);
 
     u32 size;
-    void *data = reasset_models_get(id, &size);
+    void* data = reasset_models_get(id, &size);
     data = dinomod_model_decompress(data, size, &size);
     u32 oldSize = size;
     {
         u32 newSize = size + (sizeof(HitSphere) * 3);
-        void *newdata = recomp_alloc(newSize);
+        void* newdata = recomp_alloc(newSize);
         bcopy(data, newdata, oldSize);
         bzero((u8*)newdata + oldSize, newSize - oldSize);
         recomp_free(data);
@@ -2333,7 +2342,7 @@ static void nw_modifications(void) {
     
     // Fix NWMultiSeq so Garunda Te cutscene won't loop if gamebit 0 is set
     {
-        NWMultiSeq_Setup *multiseq = reasset_map_objects_get(nw, reasset_base_id(0x32D52), NULL);
+        NWMultiSeq_Setup* multiseq = reasset_map_objects_get(nw, reasset_base_id(0x32D52), NULL);
         // Set bit/seq indices to -1 (instead of 0) so the cutscene won't replay
         // the first seq is bit 0 is set (there's only 6 seqs for this cutscene).
         multiseq->unk28[6] = -1;
@@ -2366,13 +2375,13 @@ static void gpsh_modifications(void) {
     // Bit 0x129 will be 0 while the test is active and 1 otherwise (except after completion where it remains 0
     // but the warp will take the player out of the shrine anyway so it's OK).
     {
-        Trigger_Setup* trigger;
+        Trigger_Setup* plane;
 
-        trigger = reasset_map_objects_get(gpsh, reasset_base_id(0x32974), NULL);
-        trigger->conditionBitFlagIDs[0] = 0x129;
+        plane = reasset_map_objects_get(gpsh, reasset_base_id(0x32974), NULL);
+        plane->conditionBitFlagIDs[0] = 0x129;
 
-        trigger = reasset_map_objects_get(gpsh, reasset_base_id(0x32975), NULL);
-        trigger->conditionBitFlagIDs[0] = 0x129;
+        plane = reasset_map_objects_get(gpsh, reasset_base_id(0x32975), NULL);
+        plane->conditionBitFlagIDs[0] = 0x129;
     }
 
     // Fix flybaddie creators fade distance so the flybaddies (which inherit the distance) are correctly visible.
@@ -2418,13 +2427,13 @@ static void ccsh_modifications(void) {
     // Bit 0x129 will be 0 while the test is active and 1 otherwise (except after completion where it remains 0
     // but the warp will take the player out of the shrine anyway so it's OK).
     {
-        Trigger_Setup* trigger;
+        Trigger_Setup* plane;
 
-        trigger = reasset_map_objects_get(ccsh, reasset_base_id(0x32F01), NULL);
-        trigger->conditionBitFlagIDs[0] = 0x129;
+        plane = reasset_map_objects_get(ccsh, reasset_base_id(0x32F01), NULL);
+        plane->conditionBitFlagIDs[0] = 0x129;
 
-        trigger = reasset_map_objects_get(ccsh, reasset_base_id(0x32F02), NULL);
-        trigger->conditionBitFlagIDs[0] = 0x129;
+        plane = reasset_map_objects_get(ccsh, reasset_base_id(0x32F02), NULL);
+        plane->conditionBitFlagIDs[0] = 0x129;
     }
 
     // Fix transporter so the player can leave
@@ -2441,13 +2450,13 @@ static void wgsh_modifications(void) {
     // Bit 0x129 will be 0 while the test is active and 1 otherwise (except after completion where it remains 0
     // but the warp will take the player out of the shrine anyway so it's OK).
     {
-        Trigger_Setup* trigger;
+        Trigger_Setup* plane;
 
-        trigger = reasset_map_objects_get(wgsh, reasset_base_id(0x32893), NULL);
-        trigger->conditionBitFlagIDs[0] = 0x129;
+        plane = reasset_map_objects_get(wgsh, reasset_base_id(0x32893), NULL);
+        plane->conditionBitFlagIDs[0] = 0x129;
 
-        trigger = reasset_map_objects_get(wgsh, reasset_base_id(0x32894), NULL);
-        trigger->conditionBitFlagIDs[0] = 0x129;
+        plane = reasset_map_objects_get(wgsh, reasset_base_id(0x32894), NULL);
+        plane->conditionBitFlagIDs[0] = 0x129;
     }
 
     // Fix transporter so the player can leave
@@ -2482,7 +2491,7 @@ REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
 /** Fixes problems in the seqJoint jointID mapping for each of Sabre's models */
 static void sabre_seqjoints_patch(void) {
     ReAssetID objectIndex;
-    ObjDef *objDef;
+    ObjDef* objDef;
     u8* seqJointDef;
 
     //Get OBJECTS.bin entry
