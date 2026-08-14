@@ -34,6 +34,16 @@
 
 INCBIN(block611, "inc/blocks_0611_WC_central_temple_south.bin");
 INCBIN(block628, "inc/blocks_0628_WC_moon_temple_viewing_tile.bin");
+INCBIN(block1086, "inc/blocks_1086_WC_boss_corner_sw.bin");
+INCBIN(block1087, "inc/blocks_1087_WC_boss_west_corridor_south.bin");
+INCBIN(block1088, "inc/blocks_1088_WC_boss_west_corridor_north.bin");
+INCBIN(block1089, "inc/blocks_1089_WC_boss_corner_nw.bin");
+INCBIN(block1093, "inc/blocks_1093_WC_boss_north_corridor_west.bin");
+INCBIN(block1094, "inc/blocks_1094_WC_boss_south_corridor_east.bin");
+INCBIN(block1098, "inc/blocks_1098_WC_boss_corner_se.bin");
+INCBIN(block1099, "inc/blocks_1099_WC_boss_east_corridor_south.bin");
+INCBIN(block1100, "inc/blocks_1100_WC_boss_east_corridor_north.bin");
+INCBIN(block1101, "inc/blocks_1101_WC_boss_corner_ne.bin");
 INCBIN(block351, "inc/blocks_0351_SHriver_rocky_waterfall.bin");
 INCBIN(block358, "inc/blocks_0358_SH_reflection_pool.bin");
 INCBIN(block579, "inc/blocks_0579_SHwell_lily_pond_climb.bin");
@@ -289,7 +299,9 @@ static void walled_city_modifications(void) {
     ReAssetID walledCity = reasset_base_id(MAP_WALLED_CITY);
     ReAssetID wcBossRoom = reasset_base_id(MAP_BOSS_KLANADACK);
     ReAssetID wcTrkblk = reasset_base_id(20);
+    ReAssetID ktTrkblk = reasset_base_id(53);
     int wcBlocksBase = 585;
+    int ktBlocksBase = 1086;
 
     //TEMPORARY DEFINES (TODO: remove once these are in decomp)
     {
@@ -306,6 +318,21 @@ static void walled_city_modifications(void) {
         #define BIT_WC_SlabDoor_Opened 0x813
         #define BIT_WC_Boss_Door_Opened 0x819
         #define BIT_WC_King_EarthWalker_Cage_Opened 0x7F5
+    }
+
+    //BLOCKS - Boss Room
+    {
+        
+        BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1086, block1086); //Minor UV fixes: ceiling
+        BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1087, block1087); //Minor UV fixes: ceiling
+        BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1088, block1088); //Minor UV fixes: ceiling
+        BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1089, block1089); //Minor UV fixes: ceiling, floor 
+        BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1093, block1093); //Ceiling UV fixes (fix broken range wrap)
+        BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1094, block1094); //Ceiling UV fixes (fix broken range wrap)
+        BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1098, block1098); //Minor UV fixes: ceiling, floor 
+        BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1099, block1099); //Minor UV fixes: ceiling
+        BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1100, block1100); //Minor UV fixes: ceiling
+        BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1101, block1101); //Minor UV fixes: ceiling
     }
 
     // WCCageDoor
