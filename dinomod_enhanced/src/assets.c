@@ -1547,6 +1547,13 @@ static void swapstone_hollow_modifications(void) {
         plane->commands[7].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
         plane->commands[7].paramCombined = BIT_SP_Exiting_Shop;
     }
+
+    // Edit TriggerPlane just inside the gateway to Walled City, so 
+    // the river crossing area's objects are loaded when approaching from Walled City
+    {
+        Trigger_Setup* plane = GET_TRIGGER(sHollow, 0x40B75);
+        DIRECTIONAL_OBJGROUP_TRIGGER_REVERSE(6, plane, 1, 2);
+    }
 }
 
 static void swapstone_hollow_well_additions(void) {
