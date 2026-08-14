@@ -9,6 +9,8 @@
 #include "sys/math.h"
 #include "sys/objects.h"
 
+#include "objects/307_SeqDoor.h"
+
 #include "recomp/dlls/objects/307_recomp.h"
 
 // #define DEBUG_SEQDOOR
@@ -20,22 +22,6 @@
 #define SeqDoor_animCallback DLL307_animCallback
 #define SeqDoor_setCameraPositionGamebits DLL307_func_6E4
 //END OF TEMPORARY DEFINES
-
-typedef struct {
-    ObjSetup base;
-    s16 gamebitOpenA;           //animCallback advances door to "Opening" state when this gamebit (and gamebitOpenB if specified) is set, or to "Closing" state when unset (obj must be in a sequence!)
-    s16 gamebitRestoreState;    //Restores state when the door loads (either "Open" or "Closed" state) - objSeq will use a preemptTime to skip the door to its open position when restoring "Open" state.
-    s16 preemptTime;            //The sequence time to jump to when the object loads in its "Open" state (state restored via `gamebitRestoreState`).
-    s8 objSeqIdx;               //The door opening cutscene's objSeqIdx
-    u8 yaw;
-    u8 preemptEnabledActors;    //Configures which actors to include when the door's sequence is played using a preemptTime
-    u8 scale;                   //Scale factor for the door (0x40 is 1x scale)
-    s16 gamebitOpenB;           //When specified, animCallback advances door to "Opening" state when this gamebit and gamebitOpenA are set (obj must be in a sequence!)
-    s16 gamebitCameraBack;      //When specified, animCallback flips part (`flipBitsCameraBack`) of this gamebit's value if the camera is behind the door when the door finishes opening/closing (obj must be in a sequence!)
-    s16 gamebitCameraFront;     //When specified, animCallback flips part (`flipBitsCameraFront`) of this gamebit's value if the camera is in front of the door when the door finishes opening/closing (obj must be in a sequence!)
-    u8 flipBitsCameraBack;      //The section of `gamebitCameraBack`'s value to flip when `gamebitCameraBack`'s value is updated
-    u8 flipBitsCameraFront;     //The section of `gamebitCameraFront`'s value to flip when `gamebitCameraFront`'s value is updated
-} SeqDoor_Setup;
 
 typedef struct {
     f32 sinYaw;                  //Used to streamline calculating whether the camera is in front of/behind the door
@@ -71,11 +57,7 @@ typedef enum {
 //@Recomp: extra flags
 typedef enum {
     SeqDoor_CUSTOMFLAG_4_Played = 4,
-    SeqDoor_CUSTOMFLAG_8_Delay_Play_Until_Gamebit_Set = 8,
-    SeqDoor_CUSTOMFLAG_10_Was_Already_Open = 0x10,
-    SeqDoor_CUSTOMFLAG_20_Unload_If_Already_Open = 0x20,
-    SeqDoor_CUSTOMFLAG_40_Unload_At_End_of_Sequence = 0x40,
-    SeqDoor_CUSTOMFLAG_80_Sync_With_State_Gamebit = 0x80
+    SeqDoor_CUSTOMFLAG_8_Was_Already_Open = 8
 } SeqDoor_CustomFlags;
 
 extern int SeqDoor_animCallback(Object *self, Object *animObj, AnimObj_Data *animData, s8 prevCallbackValue);
@@ -126,27 +108,7 @@ RECOMP_PATCH void SeqDoor_obj_Setup(Object* self, SeqDoor_Setup* objSetup, s32 r
 
     //@recomp: flag when a door loads in its Open state
     if (objData->state == SeqDoor_STATE_1_Open) {
-        objData->flags |= SeqDoor_CUSTOMFLAG_10_Was_Already_Open;
-    }
-
-    //@recomp: enable custom flags on specific objects like WCCageDoor 
-    // (TODO: set custom flags via the objSetup instead, maybe? 
-    // The `SeqDoor_Setup` struct doesn't really have enough unused bytes to store initial flags currently, 
-    // but maybe it could be extended and all its MAPS instances updated! Or maybe this is fine?)
-    switch (self->id) {
-    case OBJ_WCCageDoor:
-        objData->flags |= (SeqDoor_CUSTOMFLAG_8_Delay_Play_Until_Gamebit_Set | 
-                           SeqDoor_CUSTOMFLAG_20_Unload_If_Already_Open | 
-                           SeqDoor_CUSTOMFLAG_40_Unload_At_End_of_Sequence
-                        );
-        break;
-    case OBJ_WCSlabDoor:
-        objData->flags |= SeqDoor_CUSTOMFLAG_80_Sync_With_State_Gamebit;
-        break;
-    case OBJ_WCBossDoor:
-        //@recomp: ensure King RedEye's ramp door is open when Sabre's exiting it with the SpellStone
-        objData->flags |= SeqDoor_CUSTOMFLAG_80_Sync_With_State_Gamebit;
-        break;
+        objData->flags |= SeqDoor_CUSTOMFLAG_8_Was_Already_Open;
     }
 
 #ifdef DEBUG_SEQDOOR
@@ -156,7 +118,7 @@ RECOMP_PATCH void SeqDoor_obj_Setup(Object* self, SeqDoor_Setup* objSetup, s32 r
 #endif
 
     //@recomp: optionally delay playing the sequence
-    if (objData->flags & SeqDoor_CUSTOMFLAG_8_Delay_Play_Until_Gamebit_Set) {
+    if (objSetup->options & SeqDoor_OPTION_1_Delay_Play_Until_Gamebit_Set) {
         objData->startSequence = FALSE;
     }
 
@@ -184,7 +146,7 @@ static void SeqDoor_resetTransform(Object* self, SeqDoor_Data* objData, SeqDoor_
 
 static int SeqDoor_handleCustomFlags(Object* self, SeqDoor_Data* objData, SeqDoor_Setup* objSetup) {
     //Optionally replay the door's sequence if its state gamebit changes outside of animCallback
-    if (objData->flags & SeqDoor_CUSTOMFLAG_80_Sync_With_State_Gamebit) {
+    if (objSetup->options & SeqDoor_OPTION_8_Sync_With_State_Gamebit) {
         if (objSetup->gamebitRestoreState != NO_GAMEBIT) {
             s32 stateGamebitValue = mainGetBits(objSetup->gamebitRestoreState);
 
@@ -194,8 +156,8 @@ static int SeqDoor_handleCustomFlags(Object* self, SeqDoor_Data* objData, SeqDoo
                 objData->startSequence = TRUE;
 
                 //Clear this flag so the preemptTime won't be used
-                if (objData->flags & SeqDoor_CUSTOMFLAG_8_Delay_Play_Until_Gamebit_Set) {
-                    objData->flags &= ~SeqDoor_CUSTOMFLAG_10_Was_Already_Open;
+                if (objSetup->options & SeqDoor_OPTION_1_Delay_Play_Until_Gamebit_Set) {
+                    objData->flags &= ~SeqDoor_CUSTOMFLAG_8_Was_Already_Open;
                 }
 
                 //Put the door back at its initial position when returning to closed state
@@ -210,7 +172,7 @@ static int SeqDoor_handleCustomFlags(Object* self, SeqDoor_Data* objData, SeqDoo
 
     //Optionally unload the door at the end of playing its sequence
     if ((objData->flags & SeqDoor_CUSTOMFLAG_4_Played) && 
-        (objData->flags & SeqDoor_CUSTOMFLAG_40_Unload_At_End_of_Sequence)
+        (objSetup->options & SeqDoor_OPTION_4_Unload_At_End_of_Sequence)
     ) {
         objFreeObject(self);
 #ifdef DEBUG_SEQDOOR
@@ -220,8 +182,8 @@ static int SeqDoor_handleCustomFlags(Object* self, SeqDoor_Data* objData, SeqDoo
     }
 
     //Optionally unload the door just after it loads, if its gamebit was already set before setup
-    if ((objData->flags & SeqDoor_CUSTOMFLAG_10_Was_Already_Open) && 
-        (objData->flags & SeqDoor_CUSTOMFLAG_20_Unload_If_Already_Open)
+    if ((objData->flags & SeqDoor_CUSTOMFLAG_8_Was_Already_Open) && 
+        (objSetup->options & SeqDoor_OPTION_2_Unload_If_Already_Open)
     ) {
         objFreeObject(self);
 #ifdef DEBUG_SEQDOOR
@@ -232,7 +194,7 @@ static int SeqDoor_handleCustomFlags(Object* self, SeqDoor_Data* objData, SeqDoo
 
     //Optionally delay playing the sequence until the door's gamebitRestoreState is set
     if (
-        (objData->flags & SeqDoor_CUSTOMFLAG_8_Delay_Play_Until_Gamebit_Set) &&
+        (objSetup->options & SeqDoor_OPTION_1_Delay_Play_Until_Gamebit_Set) &&
         ((objData->flags & SeqDoor_CUSTOMFLAG_4_Played) == FALSE)
     ) {
         if ((objSetup->gamebitRestoreState != NO_GAMEBIT)) {
@@ -246,6 +208,39 @@ static int SeqDoor_handleCustomFlags(Object* self, SeqDoor_Data* objData, SeqDoo
         }
     }
 
+    return FALSE;
+}
+
+static _Bool SeqDoor_isObjectNearby(Object* self, Object* otherObj) {
+    SeqDoor_Setup* objSetup = (SeqDoor_Setup*)self->setup;
+    if (!otherObj || !objSetup || objSetup->range == 0) {
+        return FALSE;
+    }
+
+    if (objSetup->options & SeqDoor_OPTION_40_3D_Nearby_Check) {
+        if (vec3DistanceSquared(&self->globalPosition, &otherObj->globalPosition) < SQ(objSetup->range)) {
+            return TRUE;
+        }
+    } else {
+        if (vec3DistanceXZSquared(&self->globalPosition, &otherObj->globalPosition) < SQ(objSetup->range)) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+static _Bool SeqDoor_handleDistanceChecks(Object* self) {
+    SeqDoor_Setup* objSetup = (SeqDoor_Setup*)self->setup;
+
+    if (objSetup->options & SeqDoor_OPTION_10_Wait_While_Player_Nearby && SeqDoor_isObjectNearby(self, objGetPlayer())) {
+        return TRUE;
+    }
+
+    if (objSetup->options & SeqDoor_OPTION_20_Wait_While_Sidekick_Nearby && SeqDoor_isObjectNearby(self, objGetSidekick())) {
+        return TRUE;
+    }
+    
     return FALSE;
 }
 
@@ -272,7 +267,7 @@ RECOMP_PATCH void SeqDoor_obj_Control(Object* self) {
     if (objData->startSequence) {
         //Skip the door's objSeq to its preemptTime, if the door's not in its initial state
         if (objSetup->preemptTime && (objData->state != SeqDoor_STATE_0_Closed)
-            && (((objData->flags & SeqDoor_CUSTOMFLAG_8_Delay_Play_Until_Gamebit_Set) == FALSE) || ((objData->flags & SeqDoor_CUSTOMFLAG_8_Delay_Play_Until_Gamebit_Set) && (objData->flags & SeqDoor_CUSTOMFLAG_10_Was_Already_Open))) //@recomp
+            && (((objSetup->options & SeqDoor_OPTION_1_Delay_Play_Until_Gamebit_Set) == FALSE) || ((objSetup->options & SeqDoor_OPTION_1_Delay_Play_Until_Gamebit_Set) && (objData->flags & SeqDoor_CUSTOMFLAG_8_Was_Already_Open))) //@recomp
         ) {
 #ifdef DEBUG_SEQDOOR
             recomp_printf("%s setting preempt time %d (state %d)\n", self->def->name, objSetup->preemptTime, objData->state);
@@ -317,7 +312,7 @@ RECOMP_PATCH int SeqDoor_animCallback(Object *self, Object *animObj, AnimObj_Dat
 #endif
 
     //@recomp: check if state gamebit changed outside of sequence
-    if (objData->flags & SeqDoor_CUSTOMFLAG_80_Sync_With_State_Gamebit) {
+    if (objSetup->options & SeqDoor_OPTION_8_Sync_With_State_Gamebit) {
         if (objSetup->gamebitRestoreState != NO_GAMEBIT) {
             s32 stateGamebitValue = mainGetBits(objSetup->gamebitRestoreState);
 
@@ -394,6 +389,14 @@ RECOMP_PATCH int SeqDoor_animCallback(Object *self, Object *animObj, AnimObj_Dat
                 objData->state = SeqDoor_STATE_2_Opening;
             }
         } else if ((objData->state == SeqDoor_STATE_1_Open) && (mainGetBits(objSetup->gamebitOpenA) == FALSE)) {
+
+            //@recomp: handle optional player/sidekick distance checks
+            if ((objSetup->options & (SeqDoor_OPTION_10_Wait_While_Player_Nearby | SeqDoor_OPTION_20_Wait_While_Sidekick_Nearby)) && 
+                SeqDoor_handleDistanceChecks(self)
+            ) {
+                return !(objData->state == SeqDoor_STATE_2_Opening) && !(objData->state == SeqDoor_STATE_3_Closing);
+            }
+
             //Start closing if gamebitOpenA unsets while the door is open
             objData->state = SeqDoor_STATE_3_Closing;
         }

@@ -15,6 +15,7 @@
 #include "math_util.h"
 #include "mod_common.h"
 #include "object_util.h"
+#include "objects/307_SeqDoor.h"
 #include "objects/511_SHboulder.h"
 
 #include "PR/ultratypes.h"
@@ -369,6 +370,9 @@ static void walled_city_modifications(void) {
             reasset_base_id(0x411B0), NULL);
         cageDoor->gamebitOpenA = NO_GAMEBIT;
         cageDoor->gamebitRestoreState = BIT_7F5;
+        cageDoor->options = SeqDoor_OPTION_1_Delay_Play_Until_Gamebit_Set | 
+                            SeqDoor_OPTION_2_Unload_If_Already_Open | 
+                            SeqDoor_OPTION_4_Unload_At_End_of_Sequence;
     }
 
     // WCSlabDoor
@@ -382,6 +386,7 @@ static void walled_city_modifications(void) {
                 slab->base.x = 959.000;
                 slab->base.y = -874.000;
                 slab->base.z = -5681.000;
+                slab->options = SeqDoor_OPTION_8_Sync_With_State_Gamebit; //Add custom setting too
             }
 
             //MODELS
@@ -416,6 +421,7 @@ static void walled_city_modifications(void) {
             door->base.y = -1123.000;
             door->base.z = -4800.000;
             door->scale = 65;
+            door->options = SeqDoor_OPTION_8_Sync_With_State_Gamebit; //Ensures boss room ramp door is open when Sabre's exiting it with the SpellStone
         }
 
         //MODELS
