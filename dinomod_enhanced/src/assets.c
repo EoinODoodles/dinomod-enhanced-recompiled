@@ -344,6 +344,7 @@ static void walled_city_modifications(void) {
         #define BIT_WC_SlabDoor_Opened 0x813
         #define BIT_WC_Boss_Door_Opened 0x819
         #define BIT_WC_King_EarthWalker_Cage_Opened 0x7F5
+        #define BIT_WC_King_EarthWalker_Rescued 0x1DF
     }
 
     //BLOCKS - Boss Room
@@ -498,7 +499,7 @@ static void walled_city_modifications(void) {
                 //Ensures the arrival sequence only plays on revisits, and doesn't overlap/interfere with the boss intro sequence
                 warp->gamebit = BIT_SpellStone_WC;
 
-                warp->gamebitDepart = DINOMOD_BIT_962_Placeholder; //Set via a TriggerPlane to activate the warp, becomes unset afterwards
+                warp->gamebitDepart = DINOMOD_BIT_962_WC_Boss_Room_Warp_to_Lobby; //Set via a TriggerPlane to activate the warp, becomes unset afterwards
             }
 
             //TriggerPlane (activates outbound warp back to lobby)
@@ -518,12 +519,12 @@ static void walled_city_modifications(void) {
                     .commands[0] = {
                         .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
                         .id = TRG_CMD_BITS,
-                        .paramCombined = TRIG_BITS_MODE(TRUE) | DINOMOD_BIT_962_Placeholder //Set gamebit
+                        .paramCombined = TRIG_BITS_MODE(TRUE) | DINOMOD_BIT_962_WC_Boss_Room_Warp_to_Lobby //Set gamebit
                     },
                     .sizeX = TRIGGER_SCALE(0.812),
                     .sizeY = 0x10,
                     .sizeZ = 0x10,
-                    .conditionBitFlagIDs[0] = BIT_SpellStone_WC //Only works after finishing the boss battle
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT
                 };
                 reasset_map_objects_set(wcBossRoom, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
             }

@@ -61,3 +61,9 @@ RECOMP_PATCH void KT_RexLevel_obj_Setup(Object* self, ObjSetup* setup, s32 reset
 
     self->unkDC = 0;
 }
+
+/* Play Walled City music when leaving */
+RECOMP_PATCH void KT_RexLevel_obj_Free(Object* self, s32 onlySelf) {
+    gDLL_5_AMSEQ2->vtbl->set(self, 0x80, 0, 0, 0); //@recomp: 0xD6 -> 0x80 (0xD6 was blank?) (NOTE: 0x104 could be used as a quieter alternative)
+    gDLL_5_AMSEQ2->vtbl->free(self, 0xD5, 0, 0, 0);
+}

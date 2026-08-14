@@ -74,7 +74,7 @@ typedef enum {
     DINOMOD_BIT_961_Unlock_Cheat49 = 0x961,  // len:1 group:1
 
     /* More placeholders */
-    DINOMOD_BIT_962_Placeholder = 0x962,  // len:1 group:1
+    DINOMOD_BIT_962_WC_Boss_Room_Warp_to_Lobby = 0x962,  // len:1 group:1
     DINOMOD_BIT_963_Placeholder = 0x963,  // len:1 group:1
     DINOMOD_BIT_964_Placeholder = 0x964,  // len:1 group:1
     DINOMOD_BIT_965_Placeholder = 0x965,  // len:1 group:1
