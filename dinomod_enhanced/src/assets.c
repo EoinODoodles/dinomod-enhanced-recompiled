@@ -33,7 +33,14 @@
 #include "sys/math.h"
 #include "sys/memory.h"
 
+INCBIN(block601, "inc/blocks_0601_WC_central_temple_north_east.bin");
+INCBIN(block602, "inc/blocks_0602_WC_central_temple_east.bin");
+INCBIN(block610, "inc/blocks_0610_WC_central_temple_middle.bin");
 INCBIN(block611, "inc/blocks_0611_WC_central_temple_south.bin");
+INCBIN(block612, "inc/blocks_0612_WC_central_temple_southmost.bin");
+INCBIN(block617, "inc/blocks_0617_WC_central_temple_north_west.bin");
+INCBIN(block618, "inc/blocks_0618_WC_central_temple_west.bin");
+INCBIN(block619, "inc/blocks_0619_WC_central_temple_south_west.bin");
 INCBIN(block628, "inc/blocks_0628_WC_moon_temple_viewing_tile.bin");
 INCBIN(block1086, "inc/blocks_1086_WC_boss_corner_sw.bin");
 INCBIN(block1087, "inc/blocks_1087_WC_boss_west_corridor_south.bin");
@@ -83,6 +90,8 @@ INCBIN(objects_shboulder,       "inc/objects_0583_SHboulder.bin");
 INCBIN(objects_shbarrel,        "inc/objects_SHbarrel.bin");
 INCBIN(objects_shbarrelcreator, "inc/objects_SHbarrelcreator.bin");
 
+INCBIN(models_wcsuntempledoor,  "inc/models_0938_WCSunTempleDoor.bin");
+INCBIN(models_wcmoontempledoor, "inc/models_0939_WCMoonTempleDoor.bin");
 INCBIN(models_wcslabdoor,       "inc/models_0942_WCSlabDoor.bin");
 INCBIN(models_wcbossdoor,       "inc/models_0943_WCBossDoor.bin");
 
@@ -348,9 +357,28 @@ static void walled_city_modifications(void) {
         #define BIT_WC_King_EarthWalker_Rescued 0x1DF
     }
 
+    //BLOCKS - Central Temple
+    {
+        /* 
+            - Fix gaps in the temple's Moon/Sun Door entrances
+            - UV/terrain issues in the tunnels to the beacons
+            - Decals for the tunnel's lasers
+            - Prevent Tricky from falling into the pits below the beacons
+            - Prevent Tricky from falling into the pits below the RedEye statues
+            - Collision, UV, and double-sided face fixes around tree border
+        */
+        BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 601, block601); //NE: Prevent Tricky falling into pit below Sun Beacon
+        BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 602, block602); //E: Fix UV/terrain issues in Sun Beacon tunnel, laser decals
+        BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 610, block610); //Middle: Fix gaps in temple's Moon/Sun door entrances, beacon tunnel UV fixes, stop Tricky falling below RedEye statues
+        BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 611, block611); //S: Fix a small gap between WCSlabDoor and its surroundings
+        BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 612, block612); //Southmost: Fix seams and missing collision on tree border
+        BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 617, block617); //NW: Fix stretched UVs on top of the wall beside the tree border
+        BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 618, block618); //W: Fix UV/terrain issues in Moon Beacon tunnel, laser decals
+        BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 619, block619); //SW: Prevent Tricky falling into pit below Moon Beacon
+    }
+
     //BLOCKS - Boss Room
     {
-        
         BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1086, block1086); //Minor UV fixes: ceiling
         BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1087, block1087); //Minor UV fixes: ceiling
         BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1088, block1088); //Minor UV fixes: ceiling
@@ -375,6 +403,121 @@ static void walled_city_modifications(void) {
                             SeqDoor_OPTION_4_Unload_At_End_of_Sequence;
     }
 
+    // WCSunTempleDoor/WCMoonTempleDoor (Fix gaps between the doors and the temple entrances)
+    {
+        typedef struct {
+            ObjSetup base;
+            s8 yaw;
+            s8 mode;
+            s16 offIntervalDuration;
+            s16 firingDuration;
+            s16 gamebitEnabled;
+        } WCSunTempleLaser_Setup;
+
+        // Moon
+        {
+            //MAPS - Align the door exactly with the temple entrance, and add custom settings
+            {
+                SeqDoor_Setup* moonDoor = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x411b4), NULL);
+                moonDoor->base.x = 1280;
+                moonDoor->base.y = -682;
+                moonDoor->base.z = -4800;
+
+                //Don't close on top of the player/sidekick
+                moonDoor->options = SeqDoor_OPTION_10_Wait_While_Player_Nearby | SeqDoor_OPTION_20_Wait_While_Sidekick_Nearby | SeqDoor_OPTION_40_3D_Nearby_Check;
+                moonDoor->range = 64;
+            }
+
+            //MODELS - Fix gaps
+            {
+                MODELS_REPLACE_BASE(reasset_base_id(939), models_wcmoontempledoor);
+            }
+
+            //OBJECTS - Use a modified ObjSeq (Sink down instead of up, to avoid sticking up nonsensically through the next tier's walkway)
+            {
+                ObjDef* moonTempleDoorDef = reasset_objects_get(reasset_base_id(257), NULL);
+                s16* seq = (s16*)((u8*)moonTempleDoorDef + (u32)moonTempleDoorDef->pSeq);
+                seq[0] = 0x450;
+            }
+
+            //MAPS - Align the Moon Beacon tunnel's lasers exactly with the wall tiles
+            //       (so it's easier to predict where they'll appear)
+            {
+                WCSunTempleLaser_Setup* laser;
+                
+                laser = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x4186a), NULL);
+                laser->base.x = 1528.388;
+                laser->base.y = -939.75;
+                laser->base.z = -4900.0;
+                laser->yaw = DEGREES_TO_ANGLE8(180);
+
+                laser = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x41b51), NULL);
+                laser->base.x = 1693.126;
+                laser->base.y = -939.75;
+                laser->base.z = -4900.0;
+                laser->yaw = DEGREES_TO_ANGLE8(180);
+
+                laser = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x4186b), NULL);
+                laser->base.x = 1834.060;
+                laser->base.y = -939.75;
+                laser->base.z = -4900.0;
+                laser->yaw = DEGREES_TO_ANGLE8(180);
+            }
+        }
+
+        // Sun
+        {
+            //MAPS - Align the door exactly with the temple entrance, and add custom settings
+            {
+                SeqDoor_Setup* sunDoor = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x411b1), NULL);
+                sunDoor->base.x = 640;
+                sunDoor->base.y = -682;
+                sunDoor->base.z = -4799;
+
+                //Don't close on top of the player/sidekick
+                sunDoor->options = SeqDoor_OPTION_10_Wait_While_Player_Nearby | SeqDoor_OPTION_20_Wait_While_Sidekick_Nearby | SeqDoor_OPTION_40_3D_Nearby_Check;
+                sunDoor->range = 64;
+            }
+
+            //MODELS - Fix gaps, draw underside (since this door moves up instead of down)
+            {
+                MODELS_REPLACE_BASE(reasset_base_id(938), models_wcsuntempledoor);
+            }
+
+            //MAPS - Align the Sun Beacon tunnel's lasers exactly with the wall tiles
+            //       (so it's easier to predict where they'll appear)
+            {
+                WCSunTempleLaser_Setup* laser;
+                
+                laser = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x41813), NULL);
+                laser->base.x = 391.612;
+                laser->base.y = -939.75;
+                laser->base.z = -4700.0;
+                laser->yaw = 0;
+
+                laser = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x4183d), NULL);
+                laser->base.x = 226.874;
+                laser->base.y = -939.75;
+                laser->base.z = -4700.0;
+                laser->yaw = 0;
+
+                laser = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x4183c), NULL);
+                laser->base.x = 85.940;
+                laser->base.y = -939.75;
+                laser->base.z = -4700.0;
+                laser->yaw = 0;
+            }
+        }
+    }
+
     // WCSlabDoor
     {
         // Fix the small gap between the slab and its surroundings
@@ -392,11 +535,6 @@ static void walled_city_modifications(void) {
             //MODELS
             {
                 MODELS_REPLACE_BASE(reasset_base_id(942), models_wcslabdoor);
-            }
-
-            //BLOCKS
-            {
-                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 611, block611);
             }
         }
 
