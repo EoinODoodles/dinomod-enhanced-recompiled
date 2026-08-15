@@ -356,6 +356,9 @@ static void walled_city_modifications(void) {
         #define BIT_WC_Boss_Door_Opened 0x819
         #define BIT_WC_King_EarthWalker_Cage_Opened 0x7F5
         #define BIT_WC_King_EarthWalker_Rescued 0x1DF
+
+        #define BIT_WC_Transporter_Chamber_Rises 0x335
+        #define BIT_WC_Transporter_Chamber_Opened 0x235
     }
 
     //BLOCKS - Central Temple
@@ -774,6 +777,47 @@ static void walled_city_modifications(void) {
     // Delete DummyObjects in Moon/Sun temple basements (these are objects with an unmapped OBJINDEX.bin entry)
     reasset_map_objects_delete(walledCity, reasset_base_id(0x41AFC));
     reasset_map_objects_delete(walledCity, reasset_base_id(0x41B35));
+
+    //Remove HITS around Central Temple's Krazoa Shrine transporter when risen (fixing a bug where you'd climb over them on your way into the transporter)
+    {
+        #define TRANSPORTER_CHAMBER_HITS_ANIMATOR 0x54
+        #define TRANSPORTER_CHAMBER_HITS_LINE_BASE 32
+
+        //Add animatorID to relevant lines
+        {
+            TrackLine* line;
+            ReAssetID blockIDCentralTempleMiddle = reasset_base_id(610 - wcBlocksBase);
+
+            for (u32 i = 0; i < 4; i++) {
+                line = reasset_hits_get(wcTrkblk, blockIDCentralTempleMiddle, 
+                reasset_base_id(TRANSPORTER_CHAMBER_HITS_LINE_BASE + i));
+
+                line->animatorID = TRANSPORTER_CHAMBER_HITS_ANIMATOR;
+            }
+        }
+    
+        //Add HitAnimator for removing these lines
+        {
+            HitAnimator_Setup hitA = {
+                .base = {
+                    .objId = OBJ_HitAnimator,
+                    .actExclusions1 = 0,
+                    .loadFlags = OBJSETUP_LOAD_MAIN,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = 200,
+                    .fadeDistance = 200,
+                    .x = 959.000,
+                    .y = -413.000,
+                    .z = -4799.000
+                },
+                .gamebitActivate = BIT_WC_Transporter_Chamber_Opened,
+                .mode = hitanimator_configure_mode_flags(
+                    TRUE, FALSE, FALSE),
+                .hitsAnimatorID = TRANSPORTER_CHAMBER_HITS_ANIMATOR
+            };
+            reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+        }
+    }
 
     // Edit objectGroup toggle TriggerPlanes to be directionally specific
     {
