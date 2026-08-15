@@ -674,6 +674,51 @@ static void walled_city_modifications(void) {
                 reasset_map_objects_set(wcBossRoom, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
             }
         }
+
+        //Add HITS lines allowing the player clamber up from the sides of the ramp 
+        //(No real reason for this except that you'd expect to be able to, so shur lookit... why not!)
+        {
+            ReAssetID blockIDCentralTempleMiddle = reasset_base_id(610 - wcBlocksBase);
+            #define BOSS_RAMP_HITS_ANIMATOR 0xB5
+
+            //Uppies
+            {
+                TrackLine stepUpLines[2] = {
+                    { HITS_A(356, -1210, 515), HITS_B(356, -1123, 320), .heightB = 0, .heightA = 87 },
+                    { HITS_A(283, -1123, 320), HITS_B(283, -1210, 515), .heightA = 0, .heightB = 87 }
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(stepUpLines); i++) {
+                    stepUpLines[i].settingsA = 0xe;
+                    stepUpLines[i].settingsB = TrackLine_SETTINGB_Nonsolid | HITS_Clamber_Up;
+                    stepUpLines[i].animatorID = BOSS_RAMP_HITS_ANIMATOR;
+                    reasset_hits_set(wcTrkblk, blockIDCentralTempleMiddle, 
+                        reasset_auto_id(36 + i), REASSET_BASE_NAMESPACE, &stepUpLines[i]);
+                }
+            }
+        
+            //Add HitAnimator for removing these lines
+            {
+                HitAnimator_Setup hitA = {
+                    .base = {
+                        .objId = OBJ_HitAnimator,
+                        .actExclusions1 = 0, //NOTE: HITS line needs controlling regardless of current Act
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 30,
+                        .fadeDistance = 30,
+                        .x = 953.487,
+                        .y = -1123.000,
+                        .z = -4605.000
+                    },
+                    .gamebitActivate = BIT_WC_Boss_Door_Opened,
+                    .mode = hitanimator_configure_mode_flags(
+                        FALSE, FALSE, FALSE),
+                    .hitsAnimatorID = BOSS_RAMP_HITS_ANIMATOR
+                };
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+            }
+        }
     }
 
     //Boss Room - Adding Act values to all boss fight objects (so they can be hidden on revisit)
