@@ -3,6 +3,7 @@
 #include "recomputils.h"
 #include "reasset.h"
 
+#include "core/map.h"
 #include "custom/dlls/SHbarrel.h"
 #include "custom/dlls/SHbarrelcreator.h"
 #include "custom_object_ids.h"
@@ -542,7 +543,7 @@ static void walled_city_modifications(void) {
         {
             //HITS (tag line #6 with an animatorID)
             {
-                HitsLine* line = reasset_hits_get(wcTrkblk, reasset_base_id(611 - wcBlocksBase), reasset_base_id(6));
+                TrackLine* line = reasset_hits_get(wcTrkblk, reasset_base_id(611 - wcBlocksBase), reasset_base_id(6));
                 line->animatorID = 8;
             }
         }
@@ -858,7 +859,7 @@ static void warlock_mountain_platform_modifications(void) {
     ReAssetID wlTrkblk = reasset_base_id(15);
 
     // Modify the ledge grab HITS lines at the lifts' upper destinations, adding HitAnimator tags
-    HitsLine* line;
+    TrackLine* line;
 
     //Krystal's side
     line = reasset_hits_get(wlTrkblk, reasset_base_id(459 - 438), reasset_base_id(0));
@@ -1194,7 +1195,7 @@ static void swapstone_hollow_additions(void) {
         };
 
         for (int i = 0, count = ARRAYCOUNT(points); i < count - 1; i++) {
-            HitsLine line = {
+            TrackLine line = {
                 .Ax = points[i].x,
                 .Ay = points[i].y,
                 .Az = points[i].z,
@@ -1207,7 +1208,7 @@ static void swapstone_hollow_additions(void) {
                 .heightB = 60,
 
                 .settingsA = 0,
-                .settingsB = 1,
+                .settingsB = HITS_1,
 
                 .animatorID = BOULDER_HITS_ANIMATOR,
             };
@@ -1235,7 +1236,6 @@ static void swapstone_hollow_additions(void) {
             };
             reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
         }
-
     }
 
     //Add an ObjectGroup (#21) for the reflection pool cave
@@ -1334,7 +1334,7 @@ static void swapstone_hollow_additions(void) {
             VEC3F(443, -680, 304),
         };
         for (int i = 0, count = ARRAYCOUNT(points); i < count; i++) {
-            HitsLine line = {
+            TrackLine line = {
                 .Ax = points[i].x,
                 .Ay = points[i].y,
                 .Az = points[i].z,
@@ -1347,7 +1347,7 @@ static void swapstone_hollow_additions(void) {
                 .heightB = 80,
 
                 .settingsA = 0xb,
-                .settingsB = 0x01,
+                .settingsB = HITS_1,
             };
             reasset_hits_set(shTrkblk, blockIDReflectionPool, reasset_auto_id(14 + i), REASSET_BASE_NAMESPACE, &line);
         }
@@ -1649,20 +1649,15 @@ static void swapstone_hollow_modifications(void) {
     //Add a HITS line so you dangle off SwapStone Hollow's waterfall when attempting to run off it
     {
         ReAssetID dbTrkblk = reasset_base_id(48);
-        HitsLine line = {
-            .Ax = 538,
-            .Ay = -825,
-            .Az = 308,
+        TrackLine line = {
+            HITS_A(538, -825, 308),
+            HITS_B(575, -825, 434),
 
-            .Bx = 575,
-            .By = -825,
-            .Bz = 434,
-
-            .heightA = 0x28,
-            .heightB = 0x28,
+            .heightA = 40,
+            .heightB = 40,
 
             .settingsA = 0xe,
-            .settingsB = 0x82,
+            .settingsB = TrackLine_SETTINGB_Nonsolid | HITS_Precipice,
 
             .animatorID = 1,
         };
@@ -1847,21 +1842,13 @@ static void swapstone_hollow_well_modifications(void) {
            until Tricky learns Flame.) */
         {
             ReAssetID blockIDLilyPondVines = reasset_base_id(580 - shWellBlocksBase);
-            HitsLine line = {
-                .Ax = 247,
-                .Ay = -1125,
-                .Az = 575,
+            TrackLine line = {
+                HITS_A(247, -1125, 575),
+                HITS_B(460, -1109, 579),
 
-                .Bx = 460,
-                .By = -1109,
-                .Bz = 579,
-
-                .heightA = 0,
-                .heightB = 56,
-
-                .settingsA = 0x8e,
-                .settingsB = 0x01,
-
+                .heightUnified = 56,
+                .settingsA = TrackLine_SETTINGA_Unified_Height | 0xe,
+                .settingsB = HITS_1,
                 .animatorID = 1,
             };
             reasset_hits_set(shWellTrkblk, blockIDLilyPondVines, reasset_base_id(32), REASSET_BASE_NAMESPACE, &line);
@@ -1870,21 +1857,13 @@ static void swapstone_hollow_well_modifications(void) {
         //Add an equivalent HITS line at the opposite side of the vines, so the collision's more stable at that side too
         {
             ReAssetID blockIDLilyPondVines = reasset_base_id(580 - shWellBlocksBase);
-            HitsLine line = {
-                .Ax = 454,
-                .Ay = -1127,
-                .Az = 640,
+            TrackLine line = {
+                HITS_A(454, -1127, 640),
+                HITS_B(238, -1127, 640),
 
-                .Bx = 238,
-                .By = -1127,
-                .Bz = 640,
-
-                .heightA = 0,
-                .heightB = 56,
-
-                .settingsA = 0x8e,
-                .settingsB = 0x01,
-
+                .heightUnified = 56,
+                .settingsA = TrackLine_SETTINGA_Unified_Height | 0xe,
+                .settingsB = HITS_1,
                 .animatorID = 1,
             };
             reasset_hits_set(shWellTrkblk, blockIDLilyPondVines, reasset_auto_id(33), REASSET_BASE_NAMESPACE, &line);
@@ -1895,20 +1874,20 @@ static void swapstone_hollow_well_modifications(void) {
         {
             ReAssetID blockIDLilyPondClimb = reasset_base_id(579 - shWellBlocksBase);
             
-            HitsLine line;
+            TrackLine* line;
 
             //Line 50
             ReAssetID hitsVineTopEdge1 = reasset_base_id(50);
-            bcopy(reasset_hits_get(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge1), &line, sizeof(HitsLine));
-            line.settingsA = 0;
-            line.settingsB = 0x82;
+            line = reasset_hits_get(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge1);
+            line->settingsA = 0;
+            line->settingsB = TrackLine_SETTINGB_Nonsolid | HITS_Precipice;
             reasset_hits_set(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge1, REASSET_BASE_NAMESPACE, &line);
             
             //Line 51
             ReAssetID hitsVineTopEdge2 = reasset_base_id(51);
-            bcopy(reasset_hits_get(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge2), &line, sizeof(HitsLine));
-            line.settingsA = 0;
-            line.settingsB = 0x82;
+            line = reasset_hits_get(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge2);
+            line->settingsA = 0;
+            line->settingsB = TrackLine_SETTINGB_Nonsolid | HITS_Precipice;
             reasset_hits_set(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge2, REASSET_BASE_NAMESPACE, &line);
         }
 
@@ -1927,7 +1906,7 @@ static void swapstone_hollow_well_modifications(void) {
                 VEC3F(296, -1127, 294)
             };
             for (int i = 0, count = ARRAYCOUNT(points); i < count; i++) {
-                HitsLine line = {
+                TrackLine line = {
                     .Ax = points[i].x,
                     .Ay = points[i].y,
                     .Az = points[i].z,
@@ -1940,7 +1919,7 @@ static void swapstone_hollow_well_modifications(void) {
                     .heightB = 40,
 
                     .settingsA = 0,
-                    .settingsB = 0x85
+                    .settingsB = TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice
                 };
                 reasset_hits_set(shWellTrkblk, blockIDStalactiteCave, reasset_auto_id(127 + i), REASSET_BASE_NAMESPACE, &line);
             }
@@ -2346,7 +2325,7 @@ static void discovery_falls_hit_edits(void) {
     ReAssetID dfTrkblk = reasset_base_id(11);
     const int dfTrkblkBase = 319;
 
-    HitsLine* hit;
+    TrackLine* hit;
 
     // Rough edits to make it possible to go down to the waterfall leading to the shrine. These hits
     // in vanilla are for an older DF layout so this patch adjusts them so they don't block the path.
