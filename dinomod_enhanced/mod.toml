@@ -320,6 +320,18 @@ options = [ "Off", "On" ]
 default = "On"
 
 [[manifest.config_options]]
+id = "timer_fractions"
+name = "Timers: Show Fractions"
+description = '''
+The UI countdown that appears during timed challenges normally only displays the remaining seconds. However, its code turns out to also be printing the remaining time down to 60ths of a second, but it ends up invisible because it's drawn outside the box.
+
+Enabling this option displays the fractional portion too, if you prefer it!
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "Off"
+
+[[manifest.config_options]]
 id = "log_a_button"
 name = "Log: Rowing Controls"
 description = '''

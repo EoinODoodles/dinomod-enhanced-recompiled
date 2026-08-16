@@ -69,5 +69,6 @@ typedef enum {
 } PlayAsFoxModes;
 
 _Bool configs_GetWCPressureSwitchQOL(void);
+_Bool configs_GetMenuTimerFractionConfig(void);
 
 #define INFO_POPUP_DURATION 300
