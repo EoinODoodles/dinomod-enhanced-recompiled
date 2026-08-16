@@ -68,4 +68,6 @@ typedef enum {
     PLAY_AS_FOX_ALWAYS                      //Play as Fox regardless of Illusion Spell
 } PlayAsFoxModes;
 
+_Bool configs_GetWCPressureSwitchQOL(void);
+
 #define INFO_POPUP_DURATION 300

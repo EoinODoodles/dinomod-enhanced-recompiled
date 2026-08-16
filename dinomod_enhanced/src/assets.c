@@ -18,6 +18,8 @@
 #include "object_util.h"
 #include "objects/307_SeqDoor.h"
 #include "objects/511_SHboulder.h"
+#include "objects/780_WCBeacon.h"
+#include "objects/781_WCPressureSwitch.h"
 
 #include "PR/ultratypes.h"
 #include "dlls/objects/common/collectable.h"
@@ -407,6 +409,32 @@ static void walled_city_modifications(void) {
                             SeqDoor_OPTION_4_Unload_At_End_of_Sequence;
     }
 
+    // WCPressureSwitch
+    {
+        // Moon
+        {
+            //MAPS - Restore Moon switch's model, store Beacon Lit gamebit
+            {
+                WCPressureSwitch_Setup* pSwitch = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x411b6), NULL);
+                pSwitch->modelIdx = 1;
+                pSwitch->gamebitFinished = BIT_WC_Moon_Beacon_Lit;
+                pSwitch->gamebitPlayerOnSwitch = DINOMOD_BIT_92E_WC_Player_on_Moon_Pressure_Switch;
+            }
+        }
+
+        // Sun
+        {
+            //MAPS - Store Beacon Lit gamebit
+            {
+                WCPressureSwitch_Setup* pSwitch = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x411b3), NULL);
+                pSwitch->gamebitFinished = BIT_WC_Sun_Beacon_Lit;
+                pSwitch->gamebitPlayerOnSwitch = DINOMOD_BIT_92F_WC_Player_on_Sun_Pressure_Switch;
+            }
+        }
+    }
+
     // WCSunTempleDoor/WCMoonTempleDoor (Fix gaps between the doors and the temple entrances)
     {
         typedef struct {
@@ -519,6 +547,25 @@ static void walled_city_modifications(void) {
                 laser->base.z = -4700.0;
                 laser->yaw = 0;
             }
+        }
+    }
+
+    // WCBeacons
+    {
+        // Sun beacon
+        {
+            WCBeacon_Setup* sunBeacon = reasset_map_objects_get(walledCity, 
+                reasset_base_id(0x411B2), NULL);
+            sunBeacon->gamebitSwitch = BIT_WC_Sun_Pressure_Switch_Active;
+            sunBeacon->gamebitSlab = BIT_WC_SlabDoor_Sun_Symbol_Lit;
+        }
+
+        // Moon beacon
+        {
+            WCBeacon_Setup* sunBeacon = reasset_map_objects_get(walledCity, 
+                reasset_base_id(0x411B5), NULL);
+            sunBeacon->gamebitSwitch = BIT_WC_Moon_Pressure_Switch_Active;
+            sunBeacon->gamebitSlab = BIT_WC_SlabDoor_Moon_Symbol_Lit;
         }
     }
 

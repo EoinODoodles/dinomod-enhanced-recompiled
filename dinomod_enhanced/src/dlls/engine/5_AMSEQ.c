@@ -2,9 +2,12 @@
 #include "recomputils.h"
 #include "recompconfig.h"
 
+#include "engine/5_AMSEQ.h"
+
 #include "PR/os.h"
 #include "PR/ultratypes.h"
 #include "PR/ultratypes.h"
+#include "dll.h"
 #include "game/gamebits.h"
 #include "game/objects/object_id.h"
 #include "libnaudio/n_libaudio.h"
@@ -15,7 +18,6 @@
 #include "sys/main.h"
 #include "sys/memory.h"
 #include "sys/menu.h"
-#include "dll.h"
 
 #include "recomp/dlls/engine/5_AMSEQ_recomp.h"
 
@@ -132,4 +134,23 @@ RECOMP_PATCH s32 amseq_set(Object *obj, u16 actionNo, const char *filename, s32 
 
     bail:
     return -1;
+}
+
+
+/* Checks whether a specific musicPlayer has reached its stopped state or stopping state
+   (TODO: is there an existing function for this?) */
+_Bool AMSEQ_hasMusicPlayerStopped(s32 musicPlayerNo) {
+    AMSEQPlayer* musicPlayer;
+
+    //Handle out-of-bounds musicPlayerNo
+    if (musicPlayerNo < 0 || musicPlayerNo >= 4) {
+        return FALSE;
+    }
+
+    musicPlayer = sSeqPlayers[musicPlayerNo];   
+    if (musicPlayer && (musicPlayer->seqp.state == 0 || musicPlayer->seqp.state == 2)) {
+        return TRUE;
+    }
+
+    return FALSE;
 }
