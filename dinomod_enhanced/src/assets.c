@@ -491,6 +491,10 @@ static void walled_city_modifications(void) {
                 laser->base.y = -939.75;
                 laser->base.z = -4900.0;
                 laser->yaw = DEGREES_TO_ANGLE8(180);
+                //Put this laser into the same objectGroup as its peers 
+                //(for some reason it wasn't in an objectGroup before, unlike all the other beacon tunnel lasers)
+                laser->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                laser->base.mapObjGroup = 1;
 
                 laser = reasset_map_objects_get(walledCity, 
                     reasset_base_id(0x4186b), NULL);
