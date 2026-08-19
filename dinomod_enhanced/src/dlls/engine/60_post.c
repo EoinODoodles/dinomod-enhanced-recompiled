@@ -39,7 +39,7 @@ static char dinomod_enhanced_message[] = "(Dinomod Enhanced: Recompiled - v0.9.3
 
 /** Option to skip directly to Game Select on boot-up (to speed up testing things when working on mods) */
 RECOMP_PATCH void dll_60_update2(void) {
-    if (recomp_get_config_u32("rolling_demo") == BOOTCONFIG_Skip_to_Game_Select) {
+    if (configs_GetBootUpMode() == BOOTCONFIG_Skip_to_Game_Select) {
         mainSetBits(BIT_Menus_Selection_Blocked, 0);
         gDLL_29_Gplay->vtbl->load_game_options();
         menuSet(MENU_GAME_SELECT);

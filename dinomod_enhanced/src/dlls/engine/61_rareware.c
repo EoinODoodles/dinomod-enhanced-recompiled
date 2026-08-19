@@ -114,7 +114,7 @@ static s32 update1_hijack(void) {
         mainSetBits(BIT_Menus_Selection_Blocked, 0);
 
         //@recomp: title screen after Rareware
-        if (recomp_get_config_u32("rolling_demo") == BOOTCONFIG_Restore_Rolling_Demo) {
+        if (configs_GetBootUpMode() == BOOTCONFIG_Restore_Rolling_Demo) {
             recomp_main_menu();
         } else {
             menuSet(MENU_GAME_SELECT);

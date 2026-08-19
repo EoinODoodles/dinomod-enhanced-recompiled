@@ -1,3 +1,4 @@
+#include "configs.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
@@ -207,7 +208,7 @@ RECOMP_PATCH void MagicDust_control(Object* self) {
                 }
                 
                 //Reflect speed vector off surface normal (@recomp: make use of unused reflect calculation!)
-				if (recomp_get_config_u32("magic_dust_reflect_bounce")) {
+				if (configs_GetMagicGemReflectBounce()) {
 					//FANCY REFLECTED BOUNCE
 
                     //R = V - 2*(V ⋅ N)*N

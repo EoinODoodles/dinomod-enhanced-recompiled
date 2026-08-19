@@ -182,7 +182,7 @@ REASSET_ON_FST_SET_LOW_PRIORITY void dinomod_on_reasset_fst_set(void) {
     INCFST(ENVFXACT_BIN, ENVFXACT, bin)
     INCFST(FONTS_BIN, FONTS, bin)
 
-    if (recomp_get_config_u32("gametext_flavor") == GAMETEXT_COSMETIC) {
+    if (configs_GetGametextFlavour() == GAMETEXT_COSMETIC) {
         INCFST(GAMETEXT_BIN, GAMETEXT_cosmetic, bin)
         INCFST(GAMETEXT_TAB, GAMETEXT_cosmetic, tab)
     } else {

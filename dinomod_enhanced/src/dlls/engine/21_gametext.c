@@ -1,20 +1,21 @@
-#include "PR/os.h"
-#include "libc/string.h"
-#include "PR/ultratypes.h"
+#include "configs.h"
 #include "modding.h"
 #include "recomputils.h"
 #include "recompconfig.h"
 
+#include "PR/os.h"
+#include "PR/ultratypes.h"
+#include "libc/string.h"
+#include "dll.h"
+#include "dlls/engine/29_gplay.h"
+#include "game/objects/object_id.h"
 #include "sys/asset.h"
 #include "sys/dll.h"
 #include "sys/pi.h"
 #include "sys/memory.h"
 #include "sys/print.h"
 #include "sys/string.h"
-#include "dll.h"
 #include "types.h"
-#include "game/objects/object_id.h"
-#include "dlls/engine/29_gplay.h"
 
 #include "recomp/dlls/engine/21_gametext_recomp.h"
 
@@ -171,7 +172,7 @@ static s32 find_stringID_with_substring(GameTextChunk *gametext, char *substring
 /** Edits the FrostWeed count mentioned in the Gametext lines related to Garunda Te's FrostWeed quest */
 static void recomp_garunda_te_dynamic_frostweed_counts(u16 fileID, GameTextChunk *gametext){
     s32 editStringID = -1;
-    s32 frostWeedsTotal = recomp_get_config_u32("garunda_te_frostweeds_override");
+    s32 frostWeedsTotal = configs_GetFrostWeedMax();
     char replacementNumberText[] = "";
     char frostWeedTranslations[6][2][40] = {
         {"Frost Weed", "Frost Weeds"},

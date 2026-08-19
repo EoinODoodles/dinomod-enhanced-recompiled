@@ -1,3 +1,4 @@
+#include "configs.h"
 #include "math_util.h"
 #include "modding.h"
 #include "player_util.h"
@@ -71,7 +72,7 @@ extern void SHkillermushroom_reset(Object* self, SHkillermushroom_Data_Modified*
 
 /** Handles switching the mushroom's hidden state config mid-gameplay */
 static void SHkillermushroom_handle_config_change(Object* self, SHkillermushroom_Setup_Modified* objSetup, SHkillermushroom_Data_Modified* objData) {
-    int showHiddenStates = recomp_get_config_u32("shkillermushroom_show_hidden_states");
+    int showHiddenStates = configs_GetRedMushroomsEnhanced();
     
     if (!self || !objSetup || !objData) {
         return;
@@ -495,7 +496,7 @@ RECOMP_PATCH void SHkillermushroom_control(Object* self) {
 
 		//@recomp: handle health
 		if (objData->health == 1) {
-			if (recomp_get_config_u32("shkillermushroom_show_hidden_states")) {
+			if (configs_GetRedMushroomsEnhanced()) {
 				objData->health = 3;
 			} else {
 				objData->health = objSetup->health;
@@ -579,7 +580,7 @@ RECOMP_PATCH void SHkillermushroom_reset(Object* self, SHkillermushroom_Data_Mod
     }
 
     //@recomp: reset health
-	if (recomp_get_config_u32("shkillermushroom_show_hidden_states")) {
+	if (configs_GetRedMushroomsEnhanced()) {
 		objData->health = MUSHROOM_DEFAULT_HEALTH;
 	} else {
 		objData->health = objSetup->health;

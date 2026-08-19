@@ -1,39 +1,29 @@
-#include "PR/os.h"
-#include "PR/ultratypes.h"
 #include "common_objsetups.h"
+#include "configs.h"
 #include "modding.h"
 #include "recomputils.h"
 #include "recompconfig.h"
 
 #include "old_pickup_sfx_bank.h"
 
-#include "game/gamebits.h"
-#include "game/objects/object_id.h"
+#include "PR/os.h"
+#include "PR/ultratypes.h"
 #include "libnaudio/n_libaudio.h"
 #include "libnaudio/n_sndplayer.h"
 #include "mp3/mp3.h"
+#include "dll.h"
+#include "game/gamebits.h"
+#include "game/objects/object_id.h"
 #include "sys/acache.h"
-#include "sys/pi.h"
-#include "sys/main.h"
-#include "sys/map.h"
-#include "sys/mpeg.h"
 #include "sys/asset.h"
 #include "sys/dll.h"
 #include "sys/pi.h"
+#include "sys/main.h"
+#include "sys/map.h"
 #include "sys/memory.h"
-#include "dll.h"
+#include "sys/mpeg.h"
 #include "sys/objects.h"
 #include "types.h"
-
-enum RecompPickupJingle {
-    RECOMP_PICKUP_JINGLE_OLD_A,
-    RECOMP_PICKUP_JINGLE_OLD_B,
-    RECOMP_PICKUP_JINGLE_NEW
-};
-
-static u32 dinomod_pickup_jingle(void) {
-    return recomp_get_config_u32("pickup_jingle");
-}
 
 #include "recomp/dlls/engine/6_AMSFX_recomp.h"
 
@@ -122,10 +112,8 @@ enum SoundFlags {
 
 /** Changes it so Garunda Te doesn't say "12" FrostWeeds if the total needed has changed */
 static void recomp_sound_remap_garunda_te_frostweeds(u16 soundID, SoundDef* soundEntry){
-    s32 frostWeedsMax = recomp_get_config_u32("garunda_te_frostweeds_override");
-
     //Don't replace the MP3 if the FrostWeed goal hasn't changed
-    if (frostWeedsMax == 12){
+    if (configs_GetFrostWeedMax() == 12){
         return;
     }
 
@@ -137,7 +125,7 @@ static void recomp_intercept_soundIDs(u16 soundID, SoundDef* soundEntry, ALBank 
     switch (soundID){
         case SOUND_B8A_FirstTimeItemPickup:
             // @recomp: Replace item pickup jingle with the old version (original patch by nuggs)
-            pickupJingleConfig = dinomod_pickup_jingle();
+            pickupJingleConfig = configs_GetPickupJingleMode();
             if (pickupJingleConfig != RECOMP_PICKUP_JINGLE_NEW) {
                 *bank = recomp_oldPickupSfxBank;
                 soundEntry->bankAndClipID = pickupJingleConfig == RECOMP_PICKUP_JINGLE_OLD_A ? 1 : 2;

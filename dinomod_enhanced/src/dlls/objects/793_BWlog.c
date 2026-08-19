@@ -1,3 +1,4 @@
+#include "configs.h"
 #include "modding.h"
 #include "recompconfig.h"
 
@@ -14,24 +15,6 @@
 #include "sys/print.h"
 #include "dll.h"
 
-enum RecompLogAButtonMode {
-    RECOMP_LOG_ROWING_TAP,
-    RECOMP_LOG_ROWING_HOLD
-};
-
-enum RecompLogCanRoll {
-    RECOMP_LOG_ROLL_DISABLED,
-    RECOMP_LOG_ROLL_ENABLED
-};
-
-static int dinomod_log_can_hold_a(void) {
-    return recomp_get_config_u32("log_a_button") == RECOMP_LOG_ROWING_HOLD;
-}
-
-static int dinomod_log_can_roll(void) {
-    return recomp_get_config_u32("log_rolling") == RECOMP_LOG_ROLL_ENABLED;
-}
-
 #include "recomp/dlls/objects/793_BWlog_recomp.h"
 
 typedef enum {
@@ -41,7 +24,6 @@ typedef enum {
     BWLog_STATE_3_Placeholder1,
     BWLog_STATE_4_Placeholder2
 } BWlog_States;
-
 
 typedef struct {
 /*000*/ DLL27_Data collider;
@@ -557,7 +539,7 @@ RECOMP_PATCH void BWlog_handleControlsAButton(Object* self, BWlog_Data* objdata)
     }
 
     // @recomp: Disable rolling (unless renabled via an option)
-    if (doubleTappedA && dinomod_log_can_roll()) {
+    if (doubleTappedA && configs_LogCanRoll()) {
         //Roll when double-tapping A
         if (objdata->joyStickX > 20) {
             BWlog_startRoll(self, objdata, FALSE);
@@ -569,7 +551,7 @@ RECOMP_PATCH void BWlog_handleControlsAButton(Object* self, BWlog_Data* objdata)
             objdata->state = BWLog_STATE_1_Roll_Left;
         }
       // @recomp: If enabled, allow the A button to be held instead of requiring repeated tapping
-    } else if ((objdata->joyPressed & A_BUTTON) || (dinomod_log_can_hold_a() && joyGetButtons(0) & A_BUTTON)) {
+    } else if ((objdata->joyPressed & A_BUTTON) || (configs_LogCanHoldA() && joyGetButtons(0) & A_BUTTON)) {
         //Paddle with single A-press
         objdata->paddleTimer = 30.0f;
     }

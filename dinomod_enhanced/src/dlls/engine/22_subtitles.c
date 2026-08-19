@@ -1,3 +1,4 @@
+#include "configs.h"
 #include "modding.h"
 #include "recompconfig.h"
 
@@ -7,13 +8,8 @@
 #include "sys/main.h"
 #include "sys/vi.h"
 
-typedef enum {
-    UPCOMING_SUBTITLE_TRANS_VANILLA,
-    UPCOMING_SUBTITLE_TRANS_INVISIBLE,
-} UpcomingSubtitleTransparencyOption;
-
 static _Bool hide_upcoming() {
-    return recomp_get_config_u32("upcoming_subtitle_trans") == UPCOMING_SUBTITLE_TRANS_INVISIBLE;
+    return configs_GetHideUpcomingSubtitles();
 }
 
 #include "recomp/dlls/engine/22_subtitles_recomp.h"

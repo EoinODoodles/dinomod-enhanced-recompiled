@@ -1,15 +1,15 @@
-#include "PR/os.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
-#include "configs.h"
 
+#include "PR/os.h"
 #include "common.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
 #include "sys/menu.h"
 #include "sys/objanim.h"
 
+#include "configs.h"
 #include "core/joypad.h"
 
 #include "recomp/dlls/objects/478_DBSH_Symbol_recomp.h"
@@ -62,7 +62,7 @@ static u32 rsFramesSinceLastAutoTap = 0;
 RECOMP_PATCH int DBSH_Symbol_anim_callback(Object* self, Object* overrideObj, AnimObj_Data* animData, s8 arg3) {
     static s32 sPrevYaw;
     /* RECOMP */
-    u8 rButtonTapMode = recomp_get_config_u32("button_tap_modes");
+    u8 rButtonTapMode = configs_GetButtonTapMode();
     u8 doAssistedTaps = 0;
     
     DBSH_Symbol_Data* objData;

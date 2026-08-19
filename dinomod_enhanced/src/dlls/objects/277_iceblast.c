@@ -1,3 +1,4 @@
+#include "configs.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
@@ -21,7 +22,7 @@ RECOMP_PATCH void iceblast_control(Object* self) {
     SRT transform;
     //@recomp
     Player_Data* playerData;
-    int reduceIceBlastCost = recomp_get_config_u32("iceblast_cost");
+    int reduceIceBlastCost = configs_GetIceBlastCostReduced();
 
     player = objGetPlayer();
     objdata = self->data;

@@ -1,8 +1,8 @@
+#include "configs.h"
 #include "modding.h"
 #include "player_util.h"
 #include "recompconfig.h"
 #include "recomputils.h"
-#include "configs.h"
 
 #include "PR/gbi.h"
 #include "macros.h"
@@ -174,7 +174,7 @@ static void add_to_inventory(Object* self, SHmushroom_Data_Extended* objData, SH
 	}
 
 	//Optionally show an item collection pop-up
-	if (recomp_get_config_u32("cmdmenu_info_popup_expand") &&
+	if (configs_GetItemInfoPopupMode() &&
 		showPopup &&
 		count && 
 		objData->gamebitInventory != NO_GAMEBIT
@@ -430,7 +430,7 @@ RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Ex
 	Object* player;
 	/* @recomp */
 	s8 tutorialSeen = FALSE;
-	s8 configDanceChance = recomp_get_config_u32("shmushroom_dance_chance");
+	s8 configDanceChance = configs_GetMushroomDanceChance();
 	s8 percentThreshold;
 
 	player = objGetPlayer();

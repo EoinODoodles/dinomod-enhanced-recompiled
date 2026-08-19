@@ -33,15 +33,6 @@
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/277_iceblast.h"
 
-enum RecompSpellAimFireLockOption {
-    RECOMP_SPELL_AIM_FIRE_LOCK_OFF,
-    RECOMP_SPELL_AIM_FIRE_LOCK_ON
-};
-
-static _Bool recomp_should_lock_aim_while_firing(void) {
-    return recomp_get_config_u32("spell_aim_fire_lock") == RECOMP_SPELL_AIM_FIRE_LOCK_ON;
-}
-
 #include "recomp/dlls/objects/210_player_recomp.h"
 
 #define DEBUG_MESSAGES FALSE
@@ -2006,7 +1997,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
     s32 i;
     Player_Data* objdata;
     //@recomp: Ice Blast config
-    int reduceIceBlastCost = recomp_get_config_u32("iceblast_cost");
+    int reduceIceBlastCost = configs_GetIceBlastCostReduced();
 
     objdata = player->data;
     if (fsa->enteredAnimState != 0) {
@@ -2357,7 +2348,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
         break;
     case 0x43F:
         // @recomp: Don't lock aim while firing, if option is enabled
-        if (!recomp_should_lock_aim_while_firing() && fsa->target == NULL) {
+        if (!configs_GetSpellAimFireLock() && fsa->target == NULL) {
             if (*_bss_220 == BIT_Spell_Grenade) {
                 var_fa0 = fsa->yAnalogInput / 50.0f;
                 if (var_fa0 < -1.45f) {
@@ -2619,7 +2610,7 @@ void player_get_hand_coords(Vec3f* v) {
 
 /** Option to always play as Fox instead of Sabre */
 RECOMP_HOOK_DLL(dll_210_control) void play_as_fox(Object* self) {
-    u8 config = recomp_get_config_u32("play_as_fox");
+    u8 config = configs_GetPlayAsFoxMode();
 
     if (!self || (self->id != OBJ_Sabre)) {
         return;

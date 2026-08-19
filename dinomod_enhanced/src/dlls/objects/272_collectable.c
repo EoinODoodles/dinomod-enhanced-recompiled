@@ -208,7 +208,7 @@ static s16 collectable_override_tutorial_gamebitID(Object* self, Collectable_Set
     s16 defaultGamebit = objSetup->animMessage;
 
     //Check if repeat collections should be overridden
-    if (recomp_get_config_u32("cmdmenu_info_popup_expand") < POPUP_CONFIG_OVERRIDE_TUTORIAL_ON_REPEAT) {
+    if (configs_GetItemInfoPopupMode() < POPUP_CONFIG_OVERRIDE_TUTORIAL_ON_REPEAT) {
         return defaultGamebit;
     }
 
@@ -273,7 +273,7 @@ static s16 collectable_get_popup_icon_gamebit(Object* self, Collectable_Setup* o
     case OBJ_beanPickup:
         return get_food_inventory_gamebit(self);
     case OBJ_CCgoldnuggetPic:
-        stackableGold = recomp_get_config_u32("cmdmenu_stack_shiny_nuggets");
+        stackableGold = configs_GetStackShinyNuggets();
         if (stackableGold) {
             return objSetup->gamebitCount;
         } else {
@@ -317,7 +317,7 @@ static void collectable_handle_popup(Object* self, Collectable_Setup* objSetup, 
     #endif
 
     //Do nothing if the mod config isn't enabled
-    if (recomp_get_config_u32("cmdmenu_info_popup_expand") == FALSE) {
+    if (configs_GetItemInfoPopupMode() == POPUP_CONFIG_DEFAULT) {
         return;
     }
 

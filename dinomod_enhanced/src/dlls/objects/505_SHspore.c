@@ -118,7 +118,7 @@ RECOMP_PATCH void SHspore_control(Object* self) {
                 particleCount = 0;
 
                 //@recomp: optionally show an item collection pop-up
-                if (recomp_get_config_u32("cmdmenu_info_popup_expand")) {
+                if (configs_GetItemInfoPopupMode()) {
                     gDLL_1_cmdmenu->vtbl->info_show(
                         BIT_Inventory_Purple_Mushrooms, 
                         INFO_POPUP_DURATION,

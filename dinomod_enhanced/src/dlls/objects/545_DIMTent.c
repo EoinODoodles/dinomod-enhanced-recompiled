@@ -102,7 +102,7 @@ static void DIMTent_createCog(Object* self, DIMTent_Setup* objSetup, DIMTent_Dat
 RECOMP_PATCH void DIMTent_obj_Setup(Object* self, DIMTent_Setup* objSetup, s32 arg2) {
     DIMTent_Data_Extended* objData = self->data;
     /* RECOMP */
-    u8 tentConfig = recomp_get_config_u32("dim_tent_cinders");
+    u8 tentConfig = configs_GetDIMTentMode();
 
     self->srt.yaw = objSetup->yaw << 8;
     self->stateFlags |= OBJSTATE_UPDATE_DISABLED;
@@ -253,7 +253,7 @@ RECOMP_PATCH void DIMTent_obj_Print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex*
     DIMTent_Data_Extended* objData = self->data;
     u8 prevOpacity = self->opacity;
     u8 prevOpacityWithFade = self->opacityWithFade;
-    u8 tentConfig = recomp_get_config_u32("dim_tent_cinders");
+    u8 tentConfig = configs_GetDIMTentMode();
 
     s32 tempOpacity;
 

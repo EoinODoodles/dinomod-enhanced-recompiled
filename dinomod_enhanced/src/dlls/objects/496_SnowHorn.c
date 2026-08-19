@@ -1,11 +1,12 @@
+#include "configs.h"
 #include "modding.h"
 #include "recomputils.h"
 #include "recompconfig.h"
 
 #include "common.h"
+#include "dlls/objects/227_tumbleweed.h"
 #include "sys/gfx/animseq.h"
 #include "sys/objtype.h"
-#include "dlls/objects/227_tumbleweed.h"
 
 #include "recomp/dlls/objects/496_SnowHorn_recomp.h"
 
@@ -73,20 +74,12 @@ typedef struct{
 /*0x1D*/ s8 unk1D;
 } SnowHorn_Setup;
 
-static s32 getFrostWeedMaxOverride() {
-    return recomp_get_config_u32("garunda_te_frostweeds_override");
-}
-
-static _Bool getFrostWeedTwigsConfigs() {
-    return recomp_get_config_u32("garunda_te_frostweeds_accept_twigs");
-}
-
 // Adds config options for Garunda Te's FrostWeed quest
 RECOMP_PATCH void SnowHorn_garundaTeControl(Object* self, SnowHorn_Data* objdata, SnowHorn_Setup* setup) {
     Object* frostWeed;
     s32 weeds;
-    s8 FROSTWEED_MAX_OVERRIDE = getFrostWeedMaxOverride(); //@recomp
-    s8 FROSTWEED_TWIGS_ACCEPTED = getFrostWeedTwigsConfigs(); //@recomp
+    s8 FROSTWEED_MAX_OVERRIDE = configs_GetFrostWeedMax(); //@recomp
+    s8 FROSTWEED_TWIGS_ACCEPTED = configs_GetFrostWeedTwigsConfig(); //@recomp
     
     self->unkAF &= 0xFFF7;
     switch (objdata->flags) {

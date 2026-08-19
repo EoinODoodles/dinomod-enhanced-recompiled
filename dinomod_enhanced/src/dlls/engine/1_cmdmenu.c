@@ -564,7 +564,7 @@ RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits() {
   */
 static void kiosk_icons_gold_silver_keys() {
     static s8 rsKioskIconsStateKeys = -1;
-    u8 enabled = recomp_get_config_u32("cmdmenu_icons_gold_silver_keys");
+    u8 enabled = configs_GetIconGoldSilverKeys();
 
     //Check if the setting changed
     if (rsKioskIconsStateKeys != enabled) {
@@ -588,7 +588,7 @@ static void kiosk_icons_gold_silver_keys() {
   */
 static void kiosk_icons_firefly() {
     static s8 rsKioskIconsStateFirefly = -1;
-    u8 enabled = recomp_get_config_u32("cmdmenu_icons_firefly");
+    u8 enabled = configs_GetIconFirefly();
 
     //Check if the setting changed
     if (rsKioskIconsStateFirefly != enabled) {
@@ -612,7 +612,7 @@ static void kiosk_icons_firefly() {
   */
 static void custom_icons_energy_eggs() {
     static s8 rsKioskIconsStateEnergyEggs = -1;
-    u8 enabled = recomp_get_config_u32("cmdmenu_icons_energy_eggs");
+    u8 enabled = configs_GetIconEnergyEggs();
 
     //Check if the setting changed
     if (rsKioskIconsStateEnergyEggs != enabled) {
@@ -706,7 +706,7 @@ static void remove_extra_descriptions() {
 RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits_extra_text() {
     dPage6MagicSpells[INVENTORY_SPELL_2_GRENADE].textID = GAMETEXT_UI_15_Fire_Spell; //Change from "Randorn" to "Fire Spell" (unused text that was overwritten with "Grenade") (TODO: restore "Fire Spell" string and append a new string for "Grenade Spell"?)
 
-    useExtraDescriptions = recomp_get_config_u32("lamingaming_extra_description_text");
+    useExtraDescriptions = configs_GetGametextUseExtraDescriptions();
     if (!useExtraDescriptions)
         return;
 
@@ -715,7 +715,7 @@ RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits_extra_text() {
 
 /** Check if extra text user config has changed */
 RECOMP_CALLBACK("*", recomp_on_game_tick_start) void update_extra_text_inventory() {
-    u32 setting = recomp_get_config_u32("lamingaming_extra_description_text");
+    u32 setting = configs_GetGametextUseExtraDescriptions();
     if (useExtraDescriptions == setting){
         return;
     }
@@ -755,7 +755,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
     u8 texIdx;
     static char playerScarabCountText[4] = "   ";
     /* RECOMP */
-    u8 rConfigActiveIconOverlapFix = recomp_get_config_u32("cmdmenu_active_icon_overlap");
+    u8 rConfigActiveIconOverlapFix = configs_GetUIActiveIconOverlapMode();
 
     dl = *gdl;
     temp = viGetCurrentSize();
@@ -908,7 +908,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
 
     //Draw character icon
     {
-        _Bool rConfigFoxIcon = recomp_get_config_u32("cmdmenu_icons_fox");
+        _Bool rConfigFoxIcon = configs_GetIconFox();
         static s16 rsIllusionOpacity;
         static u8 rsIllusionIcon = 0;
         ModelInstance* modelInst;
@@ -1328,7 +1328,7 @@ static int sidekick_meter_handle_full(int isBlueEnergy, s8 energyAdded) {
     #endif
 
     //Only showing Blue energy (ignoring Red energy)
-    if (recomp_get_config_u32("cmdmenu_sidekick_meter_hide_red")) {
+    if (configs_GetSidekickMeterHideRedFood()) {
         if (*statToIncrease >= SIDEKICK_FOOD_MAX) {
             *statToIncrease = SIDEKICK_FOOD_MAX;
 
@@ -1521,8 +1521,8 @@ s8 cmdmenu_new_get_next_category_right(Object* player, Object* sidekick, s8* rMo
 
 /** Map the blocked C-buttons onto the D-pad when using optional D-pad controls */
 static u16 cmdmenu_get_extended_disabled_buttons() {
-    u8 rNewControls = recomp_get_config_u32("cmdmenu_new_controls");  //whether to use new controls
-    u8 rDControls = recomp_get_config_u32("cmdmenu_d_controls") > DPAD_OFF; //whether D-pad can navigate
+    u8 rNewControls = configs_GetInventoryNewControls();  //whether to use new controls
+    u8 rDControls = configs_GetInventoryDPadMode() > DPAD_OFF; //whether D-pad can navigate
     u16 joyButtonMaskExtended = sJoyDisabledButtons;
 
     //@recomp: handle optional new controls
@@ -1569,9 +1569,9 @@ RECOMP_PATCH void cmdmenu_update2(void) {
     s8 autoShowInfoScroll;
     s8 newPageIndex;
     /* RECOMP */
-    u8 rNewControls = recomp_get_config_u32("cmdmenu_new_controls"); //whether to use new controls
-    u8 rDControls = recomp_get_config_u32("cmdmenu_d_controls") > DPAD_OFF; //whether D-pad can navigate
-    u8 rCControls = recomp_get_config_u32("cmdmenu_d_controls") < DPAD_ON_CBUTTONS_OFF; //whether C-buttons can navigate
+    u8 rNewControls = configs_GetInventoryNewControls(); //whether to use new controls
+    u8 rDControls = configs_GetInventoryDPadMode() > DPAD_OFF; //whether D-pad can navigate
+    u8 rCControls = configs_GetInventoryDPadMode() < DPAD_ON_CBUTTONS_OFF; //whether C-buttons can navigate
     u16 rAllMenuOpenButtons = (rCControls * ALL_MENUOPEN_C_BUTTONS) | (rDControls * ALL_MENUOPEN_D_PAD);
     u16 rMenuLeft = (rCControls * L_CBUTTONS) | (rDControls * L_JPAD);
     u16 rMenuDown = (rCControls * D_CBUTTONS) | (rDControls * D_JPAD);
@@ -1846,9 +1846,9 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
     s32 usedGamebit;
     s8 isSidekickMenu;
     /* RECOMP */
-    u8 rNewControls = recomp_get_config_u32("cmdmenu_new_controls"); //whether to use new controls
-    u8 rDControls = recomp_get_config_u32("cmdmenu_d_controls") > DPAD_OFF; //whether D-pad can navigate
-    u8 rCControls = recomp_get_config_u32("cmdmenu_d_controls") < DPAD_ON_CBUTTONS_OFF; //whether C-buttons can navigate
+    u8 rNewControls = configs_GetInventoryNewControls(); //whether to use new controls
+    u8 rDControls = configs_GetInventoryDPadMode() > DPAD_OFF; //whether D-pad can navigate
+    u8 rCControls = configs_GetInventoryDPadMode() < DPAD_ON_CBUTTONS_OFF; //whether C-buttons can navigate
     u16 rAllMenuOpenButtons = (rCControls * ALL_MENUOPEN_C_BUTTONS) | (rDControls * ALL_MENUOPEN_D_PAD);
     u16 rMenuLeft = (rCControls * L_CBUTTONS) | (rDControls * L_JPAD);
     u16 rMenuDown = (rCControls * D_CBUTTONS) | (rDControls * D_JPAD);
@@ -2183,9 +2183,9 @@ RECOMP_PATCH void cmdmenu_set_buttons_override(s32 buttonsOverride) {
         sJoyPressedButtonsOverride = 0;
         sShouldOverrideJoypadButtons = FALSE;
     } else {
-        // rNewControls = recomp_get_config_u32("cmdmenu_new_controls");
-        rDControls = recomp_get_config_u32("cmdmenu_d_controls") > DPAD_OFF;
-        rCControls = recomp_get_config_u32("cmdmenu_d_controls") < DPAD_ON_CBUTTONS_OFF;
+        // rNewControls = configs_GetInventoryNewControls();
+        rDControls = configs_GetInventoryDPadMode() > DPAD_OFF;
+        rCControls = configs_GetInventoryDPadMode() < DPAD_ON_CBUTTONS_OFF;
 
         //@recomp: handle optional D-pad and/or C-button controls
         if (rDControls && rCControls) {
@@ -2247,8 +2247,8 @@ RECOMP_PATCH void cmdmenu_set_buttons_override(s32 buttonsOverride) {
 RECOMP_PATCH void cmdmenu_inventory_animate(void) {
     /* RECOMP */
     u8 rMoveActiveIcons; 
-    u8 rConfigActiveIconOverlapFix = recomp_get_config_u32("cmdmenu_active_icon_overlap");
-    u8 rConfigActiveIconFade = recomp_get_config_u32("cmdmenu_active_icon_fade");
+    u8 rConfigActiveIconOverlapFix = configs_GetUIActiveIconOverlapMode();
+    u8 rConfigActiveIconFade = configs_GetUIActiveIconFade();
 
     //Animate moving to the next inventory item (@recomp: down or up, instead of just down)
     if (sInventoryScrollOffset > 0) {
@@ -2848,8 +2848,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     s32 rNumSlotsPaddedAtTop = 0;
     s32 rTotalOccupiedSlots = 0;
     s32 rActiveIconCoord = 0;
-    u8 rConfigActiveIconOverlapFix = recomp_get_config_u32("cmdmenu_active_icon_overlap");
-    u8 rConfigActiveIconFade = recomp_get_config_u32("cmdmenu_active_icon_fade");
+    u8 rConfigActiveIconOverlapFix = configs_GetUIActiveIconOverlapMode();
+    u8 rConfigActiveIconFade = configs_GetUIActiveIconFade();
 
     player = objGetPlayer();
     offsetX = 0;
@@ -3435,7 +3435,7 @@ static int cmdmenu_should_sidekick_meter_appear_over_food_items(Object* sidekick
         return FALSE;
     }
     
-    if (recomp_get_config_u32("cmdmenu_sidekick_meter_show_over_food") == FALSE) {
+    if (configs_GetSidekickMeterShowOverFood() == FALSE) {
         return FALSE;
     }
         
@@ -3632,7 +3632,7 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
             dinoStats = gDLL_29_Gplay->vtbl->get_sidekick_stats();
             if (dinoStats) {
                 //Option to hide red food for now (since there's no way to increase it through the inventory)
-                if (recomp_get_config_u32("cmdmenu_sidekick_meter_hide_red")) {
+                if (configs_GetSidekickMeterHideRedFood()) {
                     sStats.sidekickRedFood = 0;
                 } else {
                     sStats.sidekickRedFood = dinoStats->redFood;
@@ -3730,7 +3730,7 @@ RECOMP_PATCH void cmdmenu_info_show(s16 itemGamebit, s32 displayDuration, s32 it
     }
 
     //@recomp: if the texture is the same as the one the pop-up is already showing, just keep it visible
-    if (recomp_get_config_u32("cmdmenu_info_popup_fix") &&
+    if (configs_GetItemInfoPopupFixVisuals() &&
         (sInfoPopup.texture == tex) && (sInfoPopup.timer > 0)
     ) {
         sInfoPopup.timer = displayDuration;
@@ -3895,7 +3895,7 @@ void cmdmenu_info_draw_custom(Gfx** gdl, CmdmenuInfoPopup* box) {
   */
 RECOMP_PATCH void cmdmenu_info_draw(Gfx** gdl, CmdmenuInfoPopup* box) {
     //@recomp: use the fixed-up info pop-up instead, if wanted
-    if (recomp_get_config_u32("cmdmenu_info_popup_fix")) {
+    if (configs_GetItemInfoPopupFixVisuals()) {
         return cmdmenu_info_draw_custom(gdl, box);
     }
 
