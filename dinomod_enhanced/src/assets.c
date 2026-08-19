@@ -113,47 +113,47 @@ INCBIN(objects_warppoint,       "inc/objects_1124_WarpPoint.bin");
 
 //A quick way to add ObjectGroup on/off commands to Trigger Objects (enter: on, exit: off)
 #define DIRECTIONAL_OBJGROUP_TRIGGER(groupID, triggerObject, cmdSlotIn, cmdSlotOut)\
-    triggerObject->commands[cmdSlotIn].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
-    triggerObject->commands[cmdSlotIn].id = TRG_CMD_ENABLE_OBJ_GROUP;\
-    triggerObject->commands[cmdSlotIn].paramCombined = groupID;\
+    (triggerObject)->commands[cmdSlotIn].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlotIn].id = TRG_CMD_ENABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlotIn].paramCombined = groupID;\
     \
-    triggerObject->commands[cmdSlotOut].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
-    triggerObject->commands[cmdSlotOut].id = TRG_CMD_DISABLE_OBJ_GROUP;\
-    triggerObject->commands[cmdSlotOut].paramCombined = groupID;
+    (triggerObject)->commands[cmdSlotOut].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlotOut].id = TRG_CMD_DISABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlotOut].paramCombined = groupID;
 
 //A quick way to add ObjectGroup on/off commands to Trigger Objects (enter: off, exit: on)
 #define DIRECTIONAL_OBJGROUP_TRIGGER_REVERSE(groupID, triggerObject, cmdSlotIn, cmdSlotOut)\
-    triggerObject->commands[cmdSlotIn].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
-    triggerObject->commands[cmdSlotIn].id = TRG_CMD_DISABLE_OBJ_GROUP;\
-    triggerObject->commands[cmdSlotIn].paramCombined = groupID;\
+    (triggerObject)->commands[cmdSlotIn].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlotIn].id = TRG_CMD_DISABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlotIn].paramCombined = groupID;\
     \
-    triggerObject->commands[cmdSlotOut].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
-    triggerObject->commands[cmdSlotOut].id = TRG_CMD_ENABLE_OBJ_GROUP;\
-    triggerObject->commands[cmdSlotOut].paramCombined = groupID;
+    (triggerObject)->commands[cmdSlotOut].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlotOut].id = TRG_CMD_ENABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlotOut].paramCombined = groupID;
 
 //A quick way to add World ObjectGroup on/off commands to Trigger Objects (enter: on, exit: off)
 #define DIRECTIONAL_WORLD_OBJGROUP_TRIGGER(groupID, mapID, triggerObject, cmdSlotIn, cmdSlotOut)\
-    triggerObject->commands[cmdSlotIn].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
-    triggerObject->commands[cmdSlotIn].id = TRG_CMD_WORLD_ENABLE_OBJ_GROUP;\
-    triggerObject->commands[cmdSlotIn].param1 = groupID;\
-    triggerObject->commands[cmdSlotIn].param2 = mapID;\
+    (triggerObject)->commands[cmdSlotIn].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlotIn].id = TRG_CMD_WORLD_ENABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlotIn].param1 = groupID;\
+    (triggerObject)->commands[cmdSlotIn].param2 = mapID;\
     \
-    triggerObject->commands[cmdSlotOut].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
-    triggerObject->commands[cmdSlotOut].id = TRG_CMD_WORLD_DISABLE_OBJ_GROUP;\
-    triggerObject->commands[cmdSlotOut].param1 = groupID;\
-    triggerObject->commands[cmdSlotOut].param2 = mapID;
+    (triggerObject)->commands[cmdSlotOut].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlotOut].id = TRG_CMD_WORLD_DISABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlotOut].param1 = groupID;\
+    (triggerObject)->commands[cmdSlotOut].param2 = mapID;
 
 //A quick way to add World ObjectGroup on/off commands to Trigger Objects (enter: off, exit: on)
 #define DIRECTIONAL_WORLD_OBJGROUP_TRIGGER_REVERSE(groupID, mapID, triggerObject, cmdSlotIn, cmdSlotOut)\
-    triggerObject->commands[cmdSlotIn].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
-    triggerObject->commands[cmdSlotIn].id = TRG_CMD_WORLD_DISABLE_OBJ_GROUP;\
-    triggerObject->commands[cmdSlotIn].param1 = groupID;\
-    triggerObject->commands[cmdSlotIn].param2 = mapID;\
+    (triggerObject)->commands[cmdSlotIn].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlotIn].id = TRG_CMD_WORLD_DISABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlotIn].param1 = groupID;\
+    (triggerObject)->commands[cmdSlotIn].param2 = mapID;\
     \
-    triggerObject->commands[cmdSlotOut].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
-    triggerObject->commands[cmdSlotOut].id = TRG_CMD_WORLD_ENABLE_OBJ_GROUP;\
-    triggerObject->commands[cmdSlotOut].param1 = groupID;\
-    triggerObject->commands[cmdSlotOut].param2 = mapID;
+    (triggerObject)->commands[cmdSlotOut].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlotOut].id = TRG_CMD_WORLD_ENABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlotOut].param1 = groupID;\
+    (triggerObject)->commands[cmdSlotOut].param2 = mapID;
 
 #define OBJECT_GET_OBJSEQS(objDef) ((s16*)((u8*)objDef + (u32)objDef->pSeq))
 
