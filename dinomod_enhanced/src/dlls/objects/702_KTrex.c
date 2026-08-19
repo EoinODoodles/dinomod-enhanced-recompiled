@@ -11,6 +11,7 @@
 #include "sys/gfx/animseq.h"
 #include "sys/gfx/model.h"
 #include "sys/gfx/modgfx.h"
+#include "sys/joypad.h"
 #include "sys/main.h"
 #include "sys/map_enums.h"
 #include "sys/objanim.h"
@@ -679,3 +680,15 @@ RECOMP_PATCH s32 dll_702_logic_state_10(Object* self, ObjFSA_Data* fsa, f32 upda
     }
     return 0;
 }
+
+// #define SKIP_BOSS_WITH_L
+
+#ifdef SKIP_BOSS_WITH_L
+RECOMP_HOOK_DLL(dll_702_control) void skipTRex(Object* self) {
+    ObjFSA_Data* fsa = self->data;
+    
+    if (joyGetButtons(0) & L_TRIG) {
+        fsa->logicState = KT_LSTATE_1_DEFEATED;
+    }
+}
+#endif
