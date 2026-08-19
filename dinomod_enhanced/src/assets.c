@@ -155,6 +155,8 @@ INCBIN(objects_warppoint,       "inc/objects_1124_WarpPoint.bin");
     triggerObject->commands[cmdSlotOut].param1 = groupID;\
     triggerObject->commands[cmdSlotOut].param2 = mapID;
 
+#define OBJECT_GET_OBJSEQS(objDef) ((s16*)((u8*)objDef + (u32)objDef->pSeq))
+
 #define INCFST(fileID, filename, ext) \
     INCBIN(fst_assets_##filename##_##ext, "assets/" #filename "."#ext); \
     reasset_fst_set_static(fileID, fst_assets_##filename##_##ext, fst_assets_##filename##_##ext##_end - fst_assets_##filename##_##ext);
@@ -469,7 +471,7 @@ static void walled_city_modifications(void) {
             //OBJECTS - Use a modified ObjSeq (Sink down instead of up, to avoid sticking up nonsensically through the next tier's walkway)
             {
                 ObjDef* moonTempleDoorDef = reasset_objects_get(reasset_base_id(257), NULL);
-                s16* seq = (s16*)((u8*)moonTempleDoorDef + (u32)moonTempleDoorDef->pSeq);
+                s16* seq = OBJECT_GET_OBJSEQS(moonTempleDoorDef);
                 seq[0] = 0x450;
             }
 
@@ -603,8 +605,7 @@ static void walled_city_modifications(void) {
         }
     }
 
-    // WCBossDoor
-    // Fix the small gap between the boss door and its surroundings, and tweak the UVs to reduce seams
+    // WCBossDoor (Fix the small gap between the boss door and its surroundings, and tweak the UVs to reduce seams)
     {
         //MAPS
         {
@@ -803,7 +804,7 @@ static void walled_city_modifications(void) {
         // Revert dinomod's removal of the moon temple lift sequences, so it can be used again
         {
             ObjDef* moonTempleLiftDef = reasset_objects_get(reasset_base_id(276), NULL);
-            s16* seq = (s16*)((u8*)moonTempleLiftDef + (u32)moonTempleLiftDef->pSeq);
+            s16* seq = OBJECT_GET_OBJSEQS(moonTempleLiftDef);
             seq[0] = 0x3D4;
             seq[1] = 0x3D6;
         }
