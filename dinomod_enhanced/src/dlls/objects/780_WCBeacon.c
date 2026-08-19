@@ -1,3 +1,4 @@
+#include "configs.h"
 #include "modding.h"
 #include "recomputils.h"
 
@@ -7,6 +8,7 @@
 #include "game/gamebits.h"
 #include "game/objects/object_id.h"
 #include "game/objects/object.h"
+#include "sys/gfx/animseq.h"
 #include "sys/gfx/modgfx.h"
 #include "sys/dll.h"
 #include "sys/main.h"
@@ -37,8 +39,9 @@ typedef struct {
     u32 soundHandleA;
     u32 soundHandleB;
     Object* lfxEmitter;
-    f32 sinYawScaled;
-    f32 cosYawScaled;
+    Object* flameAnimObj;
+    f32 sinYaw;
+    f32 cosYaw;
 } WCBeacon_Data;
 
 typedef enum {
@@ -124,35 +127,36 @@ RECOMP_PATCH void WCBeacon_obj_Setup(Object* self, WCBeacon_Setup* objSetup, s32
 
     //@recomp: store calcs for LFXEmitter's position
     if (self->srt.yaw) {
-        objData->sinYawScaled = Sinf(self->srt.yaw);
-        objData->cosYawScaled = Cosf(self->srt.yaw);
+        objData->sinYaw = Sinf(self->srt.yaw);
+        objData->cosYaw = Cosf(self->srt.yaw);
     } else {
-        objData->sinYawScaled = 0;
-        objData->cosYawScaled = 1;
+        objData->sinYaw = 0;
+        objData->cosYaw = 1;
     }
-    objData->sinYawScaled *= 30;
-    objData->cosYawScaled *= 30;
 }
 
 /* Creates a warm LFXEmitter in front of the beacon, for use while it's lit */
-static Object* WCBeacon_createLight(Object* self) {
+static void WCBeacon_createLight(Object* self) {
     static s16 rsLfxIndices[] = { 547, 550, 553 };
     WCBeacon_Data* objData;
+    WCBeacon_Setup* objSetup;
     LFXEmitter_Setup* setup;
 
     objData = self->data;
-    if (objData == NULL) {
-        return NULL;
+    objSetup = (WCBeacon_Setup*)self->setup;
+
+    if (objData == NULL || objSetup == NULL) {
+        return;
     }
 
     setup = (LFXEmitter_Setup*)objAllocSetup(sizeof(LFXEmitter_Setup), OBJ_LFXEmitter);
-    setup->base.loadFlags = OBJSETUP_LOAD_MANUAL;
-    setup->base.fadeFlags = OBJSETUP_FADE_MANUAL;
+    setup->base.loadFlags = OBJSETUP_LOAD_MAIN;
+    setup->base.fadeFlags = OBJSETUP_FADE_CAMERA;
     setup->base.loadDistance = 0xFF;
     setup->base.fadeDistance = 0xFF;
-    setup->base.x = self->srt.transl.x - objData->sinYawScaled;
+    setup->base.x = objSetup->base.x - objData->sinYaw * 30;
     setup->base.y = self->srt.transl.y + 15;
-    setup->base.z = self->srt.transl.z - objData->cosYawScaled;
+    setup->base.z = objSetup->base.z - objData->cosYaw * 30;
     setup->unk20 = 0;
     setup->unk1E = rsLfxIndices[0];
     setup->unk22 = -1;
@@ -162,7 +166,77 @@ static Object* WCBeacon_createLight(Object* self) {
     setup->unk24 = 1;
     setup->unk25 = 50;
     
-    return objSetupObject(&setup->base, OBJINIT_STANDALONE | OBJINIT_FLAG4, self->mapID, -1, NULL);
+    objData->lfxEmitter = objSetupObject(&setup->base, OBJINIT_STANDALONE | OBJINIT_FLAG4, self->mapID, -1, NULL);
+}
+
+/* Creates an animObj for controlling the transform of the fire modGfx */
+static void WCBeacon_createFlame(Object* self) {
+    WCBeacon_Data* objData;
+    WCBeacon_Setup* objSetup;
+    AnimObj_Setup* setup;
+    DLL_IModgfx* modGfxDLL;
+    s32 yaw;
+
+    objData = self->data;
+    objSetup = (WCBeacon_Setup*)self->setup;
+
+    if (objData == NULL || objSetup == NULL) {
+        return;
+    }
+
+    //Create an animObj (since passing an SRT to the flame modgfx doesn't seem to work?)
+    {
+        setup = (AnimObj_Setup*)objAllocSetup(sizeof(AnimObj_Setup), OBJ_animbubble);
+        setup->base.loadFlags = OBJSETUP_LOAD_MAIN;
+        setup->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+        setup->base.loadDistance = 0xFF;
+        setup->base.fadeDistance = 0xFF;
+        setup->base.x = objSetup->base.x - objData->sinYaw * 12;
+        setup->base.y = self->srt.transl.y + 16.5f;
+        setup->base.z = objSetup->base.z - objData->cosYaw * 12;
+        setup->sequenceIdBitfield = -1;
+        
+        objData->flameAnimObj = objSetupObject(&setup->base, OBJINIT_STANDALONE | OBJINIT_FLAG4, self->mapID, -1, NULL);
+        if (objData->flameAnimObj == NULL) {
+            return;
+        }
+    }
+
+    //Create flame modGfx
+    {
+        objData->flameAnimObj->srt.scale = 0.14f;
+        
+        yaw = objData->flameAnimObj->srt.yaw + M_45_DEGREES;
+        CIRCLE_WRAP(yaw);
+        objData->flameAnimObj->srt.yaw = yaw;
+
+        modGfxDLL = dllLoad(DLL_ID_121, 1);
+        modGfxDLL->vtbl->func0(objData->flameAnimObj, 1, NULL, 0, -1, 0);
+        dllFree(modGfxDLL);
+        objData->flameAnimObj->opacity = 1;
+    }
+}
+
+/* Cleaning up the flame modGfx setup */
+static void WCBeacon_unloadFlame(Object* self) {
+    WCBeacon_Data* objData;
+    AnimObj_Setup* setup;
+    Object* override;
+    DLL_IModgfx* modGfxDLL;
+
+    objData = self->data;
+    if (objData == NULL) {
+        return;
+    }
+
+    //Free animObj and modGfx
+    if (objData->flameAnimObj) {
+        gDLL_14_Modgfx->vtbl->func5(objData->flameAnimObj);
+        gDLL_13_Expgfx->vtbl->func5(self);
+
+        objFreeObject(objData->flameAnimObj);
+        objData->flameAnimObj = NULL;
+    }
 }
 
 /* 
@@ -178,6 +252,8 @@ RECOMP_PATCH void WCBeacon_obj_Control(Object* self) {
     /* RECOMP */
     s32 damageType;
     Object* player;
+    s32 playerDistanceSq;
+    u8 extraFX = configs_GetWCBeaconFlames();
 
     objData = self->data;
     objSetup = (WCBeacon_Setup*)self->setup;
@@ -195,37 +271,16 @@ RECOMP_PATCH void WCBeacon_obj_Control(Object* self) {
         }
     }
 
-    //@recomp: Handle sounds and effects
+    //@recomp: Handle sounds
     if (objData->state >= WCBEACON_STATE_2_Lighting_Up) {
         //Burn loop A
         if (objData->soundHandleA == 0) {
             objData->soundHandleA = dll_amSfx->Play(self, SOUND_50a_Fire_Burning_Low_Loop, MAX_VOLUME, NULL, NULL, 0, NULL);
         }
-
+        
         //Burn loop B
         if (objData->soundHandleB == 0) {
             objData->soundHandleB = dll_amSfx->Play(self, SOUND_50b_Fire_Burning_High_Loop, MAX_VOLUME, NULL, NULL, 0, NULL);
-        }
-
-        //LFXEmitter
-        if (objData->lfxEmitter == NULL) {
-            player = objGetPlayer();
-            if (player && vec3DistanceSquared(&self->globalPosition, &player->globalPosition) < SQ(100)) {
-                objData->lfxEmitter = WCBeacon_createLight(self);
-            }
-        } else {
-            objData->lfxEmitter->srt.transl.x = self->srt.transl.x - objData->sinYawScaled;
-            objData->lfxEmitter->srt.transl.y = self->srt.transl.y + 15;
-            objData->lfxEmitter->srt.transl.z = self->srt.transl.z - objData->cosYawScaled;
-
-            player = objGetPlayer();
-            if (player && vec3DistanceSquared(&self->globalPosition, &player->globalPosition) >= SQ(100)) {
-                objFreeObject(objData->lfxEmitter);
-                objData->lfxEmitter = NULL;
-            } else {
-                //Create ember particles when player nearby too
-                gDLL_17_partfx->vtbl->spawn(self, PARTICLE_1A3, NULL, 0, -1, NULL);
-            }
         }
     } else {
         //Burn loop A
@@ -239,11 +294,60 @@ RECOMP_PATCH void WCBeacon_obj_Control(Object* self) {
             dll_amSfx->Stop(objData->soundHandleB);
             objData->soundHandleB = 0;
         }
+    }
 
+    //@recomp: Handle effects
+    if (extraFX && objData->state >= WCBEACON_STATE_2_Lighting_Up) {
+        #define FLAME_MODGFX_RANGE 640
+        #define FLAME_PARTICLE_RANGE 100
+
+        //Get player distance
+        player = objGetPlayer();
+        if (player) {
+            playerDistanceSq = vec3DistanceXZSquared(&self->globalPosition, &player->globalPosition);
+        } else {
+            playerDistanceSq = SQ(FLAME_MODGFX_RANGE);
+        }
+
+        //LFXEmitter and ember particles (when nearby)
+        if (objData->lfxEmitter == NULL) {
+            if (playerDistanceSq < SQ(FLAME_PARTICLE_RANGE)) {
+                WCBeacon_createLight(self);
+            }
+        } else {
+            objData->lfxEmitter->srt.transl.x = self->srt.transl.x - objData->sinYaw;
+            objData->lfxEmitter->srt.transl.y = self->srt.transl.y + 15;
+            objData->lfxEmitter->srt.transl.z = self->srt.transl.z - objData->cosYaw;
+
+            if (playerDistanceSq >= SQ(FLAME_PARTICLE_RANGE)) {
+                objFreeObject(objData->lfxEmitter);
+                objData->lfxEmitter = NULL;
+            } else {
+                //Create ember particles when the player is nearby, too
+                gDLL_17_partfx->vtbl->spawn(self, PARTICLE_1A3, NULL, 0, -1, NULL);
+            }
+        }
+
+        //Flame modGfx
+        if (objData->flameAnimObj == NULL) {
+            if (playerDistanceSq < SQ(FLAME_MODGFX_RANGE)) {
+                WCBeacon_createFlame(self);
+            }
+        } else {
+            if (playerDistanceSq >= SQ(FLAME_MODGFX_RANGE)) {
+                WCBeacon_unloadFlame(self);
+            }
+        }
+    } else {
         //LFXEmitter
         if (objData->lfxEmitter) {
             objFreeObject(objData->lfxEmitter);
             objData->lfxEmitter = NULL;
+        }
+
+        //Flame modGfx
+        if (objData->flameAnimObj) {
+            WCBeacon_unloadFlame(self);
         }
     }
 
@@ -341,6 +445,10 @@ RECOMP_PATCH void WCBeacon_obj_Free(Object* self, s32 onlySelf) {
     if (objData->lfxEmitter) {
         objFreeObject(objData->lfxEmitter);
         objData->lfxEmitter = NULL;
+    }
+
+    if (objData->flameAnimObj) {
+        WCBeacon_unloadFlame(self);
     }
 }
 

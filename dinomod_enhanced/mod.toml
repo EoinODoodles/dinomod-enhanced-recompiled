@@ -570,7 +570,6 @@ Enabling this config adds some sound design to them! Here are the options:
 
 - On (Blast Only): A cannon fire sound is added.
 - On (Full): Machinery sounds and CannonClaw voice clips are added too. 
-
 '''
 type = "Enum"
 options = [ "Off", "On (Blast Only)", "On (Full)" ]
@@ -585,6 +584,16 @@ Act 1 of Walled City features two timed challenges which start when standing on 
 In the unmodified prototype you're locked into one of the challenges as soon as it begins. You can't retry it until its timer fully runs out, which can lead to a lot of standing around if you began the challenge at a time of day where it's impossible to succeed.
 
 This setting adds some quality-of-life features to the switches: topping the timer back up to 60 seconds while you're still standing on the switch, and letting you swap between the Sun/Moon challenges if you step on the opposite switch while a challenge is already active.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "wc_beacon_flames"
+name = "Walled City: Beacon Flames"
+description = '''
+Act 1 of Walled City features two beacons that must be lit by the player. The beacons change colour and emit smoke effects when lit, but they don't create any flame effects. This option adds some!
 '''
 type = "Enum"
 options = [ "Off", "On" ]
@@ -609,7 +618,6 @@ Dinomod Enhanced uses those surviving Sabre models to restore/recreate Sabre's g
 type = "Enum"
 options = [ "Off", "On" ]
 default = "On"
-
 
 [[manifest.config_options]]
 id = "play_as_fox"
