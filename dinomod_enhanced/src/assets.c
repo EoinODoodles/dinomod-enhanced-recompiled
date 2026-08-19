@@ -1217,10 +1217,9 @@ static void golden_plains_fuel_additions(void) {
         {VEC3F(2086.857, 120.619, 2888.839)},
         {VEC3F(2681.164, 212.499, 2171.146)},
     };
-    u8 count = ARRAYCOUNT(fuelData);
 
     //Insert the new objects
-    for (s32 i = 0; i < count; i++) {
+    for (u32 i = 0; i < ARRAYCOUNT(fuelData); i++) {
         CRFuelTank_Setup fuel = {
             .base = {
                 .objId = OBJ_CRFuelTank,
@@ -1310,7 +1309,7 @@ static void swapstone_hollow_additions(void) {
             {COORDS_SETUP(2383.0, -642.7, 922.0), .scale = 141, .yaw = DEGREES_TO_ANGLE8(21.0f), .pitch = 0,                       .invincible = TRUE,  .debris = TRUE},  //Outer side
         };
 
-        for (s32 i = 0, count = ARRAYCOUNT(boulders); i < count; i++) {
+        for (u32 i = 0; i < ARRAYCOUNT(boulders); i++) {
             SHboulder_Setup* boulder = &boulders[i];
             boulder->base.objId = OBJ_SHboulder;
             boulder->base.actExclusions1 = ~MAP_ACT(1);
@@ -1335,7 +1334,7 @@ static void swapstone_hollow_additions(void) {
             VEC3F(459, -691, 349)
         };
 
-        for (int i = 0, count = ARRAYCOUNT(points); i < count - 1; i++) {
+        for (u32 i = 0, count = ARRAYCOUNT(points); i < count - 1; i++) {
             TrackLine line = {
                 .Ax = points[i].x,
                 .Ay = points[i].y,
@@ -1533,9 +1532,8 @@ static void swapstone_hollow_additions(void) {
             {VEC3F(180.215,  -1000, 1625.786),  RIVER_BIT, 3, FALSE, TRUE, FALSE}, //block995 (Diamond Bay river bend)
             {VEC3F(-263.215, -1000, 1740.963),  RIVER_BIT, 3, FALSE, TRUE, FALSE}, //block994 (Diamond Bay waterfall basin 2) (water)
         };
-        u8 count = ARRAYCOUNT(hitAnimatorData);
 
-        for (s32 i = 0; i < count; i++) {
+        for (u32 i = 0; i < ARRAYCOUNT(hitAnimatorData); i++) {
             HitAnimator_Config* data = &hitAnimatorData[i];
             HitAnimator_Setup hitA = {
                 .base = {
@@ -1576,10 +1574,9 @@ static void swapstone_hollow_additions(void) {
             {VEC3F(-230.137, -1000, 1740.963), RIVER_BIT, 2, FALSE},  //block994 (Diamond Bay waterfall basin 2) (waterfall)
             {VEC3F(-287.761, -1000, 1740.963), RIVER_BIT, 4, FALSE},  //block994 (Diamond Bay waterfall basin 2) (rapids foam)
         };
-        u8 count = ARRAYCOUNT(visAnimatorData);
 
         //Insert the new objects
-        for (s32 i = 0; i < count; i++) {
+        for (u32 i = 0; i < ARRAYCOUNT(visAnimatorData); i++) {
             VisAnimators* data = &visAnimatorData[i];
             VisAnimator_Setup visA = {
                 .base = {
@@ -1609,10 +1606,9 @@ static void swapstone_hollow_additions(void) {
             {.base.x = 501.871, .base.y = -671.187, .base.z = 981.222, .textureIndex = 37, RIVER_BIT, 0, 0, 0, -7, -1}, //block989 (Diamond Bay waterfall basin 1) (waterfall top)
             {.base.x = 483.437, .base.y = -638.000, .base.z = 981.222, .textureIndex = 45, RIVER_BIT, 0, 0, 0, -7, -1}, //block989 (Diamond Bay waterfall basin 1) (waterfall main)
         };
-        u8 count = ARRAYCOUNT(texScrollData);
 
         //Insert the new objects
-        for (s32 i = 0; i < count; i++) {
+        for (u32 i = 0; i < ARRAYCOUNT(texScrollData); i++) {
             TexScroll2_Setup* scroll = &texScrollData[i];
             scroll->base.objId = OBJ_texscroll2;
             scroll->base.actExclusions1 = ~MAP_ACT(1);
