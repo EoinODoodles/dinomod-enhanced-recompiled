@@ -2546,6 +2546,13 @@ static void custom_objects(void) {
         reasset_objects_set(shBarrelcreatorID, dinomodNs, objects_shbarrelcreator, objects_shbarrelcreator_end - objects_shbarrelcreator);
         reasset_object_indices_set(shBarrelcreatorIndexID, shBarrelcreatorID);
     }
+
+    // WCDialProjectileSwitch
+    {
+        ReAssetID shWCDialSwitchID = reasset_auto_id(dinomodNs);
+        reasset_objects_set(shWCDialSwitchID, dinomodNs, objects_wcdialswitch, objects_wcdialswitch_end - objects_wcdialswitch);
+        reasset_object_indices_set(wcDialProjectileSwitchIndexID, shWCDialSwitchID);
+    }
 }
 
 static void custom_dlls(void) {
