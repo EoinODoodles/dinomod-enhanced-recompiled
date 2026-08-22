@@ -6,6 +6,7 @@
 #include "core/map.h"
 #include "custom/dlls/SHbarrel.h"
 #include "custom/dlls/SHbarrelcreator.h"
+#include "custom/dlls/WCDialProjectileSwitch.h"
 #include "custom_object_ids.h"
 #include "custom_objsetups.h"
 #include "compression_util.h"
@@ -92,6 +93,7 @@ INCBIN(objects_shboulder,       "inc/objects_0583_SHboulder.bin");
 
 INCBIN(objects_shbarrel,        "inc/objects_SHbarrel.bin");
 INCBIN(objects_shbarrelcreator, "inc/objects_SHbarrelcreator.bin");
+INCBIN(objects_wcdialswitch,      "inc/objects_WCDialProjectileSwitch.bin");
 
 INCBIN(models_wcsuntempledoor,  "inc/models_0938_WCSunTempleDoor.bin");
 INCBIN(models_wcmoontempledoor, "inc/models_0939_WCMoonTempleDoor.bin");
@@ -100,6 +102,7 @@ INCBIN(models_wcbossdoor,       "inc/models_0943_WCBossDoor.bin");
 
 INCBIN(objects_vampirebat,      "inc/objects_0053_VampireBat.bin");
 INCBIN(objects_warppoint,       "inc/objects_1124_WarpPoint.bin");
+INCBIN(objects_wctemplebridge,    "inc/objects_0288_WCTempleBridge.bin");
 
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 #define MODELS_REPLACE_BASE(modelID, file) (reasset_models_set(modelID, REASSET_BASE_NAMESPACE, file, file##_end  - file))
@@ -234,11 +237,13 @@ REASSET_ON_FST_SET_LOW_PRIORITY void dinomod_on_reasset_fst_set(void) {
 
 s32 OBJ_SHbarrel = 1466;
 s32 OBJ_SHbarrelcreator = 1467;
+s32 OBJ_WCDialProjectileSwitch = 1469;
 
 static ReAssetNamespace dinomodNs;
 
 static ReAssetID shBarrelIndexID;
 static ReAssetID shBarrelcreatorIndexID;
+static ReAssetID wcDialProjectileSwitchIndexID;
 
 s32 UID_SH_BurrowsSharpClaw = 0x10000;
 
@@ -247,6 +252,7 @@ REASSET_ON_INIT void dinomod_reasset_on_init(void) {
 
     shBarrelIndexID = reasset_id(dinomodNs, OBJ_SHbarrel);
     shBarrelcreatorIndexID = reasset_id(dinomodNs, OBJ_SHbarrelcreator);
+    wcDialProjectileSwitchIndexID = reasset_id(dinomodNs, OBJ_WCDialProjectileSwitch);
 }
 
 typedef struct {
@@ -829,6 +835,30 @@ static void walled_city_modifications(void) {
     // Delete DummyObjects in Moon/Sun temple basements (these are objects with an unmapped OBJINDEX.bin entry)
     reasset_map_objects_delete(walledCity, reasset_base_id(0x41AFC));
     reasset_map_objects_delete(walledCity, reasset_base_id(0x41B35));
+
+    //WCTempleDial
+    {
+        // Replace the dials' Projectile Switches with similar ones that use a custom DLL, 
+        // to handle blocking Projectile Spells if the dial's opening isn't over the switch
+        {
+            u32 dialSwitchUIDs[] = {
+                //Moon
+                0x4165C,
+                0x4165B,
+                0x4165D,
+
+                //Sun
+                0x41562,
+                0x41563,
+                0x41561
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(dialSwitchUIDs); i++) {
+                ObjSetup* dialSwitch = GET_MAPS_OBJECT(walledCity, dialSwitchUIDs[i]);
+                dialSwitch->objId = OBJ_WCDialProjectileSwitch;
+            }
+        }
+    }
 
     //Remove HITS around Central Temple's Krazoa Shrine transporter when risen (fixing a bug where you'd climb over them on your way into the transporter)
     {
@@ -2526,6 +2556,10 @@ static void custom_dlls(void) {
     // SHbarrelcreator
     reasset_dlls_set(reasset_id(dinomodNs, 0x824D), DLL_BANK_OBJECTS, 
         /*exportCount*/ 7, (void*)SHbarrelcreator_ctor, (void*)SHbarrelcreator_dtor, &DLL_SHbarrelcreator_vtbl);
+
+    // WCDialProjectileSwitch
+    reasset_dlls_set(reasset_id(dinomodNs, 0x824E), DLL_BANK_OBJECTS, 
+        /*exportCount*/ 7, (void*)WCDialProjectileSwitch_ctor, (void*)WCDialProjectileSwitch_dtor, &WCDialProjectileSwitch_vtbl);
 }
 
 /** Give WCTrex hit spheres similar to KT_Rex so they can actually do damage. */
@@ -2847,4 +2881,5 @@ REASSET_ON_RESOLVE void dinomod_reasset_on_resolve(void) {
     ReAssetResolveMap objIndexResolveMap = reasset_object_indices_get_resolve_map();
     OBJ_SHbarrel = reasset_resolve_map_lookup(objIndexResolveMap, shBarrelIndexID);
     OBJ_SHbarrelcreator = reasset_resolve_map_lookup(objIndexResolveMap, shBarrelcreatorIndexID);
+    OBJ_WCDialProjectileSwitch = reasset_resolve_map_lookup(objIndexResolveMap, wcDialProjectileSwitchIndexID);
 }
