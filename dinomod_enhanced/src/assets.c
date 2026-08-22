@@ -255,16 +255,6 @@ REASSET_ON_INIT void dinomod_reasset_on_init(void) {
     wcDialProjectileSwitchIndexID = reasset_id(dinomodNs, OBJ_WCDialProjectileSwitch);
 }
 
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s8 unk18;
-/*19*/ s8 unk19;
-/*1A*/ s16 unk1A;
-/*1C*/ u8 _unk1C[0x1E - 0x1C];
-/*1E*/ s16 unk1E;
-/*20*/ s16 unk20;
-} WCApertureSymbol_Setup;
-
 static void walled_city_additions(void) {
     ReAssetID walledCity = reasset_base_id(MAP_WALLED_CITY);
 
@@ -366,6 +356,9 @@ static void walled_city_modifications(void) {
         #define BIT_WC_Boss_Door_Opened 0x819
         #define BIT_WC_King_EarthWalker_Cage_Opened 0x7F5
         #define BIT_WC_King_EarthWalker_Rescued 0x1DF
+        
+        #define BIT_WC_Sun_Temple_Opened 0x828
+        #define BIT_WC_Moon_Temple_Opened 0x829
 
         #define BIT_WC_Transporter_Chamber_Rises 0x335
         #define BIT_WC_Transporter_Chamber_Opened 0x235
@@ -631,27 +624,6 @@ static void walled_city_modifications(void) {
         }
     }
 
-    //WCPressureSwitch (Moon)
-    {
-        typedef struct {
-        /*00*/ ObjSetup base;
-        /*18*/ u8 yaw;
-        /*19*/ u8 modelIdx;
-        /*1A*/ s16 gameBitPressed;             //Gamebit to set when switch is pressed down
-        /*1C*/ u8 yOffsetAnimation;            //How far down the switch should move when pressed
-        /*1D*/ u8 yThreshold;                  //Threshold for other objects pressing switch
-        /*1E*/ u8 distanceGuardCommand;        //Player distance at which Guard sidekick command is selectable
-        /*20*/ s16 gamebitActivated;           //Gamebit to check if switch is deactivated
-        } PressureSwitch_Setup;
-
-        //MAPS - Restore Moon switch's model
-        {
-            PressureSwitch_Setup* pSwitch = (PressureSwitch_Setup*)reasset_map_objects_get(walledCity, 
-                reasset_base_id(0x411b6), NULL);
-            pSwitch->modelIdx = 1;
-        }
-    }
-
     // Boss Room Warps
     {
         //Lobby room
@@ -804,6 +776,16 @@ static void walled_city_modifications(void) {
 
     //Sun/Moon Apertures
     {
+        typedef struct {
+        /*00*/ ObjSetup base;
+        /*18*/ s8 yaw;
+        /*19*/ s8 modelIdx;
+        /*1A*/ s16 opacityThreshold;
+        /*1C*/ u16 unk1C;
+        /*1E*/ s16 gamebitViewed;
+        /*20*/ s16 gamebitEnabled;
+        } WCApertureSymbol_Setup;
+
         // Fix terrain ID of moon temple viewing tile (to let the aperture work correctly)
         BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 628, block628);
 
@@ -820,7 +802,7 @@ static void walled_city_modifications(void) {
         {
             SeqObj_Setup* seqobj = reasset_map_objects_get(walledCity, 
                 reasset_base_id(0x41474), NULL);
-            seqobj->gamebitPlay = 0x829;
+            seqobj->gamebitPlay = BIT_WC_Moon_Temple_Opened;
         }
 
         // Moon Aperture
@@ -828,7 +810,7 @@ static void walled_city_modifications(void) {
         {
             WCApertureSymbol_Setup* moonAperture = reasset_map_objects_get(walledCity, 
                 reasset_base_id(0x41463), NULL);
-            moonAperture->unk20 = BIT_ALWAYS_1;
+            moonAperture->gamebitEnabled = BIT_ALWAYS_1;
         }
     }
 
