@@ -105,7 +105,7 @@ INCBIN(objects_warppoint,       "inc/objects_1124_WarpPoint.bin");
 INCBIN(objects_wctemplebridge,    "inc/objects_0288_WCTempleBridge.bin");
 
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
-#define MODELS_REPLACE_BASE(modelID, file) (reasset_models_set(modelID, REASSET_BASE_NAMESPACE, file, file##_end  - file))
+#define MODELS_REPLACE_BASE(modelID, file) (reasset_models_set(reasset_base_id(modelID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 
 #define COORDS_SETUP(coordX, coordY, coordZ) .base.x = coordX, .base.y = coordY, .base.z = coordZ
 #define TRIGGER_YAW(degrees) ((u8)((float)degrees*0x10/90.0f + 0.5f)) //Yaw for TriggerPlanes etc. (other axes use DEGREES_TO_ANGLE8)
@@ -471,7 +471,7 @@ static void walled_city_modifications(void) {
 
             //MODELS - Fix gaps
             {
-                MODELS_REPLACE_BASE(reasset_base_id(939), models_wcmoontempledoor);
+                MODELS_REPLACE_BASE(939, models_wcmoontempledoor);
             }
 
             //OBJECTS - Use a modified ObjSeq (Sink down instead of up, to avoid sticking up nonsensically through the next tier's walkway)
@@ -530,7 +530,7 @@ static void walled_city_modifications(void) {
 
             //MODELS - Fix gaps, draw underside (since this door moves up instead of down)
             {
-                MODELS_REPLACE_BASE(reasset_base_id(938), models_wcsuntempledoor);
+                MODELS_REPLACE_BASE(938, models_wcsuntempledoor);
             }
 
             //MAPS - Align the Sun Beacon tunnel's lasers exactly with the wall tiles
@@ -597,7 +597,7 @@ static void walled_city_modifications(void) {
 
             //MODELS
             {
-                MODELS_REPLACE_BASE(reasset_base_id(942), models_wcslabdoor);
+                MODELS_REPLACE_BASE(942, models_wcslabdoor);
             }
         }
 
