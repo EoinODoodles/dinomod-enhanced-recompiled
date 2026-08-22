@@ -1459,35 +1459,33 @@ static void swapstone_hollow_additions(void) {
 
         //Add a SharpClaw guarding the barrel
         {
-            //TO-DO: use Baddie_Setup
-            u8 sharpClaw_Setup[] = {
-                /*00*/ 0x00, 0x11, 0x0E, 0x00, 
-                /*04*/ 0x00, 0x00, 0x7F, 0x60,
-                /*08*/ 0x00, 0x00, 0x00, 0x00, 
-                /*0C*/ 0x00, 0x00, 0x00, 0x00, 
-                /*10*/ 0x00, 0x00, 0x00, 0x00, 
-                /*14*/ 0x00, 0x00, 0x00, 0x00, 
-
-                /*18*/ 0xFF, 0xFF, 0xFF, 0xFF, 
-                /*1C*/ 0xFF, 0xFF, 0x00, 0x00, 
-                /*20*/ 0x00, 0x00, 0x00, 0x01, 
-                /*24*/ 0x00, 0x00, 0x00, 0x03, 
-                /*28*/ 0x00, 0x0E, 0x00, 0x00, 
-                /*2C*/ 0x00, 0x48, 0xFF, 0x01, 
-                /*30*/ 0xFF, 0xFF, 0x06, 0x00, 
-                /*34*/ 0x00, 0x00, 0x00, 0x00 
+            Baddie_Setup sharpClaw = {
+                .base = {
+                    .objId = OBJ_ClubSharpClaw,
+                    .quarterSize = sizeof(Baddie_Setup)/4,
+                    .actExclusions1 = ~MAP_ACT(1),
+                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .mapObjGroup = OBJGROUP_REFLECTION_POOL,
+                    .fadeDistance = 140,
+                    .x = 2370.327f,
+                    .y = -674.900f,
+                    .z = 2259.521f,
+                    .uID = 0 //set by reasset
+                },
+                .unk18 = -1,
+                .unk1A = -1,
+                .unk1C = -1,
+                .unk22 = 1,
+                .initialWeaponID = 3,
+                .unk29 = 14,
+                .unk2C = 72,
+                .unk2E = -1,
+                .unk2F = 1,
+                .unk30 = -1,
+                .quarterHitpoints = 6
             };
-
-            ObjSetup* sharpClaw = (ObjSetup*)sharpClaw_Setup;
-            sharpClaw->objId = OBJ_ClubSharpClaw;
-            sharpClaw->actExclusions1 = ~MAP_ACT(1);
-            sharpClaw->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
-            sharpClaw->fadeFlags = OBJSETUP_FADE_CAMERA;
-            sharpClaw->mapObjGroup = OBJGROUP_REFLECTION_POOL;
-            sharpClaw->fadeDistance = 140;
-            sharpClaw->x = 2370.327f; sharpClaw->y = -674.900f; sharpClaw->z = 2259.521f;
-
-            reasset_map_objects_set(mapID, reasset_id(dinomodNs, UID_SH_BurrowsSharpClaw), &sharpClaw_Setup, sizeof(sharpClaw_Setup));
+            reasset_map_objects_set(mapID, reasset_id(dinomodNs, UID_SH_BurrowsSharpClaw), &sharpClaw, sizeof(sharpClaw));
         }
     }
 
