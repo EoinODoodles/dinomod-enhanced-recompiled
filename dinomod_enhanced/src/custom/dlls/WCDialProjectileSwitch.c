@@ -51,7 +51,6 @@ static s16 WCDialProjectileSwitch_getObjAngularPosition(Object* dial, Object* ob
     f32 dx;
     f32 dy;
     f32 worldOriginInObjectSpaceX;
-    f32 switchInDialObjectSpaceX;
 
     if (dial == NULL || dial->stateFlags & OBJSTATE_DESTROYED || 
         obj == NULL || obj->stateFlags & OBJSTATE_DESTROYED
