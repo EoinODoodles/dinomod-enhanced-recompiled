@@ -21,6 +21,7 @@
 #include "objects/511_SHboulder.h"
 #include "objects/780_WCBeacon.h"
 #include "objects/781_WCPressureSwitch.h"
+#include "trigger_object_macros.h"
 
 #include "PR/ultratypes.h"
 #include "dlls/objects/common/collectable.h"
@@ -108,55 +109,9 @@ INCBIN(objects_wctemplebridge,    "inc/objects_0288_WCTempleBridge.bin");
 #define MODELS_REPLACE_BASE(modelID, file) (reasset_models_set(reasset_base_id(modelID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 
 #define COORDS_SETUP(coordX, coordY, coordZ) .base.x = coordX, .base.y = coordY, .base.z = coordZ
-#define TRIGGER_YAW(degrees) ((u8)((float)degrees*0x10/90.0f + 0.5f)) //Yaw for TriggerPlanes etc. (other axes use DEGREES_TO_ANGLE8)
-#define TRIGGER_SCALE(scaleFloat) ((u8)(scaleFloat*0x10 + 0.5f))
 
 #define GET_MAPS_OBJECT(mapID, uID) (reasset_map_objects_get(mapID, reasset_base_id(uID), NULL))
 #define GET_TRIGGER(mapID, uID) ((Trigger_Setup*)GET_MAPS_OBJECT(mapID, uID))
-
-//A quick way to add ObjectGroup on/off commands to Trigger Objects (enter: on, exit: off)
-#define DIRECTIONAL_OBJGROUP_TRIGGER(groupID, triggerObject, cmdSlotIn, cmdSlotOut)\
-    (triggerObject)->commands[cmdSlotIn].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
-    (triggerObject)->commands[cmdSlotIn].id = TRG_CMD_ENABLE_OBJ_GROUP;\
-    (triggerObject)->commands[cmdSlotIn].paramCombined = groupID;\
-    \
-    (triggerObject)->commands[cmdSlotOut].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
-    (triggerObject)->commands[cmdSlotOut].id = TRG_CMD_DISABLE_OBJ_GROUP;\
-    (triggerObject)->commands[cmdSlotOut].paramCombined = groupID;
-
-//A quick way to add ObjectGroup on/off commands to Trigger Objects (enter: off, exit: on)
-#define DIRECTIONAL_OBJGROUP_TRIGGER_REVERSE(groupID, triggerObject, cmdSlotIn, cmdSlotOut)\
-    (triggerObject)->commands[cmdSlotIn].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
-    (triggerObject)->commands[cmdSlotIn].id = TRG_CMD_DISABLE_OBJ_GROUP;\
-    (triggerObject)->commands[cmdSlotIn].paramCombined = groupID;\
-    \
-    (triggerObject)->commands[cmdSlotOut].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
-    (triggerObject)->commands[cmdSlotOut].id = TRG_CMD_ENABLE_OBJ_GROUP;\
-    (triggerObject)->commands[cmdSlotOut].paramCombined = groupID;
-
-//A quick way to add World ObjectGroup on/off commands to Trigger Objects (enter: on, exit: off)
-#define DIRECTIONAL_WORLD_OBJGROUP_TRIGGER(groupID, mapID, triggerObject, cmdSlotIn, cmdSlotOut)\
-    (triggerObject)->commands[cmdSlotIn].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
-    (triggerObject)->commands[cmdSlotIn].id = TRG_CMD_WORLD_ENABLE_OBJ_GROUP;\
-    (triggerObject)->commands[cmdSlotIn].param1 = groupID;\
-    (triggerObject)->commands[cmdSlotIn].param2 = mapID;\
-    \
-    (triggerObject)->commands[cmdSlotOut].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
-    (triggerObject)->commands[cmdSlotOut].id = TRG_CMD_WORLD_DISABLE_OBJ_GROUP;\
-    (triggerObject)->commands[cmdSlotOut].param1 = groupID;\
-    (triggerObject)->commands[cmdSlotOut].param2 = mapID;
-
-//A quick way to add World ObjectGroup on/off commands to Trigger Objects (enter: off, exit: on)
-#define DIRECTIONAL_WORLD_OBJGROUP_TRIGGER_REVERSE(groupID, mapID, triggerObject, cmdSlotIn, cmdSlotOut)\
-    (triggerObject)->commands[cmdSlotIn].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
-    (triggerObject)->commands[cmdSlotIn].id = TRG_CMD_WORLD_DISABLE_OBJ_GROUP;\
-    (triggerObject)->commands[cmdSlotIn].param1 = groupID;\
-    (triggerObject)->commands[cmdSlotIn].param2 = mapID;\
-    \
-    (triggerObject)->commands[cmdSlotOut].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
-    (triggerObject)->commands[cmdSlotOut].id = TRG_CMD_WORLD_ENABLE_OBJ_GROUP;\
-    (triggerObject)->commands[cmdSlotOut].param1 = groupID;\
-    (triggerObject)->commands[cmdSlotOut].param2 = mapID;
 
 #define OBJECT_GET_OBJSEQS(objDef) ((s16*)((u8*)objDef + (u32)objDef->pSeq))
 
@@ -697,7 +652,7 @@ static void walled_city_modifications(void) {
                     .commands[0] = {
                         .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
                         .id = TRG_CMD_BITS,
-                        .paramCombined = TRIG_BITS_MODE(TRUE) | DINOMOD_BIT_962_WC_Boss_Room_Warp_to_Lobby //Set gamebit
+                        .paramCombined = TRG_GAMEBIT_ON(DINOMOD_BIT_962_WC_Boss_Room_Warp_to_Lobby)
                     },
                     .sizeX = TRIGGER_SCALE(0.812),
                     .sizeY = 0x10,
@@ -890,53 +845,54 @@ static void walled_city_modifications(void) {
         //Approach route
         {
             plane = GET_TRIGGER(walledCity, 0x40beb);
-            DIRECTIONAL_OBJGROUP_TRIGGER(5, plane, 0, 4); //90-degree bend after Queen EarthWalker's gateway
+            DIRECTIONAL_OBJGROUP_TOGGLE(5, plane, 0, 4); //90-degree bend after Queen EarthWalker's gateway
+            EMPTY_TRIGGER_COMMAND(plane, 0); //Don't load the central temple's objects until the player's a lot closer
         }
 
         //Central temple
         {
             plane = GET_TRIGGER(walledCity, 0x40dad);
-            DIRECTIONAL_OBJGROUP_TRIGGER(0, plane, 2, 5); //Sun beacon temple entrance
+            DIRECTIONAL_OBJGROUP_TOGGLE(0, plane, 2, 5); //Sun beacon temple entrance
 
             plane = GET_TRIGGER(walledCity, 0x40dae);
-            DIRECTIONAL_OBJGROUP_TRIGGER(0, plane, 2, 5); //Sun beacon tunnel exit
+            DIRECTIONAL_OBJGROUP_TOGGLE(0, plane, 2, 5); //Sun beacon tunnel exit
 
             plane = GET_TRIGGER(walledCity, 0x4104c);
-            DIRECTIONAL_OBJGROUP_TRIGGER(1, plane, 2, 5); //Moon beacon temple entrance
+            DIRECTIONAL_OBJGROUP_TOGGLE(1, plane, 2, 5); //Moon beacon temple entrance
 
             plane = GET_TRIGGER(walledCity, 0x4104f);
-            DIRECTIONAL_OBJGROUP_TRIGGER(1, plane, 2, 5); //Moon beacon tunnel exit
+            DIRECTIONAL_OBJGROUP_TOGGLE(1, plane, 2, 5); //Moon beacon tunnel exit
 
             plane = GET_TRIGGER(walledCity, 0x41052);
-            DIRECTIONAL_OBJGROUP_TRIGGER(4, plane, 2, 3); //Boss lobby
+            DIRECTIONAL_OBJGROUP_TOGGLE(4, plane, 2, 3); //Boss lobby
         }
 
         //Sun temple route
         {
             plane = GET_TRIGGER(walledCity, 0x41312);
-            DIRECTIONAL_OBJGROUP_TRIGGER(2, plane, 0, 5); //Sun pushblocks approach
-            DIRECTIONAL_OBJGROUP_TRIGGER(6, plane, 6, 7); //Sun pushblocks approach
+            DIRECTIONAL_OBJGROUP_TOGGLE(2, plane, 0, 5); //Sun pushblocks approach
+            DIRECTIONAL_OBJGROUP_TOGGLE(6, plane, 6, 7); //Sun pushblocks approach
 
             plane = GET_TRIGGER(walledCity, 0x41311);
-            DIRECTIONAL_OBJGROUP_TRIGGER(2, plane, 0, 5); //Sun temple approach
+            DIRECTIONAL_OBJGROUP_TOGGLE(2, plane, 0, 5); //Sun temple approach
 
             plane = GET_TRIGGER(walledCity, 0x41775);
-            DIRECTIONAL_OBJGROUP_TRIGGER_REVERSE(6, plane, 0, 1); //Sun temple entry
-            DIRECTIONAL_OBJGROUP_TRIGGER(8, plane, 6, 7); //Sun temple entry
+            DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(6, plane, 0, 1); //Sun temple entry
+            DIRECTIONAL_OBJGROUP_TOGGLE(8, plane, 6, 7); //Sun temple entry
         }
 
         //Moon temple route
         {
             plane = GET_TRIGGER(walledCity, 0x4130e);
-            DIRECTIONAL_OBJGROUP_TRIGGER(3, plane, 0, 5); //Moon pushblocks approach
-            DIRECTIONAL_OBJGROUP_TRIGGER(7, plane, 6, 7); //Moon pushblocks approach
+            DIRECTIONAL_OBJGROUP_TOGGLE(3, plane, 0, 5); //Moon pushblocks approach
+            DIRECTIONAL_OBJGROUP_TOGGLE(7, plane, 6, 7); //Moon pushblocks approach
 
             plane = GET_TRIGGER(walledCity, 0x4130f);
-            DIRECTIONAL_OBJGROUP_TRIGGER(3, plane, 0, 6); //Moon temple approach
+            DIRECTIONAL_OBJGROUP_TOGGLE(3, plane, 0, 6); //Moon temple approach
 
             plane = GET_TRIGGER(walledCity, 0x41604);
-            DIRECTIONAL_OBJGROUP_TRIGGER_REVERSE(7, plane, 6, 7); //Moon temple entry
-            DIRECTIONAL_OBJGROUP_TRIGGER(9, plane, 2, 3); //Moon temple entry
+            DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(7, plane, 6, 7); //Moon temple entry
+            DIRECTIONAL_OBJGROUP_TOGGLE(9, plane, 2, 3); //Moon temple entry
         }
     }
 }
@@ -1304,7 +1260,7 @@ static void swapstone_hollow_additions(void) {
                 {
                     .condition = CMD_COND_IN,
                     .id = TRG_CMD_BITS,
-                    .paramCombined = TRIG_BITS_MODE(FALSE) | BIT_SP_Exiting_Shop //Unset gamebit
+                    .paramCombined = TRG_GAMEBIT_OFF(BIT_SP_Exiting_Shop)
                 },
             },
             .timerDuration = 60
@@ -1409,7 +1365,7 @@ static void swapstone_hollow_additions(void) {
                 plane->base.loadDistance = 0x40,
                 plane->base.fadeDistance = 0x40,
 
-                DIRECTIONAL_OBJGROUP_TRIGGER(OBJGROUP_REFLECTION_POOL, plane, 0, 1);
+                DIRECTIONAL_OBJGROUP_TOGGLE(OBJGROUP_REFLECTION_POOL, plane, 0, 1);
 
                 plane->sizeY = 0x10;
                 plane->sizeZ = 0x10;
@@ -1790,7 +1746,7 @@ static void swapstone_hollow_modifications(void) {
     // river object group that contains river flows etc.
     {
         Trigger_Setup* plane = reasset_map_objects_get(sHollow, reasset_base_id(0x18EB), NULL);
-        DIRECTIONAL_WORLD_OBJGROUP_TRIGGER(0, MAP_DIAMOND_BAY, plane, 1, 2);
+        DIRECTIONAL_WORLD_OBJGROUP_TOGGLE(0, MAP_DIAMOND_BAY, plane, 1, 2);
     }
 
     //Add a HITS line so you dangle off SwapStone Hollow's waterfall when attempting to run off it
@@ -1823,7 +1779,7 @@ static void swapstone_hollow_modifications(void) {
         Trigger_Setup* cylinder = GET_TRIGGER(sHollow, 0xbe040a9);
         cylinder->commands[1].id = TRG_CMD_BITS;
         cylinder->commands[1].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
-        cylinder->commands[1].paramCombined = BIT_SP_Exiting_Shop;
+        cylinder->commands[1].paramCombined = TRG_GAMEBIT_OFF(BIT_SP_Exiting_Shop);
     }
 
     // Edit TriggerPlane approaching Rocky, so it unsets the "Exiting the Shop" gamebit too (just in case)
@@ -1831,14 +1787,14 @@ static void swapstone_hollow_modifications(void) {
         Trigger_Setup* plane = GET_TRIGGER(sHollow, 0x34732);
         plane->commands[7].id = TRG_CMD_BITS;
         plane->commands[7].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
-        plane->commands[7].paramCombined = BIT_SP_Exiting_Shop;
+        plane->commands[7].paramCombined = TRG_GAMEBIT_OFF(BIT_SP_Exiting_Shop);
     }
 
     // Edit TriggerPlane just inside the gateway to Walled City, so 
     // the river crossing area's objects are loaded when approaching from Walled City
     {
         Trigger_Setup* plane = GET_TRIGGER(sHollow, 0x40B75);
-        DIRECTIONAL_OBJGROUP_TRIGGER_REVERSE(6, plane, 1, 2);
+        DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(6, plane, 1, 2);
     }
 }
 

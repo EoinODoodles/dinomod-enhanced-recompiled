@@ -108,7 +108,6 @@ typedef enum {
     SEQOBJ_OPTIONS_HasReplayActorMask = 16                      // if set, more than just the seqobj will be controlled by a replay
 } SeqObj_PlaybackOptions;
 
-#define TRIG_BITS_MODE(mode) (mode << 14)
 
 typedef struct {
 /*00*/ ObjSetup base;
