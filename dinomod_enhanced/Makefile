@@ -20,14 +20,16 @@ C_SRCS += $(wildcard src/custom/*.c)
 C_SRCS += $(wildcard src/custom/dlls/*.c)
 C_SRCS += $(wildcard src/dlls/engine/*.c)
 C_SRCS += $(wildcard src/dlls/objects/*.c)
+C_SRCS := $(filter-out src/assets.c,$(C_SRCS))
 C_OBJS := $(addprefix $(BUILD_DIR)/, $(C_SRCS:.c=.o))
 C_DEPS := $(addprefix $(BUILD_DIR)/, $(C_SRCS:.c=.d))
+INC_DEPS := $(wildcard src/inc/*)
 
 BUILD_DIRS := $(BUILD_DIR) $(BUILD_DIR)/src $(BUILD_DIR)/src/core $(BUILD_DIR)/src/custom $(BUILD_DIR)/src/custom/dlls \
 	          $(BUILD_DIR)/src/dlls $(BUILD_DIR)/src/dlls/engine $(BUILD_DIR)/src/dlls/objects
 
-$(TARGET): $(C_OBJS) $(LDSCRIPT)
-	$(LD) $(C_OBJS) $(LDFLAGS) -o $@
+$(TARGET): $(C_OBJS) $(BUILD_DIR)/assets.o $(LDSCRIPT)
+	$(LD) $(C_OBJS) $(BUILD_DIR)/assets.o $(LDFLAGS) -o $@
 
 $(BUILD_DIRS):
 ifeq ($(OS),Windows_NT)
@@ -36,6 +38,9 @@ else
 	mkdir -p $@
 endif
 
+$(BUILD_DIR)/assets.o : src/assets.c $(INC_DEPS) | $(BUILD_DIRS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $< -MMD -MF $(BUILD_DIR)/assets.d -c -o $@
+
 $(C_OBJS): $(BUILD_DIR)/%.o : %.c | $(BUILD_DIRS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -MMD -MF $(@:.o=.d) -c -o $@
 
@@ -43,5 +48,6 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 -include $(C_DEPS)
+-include $(BUILD_DIR)/assets.d
 
 .PHONY: clean
