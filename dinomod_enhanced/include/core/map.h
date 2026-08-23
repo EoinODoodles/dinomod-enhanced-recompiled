@@ -45,7 +45,7 @@ typedef enum {
     HITS_9 = 9,
     HITS_Ladder = 10,
     HITS_11 = 11,
-    HITS_12 = 12,
+    HITS_Stairs = 12, //Stairs? (Unimplemented, but can be found enclosing the steps in SH/Walled City's gateway)
     HITS_13 = 13,
     HITS_Crawl = 14, //Requires a crawlspace curve network too, or the player will warp to the world origin (NOTE: seems to stop working with `TrackLine_SETTINGB_Nonsolid` applied)
     HITS_Hop = 15,   //A little skip/hop up (used rarely, like around Walled City's Shrine transporter) (NOTE: seems to stop working with `TrackLine_SETTINGB_Nonsolid` applied)
