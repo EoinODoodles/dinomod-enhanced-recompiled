@@ -11,6 +11,7 @@
 #include "sys/print.h"
 
 // #define DEBUG_SWITCH_DIAL_ANGLE
+// #define DEBUG_STOP_BLOCKING
 
 typedef struct {
     u8 switchPressed;
@@ -170,6 +171,7 @@ static void WCDialProjectileSwitch_obj_Control(Object* self) {
     //React to Projectile Switch attacks
     if (func_80025F40(self, NULL, NULL, NULL) == Damage_Type_Projectile) {
 
+#ifndef DEBUG_STOP_BLOCKING
         //Check if the wheel's opening is roughly over the switch
         {
             s32 angleDiff = objData->angleInWheel - objData->dial->srt.roll;
@@ -184,6 +186,7 @@ static void WCDialProjectileSwitch_obj_Control(Object* self) {
                 return;
             }
         }
+#endif
 
         if (objData->switchPressed) {
             if ((objSetup->modelIndexAndFlags & 3) == Switch_FLAG_Can_Be_Toggled_Via_Attacks) {
