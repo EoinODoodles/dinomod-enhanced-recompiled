@@ -2599,7 +2599,7 @@ static void nw_modifications(void) {
     // Change the bit the blue SnowHorn hit animator looks for (this is a custom dinomod map obj). We're giving it
     // a custom bit since the rom patches are accidentically using a CC vis anim bit.
     {
-        HitAnimator_Setup* blueSnowHornHitAnim = reasset_map_objects_get(nw, reasset_base_id(0x412E1), NULL);
+        HitAnimator_Setup* blueSnowHornHitAnim = reasset_map_objects_get(nw, reasset_base_id(0xBE03007), NULL);
         blueSnowHornHitAnim->gamebitActivate = DINOMOD_BIT_92D_Blue_SnowHorn_HitAnimator;
     }
 }
