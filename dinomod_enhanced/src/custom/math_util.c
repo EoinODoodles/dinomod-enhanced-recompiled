@@ -18,19 +18,6 @@ f32 lerp_float(f32 tValue, f32 start, f32 end){
     return start + (end - start)*tValue;
 }
 
-/** Linear interpolation of two RGB colour arrays, storing the result to `oColour`. All arrays must be u8, with length of 3! */
-void lerpColoursRGB(f32 tValue, u8* colourA, u8* colourB, u8* oColour) {
-    u32 i;
-
-    if ((colourA == NULL) || (colourB == NULL) || (oColour == NULL)) {
-        return;
-    }
-    
-    for (i = 0; i < 3; i++) {
-        oColour[i] = colourA[i] + tValue * (colourB[i] - colourA[i]);
-    }
-}
-
 f32 ease_in_quad(f32 x) {
     return x * x;
 }
@@ -270,4 +257,41 @@ void rotation_from_matrix(MtxF* mtx, s16* yaw, s16* pitch, s16* roll, f32 normal
     *yaw   = outYaw;
     *pitch = outPitch;
     *roll  = outRoll;
+}
+
+/** Linear interpolation of two RGB colour arrays, storing the result to `oColour`. All arrays must be u8, with length of 3! */
+void lerpColoursRGB(f32 tValue, u8* colourA, u8* colourB, u8* oColour) {
+    u32 i;
+
+    if ((colourA == NULL) || (colourB == NULL) || (oColour == NULL)) {
+        return;
+    }
+    
+    for (i = 0; i < 3; i++) {
+        oColour[i] = colourA[i] + tValue * (colourB[i] - colourA[i]);
+    }
+}
+
+/* Adapted from: https://github.com/Inseckto/HSV-to-RGB/blob/master/HSV2RGB.c */
+void colourHSVtoRGB(f32 h, f32 s, f32 v, u8* oR, u8* oG, u8* oB) {
+	f32 r, g, b;
+	
+	s32 i = floorf(h * 6);
+	f32 f = h * 6 - i;
+	f32 p = v * (1 - s);
+	f32 q = v * (1 - f * s);
+	f32 t = v * (1 - (1 - f) * s);
+	
+	switch (i % 6) {
+		case 0: r = v, g = t, b = p; break;
+		case 1: r = q, g = v, b = p; break;
+		case 2: r = p, g = v, b = t; break;
+		case 3: r = p, g = q, b = v; break;
+		case 4: r = t, g = p, b = v; break;
+		case 5: r = v, g = p, b = q; break;
+	}
+	
+	*oR = r * 255;
+	*oG = g * 255;
+	*oB = b * 255;
 }

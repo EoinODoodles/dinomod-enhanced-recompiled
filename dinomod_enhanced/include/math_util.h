@@ -19,7 +19,6 @@ extern f32 sinf(f32 angle);
 f32 cosf(f32 angle);
 
 f32 lerp_float(f32 tValue, f32 start, f32 end);
-void lerpColoursRGB(f32 tValue, u8* colourA, u8* colourB, u8* oColour);
 
 f32 ease_in_quad(f32 tValue);
 f32 ease_in_cubic(f32 tValue);
@@ -50,3 +49,6 @@ void matrix_multiply(MtxF* mA, MtxF* mB, MtxF* mO);
 void matrix_diPrintf(MtxF* mtx);
 void matrix_recomp_printf(MtxF* mtx);
 void rotation_from_matrix(MtxF* mtx, s16* yaw, s16* pitch, s16* roll, f32 normalisingScale);
+
+void lerpColoursRGB(f32 tValue, u8* colourA, u8* colourB, u8* oColour);
+void colourHSVtoRGB(f32 h, f32 s, f32 v, u8* oR, u8* oG, u8* oB);

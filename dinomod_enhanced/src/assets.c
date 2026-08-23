@@ -47,6 +47,7 @@ INCBIN(block617, "inc/blocks_0617_WC_central_temple_north_west.bin");
 INCBIN(block618, "inc/blocks_0618_WC_central_temple_west.bin");
 INCBIN(block619, "inc/blocks_0619_WC_central_temple_south_west.bin");
 INCBIN(block628, "inc/blocks_0628_WC_moon_temple_viewing_tile.bin");
+INCBIN(block635, "inc/blocks_0635_WC_sun_temple_dial_hall.bin");
 INCBIN(block1086, "inc/blocks_1086_WC_boss_corner_sw.bin");
 INCBIN(block1087, "inc/blocks_1087_WC_boss_west_corridor_south.bin");
 INCBIN(block1088, "inc/blocks_1088_WC_boss_west_corridor_north.bin");
@@ -100,6 +101,8 @@ INCBIN(models_wcsuntempledoor,  "inc/models_0938_WCSunTempleDoor.bin");
 INCBIN(models_wcmoontempledoor, "inc/models_0939_WCMoonTempleDoor.bin");
 INCBIN(models_wcslabdoor,       "inc/models_0942_WCSlabDoor.bin");
 INCBIN(models_wcbossdoor,       "inc/models_0943_WCBossDoor.bin");
+INCBIN(models_wctemplebridgesun,  "inc/models_0969_WCTempleBridgeSun.bin");
+INCBIN(models_wctemplebridgemoon, "inc/models_0970_WCTempleBridgeMoon.bin");
 
 INCBIN(objects_vampirebat,      "inc/objects_0053_VampireBat.bin");
 INCBIN(objects_warppoint,       "inc/objects_1124_WarpPoint.bin");
@@ -769,30 +772,93 @@ static void walled_city_modifications(void) {
         }
     }
 
-    // Delete DummyObjects in Moon/Sun temple basements (these are objects with an unmapped OBJINDEX.bin entry)
-    reasset_map_objects_delete(walledCity, reasset_base_id(0x41AFC));
-    reasset_map_objects_delete(walledCity, reasset_base_id(0x41B35));
-
-    //WCTempleDial
+    //Moon/Sun Temple Interiors
     {
-        // Replace the dials' Projectile Switches with similar ones that use a custom DLL, 
-        // to handle blocking Projectile Spells if the dial's opening isn't over the switch
+        // Delete DummyObjects in Moon/Sun temple basements (these are objects with an unmapped OBJINDEX.bin entry)
+        reasset_map_objects_delete(walledCity, reasset_base_id(0x41AFC));
+        reasset_map_objects_delete(walledCity, reasset_base_id(0x41B35));
+
+        //BLOCKS
         {
-            u32 dialSwitchUIDs[] = {
-                //Moon
-                0x4165C,
-                0x4165B,
-                0x4165D,
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 635, block635); //Sun Temple, dial hall: add Magic Bridge collision, optimise wall and sculpture faces
+        }
 
-                //Sun
-                0x41562,
-                0x41563,
-                0x41561
-            };
+        //WCTempleDial
+        {
+            // Replace the dials' Projectile Switches with similar ones that use a custom DLL, 
+            // to handle blocking Projectile Spells if the dial's opening isn't over the switch
+            {
+                u32 dialSwitchUIDs[] = {
+                    //Moon
+                    0x4165C,
+                    0x4165B,
+                    0x4165D,
 
-            for (u32 i = 0; i < ARRAYCOUNT(dialSwitchUIDs); i++) {
-                ObjSetup* dialSwitch = GET_MAPS_OBJECT(walledCity, dialSwitchUIDs[i]);
-                dialSwitch->objId = OBJ_WCDialProjectileSwitch;
+                    //Sun
+                    0x41562,
+                    0x41563,
+                    0x41561
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(dialSwitchUIDs); i++) {
+                    ObjSetup* dialSwitch = GET_MAPS_OBJECT(walledCity, dialSwitchUIDs[i]);
+                    dialSwitch->objId = OBJ_WCDialProjectileSwitch;
+                }
+            }
+        }
+
+        //WCTempleBridge
+        {
+            typedef struct {
+                ObjSetup base;
+                s8 yaw;
+                s8 modelIdx;                    //Which bridge model to use
+                s16 hitsAnimatorID;             //@recomp: repurpose unused field
+                s16 unk1C;
+                s16 gamebitVisible;             //Stores the bridge's visibility state
+            } WCTempleBridge_Setup;
+
+            #define MAGIC_BRIDGE_ANIMATORID 5
+
+            //Restore original DLL usage (another level's Magic Bridge was used as a workaround)
+            {
+                ReAssetID objects_wctemplebridge_id = reasset_base_id(288); //OBJ_WCTempleBridge
+                reasset_objects_set(objects_wctemplebridge_id, REASSET_BASE_NAMESPACE, objects_wctemplebridge, objects_wctemplebridge_end - objects_wctemplebridge);
+            }
+
+            //Add HITS animatorIDs to Magic Bridges' objSetups
+            {
+                u32 bridgeUIDs[] = { 
+                    0x000414BC, 
+                    0x00041659 
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(bridgeUIDs); i++) {
+                    WCTempleBridge_Setup* bridge = GET_MAPS_OBJECT(walledCity, bridgeUIDs[i]);
+                    bridge->hitsAnimatorID = MAGIC_BRIDGE_ANIMATORID;
+                }
+            }
+
+            //Fix model UVs
+            {
+                MODELS_REPLACE_BASE(969, models_wctemplebridgesun);
+                MODELS_REPLACE_BASE(970, models_wctemplebridgemoon);
+            }
+
+            //Add HitAnimator for controlling Magic Bridge's collision
+            {
+                HitAnimator_Setup* hitAnim;
+
+                //Magic Bridge collision
+                hitAnim = GET_MAPS_OBJECT(walledCity, 0xBE03005);
+                hitAnim->gamebitActivate = BIT_WC_Sun_Temple_Magic_Bridge_Visible;
+                hitAnim->enableFlag1 = 0;
+                hitAnim->mode = hitanimator_configure_mode_flags(
+                    FALSE, TRUE, FALSE),
+                hitAnim->hitsAnimatorID = MAGIC_BRIDGE_ANIMATORID;
+
+                //Delete HITS line HitAnimator (managed by the bridge itself instead)
+                reasset_map_objects_delete(walledCity, reasset_base_id(0xBE03006));
             }
         }
     }
