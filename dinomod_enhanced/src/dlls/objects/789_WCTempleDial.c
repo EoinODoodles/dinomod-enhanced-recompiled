@@ -47,6 +47,7 @@ typedef struct {
     f32 rotateSpeedGoal;
     u8 switchFlags;
     u8 dialFlags;
+    s8 stoneSearchDelay; //@recomp: repurpose padding
     f32* rotateSpeedGoals;
     s16* switchGamebits;
     /* RECOMP */
@@ -105,6 +106,16 @@ static void WCTempleDial_handleStoneDepth(Object* self, WCTempleDial_Setup* objS
 
     //Find the nearby stone
     if (objData->stone == NULL) {
+
+        //Only search occasionally
+        if (objData->stoneSearchDelay > 0) {
+            objData->stoneSearchDelay -= gUpdateRate;
+            if (objData->stoneSearchDelay <= 0) {
+                objData->stoneSearchDelay = 0;
+            }
+            return;
+        }
+
         distance = BLOCKS_GRID_UNIT;
         if (objSetup->modelIdx == WCTempleDial_MODEL_Sun) {
             objData->stone = objFindClosestObject(self, OBJ_WCSunStone, &distance);
@@ -115,6 +126,10 @@ static void WCTempleDial_handleStoneDepth(Object* self, WCTempleDial_Setup* objS
 
     //Bail if it couldn't be found or has been destroyed
     if (objData->stone == NULL || objData->stone->stateFlags & OBJSTATE_DESTROYED) {
+        objData->stone = NULL;
+        if (objData->stoneSearchDelay == 0) {
+            objData->stoneSearchDelay = 60;
+        }
         return;
     }
 
