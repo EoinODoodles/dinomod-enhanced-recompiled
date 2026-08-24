@@ -115,6 +115,8 @@ INCBIN(objects_wctemplebridge,    "inc/objects_0288_WCTempleBridge.bin");
 
 #define COORDS_SETUP(coordX, coordY, coordZ) .base.x = coordX, .base.y = coordY, .base.z = coordZ
 
+#define FADE_DISTANCE(distance) (((distance*2) + 1) / 16) //Rounded to nearest value
+
 #define GET_MAPS_OBJECT(mapID, uID) (reasset_map_objects_get(mapID, reasset_base_id(uID), NULL))
 #define GET_TRIGGER(mapID, uID) ((Trigger_Setup*)GET_MAPS_OBJECT(mapID, uID))
 
@@ -907,7 +909,20 @@ static void walled_city_modifications(void) {
                 };
                 reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
             }
+        }
 
+        //Increase Sun dial hall's torch fade distances very slightly, so they don't pop in while walking back along the Magic Bridge
+        {
+            u32 torchUIDs[] = {
+                0x4155F,
+                0x41560
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(torchUIDs); i++) {
+                ObjSetup* torch = GET_MAPS_OBJECT(walledCity, torchUIDs[i]);
+                torch->fadeFlags = OBJSETUP_FADE_CAMERA;
+                torch->fadeDistance = FADE_DISTANCE(555);
+            }
         }
     }
 
