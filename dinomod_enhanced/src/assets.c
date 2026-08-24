@@ -48,6 +48,8 @@ INCBIN(block618, "inc/blocks_0618_WC_central_temple_west.bin");
 INCBIN(block619, "inc/blocks_0619_WC_central_temple_south_west.bin");
 INCBIN(block628, "inc/blocks_0628_WC_moon_temple_viewing_tile.bin");
 INCBIN(block635, "inc/blocks_0635_WC_sun_temple_dial_hall.bin");
+INCBIN(block634, "inc/blocks_0634_WC_moon_temple_sw.bin");
+INCBIN(block636, "inc/blocks_0636_WC_moon_temple_dial_hall.bin");
 INCBIN(block1086, "inc/blocks_1086_WC_boss_corner_sw.bin");
 INCBIN(block1087, "inc/blocks_1087_WC_boss_west_corridor_south.bin");
 INCBIN(block1088, "inc/blocks_1088_WC_boss_west_corridor_north.bin");
@@ -297,30 +299,44 @@ static void walled_city_modifications(void) {
     ReAssetID ktTrkblk = reasset_base_id(53);
     int wcBlocksBase = 585;
     int ktBlocksBase = 1086;
-
     //TEMPORARY DEFINES (TODO: remove once these are in decomp)
-    {
-        #define BIT_WC_Sun_Pressure_Switch_Active 0x7ED
-        #define BIT_WC_Sun_Beacon_Raised 0x7EF
-        #define BIT_WC_Sun_Beacon_Lit 0x7F9
-        #define BIT_WC_SlabDoor_Sun_Symbol_Lit 0x7F7
+    #define BIT_WC_Sun_Pressure_Switch_Active 0x7ED
+    #define BIT_WC_Sun_Beacon_Raised 0x7EF
+    #define BIT_WC_Sun_Beacon_Lit 0x7F9
+    #define BIT_WC_SlabDoor_Sun_Symbol_Lit 0x7F7
 
-        #define BIT_WC_Moon_Pressure_Switch_Active 0x7EE
-        #define BIT_WC_Moon_Beacon_Raised 0x7F0
-        #define BIT_WC_Moon_Beacon_Lit 0x7FA
-        #define BIT_WC_SlabDoor_Moon_Symbol_Lit 0x802
-        
-        #define BIT_WC_SlabDoor_Opened 0x813
-        #define BIT_WC_Boss_Door_Opened 0x819
-        #define BIT_WC_King_EarthWalker_Cage_Opened 0x7F5
-        #define BIT_WC_King_EarthWalker_Rescued 0x1DF
-        
-        #define BIT_WC_Sun_Temple_Opened 0x828
-        #define BIT_WC_Moon_Temple_Opened 0x829
+    #define BIT_WC_Moon_Pressure_Switch_Active 0x7EE
+    #define BIT_WC_Moon_Beacon_Raised 0x7F0
+    #define BIT_WC_Moon_Beacon_Lit 0x7FA
+    #define BIT_WC_SlabDoor_Moon_Symbol_Lit 0x802
+    
+    #define BIT_WC_SlabDoor_Opened 0x813
+    #define BIT_WC_Boss_Door_Opened 0x819
+    #define BIT_WC_King_EarthWalker_Cage_Opened 0x7F5
+    #define BIT_WC_King_EarthWalker_Rescued 0x1DF
+    
+    #define BIT_WC_Sun_Temple_Opened 0x828
+    #define BIT_WC_Moon_Temple_Opened 0x829
 
-        #define BIT_WC_Transporter_Chamber_Rises 0x335
-        #define BIT_WC_Transporter_Chamber_Opened 0x235
-    }
+    #define BIT_WC_Sun_Temple_Magic_Bridge_Visible 0x2D4
+    #define BIT_WC_Moon_Temple_Magic_Bridge_Visible 0x2D5
+
+    #define BIT_WC_Transporter_Chamber_Rises 0x335
+    #define BIT_WC_Transporter_Chamber_Opened 0x235
+
+    enum WC_ObjectGroups {
+        WC_ObjGroup0_Sun_Beacon_Tunnel,
+        WC_ObjGroup1_Moon_Beacon_Tunnel,
+        WC_ObjGroup2_Sun_Pushblock_Puzzle,
+        WC_ObjGroup3_Moon_Pushblock_Puzzle,
+        WC_ObjGroup4_Boss_Lobby,
+        WC_ObjGroup5_Central_Temple,
+        WC_ObjGroup6_Sun_Temple_Exterior,
+        WC_ObjGroup7_Moon_Temple_Exterior,
+        WC_ObjGroup8_Sun_Temple_Interior,
+        WC_ObjGroup9_Moon_Temple_Interior
+    };
+    //END OF TEMPORARY DEFINES
 
     //BLOCKS - Central Temple
     {
@@ -780,7 +796,12 @@ static void walled_city_modifications(void) {
 
         //BLOCKS
         {
-            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 635, block635); //Sun Temple, dial hall: add Magic Bridge collision, optimise wall and sculpture faces
+            //Moon Temple
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 636, block636); //Dial hall (back): add Magic Bridge collision, optimise wall and sculpture faces
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 634, block634); //Dial hall (front): fix UVs and optimise sculpture faces
+        
+            //Sun Temple
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 635, block635); //Dial hall: add Magic Bridge collision, optimise wall and sculpture faces
         }
 
         //WCTempleDial
@@ -809,15 +830,6 @@ static void walled_city_modifications(void) {
 
         //WCTempleBridge
         {
-            typedef struct {
-                ObjSetup base;
-                s8 yaw;
-                s8 modelIdx;                    //Which bridge model to use
-                s16 hitsAnimatorID;             //@recomp: repurpose unused field
-                s16 unk1C;
-                s16 gamebitVisible;             //Stores the bridge's visibility state
-            } WCTempleBridge_Setup;
-
             #define MAGIC_BRIDGE_ANIMATORID 5
 
             //Restore original DLL usage (another level's Magic Bridge was used as a workaround)
@@ -826,40 +838,76 @@ static void walled_city_modifications(void) {
                 reasset_objects_set(objects_wctemplebridge_id, REASSET_BASE_NAMESPACE, objects_wctemplebridge, objects_wctemplebridge_end - objects_wctemplebridge);
             }
 
-            //Add HITS animatorIDs to Magic Bridges' objSetups
-            {
-                u32 bridgeUIDs[] = { 
-                    0x000414BC, 
-                    0x00041659 
-                };
-
-                for (u32 i = 0; i < ARRAYCOUNT(bridgeUIDs); i++) {
-                    WCTempleBridge_Setup* bridge = GET_MAPS_OBJECT(walledCity, bridgeUIDs[i]);
-                    bridge->hitsAnimatorID = MAGIC_BRIDGE_ANIMATORID;
-                }
-            }
-
             //Fix model UVs
             {
                 MODELS_REPLACE_BASE(969, models_wctemplebridgesun);
                 MODELS_REPLACE_BASE(970, models_wctemplebridgemoon);
             }
 
-            //Add HitAnimator for controlling Magic Bridge's collision
+            //Edit/add HitAnimators for controlling the Magic Bridges' walkable collision
             {
                 HitAnimator_Setup* hitAnim;
 
-                //Magic Bridge collision
+                //Sun Temple (edit)
                 hitAnim = GET_MAPS_OBJECT(walledCity, 0xBE03005);
                 hitAnim->gamebitActivate = BIT_WC_Sun_Temple_Magic_Bridge_Visible;
-                hitAnim->enableFlag1 = 0;
                 hitAnim->mode = hitanimator_configure_mode_flags(
                     FALSE, TRUE, FALSE),
+                hitAnim->blocksAnimatorID = MAGIC_BRIDGE_ANIMATORID;
+
+                //Moon Temple (add)
+                HitAnimator_Setup hitA = {
+                    .base = {
+                        .objId = OBJ_HitAnimator,
+                        .actExclusions1 = 0,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = WC_ObjGroup9_Moon_Temple_Interior,
+                        .fadeDistance = 100,
+                        .x = 3520,
+                        .y = -1386.25,
+                        .z = -4534
+                    },
+                    .gamebitActivate = BIT_WC_Moon_Temple_Magic_Bridge_Visible,
+                    .mode = hitanimator_configure_mode_flags(
+                        FALSE, TRUE, FALSE),
+                    .blocksAnimatorID = MAGIC_BRIDGE_ANIMATORID
+                };
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+            }
+
+            //Edit/add HitAnimators for removing a ledge grab section in front of each Magic Bridge
+            {
+                HitAnimator_Setup* hitAnim;
+
+                //Sun Temple (edit)
+                hitAnim = GET_MAPS_OBJECT(walledCity, 0xBE03006);
+                hitAnim->gamebitActivate = BIT_WC_Sun_Temple_Magic_Bridge_Visible;
+                hitAnim->mode = hitanimator_configure_mode_flags(
+                    TRUE, FALSE, FALSE),
                 hitAnim->hitsAnimatorID = MAGIC_BRIDGE_ANIMATORID;
 
-                //Delete HITS line HitAnimator (managed by the bridge itself instead)
-                reasset_map_objects_delete(walledCity, reasset_base_id(0xBE03006));
+                //Moon Temple (add)
+                HitAnimator_Setup hitA = {
+                    .base = {
+                        .objId = OBJ_HitAnimator,
+                        .actExclusions1 = 0,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = WC_ObjGroup9_Moon_Temple_Interior,
+                        .fadeDistance = 100,
+                        .x = 3520,
+                        .y = -1339,
+                        .z = -4481
+                    },
+                    .gamebitActivate = BIT_WC_Moon_Temple_Magic_Bridge_Visible,
+                    .mode = hitanimator_configure_mode_flags(
+                        TRUE, FALSE, FALSE),
+                    .hitsAnimatorID = MAGIC_BRIDGE_ANIMATORID
+                };
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
             }
+
         }
     }
 

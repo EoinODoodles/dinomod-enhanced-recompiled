@@ -17,8 +17,6 @@
 // #define RAINBOW_BRIDGE
 
 //TEMPORARY DEFINES
-#define WCTempleBridge_obj_Setup dll_790_obj_Setup
-#define WCTempleBridge_obj_Control dll_790_obj_Control
 #define WCTempleBridge_obj_GetDataSize dll_790_obj_GetDataSize
 #define WCTempleBridge_animCallback dll_790_func_500
 #define WCTempleBridge_advanceAnimation dll_790_func_644
@@ -29,7 +27,7 @@ typedef struct {
     ObjSetup base;
     s8 yaw;
     s8 modelIdx;                    //Which bridge model to use
-    s16 hitsAnimatorID;             //@recomp: repurpose unused field
+    s16 unk1A;
     s16 unk1C;
     s16 gamebitVisible;             //Stores the bridge's visibility state
 } WCTempleBridge_Setup;
@@ -70,47 +68,6 @@ typedef enum {
 extern void WCTempleBridge_advanceAnimation(Object* self, WCTempleBridge_Data* objData);
 extern void WCTempleBridge_updateVertices(Object* self, WCTempleBridge_Data* objData);
 extern int WCTempleBridge_animCallback(Object* self, Object* animObj, AnimObj_Data* animData, s8 prevCallbackValue);
-
-RECOMP_PATCH void WCTempleBridge_obj_Control(Object* self) {
-    WCTempleBridge_Data* objData;
-    s32 opacity;
-    s32 i;
-    WCTempleBridge_Setup* objSetup;
-
-    objData = self->data;
-    objSetup = (WCTempleBridge_Setup*)self->setup;
-    
-    WCTempleBridge_advanceAnimation(self, objData);
-
-    if (objData->visible) {
-        if ((objData->flags & WCTempleBridge_FLAG_Visibility_Gamebit_Set) == FALSE) {
-            objData->flags |= WCTempleBridge_FLAG_Visibility_Gamebit_Set;
-            mainSetBits(objSetup->gamebitVisible, TRUE);
-        }
-
-        for (i = 0; i < objData->vertexZCount; i++) {
-            objData->vertexFadeIn[i] = TRUE;
-            if (objData->vertexFadeIn[i]) {
-                    opacity = objData->vertexAlphas[i] + gUpdateRate;
-                    if (opacity > MAX_OPACITY) {
-                        opacity = MAX_OPACITY;
-                    }
-                objData->vertexAlphas[i] = opacity;
-            }
-        }
-
-        //@recomp: remove HITS line
-        if (objSetup->hitsAnimatorID > 0) {
-            trackToggleHitLine(objSetup->hitsAnimatorID, self->parent, FALSE);
-        }
-        
-        func_8002674C(self);
-    } else {
-        func_800267A4(self);
-    }
-    
-    WCTempleBridge_updateVertices(self, objData);
-}
 
 /* Storing scroll positions to objData instead of using TextureAnimators, to avoid seams/desyncs between bridge faces */
 RECOMP_PATCH void WCTempleBridge_advanceAnimation(Object* self, WCTempleBridge_Data* objData) {
