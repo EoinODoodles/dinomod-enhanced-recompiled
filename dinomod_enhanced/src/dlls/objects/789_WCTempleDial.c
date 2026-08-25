@@ -180,7 +180,7 @@ RECOMP_PATCH void WCTempleDial_obj_Control(Object* self) {
                     mainSetBits(objData->switchGamebits[j], 0);
                 }
                 
-                gDLL_6_AMSFX->vtbl->Play(self, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
+                dll_amSfx->Play(self, SOUND_912_Object_Refused, MAX_VOLUME, NULL, NULL, 0, NULL);
                 
                 //Reset back to initial state and rotation speed
                 objData->switchFlags = 0;
@@ -197,10 +197,10 @@ RECOMP_PATCH void WCTempleDial_obj_Control(Object* self) {
 
                 //@recomp: save the full "puzzle solved" jingle until all three switches are pressed
                 if (objData->switchFlags == ALL_THREE_SWITCHES) {
-                    gDLL_6_AMSFX->vtbl->Play(self, SOUND_798_Puzzle_Solved, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    dll_amSfx->Play(self, SOUND_798_Puzzle_Solved, MAX_VOLUME, NULL, NULL, 0, NULL);
                 } else {
                     //Smaller "success!" chime as you progress through the switch sequence
-                    gDLL_6_AMSFX->vtbl->Play(self, SOUND_B01_Success_Chime, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    dll_amSfx->Play(self, SOUND_B01_Success_Chime, MAX_VOLUME, NULL, NULL, 0, NULL);
                 }
             }
         }
