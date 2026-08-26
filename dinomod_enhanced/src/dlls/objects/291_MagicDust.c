@@ -309,6 +309,10 @@ RECOMP_PATCH void MagicDust_control(Object* self) {
                 objSendMesg(player, 0x7000A, self, NULL);
                 mainSetBits(BIT_Tutorial_Magic_Crystal, 1);
                 objData->flags |= MagicDust_FLAG_Tutorial_Sequence;
+
+                //@recomp: open queue so the player's reply is received 
+                //(fixes a bug where magic didn't increase after the tutorial sequence)
+                objInitMesgQueue(self, 1);
             } else {
                 MagicDust_collect(self, player, objData);
             }
