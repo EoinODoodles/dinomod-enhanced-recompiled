@@ -30,6 +30,43 @@ typedef struct {
 
 typedef struct {
     ObjSetup base;
+    s16 gamebitActivate;                    //Gamebit controlling when the fade is activated/deactivated
+    s16 gamebitSetWhenFaded;                //(For modes 0, 2, 3) Optionally set a gamebit when the fade animation is complete - also used to restore fully-faded state
+    u8 initialOpacity;                      //Opacity at the beginning of the fade animation (can be higher than the goal opacity)
+    u8 goalOpacity;                         //Opacity at the end of the fade animation (can be lower than the initial opacity)
+    s8 animatorID;                          //Vertices will only be affected if they have this shape animatorID
+    s8 fadeSpeed;                           //Fade in rate. In radial mode, the sign inverts the behaviour (fade inside/outside radius)!
+    union {
+        u8 flags;                           //Mode stored on bits 0, 1 (see `GET_MODE` macro) - bit2 determines whether to play a sound, and (@recomp) bit3 determines whether to change render mode when fully opaque
+        struct {
+            u8 flagsUpper : 4;              //Unused
+            u8 opaqueAtMaxOpacity : 1;      //@recomp: switch to a fully-opaque render mode when vertices are at max opacity (prevents other transparent shapes drawing through the animated shape)
+            u8 playSound : 1;               //Play objSetup->soundID (@recomp: any upper bit used to enable this, though the sound-using objSetups only ever set bit2. The code's now been changed so it specifically checks bit2, freeing up the higher bits for custom flags!)
+            u8 mode : 2;                    //See `AlphaAnimator_Modes`
+        };
+    };
+    u8 removeCollisionWhenHidden;           //Boolean, fade affects whether the affected shapes are tangible
+    u16 fadeRadiusGoal;                     //(For radial mode) End radius of the fade animation
+    u16 soundID;                            //Which sound to play (requires sound playing enabled on `objData->flags`)
+} AlphaAnimator_Setup;
+
+typedef enum {
+    AlphaAnimator_MODE_0_Basic_Fade_and_Set_Gamebit, //Fade using a gamebit (and optionally set a secondary gamebit when the fade is complete)
+    AlphaAnimator_MODE_1_Basic_Fade,                 //Fade using a gamebit 
+    AlphaAnimator_MODE_2_Toggleable_Fade,            //Activate/deactivate a fade using a gamebit (and optionally set/unset a secondary gamebit when the fade is complete)
+    AlphaAnimator_MODE_3_Radial_Falloff_Fade         //Using a gamebit, fade vertices inside an expanding radius (or outside, based on fadeSpeed's sign!)
+} AlphaAnimator_Modes;
+
+typedef enum {
+    AlphaAnimator_FLAG_Play_Sound = 4
+} AlphaAnimator_Flags;
+
+typedef enum {
+    AlphaAnimator_CUSTOMFLAG_Opaque_at_Max_Opacity = 8 //Change to fully-opaque render flags when at max opacity, to prevent other transparent surfaces being drawn behind the shape
+} AlphaAnimator_CustomFlags;
+
+typedef struct {
+    ObjSetup base;
     s8 loopStartFrame;   //Frame to loop back to after reaching endFrame (only when looping)
     s8 materialIndex;    //Index within object's local Blocks model's materials (the frame of the material's texture animation will be manipulated)
     s16 endFrame;        //End frame of texture animation
@@ -108,6 +145,29 @@ typedef enum {
     SEQOBJ_OPTIONS_HasReplayActorMask = 16                      // if set, more than just the seqobj will be controlled by a replay
 } SeqObj_PlaybackOptions;
 
+typedef enum  {
+    USEOBJ_HideIfAlreadyUsed = 0x1,
+    USEOBJ_SeqControlsUsedBit = 0x4,
+    USEOBJ_DisableAfterUse = 0x8,
+    USEOBJ_NoTargetingWhenDisabled = 0x10,
+    USEOBJ_ReplayIncludeActor2 = 0x20,
+    USEOBJ_ReplayIncludeActor3 = 0x40,
+    USEOBJ_ReplayIncludeActor4 = 0x80
+} UseObjFlags;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ u8 yaw;
+/*19*/ u8 pitch;
+/*1A*/ u8 roll;
+/*1B*/ u8 flags;
+/*1C*/ s16 gamebitUsed; // gamebit that says whether this object was already used
+/*1E*/ s16 gamebitRequiredItem; // inventory item required to use this object
+/*20*/ s8 objectSeqIndex;
+/*21*/ s8 modelInstIdx;
+/*22*/ s16 gamebitEnabled; // gamebit that says whether this object is enabled (and can be used)
+/*24*/ s16 replayStartTime; // if not zero, the sequence will be replayed if the object was already used
+} UseObj_Setup;
 
 typedef struct {
 /*00*/ ObjSetup base;
