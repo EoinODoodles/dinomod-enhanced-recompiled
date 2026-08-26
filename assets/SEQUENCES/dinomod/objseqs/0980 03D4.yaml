@@ -1,0 +1,102 @@
+#Walled City - Moon/Sun Temple Lift Ascending
+
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x0
+  objectID: 0xFFFF # Self (WCMoonTempleLif, WCSunTempleLift)
+# Actor 1
+- uid: 0x0
+  settings: 0x9000
+  objectID: 0xFFFE # Camera
+# Actor 2
+- uid: 0x0
+  settings: 0xD700
+  objectID: 0x0 # Sabre
+
+curves:
+# Curve 0 (Lift)
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 300 } # SETDURATION @ 0
+  - { type: 3, delay: 2, params: 0x0 } # OVERRIDE @ 0
+  - { type: 6, delay: 0, params: 0xF9F0 } # SFX @ 2
+  - { type: 0, delay: 0, params: 270 } # SETTIME @ 2
+  - { type: 6, delay: 30, params: 0xE9EF } # SFX @ 270
+  - { type: 11, delay: 0, params: 1 } # CODE @ 300
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # TRANSLATE_Z
+  - { channel: 11, time: 0, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 11, time: 290, value: -217, interp: 0, weight: 0 }                     #@recomp: align exactly
+    # TRANSLATE_Y
+  - { channel: 12, time: 0, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 12, time: 124, value: 103.21157836914062, interp: 1, weight: 12 }
+  - { channel: 12, time: 204, value: 197.43484497070312, interp: 0, weight: 11 }
+  - { channel: 12, time: 290, value: 248, interp: 0, weight: 0 }                      #@recomp: align exactly
+    # TRANSLATE_X
+  - { channel: 13, time: 0, value: 0.0, interp: 0, weight: 0 }
+    # SOUND_VOLUME
+  - { channel: 18, time: 3, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 18, time: 28, value: 193.82211303710938, interp: 0, weight: 0 }
+  - { channel: 18, time: 258, value: 193.82211303710938, interp: 0, weight: 0 }
+  - { channel: 18, time: 289, value: 0.0, interp: 0, weight: 0 }
+# Curve 1 (Camera)
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 300 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 1, delay: 0, params: 0x0 } # MOVEMODE @ 0
+  - { type: 0, delay: 0, params: 266 } # SETTIME @ 0
+  - { type: 1, delay: 34, params: 0x0 } # MOVEMODE @ 266
+  - { type: 11, delay: 0, params: 1 } # CODE @ 300
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ROTATE_Y
+  - { channel: 7, time: 0, value: -31.34298324584961, interp: 0, weight: 0 }
+  - { channel: 7, time: 249, value: 0.0, interp: 1, weight: 0 }
+    # ROTATE_X
+  - { channel: 8, time: 0, value: -21.86833953857422, interp: 0, weight: 0 }
+  - { channel: 8, time: 249, value: -13.167145729064941, interp: 1, weight: 0 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 0, value: 132.92987060546875, interp: 0, weight: 0 }
+  - { channel: 11, time: 150, value: 239.76959228515625, interp: 0, weight: 0 }
+  - { channel: 11, time: 249, value: 181.0, interp: 1, weight: 0 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 0, value: 68.0, interp: 0, weight: 0 }
+  - { channel: 12, time: 249, value: 82.0, interp: 1, weight: 0 }
+    # TRANSLATE_X
+  - { channel: 13, time: 0, value: -69.76100158691406, interp: 0, weight: 0 }
+  - { channel: 13, time: 150, value: -58.09430694580078, interp: 0, weight: 8 }
+  - { channel: 13, time: 249, value: 0.0, interp: 1, weight: 0 }
+# Curve 2 (Player)
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 300 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 2, delay: 2, params: 0x8234 } # ANIM @ 0
+  - { type: 11, delay: 75, params: 1 } # CODE @ 2
+  - { code_type: 6, val1: 0x21, val2: 0x2 } # 6 (33)
+  - { type: 2, delay: 180, params: 0x218 } # ANIM @ 77
+  - { type: 2, delay: 43, params: 0x0 } # ANIM @ 257
+  - { type: 11, delay: 0, params: 1 } # CODE @ 300
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # HEAD_ROTATE_X
+  - { channel: 1, time: 6, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 1, time: 112, value: -27.6881103515625, interp: 0, weight: 0 }
+  - { channel: 1, time: 181, value: 19.268314361572266, interp: 0, weight: 0 }
+  - { channel: 1, time: 282, value: 0.0, interp: 0, weight: 0 }
+    # HEAD_ROTATE_Y
+  - { channel: 2, time: 60, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 2, time: 103, value: 19.22636604309082, interp: 0, weight: 2 }
+  - { channel: 2, time: 138, value: 19.226364135742188, interp: 0, weight: 62 }
+  - { channel: 2, time: 193, value: -8.744324684143066, interp: 0, weight: 0 }
+  - { channel: 2, time: 243, value: 0.0, interp: 0, weight: 0 }
+    # ANIM_SPEED
+  - { channel: 9, time: 0, value: 11.28052043914795, interp: 0, weight: 0 }
+    # ANIM_BLEND_SPEED
+  - { channel: 10, time: 6, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 10, time: 24, value: 45.205196380615234, interp: 0, weight: 0 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 34, value: 28.69975471496582, interp: 0, weight: 0 }
