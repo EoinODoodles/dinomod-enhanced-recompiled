@@ -468,7 +468,7 @@ RECOMP_PATCH void WCLevelControl_handleAct1(Object* self, WCLevelControl_Data* o
         }
 
         //Check if the challenge music has stopped playing
-        if (objData->musicPlayerNo >= 0) {
+        if (objData->musicPlayerNo >= 0 && (objData->extraFlags & CUSTOM_FLAG_Challenge_Music_Too_Far_Ahead) == FALSE) {
             if (AMSEQ_hasMusicPlayerStopped(objData->musicPlayerNo)) {
                 objData->musicPlayerNo = -1;
             }
