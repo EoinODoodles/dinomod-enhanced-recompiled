@@ -46,8 +46,14 @@ INCBIN(block612, "inc/blocks_0612_WC_central_temple_southmost.bin");
 INCBIN(block617, "inc/blocks_0617_WC_central_temple_north_west.bin");
 INCBIN(block618, "inc/blocks_0618_WC_central_temple_west.bin");
 INCBIN(block619, "inc/blocks_0619_WC_central_temple_south_west.bin");
-INCBIN(block628, "inc/blocks_0628_WC_moon_temple_viewing_tile.bin");
+INCBIN(block590, "inc/blocks_0590_WC_sun_temple_entrance.bin");
+INCBIN(block585, "inc/blocks_0585_WC_sun_temple_ne.bin");
+INCBIN(block586, "inc/blocks_0586_WC_sun_temple_se.bin");
+INCBIN(block591, "inc/blocks_0591_WC_sun_temple_sw.bin");
 INCBIN(block635, "inc/blocks_0635_WC_sun_temple_dial_hall.bin");
+INCBIN(block628, "inc/blocks_0628_WC_moon_temple_ne.bin");
+INCBIN(block633, "inc/blocks_0633_WC_moon_temple_nw.bin");
+INCBIN(block629, "inc/blocks_0629_WC_moon_temple_se.bin");
 INCBIN(block634, "inc/blocks_0634_WC_moon_temple_sw.bin");
 INCBIN(block636, "inc/blocks_0636_WC_moon_temple_dial_hall.bin");
 INCBIN(block1086, "inc/blocks_1086_WC_boss_corner_sw.bin");
@@ -105,6 +111,12 @@ INCBIN(models_wcslabdoor,         "inc/models_0942_WCSlabDoor.bin");
 INCBIN(models_wcbossdoor,         "inc/models_0943_WCBossDoor.bin");
 INCBIN(models_wctemplebridgesun,  "inc/models_0969_WCTempleBridgeSun.bin");
 INCBIN(models_wctemplebridgemoon, "inc/models_0970_WCTempleBridgeMoon.bin");
+INCBIN(models_wcfloortile,        "inc/models_0974_WCFloorTile.bin");
+INCBIN(models_wcsundoor,          "inc/models_0940_WCSunDoor.bin");
+INCBIN(models_wcmoondoor,         "inc/models_0941_WCMoonDoor.bin");
+INCBIN(models_wcsuntemplelift,    "inc/models_0957_WCSunTempleLift.bin");
+INCBIN(models_wcmoontemplelift,   "inc/models_0958_WCMoonTempleLift.bin");
+INCBIN(models_wcsuntempleswitch,  "inc/models_0964_WCSunTempleSwitch.bin");
 
 INCBIN(objects_vampirebat,        "inc/objects_0053_VampireBat.bin");
 INCBIN(objects_warppoint,         "inc/objects_1124_WarpPoint.bin");
@@ -812,10 +824,17 @@ static void walled_city_modifications(void) {
         //BLOCKS
         {
             //Moon Temple
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 628, block628); //Northeast: align floor tiles exactly, fix UVs and optimise faces
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 629, block629); //Southeast: fix gaps between vertices near slide puzzle archway
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 633, block633); //Northwest: fix UVs and optimise faces
             BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 636, block636); //Dial hall (back): add Magic Bridge collision, optimise wall and sculpture faces
             BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 634, block634); //Dial hall (front): fix UVs and optimise sculpture faces
         
             //Sun Temple
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 586, block586); //Southeast: fix UVs at start of maze, optimise faces above ground
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 585, block585); //Northeast: fix UVs at end of maze, optimise faces above ground
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 590, block590); //Entrance: fix gaps between vertices near slide puzzle archway, improve entrance collision, unify sides with Moon Temple design
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 591, block591); //Southwest: fix UVs, split off illusory wall so other faces aren't animated too
             BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 635, block635); //Dial hall: add Magic Bridge collision, optimise wall and sculpture faces
         }
 
@@ -922,7 +941,6 @@ static void walled_city_modifications(void) {
                 };
                 reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
             }
-
         }
 
         //Ensure that the Sun/Moon Stones always draw above the dial 
@@ -952,6 +970,591 @@ static void walled_city_modifications(void) {
                 ObjSetup* torch = GET_MAPS_OBJECT(walledCity, torchUIDs[i]);
                 torch->fadeFlags = OBJSETUP_FADE_CAMERA;
                 torch->fadeDistance = FADE_DISTANCE(555);
+            }
+        }
+
+        //Sun Temple Entrance Door (align exactly)
+        {
+            ObjSetup* sunEntrance = GET_MAPS_OBJECT(walledCity, 0x41418);
+            sunEntrance->x = -1088;
+            sunEntrance->y = -1002;
+            sunEntrance->z = -5543;
+
+            MODELS_REPLACE_BASE(940, models_wcsundoor);
+        }
+
+        //Sun Temple Lift 
+        {
+            //Align exactly
+            {
+                ObjSetup* sunLift = GET_MAPS_OBJECT(walledCity, 0x413a7);
+                sunLift->x = -1088;
+                sunLift->y = -1002;
+                sunLift->z = -5543;
+
+                MODELS_REPLACE_BASE(957, models_wcsuntemplelift);
+            }
+
+            //Add HITS lines so you can step out of the small pit (just in case)
+            {
+                #define STEP (TrackLine_SETTINGB_Nonsolid | HITS_Clamber_Up)
+                #define TEMPLE_STEP_ANIMATORID 101
+
+                TrackLine lines[] = {
+                    { HITS_A(152, -1012, 270), HITS_B(233, -1012, 270), .heightA = 12, .heightB = 12, .settingsA = 0, .settingsB = STEP, .animatorID = 111 },
+                    { HITS_A(233, -1011, 220), HITS_B(152, -1011, 220), .heightA = 10, .heightB = 10, .settingsA = 0, .settingsB = STEP, .animatorID = TEMPLE_STEP_ANIMATORID },
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(lines); i++) {
+                    reasset_hits_set(wcTrkblk, reasset_base_id(590 - wcBlocksBase), reasset_auto_id(8 + i), REASSET_BASE_NAMESPACE, &lines[i]);
+                }
+
+                //Add a HitAnimator for the line leading into the temple
+                {
+                    HitAnimator_Setup hitA = {
+                        .base = {
+                            .objId = OBJ_HitAnimator,
+                            .actExclusions1 = 0,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_ObjGroup6_Sun_Temple_Exterior,
+                            .fadeDistance = 200,
+                        },
+                        COORDS_SETUP(-1088, -1011, -5540),
+                        .gamebitActivate = BIT_WC_Sun_Temple_Opened,
+                        .mode = hitanimator_configure_mode_flags(
+                            FALSE, FALSE, FALSE),
+                        .hitsAnimatorID = TEMPLE_STEP_ANIMATORID
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                }
+            }
+
+
+            //Add collision reinforcing the temple entrance 
+            //(avoiding bug where the lift could clip you through it when running at the door's edges)
+            {
+                #define TEMPLE_ENTRANCE_ANIMATORID 64
+
+                TrackLine line = { 
+                    HITS_A(235, -1002, 202), 
+                    HITS_B(150, -1002, 202), 
+                    .heightA = 100, .heightB = 100, 
+                    .settingsA = 0, .settingsB = HITS_1, 
+                    .animatorID = TEMPLE_ENTRANCE_ANIMATORID
+                };
+                reasset_hits_set(wcTrkblk, reasset_base_id(590 - wcBlocksBase), 
+                reasset_auto_id(11), REASSET_BASE_NAMESPACE, &line);
+
+                //Add a HitAnimator for the line
+                {
+                    HitAnimator_Setup hitA = {
+                        .base = {
+                            .objId = OBJ_HitAnimator,
+                            .actExclusions1 = 0,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_ObjGroup6_Sun_Temple_Exterior,
+                            .fadeDistance = 200,
+                        },
+                        COORDS_SETUP(-1088, -983, -5558),
+                        .gamebitActivate = BIT_WC_Sun_Temple_Opened,
+                        .mode = hitanimator_configure_mode_flags(
+                            TRUE, FALSE, FALSE),
+                        .hitsAnimatorID = TEMPLE_ENTRANCE_ANIMATORID
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                }
+
+                //Add a HitAnimator for the door
+                {
+                    HitAnimator_Setup hitA = {
+                        .base = {
+                            .objId = OBJ_HitAnimator,
+                            .actExclusions1 = 0,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_ObjGroup6_Sun_Temple_Exterior,
+                            .fadeDistance = 200,
+                        },
+                        COORDS_SETUP(-1088, -976.612, -5564.950),
+                        .gamebitActivate = BIT_WC_Sun_Temple_Opened,
+                        .mode = hitanimator_configure_mode_flags(
+                            TRUE, TRUE, FALSE),
+                        .blocksAnimatorID = TEMPLE_ENTRANCE_ANIMATORID
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                }
+            }
+
+            //Add HitAnimators so you can switch between the original lift rails (cleaned up) or an alternate version 
+            //incorporating design elements from the Moon Temple's rails (suggested by Jeebs2kx, implemented by Banjeoin)
+            {
+                //Original shapes on
+                {
+                    HitAnimator_Setup hitAnimOriginal = {
+                        .base = {
+                            .objId = OBJ_HitAnimator,
+                            .actExclusions1 = 0,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_ObjGroup6_Sun_Temple_Exterior,
+                            .fadeDistance = 200,
+                        },
+                        COORDS_SETUP(-1087.7, -880.4, -5648.5),
+                        .gamebitActivate = DINOMOD_BIT_963_WC_Alternate_Sun_Temple_Exterior,
+                        .mode = hitanimator_configure_mode_flags(
+                            TRUE, TRUE, FALSE),
+                        .blocksAnimatorID = 30
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitAnimOriginal, sizeof(hitAnimOriginal));
+                }
+
+                //Alternate shapes on
+                {
+                    HitAnimator_Setup hitAnimAlternate = {
+                        .base = {
+                            .objId = OBJ_HitAnimator,
+                            .actExclusions1 = 0,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_ObjGroup6_Sun_Temple_Exterior,
+                            .fadeDistance = 200,
+                        },
+                        COORDS_SETUP(-1087.7, -880.4, -5648.5),
+                        .gamebitActivate = DINOMOD_BIT_963_WC_Alternate_Sun_Temple_Exterior,
+                        .mode = hitanimator_configure_mode_flags(
+                            FALSE, TRUE, FALSE),
+                        .blocksAnimatorID = 31
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitAnimAlternate, sizeof(hitAnimAlternate));
+                }
+            }
+        }
+
+        //Sun Temple Maze
+        {
+            //Fix texture on WCSunTempleSwitch (the sun model showed the moon icon by mistake - the moon model already had the correct icon though!)
+            {
+                MODELS_REPLACE_BASE(964, models_wcsuntempleswitch);
+            }
+
+            //Slightly increase the fade distance of the wall switch that leads into the maze
+            {
+                ObjSetup* button = GET_MAPS_OBJECT(walledCity, 0x414b3);
+                button->fadeFlags = OBJSETUP_FADE_CAMERA;
+                button->fadeDistance = FADE_DISTANCE(775);
+            }
+
+            //Ensure all illusory wall AlphaAnimators turn fully opaque when at max opacity (prevent other transparent shapes drawing through them)
+            {
+                //Delete custom HitAnimators that were used as a temporary fix for this bug
+                reasset_map_objects_delete(walledCity, reasset_base_id(0xBE03003));
+                reasset_map_objects_delete(walledCity, reasset_base_id(0xBE03004));
+
+                //Restore AlphaAnimators that had been deleted as a temporary fix for this bug
+                {
+                    //Maze entry illusory wall (0x412e1)
+                    {
+                        AlphaAnimator_Setup alphaAnim = {
+                            .base = {
+                                .objId = OBJ_AlphaAnimator,
+                                .actExclusions1 = 0,
+                                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                .mapObjGroup = WC_ObjGroup8_Sun_Temple_Interior,
+                                .fadeDistance = 50,
+                            },
+                            COORDS_SETUP(-1208.816, -1107.007, -6275.149),
+                            .gamebitActivate = BIT_WC_Sun_Temple_Illusory_Wall_Switch_Pressed,
+                            .gamebitActivated = BIT_WC_Sun_Temple_Illusory_Wall_Switch_Pressed,
+                            .initialOpacity = 0xFF,
+                            .goalOpacity = 0,
+                            .animatorID = 1,
+                            .fadeSpeed = 1,
+                            .mode = AlphaAnimator_MODE_0_Basic_Fade_and_Set_Gamebit,
+                            .playSound = TRUE,
+                            .removeCollisionWhenHidden = TRUE,
+                            .soundID = SOUND_9FB_Illusory_Wall_Revealed,
+
+                            //@recomp: set custom flags
+                            .opaqueAtMaxOpacity = TRUE
+                        };
+                        reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &alphaAnim, sizeof(alphaAnim));
+                    }
+
+                    //Last maze illusory wall (0x4148e)
+                    {
+                        AlphaAnimator_Setup alphaAnim = {
+                            .base = {
+                                .objId = OBJ_AlphaAnimator,
+                                .actExclusions1 = 0,
+                                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                .mapObjGroup = WC_ObjGroup8_Sun_Temple_Interior,
+                                .fadeDistance = 50,
+                            },
+
+                            COORDS_SETUP(-1784.581, -1085.147, -5737.937),
+                            .gamebitActivate = BIT_WC_Sun_Temple_Maze_Illusory_Wall_4_Hidden,
+                            .gamebitActivated = NO_GAMEBIT,
+                            .initialOpacity = 0xFF,
+                            .goalOpacity = 0,
+                            .animatorID = 4,
+                            .fadeSpeed = 2,
+                            .mode = AlphaAnimator_MODE_2_Toggleable_Fade,
+                            .playSound = TRUE,
+                            .removeCollisionWhenHidden = TRUE,
+                            .soundID = SOUND_9FB_Illusory_Wall_Revealed,
+                            
+                            //@recomp: set custom flags
+                            .opaqueAtMaxOpacity = TRUE,
+                            // .noSoundOnReverse = TRUE,
+                            .soundIDReverse = SOUND_7AF_Switch_Reset_Swoosh
+                        };
+                        reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &alphaAnim, sizeof(alphaAnim));
+                    }
+                }
+
+                //Edit all Sun Maze AlphaAnimators so they use the custom opaque-at-full-opacity flag
+                {
+                    u32 alphaAnimatorUIDs[] = {
+                        // 0x412e1,
+                        0x4148b,
+                        0x4148c,
+                        0x4148d,
+                        // 0x4148e
+                    };
+                    for (u32 i = 0; i < ARRAYCOUNT(alphaAnimatorUIDs); i++) {
+                        AlphaAnimator_Setup* alphaAnim = GET_MAPS_OBJECT(walledCity, alphaAnimatorUIDs[i]);
+                        alphaAnim->opaqueAtMaxOpacity = TRUE;
+                        alphaAnim->soundIDReverse = SOUND_7AF_Switch_Reset_Swoosh;
+
+                        //Restore playing a sound when vanishing (this was moved to sfxPlayers previously, as a temporary bug fix)
+                        alphaAnim->playSound = TRUE;
+                        alphaAnim->soundID = SOUND_9FB_Illusory_Wall_Revealed;
+                    }
+                }
+                
+                //Delete custom sfxPlayers that were used as a temporary fix for the AlphaAnimator DLL's sound-on-load bug
+                {
+                    u32 customSfxPlayers[] = {
+                        0xBE03008,
+                        0xBE03009,
+                        0xBE0300A,
+                        0xBE0300B,
+                        0xBE0300C
+                    };
+
+                    for (u32 i = 0; i < ARRAYCOUNT(customSfxPlayers); i++) {
+                        reasset_map_objects_delete(walledCity, reasset_base_id(customSfxPlayers[i]));
+                    }
+                }
+            }
+
+            //Set the "Maze Completed" gamebit as you pass through the exit doorway
+            {
+                Trigger_Setup* plane = GET_MAPS_OBJECT(walledCity, 0x410f0);
+                plane->commands[4].condition = CMD_COND_IN | CMD_COND_RE_ENTER;
+                plane->commands[4].id = TRG_CMD_BITS;
+                plane->commands[4].paramCombined = TRG_GAMEBIT(BIT_WC_Sun_Temple_Maze_Solved, TRUE);
+            }
+
+            //Fade distances
+            {
+                //Increase the last maze button's fade distance slightly, so it doesn't pop in
+                {
+                    ObjSetup* button = GET_MAPS_OBJECT(walledCity, 0x414b7);
+                    button->fadeFlags = OBJSETUP_FADE_CAMERA;
+                    button->fadeDistance = FADE_DISTANCE(615);
+                }
+
+                //Increase the Sun Temple Maze Door's fade distance, so it doesn't vanish during the maze intro cutscene
+                {
+                    ObjSetup* mazeDoor = GET_MAPS_OBJECT(walledCity, 0x41492);
+                    mazeDoor->fadeFlags = OBJSETUP_FADE_CAMERA;
+                    mazeDoor->fadeDistance = FADE_DISTANCE(955);
+                }
+
+                //Increase the Sun Temple Portal Spell door's fade distance, so you don't see the sky through it
+                {
+                    ObjSetup* portalDoor = GET_MAPS_OBJECT(walledCity, 0x41494);
+                    portalDoor->fadeFlags = OBJSETUP_FADE_CAMERA;
+                    portalDoor->fadeDistance = FADE_DISTANCE(1100);
+                }
+            }
+
+            //Lock buttons after the maze is completed
+            {
+                UseObj_Setup* button = GET_MAPS_OBJECT(walledCity, 0x41525);
+                button->gamebitEnabled = BIT_WC_Sun_Temple_Maze_Solved;
+                button->flags |= WCUseObj_FLAG_10_No_Targetting_When_Locked | WCUseObj_CUSTOMFLAG_2_Invert_GamebitUnlocked;
+            }
+        }
+
+        //Moon Temple Entrance Door (align exactly)
+        {
+            ObjSetup* moonEntrance = GET_MAPS_OBJECT(walledCity, 0x4133d);
+            moonEntrance->x = 3008;
+            moonEntrance->y = -1002;
+            moonEntrance->z = -4057;
+
+            MODELS_REPLACE_BASE(941, models_wcmoondoor);
+        }
+
+        //Moon Temple Lift
+        {
+            //Align exactly
+            {
+                ObjSetup* moonLift = GET_MAPS_OBJECT(walledCity, 0x413a7);
+                moonLift->x = 3008;
+                moonLift->y = -1002;
+                moonLift->z = -4057;
+
+                MODELS_REPLACE_BASE(958, models_wcmoontemplelift);
+            }
+
+            //Add HITS lines so you can step out of the small pit (just in case)
+            {
+                #define STEP (TrackLine_SETTINGB_Nonsolid | HITS_Clamber_Up)
+                #define TEMPLE_STEP_ANIMATORID 101
+
+                TrackLine lines[] = {
+                    { HITS_A(488, -1012, 371), HITS_B(407, -1012, 371), .heightA = 12, .heightB = 12, .settingsA = 0, .settingsB = STEP, .animatorID = 111 },
+                    { HITS_A(407, -1011, 420), HITS_B(488, -1011, 420), .heightA = 10, .heightB = 10, .settingsA = 0, .settingsB = STEP, .animatorID = TEMPLE_STEP_ANIMATORID },
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(lines); i++) {
+                    reasset_hits_set(wcTrkblk, reasset_base_id(629 - wcBlocksBase), reasset_auto_id(8 + i), REASSET_BASE_NAMESPACE, &lines[i]);
+                }
+
+                //Add a HitAnimator for the line leading into the temple
+                {
+                    HitAnimator_Setup hitA = {
+                        .base = {
+                            .objId = OBJ_HitAnimator,
+                            .actExclusions1 = 0,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_ObjGroup7_Moon_Temple_Exterior,
+                            .fadeDistance = 200,
+                        },
+                        COORDS_SETUP(3008, -1011, -4060),
+                        .gamebitActivate = BIT_WC_Moon_Temple_Opened,
+                        .mode = hitanimator_configure_mode_flags(
+                            FALSE, FALSE, FALSE),
+                        .hitsAnimatorID = TEMPLE_STEP_ANIMATORID
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                }
+            }
+
+            //Add collision reinforcing the temple entrance 
+            //(avoiding bug where the lift could clip you through it when running at the door's edges)
+            {
+                #define TEMPLE_ENTRANCE_ANIMATORID 64
+
+                TrackLine line = { 
+                    HITS_A(405, -1002, 438), 
+                    HITS_B(490, -1002, 438), 
+                    .heightA = 100, .heightB = 100, 
+                    .settingsA = 0, .settingsB = HITS_1, 
+                    .animatorID = TEMPLE_ENTRANCE_ANIMATORID 
+                };
+                reasset_hits_set(wcTrkblk, reasset_base_id(629 - wcBlocksBase), 
+                reasset_auto_id(11), REASSET_BASE_NAMESPACE, &line);
+
+                //Add a HitAnimator for the line
+                {
+                    HitAnimator_Setup hitA = {
+                        .base = {
+                            .objId = OBJ_HitAnimator,
+                            .actExclusions1 = 0,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_ObjGroup7_Moon_Temple_Exterior,
+                            .fadeDistance = 200,
+                        },
+                        COORDS_SETUP(3008, -983, -4042),
+                        .gamebitActivate = BIT_WC_Moon_Temple_Opened,
+                        .mode = hitanimator_configure_mode_flags(
+                            TRUE, FALSE, FALSE),
+                        .hitsAnimatorID = TEMPLE_ENTRANCE_ANIMATORID
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                }
+
+                //Add a HitAnimator for the door
+                {
+                    HitAnimator_Setup hitA = {
+                        .base = {
+                            .objId = OBJ_HitAnimator,
+                            .actExclusions1 = 0,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_ObjGroup7_Moon_Temple_Exterior,
+                            .fadeDistance = 200,
+                        },
+                        COORDS_SETUP(3008, -976.612, -4035.050),
+                        .gamebitActivate = BIT_WC_Moon_Temple_Opened,
+                        .mode = hitanimator_configure_mode_flags(
+                            TRUE, TRUE, FALSE),
+                        .blocksAnimatorID = TEMPLE_ENTRANCE_ANIMATORID
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                }
+            }
+        }
+
+        //Moon Temple Floor Tiles
+        {
+            //Align tiles exactly
+                {
+                typedef struct {
+                    u32 uID;
+                    Vec3f coords;
+                } WCFloorTileData;
+
+                WCFloorTileData tiles[] = {
+                    {.uID = 0x415ff, VEC3F(3019, -1232, -3403)},
+                    {.uID = 0x41600, VEC3F(3019, -1232, -3350)},
+                    {.uID = 0x41601, VEC3F(3019, -1232, -3297)},
+                    {.uID = 0x41602, VEC3F(3019, -1232, -3244)},
+
+                    {.uID = 0x415fb, VEC3F(2966, -1232, -3403)},
+                    {.uID = 0x415fc, VEC3F(2966, -1232, -3350)},
+                    {.uID = 0x415fd, VEC3F(2966, -1232, -3297)},
+                    {.uID = 0x415fe, VEC3F(2966, -1232, -3244)},
+
+                    {.uID = 0x415f7, VEC3F(2913, -1232, -3403)},
+                    {.uID = 0x415f8, VEC3F(2913, -1232, -3350)},
+                    {.uID = 0x415fa, VEC3F(2913, -1232, -3297)},
+                    {.uID = 0x415f9, VEC3F(2913, -1232, -3244)},
+
+                    {.uID = 0x415f3, VEC3F(2835, -1232, -3403)},
+                    {.uID = 0x415f4, VEC3F(2835, -1232, -3350)},
+                    {.uID = 0x415f5, VEC3F(2835, -1232, -3297)},
+                    {.uID = 0x415f6, VEC3F(2835, -1232, -3244)},
+
+                    {.uID = 0x415ee, VEC3F(2782, -1232, -3403)},
+                    {.uID = 0x415ef, VEC3F(2782, -1232, -3350)},
+                    {.uID = 0x415f0, VEC3F(2782, -1232, -3297)},
+                    {.uID = 0x415f1, VEC3F(2782, -1232, -3244)},
+
+                    {.uID = 0x415ea, VEC3F(2704, -1232, -3403)},
+                    {.uID = 0x415eb, VEC3F(2704, -1232, -3350)},
+                    {.uID = 0x415ec, VEC3F(2704, -1232, -3297)},
+                    {.uID = 0x415ed, VEC3F(2704, -1232, -3244)}
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(tiles); i++) {
+                    ObjSetup* tile = GET_MAPS_OBJECT(walledCity, tiles[i].uID);
+                    tile->x = tiles[i].coords.x;
+                    tile->y = tiles[i].coords.y;
+                    tile->z = tiles[i].coords.z;
+                }
+            }
+
+            //Tweak floor tile's vertex positions very slightly (shift by 1 in negative X/Z), so the gaps are evenly divisible
+            {
+                MODELS_REPLACE_BASE(974, models_wcfloortile);
+            }
+
+            //Move the last laser very slightly further down the hall, to match adjusted position of nearby vertices
+            {
+                ObjSetup* laser = GET_MAPS_OBJECT(walledCity, 0x41615);
+                laser->x = 3057.990;
+            }
+
+            //Move the last two jump/grab HITS lines very slightly further down the hall, to match adjusted position of nearby vertices
+            {
+                for (u32 i = 0; i < 2; i++) {
+                    TrackLine* line = reasset_hits_get(wcTrkblk, reasset_base_id(628 - wcBlocksBase), 
+                    reasset_base_id(16 + i));
+                    line->Ax = 485;
+                    line->Bx = 485;
+                }
+            }
+
+            //Fix a bug where you could see the skylight hall's semi-transparent light beams through the illusory wall 
+            {
+                AlphaAnimator_Setup* alphaAnim = GET_MAPS_OBJECT(walledCity, 0x41688);
+                alphaAnim->mode = AlphaAnimator_MODE_0_Basic_Fade_and_Set_Gamebit;
+                alphaAnim->playSound = TRUE;
+                alphaAnim->opaqueAtMaxOpacity = TRUE;
+                alphaAnim->initialOpacity = 0xFF;
+                alphaAnim->goalOpacity = 0;
+                alphaAnim->fadeSpeed = 1;
+            }
+
+            //Wall Switch edits
+            {
+                UseObj_Setup* wallSwitch = GET_MAPS_OBJECT(walledCity, 0x4168b);
+                //Increase the wall button's draw distance, so you can see it from the skylight hall
+                wallSwitch->base.fadeDistance = FADE_DISTANCE(1200);
+
+                //Lock the switch after the challenge is finished
+                wallSwitch->gamebitEnabled = BIT_WC_Moon_Temple_Hazards_Deactivated;
+                wallSwitch->flags |= WCUseObj_FLAG_10_No_Targetting_When_Locked | WCUseObj_CUSTOMFLAG_2_Invert_GamebitUnlocked;
+            }
+        }
+
+        //Moon Temple: Skylight Hall
+        {
+            //Add HITS lines so you can step out of the small pit
+            {
+                #define STEP (TrackLine_SETTINGB_Nonsolid | HITS_Clamber_Up)
+
+                TrackLine lines[] = {
+                    { HITS_A(471, -1295, 538), HITS_B(471, -1295, 602), .heightA = 12, .heightB = 12, .settingsA = 0, .settingsB = STEP, .animatorID = 99 },
+                    { HITS_A(471, -1295, 602), HITS_B(535, -1295, 602), .heightA = 12, .heightB = 12, .settingsA = 0, .settingsB = STEP, .animatorID = 99 },
+                    { HITS_A(535, -1295, 602), HITS_B(535, -1295, 538), .heightA = 12, .heightB = 12, .settingsA = 0, .settingsB = STEP, .animatorID = 99 },
+                    { HITS_A(535, -1295, 538), HITS_B(471, -1295, 538), .heightA = 12, .heightB = 12, .settingsA = 0, .settingsB = STEP, .animatorID = 99 },
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(lines); i++) {
+                    reasset_hits_set(wcTrkblk, reasset_base_id(633 - wcBlocksBase), reasset_auto_id(2 + i), REASSET_BASE_NAMESPACE, &lines[i]);
+                }
+            }
+
+            //Add subtle animation to the light beams
+            {
+                TexScroll_Setup scroll = { 
+                    .base = {
+                        .objId = OBJ_texscroll,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .mapObjGroup = WC_ObjGroup9_Moon_Temple_Interior,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .fadeDistance = FADE_DISTANCE(BLOCKS_GRID_UNIT/2),
+                    },
+                    COORDS_SETUP(3703, -1127, -3270),
+                    .textureIndex = 58,
+                    .speedU = 2,
+                    .gamebitActivate = NO_GAMEBIT
+                };
+                reasset_map_objects_set(walledCity, 
+                    reasset_auto_id(dinomodNs), &scroll, sizeof(TexScroll_Setup)
+                );
+            }
+
+            //Increase the Moon Temple Hall Door's fade distance, so it can always be seen in the hall outside it
+            {
+                ObjSetup* moonDoor = GET_MAPS_OBJECT(walledCity, 0x4165A);
+                moonDoor->fadeFlags = OBJSETUP_FADE_CAMERA;
+                moonDoor->fadeDistance = FADE_DISTANCE(675);
+            }
+
+            //Increase the Moon Temple Portal Door's fade distance, so it can always be seen in the hall outside it
+            {
+                ObjSetup* portalDoor = GET_MAPS_OBJECT(walledCity, 0x41642);
+                portalDoor->fadeFlags = OBJSETUP_FADE_CAMERA;
+                portalDoor->fadeDistance = FADE_DISTANCE(1085);
+            }
+
+            //Adjust cameraActions as you back out of the hall, so the camera doesn't get stuck above the exit
+            {
+                Trigger_Setup* plane = GET_MAPS_OBJECT(walledCity, 0x41766);
+                plane->commands[1].paramCombined = 0x3d; //Camera pushes in close to player
             }
         }
     }
