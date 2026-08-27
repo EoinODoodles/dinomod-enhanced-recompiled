@@ -47,11 +47,8 @@ typedef struct {
     f32 rotateSpeedGoal;
     u8 switchFlags;
     u8 dialFlags;
-    s8 stoneSearchDelay; //@recomp: repurpose padding
     f32* rotateSpeedGoals;
     s16* switchGamebits;
-    /* RECOMP */
-    Object* stone;
 } WCTempleDial_Data;
 
 typedef enum {
@@ -89,55 +86,6 @@ typedef enum {
 /*0x1C*/ extern f32 dMoonRotateSpeedGoals[];
 
 extern void WCTempleDial_setBlockIconFrames(Object* self, u8 iconStates);
-
-static void WCTempleDial_handleStoneDepth(Object* self, WCTempleDial_Setup* objSetup, WCTempleDial_Data* objData) {
-    f32 distance;
-
-    //Do nothing if the Sun/Moon Stone's already been collected
-    if (objSetup->modelIdx == WCTempleDial_MODEL_Sun) {
-        if (mainGetBits(BIT_WC_Sun_Stone)) {
-            return;
-        }
-    } else {
-        if (mainGetBits(BIT_WC_Moon_Stone)) {
-            return;
-        }
-    }
-
-    //Find the nearby stone
-    if (objData->stone == NULL) {
-
-        //Only search occasionally
-        if (objData->stoneSearchDelay > 0) {
-            objData->stoneSearchDelay -= gUpdateRate;
-            if (objData->stoneSearchDelay <= 0) {
-                objData->stoneSearchDelay = 0;
-            }
-            return;
-        }
-
-        distance = BLOCKS_GRID_UNIT;
-        if (objSetup->modelIdx == WCTempleDial_MODEL_Sun) {
-            objData->stone = objFindClosestObject(self, OBJ_WCSunStone, &distance);
-        } else {
-            objData->stone = objFindClosestObject(self, OBJ_WCMoonStone, &distance);
-        }
-    }
-
-    //Bail if it couldn't be found or has been destroyed
-    if (objData->stone == NULL || objData->stone->stateFlags & OBJSTATE_DESTROYED) {
-        objData->stone = NULL;
-        if (objData->stoneSearchDelay == 0) {
-            objData->stoneSearchDelay = 60;
-        }
-        return;
-    }
-
-    //Tweak the stone's opacity to ensure it draws above the dial
-    if (objData->stone->opacity == OBJECT_OPACITY_MAX) {
-        objData->stone->opacity = OBJECT_OPACITY_MAX - 1;
-    }
-}
 
 RECOMP_PATCH void WCTempleDial_obj_Control(Object* self) {
     s32 switchIdx;
@@ -214,12 +162,4 @@ RECOMP_PATCH void WCTempleDial_obj_Control(Object* self) {
         mainSetBits(objSetup->gamebitFinished, TRUE);
         objData->dialFlags |= WCTempleDial_FLAG_Stopped;
     }
-
-    //@recomp: Ensure the dial isn't being drawn over the Moon Stone / Sun Stone
-    WCTempleDial_handleStoneDepth(self, objSetup, objData);
-}
-
-/* Extend objData */
-RECOMP_PATCH u32 WCTempleDial_obj_GetDataSize(Object* self, u32 offsetAddr) {
-    return sizeof(WCTempleDial_Data);
 }

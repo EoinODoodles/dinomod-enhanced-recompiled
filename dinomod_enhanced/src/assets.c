@@ -909,6 +909,23 @@ static void walled_city_modifications(void) {
                 };
                 reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
             }
+
+        }
+
+        //Ensure that the Sun/Moon Stones always draw above the dial 
+        //(Previously the dial would draw over them at certain camera angles - often during their collection cutscene!)
+        {
+            u16 stoneObjects[] = {
+                270, //WCSunStone
+                271, //WCMoonStone
+                268, //WCAnimSunStone
+                269  //WCAnimMoonStone
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(stoneObjects); i++) {
+                ObjDef* stone = reasset_objects_get(reasset_base_id(stoneObjects[i]), NULL);
+                stone->flags |= OBJDEF_FORCE_TRANSPARENT_DRAW_ORDER;
+            }
         }
 
         //Increase Sun dial hall's torch fade distances very slightly, so they don't pop in while walking back along the Magic Bridge
