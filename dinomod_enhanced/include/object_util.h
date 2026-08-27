@@ -9,6 +9,8 @@
 #define FSA_NEXTSTATE_SYNC(state) (state + 1)
 #define FSA_NEXTSTATE_ASYNC(state) (-state)
 
+#define VOLUME_PERCENT(percent) (((percent * MAX_VOLUME) + (MAX_VOLUME/2)) / 100)
+
 f32 dp_angle_to_degrees(s16 dpAngle);
 s32 objindex_to_object_id(s32 objIndex);
 ObjSetup *maps_find_generic_group_endpoint(MapHeader *header, ObjSetup *mapsObjSetups);
