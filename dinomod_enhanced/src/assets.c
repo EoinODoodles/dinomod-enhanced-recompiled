@@ -686,7 +686,7 @@ static void walled_city_modifications(void) {
                     .commands[0] = {
                         .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
                         .id = TRG_CMD_BITS,
-                        .paramCombined = TRG_GAMEBIT_ON(DINOMOD_BIT_962_WC_Boss_Room_Warp_to_Lobby)
+                        .paramCombined = TRG_GAMEBIT(DINOMOD_BIT_962_WC_Boss_Room_Warp_to_Lobby, TRUE)
                     },
                     .sizeX = TRIGGER_SCALE(0.812),
                     .sizeY = 0x10,
@@ -1419,7 +1419,7 @@ static void swapstone_hollow_additions(void) {
                 {
                     .condition = CMD_COND_IN,
                     .id = TRG_CMD_BITS,
-                    .paramCombined = TRG_GAMEBIT_OFF(BIT_SP_Exiting_Shop)
+                    .paramCombined = TRG_GAMEBIT(BIT_SP_Exiting_Shop, FALSE)
                 },
             },
             .timerDuration = 60
@@ -1938,7 +1938,7 @@ static void swapstone_hollow_modifications(void) {
         Trigger_Setup* cylinder = GET_TRIGGER(sHollow, 0xbe040a9);
         cylinder->commands[1].id = TRG_CMD_BITS;
         cylinder->commands[1].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
-        cylinder->commands[1].paramCombined = TRG_GAMEBIT_OFF(BIT_SP_Exiting_Shop);
+        cylinder->commands[1].paramCombined = TRG_GAMEBIT(BIT_SP_Exiting_Shop, FALSE);
     }
 
     // Edit TriggerPlane approaching Rocky, so it unsets the "Exiting the Shop" gamebit too (just in case)
@@ -1946,7 +1946,7 @@ static void swapstone_hollow_modifications(void) {
         Trigger_Setup* plane = GET_TRIGGER(sHollow, 0x34732);
         plane->commands[7].id = TRG_CMD_BITS;
         plane->commands[7].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
-        plane->commands[7].paramCombined = TRG_GAMEBIT_OFF(BIT_SP_Exiting_Shop);
+        plane->commands[7].paramCombined = TRG_GAMEBIT(BIT_SP_Exiting_Shop, FALSE);
     }
 
     // Edit TriggerPlane just inside the gateway to Walled City, so 
