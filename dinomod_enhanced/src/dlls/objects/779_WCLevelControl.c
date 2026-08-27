@@ -54,6 +54,9 @@
 #define BIT_WC_King_EarthWalker_Cage_Opened 0x7F5
 #define BIT_WC_King_EarthWalker_Rescued 0x1DF
 
+#define BIT_WC_Moon_Passageway_Door_Opens 0x814
+#define BIT_WC_Sun_Passageway_Door_Opens 0x815
+
 #define BIT_WC_Sun_Pushblock_Puzzle_Reset 0x808
 #define BIT_WC_Moon_Pushblock_Puzzle_Reset 0x809
 #define BIT_WC_Sun_Pushblock_Puzzle_Progress 0x810
@@ -95,15 +98,16 @@ typedef enum {
 } WCLevelControl_Flags;
 
 typedef enum {
-    CUSTOM_FLAG_Act1_Gamebits_Set = 1,                                   //Act 1's important gamebits were given their expected values when WCLevelControl entered Act 2
-    CUSTOM_FLAG_Top_Up_Timer = 2,                                        //Pressure switch challenge's timer will be refilled
-    CUSTOM_FLAG_Player_on_Pressure_Switch = 4,                           //The player is standing on the current pressure switch challenge's switch
-    CUSTOM_FLAG_Challenge_Music_Started = 8,                             //The timed challenge music was played from the start during the current timed challenge
-    CUSTOM_FLAG_Challenge_Music_Too_Far_Ahead = 0x10,                    //Challenge music is too far ahead of the timer countdown (due to topping up the timer when standing on it again) - challenge music will fade out, then stop, then play from the beginning
-    CUSTOM_FLAG_Challenge_Music_Fully_Faded_Out = 0x20,                  //Challenge music has fully faded out, and is ready to be replayed when the player leaves the switch (or the Walled City theme can play in the meantime, until they leave the switch)
-    CUSTOM_FLAG_Stop_Challenge_Music = 0x40,                             //Challenge music will stop immediately - used when the challenge's completed successfully, or when swapping between Sun/Moon challenges
-    CUSTOM_FLAG_Swapped_Back_to_Walled_City_Music = 0x80,                //Played Walled City's music after the timed challenge music stopped playing
-    CUSTOM_FLAG_Played_Walled_City_Music_While_Idling_on_Switch = 0x100  //Played Walled City's music while the timed challenge music is waiting to restart but the player has yet to leave the switch
+    CUSTOM_FLAG_Act1_Finished_Gamebits_Set = 1,                          //Act 1's important gamebits were given their expected values when WCLevelControl entered Act 2
+    CUSTOM_FLAG_Act2_Initial_Gamebits_Set = 2,                           //Act 2's initial gamebits were given their expected values when WCLevelControl entered Act 2
+    CUSTOM_FLAG_Top_Up_Timer = 4,                                        //Pressure switch challenge's timer will be refilled
+    CUSTOM_FLAG_Player_on_Pressure_Switch = 8,                           //The player is standing on the current pressure switch challenge's switch
+    CUSTOM_FLAG_Challenge_Music_Started = 0x10,                          //The timed challenge music was played from the start during the current timed challenge
+    CUSTOM_FLAG_Challenge_Music_Too_Far_Ahead = 0x20,                    //Challenge music is too far ahead of the timer countdown (due to topping up the timer when standing on it again) - challenge music will fade out, then stop, then play from the beginning
+    CUSTOM_FLAG_Challenge_Music_Fully_Faded_Out = 0x40,                  //Challenge music has fully faded out, and is ready to be replayed when the player leaves the switch (or the Walled City theme can play in the meantime, until they leave the switch)
+    CUSTOM_FLAG_Stop_Challenge_Music = 0x80,                             //Challenge music will stop immediately - used when the challenge's completed successfully, or when swapping between Sun/Moon challenges
+    CUSTOM_FLAG_Swapped_Back_to_Walled_City_Music = 0x100,               //Played Walled City's music after the timed challenge music stopped playing
+    CUSTOM_FLAG_Played_Walled_City_Music_While_Idling_on_Switch = 0x200  //Played Walled City's music while the timed challenge music is waiting to restart but the player has yet to leave the switch
 } WCLevelControl_CustomFlags;
 
 #define MUSIC_FLAGS (\
@@ -182,7 +186,21 @@ static void WCLevelControl_setAct1Finished(Object* self, WCLevelControl_Data* ob
         mainSetBits(rsWCAct1Gamebits[i], TRUE);
     }
 
-    objData->extraFlags |= CUSTOM_FLAG_Act1_Gamebits_Set;
+    objData->extraFlags |= CUSTOM_FLAG_Act1_Finished_Gamebits_Set;
+}
+
+/* Sets gamebits at the beginning of Act 2*/
+static void WCLevelControl_setAct2InitialGamebits(Object* self, WCLevelControl_Data* objData) {
+    static s16 rsWCAct2InitialGamebits[] = {
+        BIT_WC_Moon_Passageway_Door_Opens,
+        BIT_WC_Sun_Passageway_Door_Opens
+    };
+
+    for (u32 i = 0; i < ARRAYCOUNT(rsWCAct2InitialGamebits); i++) {
+        mainSetBits(rsWCAct2InitialGamebits[i], TRUE);
+    }
+
+    objData->extraFlags |= CUSTOM_FLAG_Act2_Initial_Gamebits_Set;
 }
 
 /* Restore Act 1's state*/
@@ -249,9 +267,16 @@ RECOMP_PATCH void WCLevelControl_obj_Setup(Object* self, ObjSetup* setup, s32 re
     if (act <= 1) {
         //@recomp: Restore Act 1's state
         WCLevelControl_setupAct1(self, objData);
-    } else if ((objData->extraFlags & CUSTOM_FLAG_Act1_Gamebits_Set) == FALSE) {
+    } else {
         //@recomp: set Act 1's gamebits when the map loads in Act 2 or higher
-        WCLevelControl_setAct1Finished(self, objData);
+        if ((objData->extraFlags & CUSTOM_FLAG_Act1_Finished_Gamebits_Set) == FALSE) {
+            WCLevelControl_setAct1Finished(self, objData);
+        }
+
+        //@recomp: ensure the Moon Temple and Sun Temple passageway doors have opened
+        if ((objData->extraFlags & CUSTOM_FLAG_Act2_Initial_Gamebits_Set) == FALSE) {
+            WCLevelControl_setAct2InitialGamebits(self, objData);
+        }
     }
 
     //@recomp: initialise musicPlayerNo
@@ -283,8 +308,13 @@ RECOMP_PATCH void WCLevelControl_obj_Control(Object *self) {
         WCLevelControl_handleAct1(self, objData);
     } else {
         //@recomp: set important Act 1 gamebits, just in case
-        if ((objData->extraFlags & CUSTOM_FLAG_Act1_Gamebits_Set) == FALSE) {
+        if ((objData->extraFlags & CUSTOM_FLAG_Act1_Finished_Gamebits_Set) == FALSE) {
             WCLevelControl_setAct1Finished(self, objData);
+        }
+
+        //@recomp: ensure the Moon Temple passageway and Sun Temple passageways' doors have opened
+        if ((objData->extraFlags & CUSTOM_FLAG_Act2_Initial_Gamebits_Set) == FALSE) {
+            WCLevelControl_setAct2InitialGamebits(self, objData);
         }
 
         WCLevelControl_handleAct2(self, objData);
@@ -326,10 +356,15 @@ RECOMP_PATCH void WCLevelControl_handleAct1(Object* self, WCLevelControl_Data* o
     );
 
     #ifdef DEBUG_MUSIC
+    diPrintf("playerOnPressureSwitch: %d\n", (objData->extraFlags & CUSTOM_FLAG_Player_on_Pressure_Switch) != 0);
     diPrintf("musicPlayerNo: %d\n", objData->musicPlayerNo);
+    diPrintf("challengeMusicStarted: %d\n", (objData->extraFlags & CUSTOM_FLAG_Challenge_Music_Started) != 0);
+    diPrintf("challengeMusicTooFarAhead: %d\n", (objData->extraFlags & CUSTOM_FLAG_Challenge_Music_Too_Far_Ahead) != 0);
+    diPrintf("challengeMusicFullyFadedOut: %d\n", (objData->extraFlags & CUSTOM_FLAG_Challenge_Music_Fully_Faded_Out) != 0);
+    diPrintf("stopChallengeMusic: %d\n", (objData->extraFlags & objData->extraFlags & CUSTOM_FLAG_Stop_Challenge_Music) != 0);
     #endif
 
-    diPrintf("extraFlags: %d %d %d %d %d %d %d %d %d\n", 
+    diPrintf("extraFlags: %d %d %d %d %d %d %d %d %d %d\n", 
         (objData->extraFlags & CUSTOM_FLAG_Played_Walled_City_Music_While_Idling_on_Switch) != 0,
         (objData->extraFlags & CUSTOM_FLAG_Swapped_Back_to_Walled_City_Music) != 0,
         (objData->extraFlags & CUSTOM_FLAG_Stop_Challenge_Music) != 0,
@@ -338,7 +373,8 @@ RECOMP_PATCH void WCLevelControl_handleAct1(Object* self, WCLevelControl_Data* o
         (objData->extraFlags & CUSTOM_FLAG_Challenge_Music_Started) != 0,
         (objData->extraFlags & CUSTOM_FLAG_Player_on_Pressure_Switch) != 0,
         (objData->extraFlags & CUSTOM_FLAG_Top_Up_Timer) != 0,
-        (objData->extraFlags & CUSTOM_FLAG_Act1_Gamebits_Set) != 0
+        (objData->extraFlags & CUSTOM_FLAG_Act2_Initial_Gamebits_Set) != 0,
+        (objData->extraFlags & CUSTOM_FLAG_Act1_Finished_Gamebits_Set) != 0
     );
 #endif
 
