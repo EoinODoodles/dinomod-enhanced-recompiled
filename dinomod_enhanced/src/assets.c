@@ -319,6 +319,19 @@ static void walled_city_modifications(void) {
     
     #define BIT_WC_Sun_Temple_Opened 0x828
     #define BIT_WC_Moon_Temple_Opened 0x829
+    
+    #define BIT_WC_Sun_Temple_Illusory_Wall_Switch_Pressed 0x205
+    #define SOUND_9FB_Illusory_Wall_Revealed 0x9FB
+
+    #define BIT_WC_Sun_Temple_Maze_Timed_Challenge_Switch_Pressed 0x2B1
+    #define BIT_WC_Sun_Temple_Maze_Illusory_Wall_1_Shown 0x226
+    #define BIT_WC_Sun_Temple_Maze_Illusory_Wall_2_Hidden 0x2A6
+    #define BIT_WC_Sun_Temple_Maze_Illusory_Wall_3_Hidden 0x206
+    #define BIT_WC_Sun_Temple_Maze_Illusory_Wall_4_Hidden 0x25F
+    #define BIT_WC_Sun_Temple_Maze_Solved 0x2A5
+    
+    #define BIT_WC_Moon_Temple_Illusory_Wall_Switch_Pressed 0x265
+    #define BIT_WC_Moon_Temple_Hazards_Deactivated 0x338
 
     #define BIT_WC_Sun_Temple_Magic_Bridge_Visible 0x2D4
     #define BIT_WC_Moon_Temple_Magic_Bridge_Visible 0x2D5
