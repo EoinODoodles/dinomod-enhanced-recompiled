@@ -36,6 +36,9 @@
 #define WCLevelControl_sunPuzzleReset WCLevelControl_sun_puzzle_init_hard
 #define WCLevelControl_moonPuzzleReset WCLevelControl_moon_puzzle_init_hard
 
+#define BIT_WC_Is_Daytime 0x7F1
+#define BIT_WC_Is_Nighttime 0x7F3
+
 #define BIT_WC_Sun_Pressure_Switch_Active 0x7ED
 #define BIT_WC_Sun_Beacon_Raised 0x7EF
 #define BIT_WC_Sun_Beacon_Lit 0x7F9
@@ -175,9 +178,7 @@ static void WCLevelControl_setAct1Finished(Object* self, WCLevelControl_Data* ob
         BIT_WC_King_EarthWalker_Rescued
     };
 
-    u32 i;
-
-    for (i = 0; i < ARRAYCOUNT(rsWCAct1Gamebits); i++) {
+    for (u32 i = 0; i < ARRAYCOUNT(rsWCAct1Gamebits); i++) {
         mainSetBits(rsWCAct1Gamebits[i], TRUE);
     }
 
@@ -291,11 +292,11 @@ RECOMP_PATCH void WCLevelControl_obj_Control(Object *self) {
 
     //Check if night-time
     if (gDLL_7_Newday->vtbl->func8(&time)) {
-        mainSetBits(BIT_7F3, 1);
-        mainSetBits(BIT_7F1, 0);
+        mainSetBits(BIT_WC_Is_Nighttime, TRUE);
+        mainSetBits(BIT_WC_Is_Daytime, FALSE);
     } else {
-        mainSetBits(BIT_7F3, 0);
-        mainSetBits(BIT_7F1, 1);
+        mainSetBits(BIT_WC_Is_Nighttime, FALSE);
+        mainSetBits(BIT_WC_Is_Daytime, TRUE);
     }
 }
 
