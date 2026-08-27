@@ -172,6 +172,17 @@ typedef struct {
 /*24*/ s16 replayStartTime; // if not zero, the sequence will be replayed if the object was already used
 } UseObj_Setup;
 
+typedef enum {
+    WCUseObj_FLAG_1_Hide_On_Revisit_When_Used = 1,
+    WCUseObj_CUSTOMFLAG_2_Invert_GamebitUnlocked = 2, //@recomp: repurpose unused flag: invert gamebitUnlocked behaviour (lock when gamebit set, instead of unlock when gamebit set)
+    WCUseObj_FLAG_4_ObjSeq_Sets_Gamebit = 4,
+    WCUseObj_FLAG_8_Lock_After_Use = 8,
+    WCUseObj_FLAG_10_No_Targetting_When_Locked = 0x10,
+    WCUseObj_FLAG_20_PreemptActors1and2 = 0x20,
+    WCUseObj_FLAG_40_PreemptActors1and2 = 0x40,
+    WCUseObj_FLAG_80_PreemptActors1and3 = 0x80
+} WCUseObj_Flags;
+
 typedef struct {
 /*00*/ ObjSetup base;
 /*18*/ s8 rotation;
