@@ -100,3 +100,4 @@
 /* COMMANDS: GAMEBITS */
 #define TRG_GAMEBIT_ON(gamebit) ((gamebit & 0x3FFF) | (1 << 14))
 #define TRG_GAMEBIT_OFF(gamebit) (gamebit & 0x3FFF)
+#define TRG_GAMEBIT(gamebit, enable) ((gamebit & 0x3FFF) | ((enable == TRUE) << 14))
