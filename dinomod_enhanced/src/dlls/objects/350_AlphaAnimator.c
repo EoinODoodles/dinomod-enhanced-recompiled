@@ -4,6 +4,9 @@
 
 #include "common.h"
 #include "sys/gfx/texture.h"
+#include "sys/math.h"
+#include "sys/objects.h"
+#include "sys/print.h"
 
 #include "block_util.h"
 #include "common_objsetups.h"
@@ -17,6 +20,7 @@
 //END OF TEMPORARY DEFINES
 
 // #define DEBUG_OPAQUE_FLAG
+// #define DEBUG_ANIMATOR
 
 typedef struct {
     s32 animatedVertexCount;                //How many vertices are affected by the AlphaAnimator
@@ -60,7 +64,6 @@ RECOMP_PATCH void AlphaAnimator_obj_Control(Object* self) {
     objData = self->data;
     
     mode = GET_MODE(objSetup->flags);
-    
     //Get the object's local BLOCKS model
     block = mapGetBlockByIndex(mapWorldCoordsToBlockIndex(self->srt.transl.x, self->srt.transl.f[1], self->srt.transl.f[2]));
     if (block == NULL) {
@@ -70,6 +73,9 @@ RECOMP_PATCH void AlphaAnimator_obj_Control(Object* self) {
     
     //Bail if the BLOCKS model isn't animatable
     if ((block->vtxFlags & 8) == FALSE) {
+#ifdef DEBUG_ANIMATOR
+        diPrintf("%08x) Warning! Block's vtxFlags specify that it can't be animated: %04x\n", objSetup->base.uID, block->vtxFlags);
+#endif
         return;
     }
     
@@ -96,10 +102,15 @@ RECOMP_PATCH void AlphaAnimator_obj_Control(Object* self) {
             
             objData->vtxOpacity = objSetup->initialOpacity;
 
-            if ((objSetup->gamebitSetWhenFaded != NO_GAMEBIT) && mainGetBits(objSetup->gamebitSetWhenFaded)) {
+            if ((objSetup->gamebitActivated != NO_GAMEBIT) && mainGetBits(objSetup->gamebitActivated)) {
                 objData->vtxOpacity = objSetup->goalOpacity;
                 objData->fadeActivated = TRUE;
                 objData->fadeRadiusOuter = objData->fadeRadiusGoal + 1.0f;
+            }
+
+            //@recomp: sync prevFadeActivated with fadeActivated when restoring state, to prevent sound playing on load
+            if (objData->fadeActivated) {
+                objData->prevFadeActivated = TRUE;
             }
 
             if (mode == AlphaAnimator_MODE_3_Radial_Falloff_Fade) {
@@ -125,8 +136,17 @@ RECOMP_PATCH void AlphaAnimator_obj_Control(Object* self) {
         objData->fadeActivated = mainGetBits(objSetup->gamebitActivate);
         if ((objData->fadeCompletedTicks >= 3) && (objData->fadeActivated != objData->prevFadeActivated)) {
             //Optionally play a sound soon after the fade is completed
-            if (SHOULD_SOUND_PLAY(objSetup->flags)) {
-                gDLL_6_AMSFX->vtbl->Play(self, objSetup->soundID, MAX_VOLUME, NULL, NULL, 0, NULL);
+            if (objSetup->flags & AlphaAnimator_FLAG_Play_Sound) {
+                if (objData->fadeActivated) {
+                    dll_amSfx->Play(self, objSetup->soundID, MAX_VOLUME, NULL, NULL, 0, NULL);
+                } else if ((objSetup->flags & AlphaAnimator_CUSTOMFLAG_Mute_Sound_on_Reverse_Fade) == FALSE) {
+                    //@recomp: add option to play a different sound when fading back in
+                    if (objSetup->soundIDReverse >= 0) {
+                        dll_amSfx->Play(self, objSetup->soundIDReverse, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    } else {
+                        dll_amSfx->Play(self, objSetup->soundID, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    }
+                }
             }
 
             objData->fadeCompletedTicks = 0;
@@ -147,8 +167,8 @@ RECOMP_PATCH void AlphaAnimator_obj_Control(Object* self) {
 
             //Optionally play a sound when fading in
             if (objData->fadeActivated) {
-                if (SHOULD_SOUND_PLAY(objSetup->flags)) {
-                    gDLL_6_AMSFX->vtbl->Play(self, objSetup->soundID, MAX_VOLUME, NULL, NULL, 0, NULL);
+                if (objSetup->flags & AlphaAnimator_FLAG_Play_Sound) {
+                    dll_amSfx->Play(self, objSetup->soundID, MAX_VOLUME, NULL, NULL, 0, NULL);
                 }
             } else {
                 return;
@@ -167,8 +187,8 @@ RECOMP_PATCH void AlphaAnimator_obj_Control(Object* self) {
                 objData->vtxOpacity = objSetup->goalOpacity;
 
                 //Optionally set a gamebit when the goal opacity has been reached
-                if (objSetup->gamebitSetWhenFaded != NO_GAMEBIT) {
-                    mainSetBits(objSetup->gamebitSetWhenFaded, TRUE);
+                if (objSetup->gamebitActivated != NO_GAMEBIT) {
+                    mainSetBits(objSetup->gamebitActivated, TRUE);
                 }
 
                 objData->fadeCompletedTicks++;
@@ -180,8 +200,8 @@ RECOMP_PATCH void AlphaAnimator_obj_Control(Object* self) {
                 objData->vtxOpacity = objSetup->goalOpacity;
 
                 //Optionally set a gamebit when the goal opacity has been reached
-                if (objSetup->gamebitSetWhenFaded != NO_GAMEBIT) {
-                    mainSetBits(objSetup->gamebitSetWhenFaded, TRUE);
+                if (objSetup->gamebitActivated != NO_GAMEBIT) {
+                    mainSetBits(objSetup->gamebitActivated, TRUE);
                 }
 
                 objData->fadeCompletedTicks++;
@@ -214,8 +234,8 @@ RECOMP_PATCH void AlphaAnimator_obj_Control(Object* self) {
                     objData->vtxOpacity = objSetup->goalOpacity;
 
                     //Optionally set a gamebit when the goal opacity has been reached
-                    if (objSetup->gamebitSetWhenFaded != NO_GAMEBIT) {
-                        mainSetBits(objSetup->gamebitSetWhenFaded, TRUE);
+                    if (objSetup->gamebitActivated != NO_GAMEBIT) {
+                        mainSetBits(objSetup->gamebitActivated, TRUE);
                     }
 
                     objData->fadeCompletedTicks++;
@@ -227,8 +247,8 @@ RECOMP_PATCH void AlphaAnimator_obj_Control(Object* self) {
                     objData->vtxOpacity = objSetup->goalOpacity;
 
                     //Optionally set a gamebit when the goal opacity has been reached
-                    if (objSetup->gamebitSetWhenFaded != NO_GAMEBIT) {
-                        mainSetBits(objSetup->gamebitSetWhenFaded, TRUE);
+                    if (objSetup->gamebitActivated != NO_GAMEBIT) {
+                        mainSetBits(objSetup->gamebitActivated, TRUE);
                     }
 
                     objData->fadeCompletedTicks++;
@@ -241,8 +261,8 @@ RECOMP_PATCH void AlphaAnimator_obj_Control(Object* self) {
                 objData->vtxOpacity = objSetup->initialOpacity;
 
                 //Optionally unset a gamebit when the fade has returned to its initial opacity
-                if (objSetup->gamebitSetWhenFaded != NO_GAMEBIT) {
-                    mainSetBits(objSetup->gamebitSetWhenFaded, FALSE);
+                if (objSetup->gamebitActivated != NO_GAMEBIT) {
+                    mainSetBits(objSetup->gamebitActivated, FALSE);
                 }
 
                 objData->fadeCompletedTicks++;
@@ -254,8 +274,8 @@ RECOMP_PATCH void AlphaAnimator_obj_Control(Object* self) {
                 objData->vtxOpacity = objSetup->initialOpacity;
 
                 //Optionally unset a gamebit when the fade has returned to its initial opacity
-                if (objSetup->gamebitSetWhenFaded != NO_GAMEBIT) {
-                    mainSetBits(objSetup->gamebitSetWhenFaded, FALSE);
+                if (objSetup->gamebitActivated != NO_GAMEBIT) {
+                    mainSetBits(objSetup->gamebitActivated, FALSE);
                 }
 
                 objData->fadeCompletedTicks++;
@@ -268,7 +288,7 @@ RECOMP_PATCH void AlphaAnimator_obj_Control(Object* self) {
         objData->fadeRadiusOuter += (fadeSpeed / 10.0f) * gUpdateRateF;
         if (objData->fadeRadiusOuter > objData->fadeRadiusGoal) {
             objData->fadeRadiusOuter = objData->fadeRadiusGoal;
-            mainSetBits(objSetup->gamebitSetWhenFaded, TRUE);
+            mainSetBits(objSetup->gamebitActivated, TRUE);
             objData->fadeCompletedTicks++;
         }
 
@@ -288,6 +308,9 @@ RECOMP_PATCH void AlphaAnimator_animateVertices(AlphaAnimator_Data* objData, Alp
     Vtx_t* vtx;
     s32 animVtxIdx;
     s32 shapeIdx;
+#ifdef DEBUG_ANIMATOR
+    _Bool shapeFound = FALSE;
+#endif
 
     vertices = block->vertices2[block->vtxFlags & 1];
     
@@ -295,6 +318,10 @@ RECOMP_PATCH void AlphaAnimator_animateVertices(AlphaAnimator_Data* objData, Alp
     for (shapeIdx = 0, animVtxIdx = 0, shapes = block->shapes; shapeIdx < block->shapeCount; shapeIdx++) {
         //Check if the shape has a matching animatorID tag
         if (objData->animatorID == shapes[shapeIdx].animatorID) {
+#ifdef DEBUG_ANIMATOR
+            shapeFound = TRUE;
+#endif
+
             //Loop over the shape's vertices
             for (vtxIdx = shapes[shapeIdx].vtxBase; vtxIdx < shapes[shapeIdx + 1].vtxBase; vtxIdx++) {
                 if (GET_MODE(objSetup->flags) != AlphaAnimator_MODE_3_Radial_Falloff_Fade) {
@@ -353,7 +380,7 @@ RECOMP_PATCH void AlphaAnimator_animateVertices(AlphaAnimator_Data* objData, Alp
                             blockRedoShapeDLGroups(block, shapeIdx);
                             
 #ifdef DEBUG_OPAQUE_FLAG
-                            recomp_printf("Opaque opacity %d! Changed render mode to: %08x\n", objData->vtxOpacity, shapes[shapeIdx].flags);
+                            recomp_printf("%08x) Opaque opacity %d! Changed render mode to: %08x\n", objSetup->base.uID, objData->vtxOpacity, shapes[shapeIdx].flags);
 #endif
                         } 
                     } else {
@@ -362,7 +389,7 @@ RECOMP_PATCH void AlphaAnimator_animateVertices(AlphaAnimator_Data* objData, Alp
                             blockRedoShapeDLGroups(block, shapeIdx);
 
 #ifdef DEBUG_OPAQUE_FLAG
-                            recomp_printf("Opacity is %d! Changed render mode to: %08x\n", objData->vtxOpacity, shapes[shapeIdx].flags);
+                            recomp_printf("%08x) Opacity is %d! Changed render mode to: %08x\n", objSetup->base.uID, objData->vtxOpacity, shapes[shapeIdx].flags);
 #endif
                         } 
                     }
@@ -380,4 +407,10 @@ RECOMP_PATCH void AlphaAnimator_animateVertices(AlphaAnimator_Data* objData, Alp
             }
         }
     }
+
+#ifdef DEBUG_ANIMATOR
+    if (shapeFound == FALSE) {
+        recomp_printf("%08x) Couldn't find shape! AnimatorID: %d\n", objSetup->base.uID, objSetup->animatorID);
+    }
+#endif
 }

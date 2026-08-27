@@ -31,7 +31,7 @@ typedef struct {
 typedef struct {
     ObjSetup base;
     s16 gamebitActivate;                    //Gamebit controlling when the fade is activated/deactivated
-    s16 gamebitSetWhenFaded;                //(For modes 0, 2, 3) Optionally set a gamebit when the fade animation is complete - also used to restore fully-faded state
+    s16 gamebitActivated;                   //(For modes 0, 2, 3) Optionally set a gamebit when the fade animation is complete - also used to restore fully-faded state
     u8 initialOpacity;                      //Opacity at the beginning of the fade animation (can be higher than the goal opacity)
     u8 goalOpacity;                         //Opacity at the end of the fade animation (can be lower than the initial opacity)
     s8 animatorID;                          //Vertices will only be affected if they have this shape animatorID
@@ -39,7 +39,8 @@ typedef struct {
     union {
         u8 flags;                           //Mode stored on bits 0, 1 (see `GET_MODE` macro) - bit2 determines whether to play a sound, and (@recomp) bit3 determines whether to change render mode when fully opaque
         struct {
-            u8 flagsUpper : 4;              //Unused
+            u8 flagsUpper : 3;              //Unused
+            u8 noSoundOnReverse : 1;        //@recomp: don't play sound when fade is being switched off (e.g. WC Sun Temple's illusory walls fading back in)
             u8 opaqueAtMaxOpacity : 1;      //@recomp: switch to a fully-opaque render mode when vertices are at max opacity (prevents other transparent shapes drawing through the animated shape)
             u8 playSound : 1;               //Play objSetup->soundID (@recomp: any upper bit used to enable this, though the sound-using objSetups only ever set bit2. The code's now been changed so it specifically checks bit2, freeing up the higher bits for custom flags!)
             u8 mode : 2;                    //See `AlphaAnimator_Modes`
@@ -48,6 +49,7 @@ typedef struct {
     u8 removeCollisionWhenHidden;           //Boolean, fade affects whether the affected shapes are tangible
     u16 fadeRadiusGoal;                     //(For radial mode) End radius of the fade animation
     u16 soundID;                            //Which sound to play (requires sound playing enabled on `objData->flags`)
+    u16 soundIDReverse;                     //@recomp: Which sound to play when reversing fade (requires sound playing enabled on `objData->flags`)
 } AlphaAnimator_Setup;
 
 typedef enum {
@@ -62,7 +64,8 @@ typedef enum {
 } AlphaAnimator_Flags;
 
 typedef enum {
-    AlphaAnimator_CUSTOMFLAG_Opaque_at_Max_Opacity = 8 //Change to fully-opaque render flags when at max opacity, to prevent other transparent surfaces being drawn behind the shape
+    AlphaAnimator_CUSTOMFLAG_Opaque_at_Max_Opacity = 8, //Change to fully-opaque render flags when at max opacity, to prevent other transparent surfaces being drawn behind the shape
+    AlphaAnimator_CUSTOMFLAG_Mute_Sound_on_Reverse_Fade = 0x10 //For toggleable fade with sound enabled: don't play sound when fade is being switched off (e.g. WC Sun Temple's illusory walls fading back in)
 } AlphaAnimator_CustomFlags;
 
 typedef struct {
