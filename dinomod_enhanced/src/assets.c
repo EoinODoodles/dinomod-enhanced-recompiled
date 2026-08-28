@@ -114,6 +114,7 @@ INCBIN(models_wctemplebridgemoon, "inc/models_0970_WCTempleBridgeMoon.bin");
 INCBIN(models_wcfloortile,        "inc/models_0974_WCFloorTile.bin");
 INCBIN(models_wcsundoor,          "inc/models_0940_WCSunDoor.bin");
 INCBIN(models_wcmoondoor,         "inc/models_0941_WCMoonDoor.bin");
+INCBIN(models_wcgeneraldoor,      "inc/models_0959_WCGeneralDoor.bin");
 INCBIN(models_wcsuntemplelift,    "inc/models_0957_WCSunTempleLift.bin");
 INCBIN(models_wcmoontemplelift,   "inc/models_0958_WCMoonTempleLift.bin");
 INCBIN(models_wcsuntempleswitch,  "inc/models_0964_WCSunTempleSwitch.bin");
@@ -773,6 +774,48 @@ static void walled_city_modifications(void) {
             }
         }
         reasset_iterator_destroy(iterator);
+    }
+
+    //Sun/Moon Temple Passageways
+    {
+        //GeneralDoors (align exactly with entrances)
+        {
+            MODELS_REPLACE_BASE(959, models_wcgeneraldoor);
+
+            //Moon Temple passageway door
+            {
+                //Left half
+                SeqDoor_Setup* moonsideDoorL = GET_MAPS_OBJECT(walledCity, 0x413aa);
+                moonsideDoorL->yaw = DEGREES_TO_ANGLE8(270);
+                moonsideDoorL->base.x = 1853.479;
+                moonsideDoorL->base.y = -874.000;
+                moonsideDoorL->base.z = -4806.500;
+
+                //Right half
+                SeqDoor_Setup* moonsideDoorR = GET_MAPS_OBJECT(walledCity, 0x413a9);
+                moonsideDoorR->yaw = DEGREES_TO_ANGLE8(90); //Fix rotation: this was off by 1
+                moonsideDoorR->base.x = 1865.479;
+                moonsideDoorR->base.y = -874.000;
+                moonsideDoorR->base.z = -4806.500;
+            }
+
+            //Sun Temple passageway door
+            {
+                //Left half
+                SeqDoor_Setup* sunsideDoorL = GET_MAPS_OBJECT(walledCity, 0x413ac);
+                sunsideDoorL->yaw = DEGREES_TO_ANGLE8(90); //Fix rotation: this was off by 1
+                sunsideDoorL->base.x = 66.521;
+                sunsideDoorL->base.y = -874.000;
+                sunsideDoorL->base.z = -4792.500;
+
+                //Right half
+                SeqDoor_Setup* sunsideDoorR = GET_MAPS_OBJECT(walledCity, 0x413ab);
+                sunsideDoorR->yaw = DEGREES_TO_ANGLE8(270);
+                sunsideDoorR->base.x = 54.521;
+                sunsideDoorR->base.y = -874.000;
+                sunsideDoorR->base.z = -4792.500;
+            }
+        }
     }
 
     //Sun/Moon Apertures
