@@ -1284,11 +1284,14 @@ static void walled_city_modifications(void) {
                 }
             }
 
-            //Lock buttons after the maze is completed
+            //Lock the main maze button after the maze is completed
             {
                 UseObj_Setup* button = GET_MAPS_OBJECT(walledCity, 0x41525);
                 button->gamebitEnabled = BIT_WC_Sun_Temple_Maze_Solved;
                 button->flags |= WCUseObj_FLAG_10_No_Targetting_When_Locked | WCUseObj_CUSTOMFLAG_2_Invert_GamebitUnlocked;
+
+                //Align this button's rotation exactly too (it was off by 1)
+                button->yaw = DEGREES_TO_ANGLE8(180);
             }
         }
 
