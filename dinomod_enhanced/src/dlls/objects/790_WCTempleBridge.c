@@ -17,6 +17,7 @@
 // #define RAINBOW_BRIDGE
 
 //TEMPORARY DEFINES
+#define WCTempleBridge_obj_Control dll_790_obj_Control
 #define WCTempleBridge_obj_GetDataSize dll_790_obj_GetDataSize
 #define WCTempleBridge_animCallback dll_790_func_500
 #define WCTempleBridge_advanceAnimation dll_790_func_644
@@ -27,7 +28,7 @@ typedef struct {
     ObjSetup base;
     s8 yaw;
     s8 modelIdx;                    //Which bridge model to use
-    s16 unk1A;
+    s16 hitsAnimatorID;             //@recomp: repurpose unused field
     s16 unk1C;
     s16 gamebitVisible;             //Stores the bridge's visibility state
 } WCTempleBridge_Setup;
@@ -47,6 +48,7 @@ typedef struct {
     s16 scrollU;                    //How far the outer cloud's faces have scrolled away from their initial U axis position
     s16 scrollV;                    //How far the outer cloud's faces have scrolled away from their initial V axis position
     s16 secondaryScrollV;           //How far the inner cloud's faces have scrolled away from their initial V axis position
+    s8 hitsUpdateTimer;             //Interval between editing the bridge's HITS line to make sure it's in the correct state
 } WCTempleBridge_Data;
 
 typedef enum {
@@ -68,6 +70,53 @@ typedef enum {
 extern void WCTempleBridge_advanceAnimation(Object* self, WCTempleBridge_Data* objData);
 extern void WCTempleBridge_updateVertices(Object* self, WCTempleBridge_Data* objData);
 extern int WCTempleBridge_animCallback(Object* self, Object* animObj, AnimObj_Data* animData, s8 prevCallbackValue);
+
+RECOMP_PATCH void WCTempleBridge_obj_Control(Object* self) {
+    WCTempleBridge_Data* objData;
+    s32 opacity;
+    s32 i;
+    WCTempleBridge_Setup* objSetup;
+
+    objData = self->data;
+    objSetup = (WCTempleBridge_Setup*)self->setup;
+    
+    WCTempleBridge_advanceAnimation(self, objData);
+
+    if (objData->visible) {
+        if ((objData->flags & WCTempleBridge_FLAG_Visibility_Gamebit_Set) == FALSE) {
+            objData->flags |= WCTempleBridge_FLAG_Visibility_Gamebit_Set;
+            mainSetBits(objSetup->gamebitVisible, TRUE);
+        }
+
+        for (i = 0; i < objData->vertexZCount; i++) {
+            objData->vertexFadeIn[i] = TRUE;
+            if (objData->vertexFadeIn[i]) {
+                    opacity = objData->vertexAlphas[i] + gUpdateRate;
+                    if (opacity > MAX_OPACITY) {
+                        opacity = MAX_OPACITY;
+                    }
+                objData->vertexAlphas[i] = opacity;
+            }
+        }
+        
+        func_8002674C(self);
+
+        //@recomp: remove HITS line (just in case the nearby HitAnimator didn't work - which seems to happen rarely when fall-resetting)
+        if (objSetup->hitsAnimatorID > 0) {
+            if (objData->hitsUpdateTimer > 0) {
+                objData->hitsUpdateTimer -= gUpdateRate;
+            } else {
+                objData->hitsUpdateTimer = 120;
+
+                trackToggleHitLine(objSetup->hitsAnimatorID, self->parent, FALSE);
+            }
+        }
+    } else {
+        func_800267A4(self);
+    }
+    
+    WCTempleBridge_updateVertices(self, objData);
+}
 
 /* Storing scroll positions to objData instead of using TextureAnimators, to avoid seams/desyncs between bridge faces */
 RECOMP_PATCH void WCTempleBridge_advanceAnimation(Object* self, WCTempleBridge_Data* objData) {

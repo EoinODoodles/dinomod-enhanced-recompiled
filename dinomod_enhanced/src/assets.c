@@ -866,6 +866,15 @@ static void walled_city_modifications(void) {
         {
             #define MAGIC_BRIDGE_ANIMATORID 5
 
+            typedef struct {
+                ObjSetup base;
+                s8 yaw;
+                s8 modelIdx;                    //Which bridge model to use
+                s16 hitsAnimatorID;             //@recomp: repurpose unused field
+                s16 unk1C;
+                s16 gamebitVisible;             //Stores the bridge's visibility state
+            } WCTempleBridge_Setup;
+
             //Restore original DLL usage (another level's Magic Bridge was used as a workaround)
             {
                 ReAssetID objects_wctemplebridge_id = reasset_base_id(288); //OBJ_WCTempleBridge
@@ -876,6 +885,19 @@ static void walled_city_modifications(void) {
             {
                 MODELS_REPLACE_BASE(969, models_wctemplebridgesun);
                 MODELS_REPLACE_BASE(970, models_wctemplebridgemoon);
+            }
+
+            //Add HITS animatorIDs to Magic Bridges' objSetups
+            {
+                u32 bridgeUIDs[] = { 
+                    0x000414BC, 
+                    0x00041659 
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(bridgeUIDs); i++) {
+                    WCTempleBridge_Setup* bridge = GET_MAPS_OBJECT(walledCity, bridgeUIDs[i]);
+                    bridge->hitsAnimatorID = MAGIC_BRIDGE_ANIMATORID;
+                }
             }
 
             //Edit/add HitAnimators for controlling the Magic Bridges' walkable collision
