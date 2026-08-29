@@ -91,7 +91,7 @@ RECOMP_PATCH void WCTempleLift_obj_Control(Object* self) {
                 if (-1130 < player->globalPosition.y && player->globalPosition.y < -878) {
                     gDLL_3_Animation->vtbl->start_obj_sequence(WCTempleLift_OBJSEQ1_Down, self, 1); //Mask out other actors
                     objdata->state = Lift_STATE_Down;
-                    objdata->cooldownTimer = LIFT_MOVE_COOLDOWN;
+                    objdata->cooldownTimer = 30; //Shorter cooldown, since the player didn't cause the move directly
                 }
             }
         } else {
