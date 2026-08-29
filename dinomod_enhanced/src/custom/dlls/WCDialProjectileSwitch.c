@@ -265,7 +265,7 @@ static void WCDialProjectileSwitch_changeState(Object* self, int switchPressed, 
     objData->switchPressed = switchPressed;
 }
 
-DLL_IObject_Vtbl WCDialProjectileSwitch_vtbl = {
+DLL_IObject_Vtbl DLL_WCDialProjectileSwitch_vtbl = {
     .Setup = (void*)WCDialProjectileSwitch_obj_Setup,
     .Control = WCDialProjectileSwitch_obj_Control,
     .Update = WCDialProjectileSwitch_obj_Update,

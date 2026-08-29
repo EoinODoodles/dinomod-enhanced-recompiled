@@ -5,4 +5,4 @@
 void WCDialProjectileSwitch_ctor(void* dll);
 void WCDialProjectileSwitch_dtor(void* dll);
 
-extern DLL_IObject_Vtbl WCDialProjectileSwitch_vtbl;
+extern DLL_IObject_Vtbl DLL_WCDialProjectileSwitch_vtbl;

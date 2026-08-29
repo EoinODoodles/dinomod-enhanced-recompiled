@@ -3332,7 +3332,7 @@ static void custom_dlls(void) {
 
     // WCDialProjectileSwitch
     reasset_dlls_set(reasset_id(dinomodNs, 0x824E), DLL_BANK_OBJECTS, 
-        /*exportCount*/ 7, (void*)WCDialProjectileSwitch_ctor, (void*)WCDialProjectileSwitch_dtor, &WCDialProjectileSwitch_vtbl);
+        /*exportCount*/ 7, (void*)WCDialProjectileSwitch_ctor, (void*)WCDialProjectileSwitch_dtor, &DLL_WCDialProjectileSwitch_vtbl);
 }
 
 /** Give WCTrex hit spheres similar to KT_Rex so they can actually do damage. */
