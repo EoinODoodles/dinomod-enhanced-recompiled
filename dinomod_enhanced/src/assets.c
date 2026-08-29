@@ -7,6 +7,7 @@
 #include "custom/dlls/SHbarrel.h"
 #include "custom/dlls/SHbarrelcreator.h"
 #include "custom/dlls/WCDialProjectileSwitch.h"
+#include "custom/dlls/LODAnimator.h"
 #include "custom_object_ids.h"
 #include "custom_objsetups.h"
 #include "compression_util.h"
@@ -104,6 +105,7 @@ INCBIN(objects_shboulder,         "inc/objects_0583_SHboulder.bin");
 INCBIN(objects_shbarrel,          "inc/objects_SHbarrel.bin");
 INCBIN(objects_shbarrelcreator,   "inc/objects_SHbarrelcreator.bin");
 INCBIN(objects_wcdialswitch,      "inc/objects_WCDialProjectileSwitch.bin");
+INCBIN(objects_lodanimator,       "inc/objects_LODAnimator.bin");
 
 INCBIN(models_wcsuntempledoor,    "inc/models_0938_WCSunTempleDoor.bin");
 INCBIN(models_wcmoontempledoor,   "inc/models_0939_WCMoonTempleDoor.bin");
@@ -213,12 +215,14 @@ REASSET_ON_FST_SET_LOW_PRIORITY void dinomod_on_reasset_fst_set(void) {
 s32 OBJ_SHbarrel = 1466;
 s32 OBJ_SHbarrelcreator = 1467;
 s32 OBJ_WCDialProjectileSwitch = 1469;
+s32 OBJ_LODAnimator = 1470;
 
 static ReAssetNamespace dinomodNs;
 
 static ReAssetID shBarrelIndexID;
 static ReAssetID shBarrelcreatorIndexID;
 static ReAssetID wcDialProjectileSwitchIndexID;
+static ReAssetID lodAnimatorIndexID;
 
 s32 UID_SH_BurrowsSharpClaw = 0x10000;
 
@@ -228,6 +232,7 @@ REASSET_ON_INIT void dinomod_reasset_on_init(void) {
     shBarrelIndexID = reasset_id(dinomodNs, OBJ_SHbarrel);
     shBarrelcreatorIndexID = reasset_id(dinomodNs, OBJ_SHbarrelcreator);
     wcDialProjectileSwitchIndexID = reasset_id(dinomodNs, OBJ_WCDialProjectileSwitch);
+    lodAnimatorIndexID = reasset_id(dinomodNs, OBJ_LODAnimator);
 }
 
 static void walled_city_additions(void) {
@@ -3319,6 +3324,13 @@ static void custom_objects(void) {
         reasset_objects_set(shWCDialSwitchID, dinomodNs, objects_wcdialswitch, objects_wcdialswitch_end - objects_wcdialswitch);
         reasset_object_indices_set(wcDialProjectileSwitchIndexID, shWCDialSwitchID);
     }
+
+    // LODAnimator
+    {
+        ReAssetID lodAnimatorID = reasset_auto_id(dinomodNs);
+        reasset_objects_set(lodAnimatorID, dinomodNs, objects_lodanimator, objects_lodanimator_end - objects_lodanimator);
+        reasset_object_indices_set(lodAnimatorIndexID, lodAnimatorID);
+    }
 }
 
 static void custom_dlls(void) {
@@ -3333,6 +3345,10 @@ static void custom_dlls(void) {
     // WCDialProjectileSwitch
     reasset_dlls_set(reasset_id(dinomodNs, 0x824E), DLL_BANK_OBJECTS, 
         /*exportCount*/ 7, (void*)WCDialProjectileSwitch_ctor, (void*)WCDialProjectileSwitch_dtor, &DLL_WCDialProjectileSwitch_vtbl);
+
+    // LODAnimator
+    reasset_dlls_set(reasset_id(dinomodNs, 0x824F), DLL_BANK_OBJECTS, 
+        /*exportCount*/ 8, (void*)LODAnimator_ctor, (void*)LODAnimator_dtor, &DLL_LODAnimator_vtbl);
 }
 
 /** Give WCTrex hit spheres similar to KT_Rex so they can actually do damage. */
@@ -3655,4 +3671,5 @@ REASSET_ON_RESOLVE void dinomod_reasset_on_resolve(void) {
     OBJ_SHbarrel = reasset_resolve_map_lookup(objIndexResolveMap, shBarrelIndexID);
     OBJ_SHbarrelcreator = reasset_resolve_map_lookup(objIndexResolveMap, shBarrelcreatorIndexID);
     OBJ_WCDialProjectileSwitch = reasset_resolve_map_lookup(objIndexResolveMap, wcDialProjectileSwitchIndexID);
+    OBJ_LODAnimator = reasset_resolve_map_lookup(objIndexResolveMap, lodAnimatorIndexID);
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PR/ultratypes.h"
+#include "game/objects/object.h"
 
 // The same as the `HitsLine` / `ModLine` structs, but with `settingsA` / `settingsB` changed to unsigned variables 
 // as a modding convenience (avoiding implicit conversion warnings when combining flags).
@@ -62,3 +63,6 @@ typedef enum {
 
 #define HITS_A(x, y, z) .Ax = x, .Ay = y, .Az = z
 #define HITS_B(x, y, z) .Bx = x, .By = y, .Bz = z
+
+void blockAddLODAnimator(Object* lodAnimator);
+void blockRemoveLODAnimator(Object* lodAnimator);
