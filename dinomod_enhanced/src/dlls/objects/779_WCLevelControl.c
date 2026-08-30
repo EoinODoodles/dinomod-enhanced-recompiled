@@ -81,6 +81,7 @@ typedef struct {
     u8 flags;
     u8 previousState;
     /* RECOMP */
+    s8 timeBitsDelayTimer;      //Wait a short while before setting time-of-day related gamebits
     u16 extraFlags;
     s32 challengeMusicTime;     //how long the challenge music has been playing for (outside of sequences)
     s32 musicFadeTimer;         //timer for fading out the challenge music when the player idles on the switch for a long while
@@ -321,12 +322,18 @@ RECOMP_PATCH void WCLevelControl_obj_Control(Object *self) {
     }
 
     //Check if night-time
-    if (gDLL_7_Newday->vtbl->func8(&time)) {
-        mainSetBits(BIT_WC_Is_Nighttime, TRUE);
-        mainSetBits(BIT_WC_Is_Daytime, FALSE);
+    if (objData->timeBitsDelayTimer < 10) { 
+        //@recomp: wait a short while first, to make sure the time of day is correctly initialised
+        //(avoids bugs in restoring WCMoonTempleDoor and WCSunTempleDoor's state)
+        objData->timeBitsDelayTimer += gUpdateRate;
     } else {
-        mainSetBits(BIT_WC_Is_Nighttime, FALSE);
-        mainSetBits(BIT_WC_Is_Daytime, TRUE);
+        if (gDLL_7_Newday->vtbl->func8(&time)) {
+            mainSetBits(BIT_WC_Is_Nighttime, TRUE);
+            mainSetBits(BIT_WC_Is_Daytime, FALSE);
+        } else {
+            mainSetBits(BIT_WC_Is_Nighttime, FALSE);
+            mainSetBits(BIT_WC_Is_Daytime, TRUE);
+        }
     }
 }
 
