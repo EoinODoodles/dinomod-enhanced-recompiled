@@ -59,18 +59,19 @@ void LODAnimator_obj_Setup(Object* self, LODAnimator_Setup* objSetup, s32 reset)
 
 // export: 1
 void LODAnimator_obj_Control(Object* self) {
+    LODAnimator_Setup* objSetup;
     LODAnimator_Data* objData;
     s8 nearbyBlockFound;
-    Block* ownBlock;
+    Block* prevOwnBlock;
     f32 distance;
     f32 blendValue;
 
+    objSetup = (LODAnimator_Setup*)self->setup;
     objData = self->data;
 
 #ifdef DEBUG_ANIMATOR
     {
         Vec3f blockCoords;
-        LODAnimator_Setup* objSetup = (LODAnimator_Setup*)self->setup;
 
         blockCoords.x = self->globalPosition.x + BLOCKS_GRID_UNIT * objSetup->gridOffsetX;
         blockCoords.y = self->globalPosition.y;
@@ -86,6 +87,7 @@ void LODAnimator_obj_Control(Object* self) {
 #endif
 
     //Try to find the object's local BLOCKS model
+    prevOwnBlock = objData->ownBlock;
     if (objData->ownBlock == NULL) {
         objData->ownBlockIndex = mapWorldCoordsToBlockIndex(self->globalPosition.x, self->globalPosition.y, self->globalPosition.z);
         objData->ownBlock = mapGetBlockByIndex(objData->ownBlockIndex);
@@ -98,7 +100,9 @@ void LODAnimator_obj_Control(Object* self) {
     LODAnimator_CheckIfNearbyBlockAppeared(self);
 
     //Update shapes when the flags change
-    if (objData->prevFlags != objData->flags) {
+    if ((objData->prevFlags != objData->flags) ||
+        ((objSetup->options & LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load) && (prevOwnBlock == NULL)) //Optionally update shapes when the local Block loads, too
+    ) {
         objData->prevFlags = objData->flags;
         LODAnimator_UpdateShapes(self, !(objData->flags & LODAnimator_FLAG_1_Nearby_Block_Found));
     }
