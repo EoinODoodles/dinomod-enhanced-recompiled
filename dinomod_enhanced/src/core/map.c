@@ -97,12 +97,22 @@ void blockAddLODAnimator(Object* lodAnimator) {
 void blockRemoveLODAnimator(Object* lodAnimator) {
     u32 i;
     u32 j;
+    u32 removed = FALSE;
+
+    if (gLODObjectCount == 0) {
+        return;
+    }
 
     for (i = 0; i < gLODObjectCount; i++) {
         if (gLODObjects[i] == lodAnimator) {
             gLODObjects[i] = NULL;
+            removed = TRUE;
             break;
         }
+    }
+
+    if (removed == FALSE) {
+        return;
     }
 
     for (j = i; j < gLODObjectCount - 1; j++) {
