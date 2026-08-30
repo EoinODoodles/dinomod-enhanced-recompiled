@@ -59,7 +59,7 @@ RECOMP_HOOK_RETURN("mainInit") void dinomod_global_map_init(void) {
     D_800B9768.unkC[MAP_CLOUDRUNNER_TRAPROOMS] = 0;
 }
 
-#define DEBUG_LOD_ANIMATORS
+// #define DEBUG_LOD_ANIMATORS
 #define LOD_ANIMATORS_MAX 16
 static Object* gLODObjects[LOD_ANIMATORS_MAX];
 static u8 gLODObjectCount = 0;
