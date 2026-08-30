@@ -225,6 +225,11 @@ DIMTentModes configs_GetDIMTentMode(void) {
     return recomp_get_config_u32("dim_tent_cinders");
 }
 
+/* Checks whether Walled City's Pressure Switches should ignore projectiles. */
+_Bool configs_GetWCPressureSwitchIgnoreProjectiles(void) {
+    return (recomp_get_config_u32("wc_pressure_switch_ignore_projectiles") != 0);
+}
+
 /* Checks whether Walled City's Beacons should create flame effects. */
 _Bool configs_GetWCBeaconFlames(void) {
     return (recomp_get_config_u32("wc_beacon_flames") != 0);

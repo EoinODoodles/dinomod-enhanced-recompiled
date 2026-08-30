@@ -1,9 +1,10 @@
-#include "game/gamebits.h"
+#include "configs.h"
 #include "modding.h"
 #include "objects/781_WCPressureSwitch.h"
 
 #include "dll.h"
 #include "dlls/engine/6_amsfx.h"
+#include "game/gamebits.h"
 #include "game/objects/object.h"
 #include "sys/gfx/animseq.h"
 #include "sys/main.h"
@@ -93,6 +94,12 @@ RECOMP_PATCH void WCPressureSwitch_obj_Control(Object* self) {
     if (self->polyhits->unk10F > 0) {
         for (index = 0; index < self->polyhits->unk10F; index++) {
             listedObject = (Object*)self->polyhits->unk100[index];
+
+            //@recomp: optionally ignore projectiles
+            if (configs_GetWCPressureSwitchIgnoreProjectiles() && (listedObject->controlNo == OBJCONTROL_Projectile)) {
+                continue;
+            }
+
             deltaY = listedObject->srt.transl.y - self->srt.transl.y;
             if (deltaY > objSetup->yThreshold) {
                 WCPressureSwitch_addObject(self, listedObject);

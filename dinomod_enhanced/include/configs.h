@@ -157,6 +157,7 @@ _Bool configs_GetPurpleMushrooms(void);
 VampireBat_BattleMode configs_GetVampireBatMode(void);
 DIMCannonSounds configs_GetDIMCannonSoundMode(void);
 DIMTentModes configs_GetDIMTentMode(void);
+_Bool configs_GetWCPressureSwitchIgnoreProjectiles(void);
 _Bool configs_GetWCBeaconFlames(void);
 _Bool configs_GetKTEnhanced(void);
 PlayAsFoxModes configs_GetPlayAsFoxMode(void);

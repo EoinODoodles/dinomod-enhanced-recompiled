@@ -590,6 +590,20 @@ options = [ "Off", "On" ]
 default = "On"
 
 [[manifest.config_options]]
+id = "wc_pressure_switch_ignore_projectiles"
+name = "Walled City: Pressure Switch Restrictions"
+description = '''
+Act 1 of Walled City features two timed challenges which start when standing on Sun/Moon-themed pressure switches.
+
+In the unmodified prototype it's possible to activate the switches with projectile attacks, letting you skip the whole challenge.
+
+Enabling this config option restricts what objects can activate the switches, having them ignore projectiles. Or you can leave it off if you'd prefer having a crafty way of succeeding at the challenge!
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
 id = "wc_beacon_flames"
 name = "Walled City: Beacon Flames"
 description = '''
