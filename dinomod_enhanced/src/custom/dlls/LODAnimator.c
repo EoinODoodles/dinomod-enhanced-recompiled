@@ -1,8 +1,11 @@
+#include "math_util.h"
 #include "recomputils.h"
 
 #include "game/objects/object.h"
 #include "macros.h"
 #include "sys/map.h"
+#include "sys/math.h"
+#include "sys/objects.h"
 #include "sys/objprint.h"
 #include "sys/print.h"
 
@@ -11,7 +14,8 @@
 #include "custom_object_ids.h"
 #include "custom/dlls/LODAnimator.h"
 
-#define DEBUG_ANIMATOR
+// #define DEBUG_ANIMATOR
+// #define DEBUG_UNLOAD
 // #define DEBUG_VIS_GRID
 
 /*
@@ -23,10 +27,9 @@
 */
 
 typedef struct {
-    Block* ownBlock;
+    Block* ownBlock;        //The LODAnimator's local BLOCKS model (which contains some LOD stand-in shapes for another nearby Block)
     u8 flags;
     u8 prevFlags;
-    u8 animatorID;          //animatorID for the local block's LOD shapes, which will be shown/hidden as the nearby Block disappears/appears
     s8 nearbyBlockIndex;    //The loadedBlockIdx of the nearby Block that needs an LOD stand-in
     s8 ownBlockIndex;       //The loadedBlockIdx of the LODAnimator's local Block (which contains extra LOD shapes)
 } LODAnimator_Data;
@@ -35,7 +38,7 @@ typedef enum {
     LODAnimator_FLAG_1_Nearby_Block_Found = 1
 } LODAnimator_Flags;
 
-static void LODAnimator_UpdateShapes(Object* self, s32 showLOD);
+static s32 LODAnimator_UpdateShapes(Object* self, s32 showLOD);
 static void LODAnimator_CheckIfNearbyBlockAppeared(Object* self);
 
 void LODAnimator_ctor(void* dll){ }
@@ -46,7 +49,6 @@ void LODAnimator_dtor(void* dll){ }
 void LODAnimator_obj_Setup(Object* self, LODAnimator_Setup* objSetup, s32 reset) {
     LODAnimator_Data* objData = self->data;
 
-    objData->animatorID = objSetup->animatorID;
     objData->ownBlockIndex = -1;
     objData->nearbyBlockIndex = -1;
 
@@ -58,18 +60,17 @@ void LODAnimator_obj_Setup(Object* self, LODAnimator_Setup* objSetup, s32 reset)
 // export: 1
 void LODAnimator_obj_Control(Object* self) {
     LODAnimator_Data* objData;
-    LODAnimator_Setup* objSetup;
     s8 nearbyBlockFound;
     Block* ownBlock;
     f32 distance;
     f32 blendValue;
 
-    objSetup = (LODAnimator_Setup*)self->setup;
     objData = self->data;
 
 #ifdef DEBUG_ANIMATOR
     {
         Vec3f blockCoords;
+        LODAnimator_Setup* objSetup = (LODAnimator_Setup*)self->setup;
 
         blockCoords.x = self->globalPosition.x + BLOCKS_GRID_UNIT * objSetup->gridOffsetX;
         blockCoords.y = self->globalPosition.y;
@@ -99,7 +100,7 @@ void LODAnimator_obj_Control(Object* self) {
     //Update shapes when the flags change
     if (objData->prevFlags != objData->flags) {
         objData->prevFlags = objData->flags;
-        LODAnimator_UpdateShapes(self, (objData->flags & LODAnimator_FLAG_1_Nearby_Block_Found) == FALSE);
+        LODAnimator_UpdateShapes(self, !(objData->flags & LODAnimator_FLAG_1_Nearby_Block_Found));
     }
 }
 
@@ -115,6 +116,58 @@ void LODAnimator_obj_Print(Object* self, Gfx** gfx, Mtx** mtx, Vertex** vtx, Tri
 
 // export: 4
 void LODAnimator_obj_Free(Object* self, s32 onlySelf) {
+    LODAnimator_Setup* objSetup = (LODAnimator_Setup*)self->setup;
+    Object* player;
+    Vec3f uDirection;
+    s32 angleTargetToAnimator;
+    Vec3f targetToAnimator;
+    Vec3f targetToPlayer;
+    
+    //Optionally show the LOD again on unload (only if the player is moving away from the target block)
+    if (objSetup->options & LODAnimator_OPTION_1_Show_LOD_on_Unload) {
+        player = objGetPlayer();
+        if (player) {
+            //Get the angle from the target to the LODAnimator
+            uDirection.x = -objSetup->gridOffsetX;
+            uDirection.z = -objSetup->gridOffsetZ;
+            vec3Normalize(&uDirection);
+            angleTargetToAnimator = Arctanf(uDirection.x, uDirection.z) - M_90_DEGREES;
+            CIRCLE_WRAP(angleTargetToAnimator);
+#ifdef DEBUG_UNLOAD
+            recomp_printf("angleTargetToAnimator: %4x\n", angleTargetToAnimator);
+#endif
+
+            //Get the vector from the target to the LODAnimator (in worldSpace)
+            targetToAnimator.x = -(BLOCKS_GRID_UNIT * objSetup->gridOffsetX);
+            targetToAnimator.z = -(BLOCKS_GRID_UNIT * objSetup->gridOffsetZ);
+
+            //Get the vector from the target to the player (in worldSpace)
+            targetToPlayer.x = player->globalPosition.x - (self->globalPosition.x + BLOCKS_GRID_UNIT * objSetup->gridOffsetX);
+            targetToPlayer.z = player->globalPosition.z - (self->globalPosition.z + BLOCKS_GRID_UNIT * objSetup->gridOffsetZ);
+
+#ifdef DEBUG_UNLOAD
+            recomp_printf("targetToAnimator, targetToPlayer in WorldSpace:\n");
+            vec3_recomp_printf(&targetToAnimator);
+            vec3_recomp_printf(&targetToPlayer);
+#endif
+
+            //Rotate both vectors so they're now in the target-to-LODAnimator coordinate space
+            rotate_point_by_angle_2D(targetToAnimator.x, targetToAnimator.z, &targetToAnimator.x, &targetToAnimator.z, -angleTargetToAnimator);
+            rotate_point_by_angle_2D(targetToPlayer.x, targetToPlayer.z, &targetToPlayer.x, &targetToPlayer.z, -angleTargetToAnimator);
+
+#ifdef DEBUG_UNLOAD
+            recomp_printf("targetToAnimator, targetToPlayer in LocalSpace:\n");
+            vec3_recomp_printf(&targetToAnimator);
+            vec3_recomp_printf(&targetToPlayer);
+#endif
+
+            //Show the LOD if the player is moving away from the target (in targetToAnimator space)
+            if (targetToPlayer.x > targetToAnimator.x) {
+                LODAnimator_UpdateShapes(self, TRUE);
+            }
+        }
+    }
+
     blockRemoveLODAnimator(self);
 }
 
@@ -130,29 +183,37 @@ u32 LODAnimator_obj_GetDataSize(Object* self, u32 offsetAddr){
 
 
 // export: 7
-/* Updates the render flags of the shapes the LODAnimator affects (showing/hiding the LOD) */
-static void LODAnimator_UpdateShapes(Object* self, s32 showLOD) {
+/* Updates the render flags of the shapes the LODAnimator affects (showing/hiding the LOD). 
+   Returns TRUE if the shapes were successfully updated. */
+static s32 LODAnimator_UpdateShapes(Object* self, s32 showLOD) {
     LODAnimator_Data* objData;
+    LODAnimator_Setup* objSetup;
     Block* block;
     BlockShape* shapes;
     u8 shapeIdx;
+    u8 shapeUpdated = FALSE;
 
     objData = self->data;
+    objSetup = (LODAnimator_Setup*)self->setup;
+
     block = objData->ownBlock;
     if (block == NULL) {
-        return;
+        return FALSE;
     }
 
     //Loop over shapes, and update render flags on shapes with a matching animatorID tag
     for (shapeIdx = 0, shapes = block->shapes; shapeIdx < block->shapeCount; shapeIdx++){
-        if (objData->animatorID == shapes[shapeIdx].animatorID){
+        if (objSetup->animatorID == shapes[shapeIdx].animatorID){
             if (showLOD){
                 shapes[shapeIdx].flags &= ~RENDER_SHAPE_HIDE;
             } else {
                 shapes[shapeIdx].flags |= RENDER_SHAPE_HIDE;
             }
+            shapeUpdated = TRUE;
         }
     }
+
+    return shapeUpdated;
 }
 
 // export: 8
