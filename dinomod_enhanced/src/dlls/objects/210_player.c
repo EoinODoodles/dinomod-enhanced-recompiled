@@ -2763,7 +2763,34 @@ RECOMP_PATCH s32 dll_210_func_BA38(Object* player, ObjFSA_Data* fsa, f32 arg2) {
     case 8:
         return -0x29;
     case 18:
-        return 0x29;
+        //@recomp: check if the nearby pushblock is actually pushable (TODO: tidy this up, maybe by adding a GetState export to WCPushBlock?)
+        {
+            typedef struct {
+            /*000*/    DLL27_Data unk0;   //Unused: probably DLL27_Data
+            /*260*/    Object* levelCtrl; //WCLevelControl
+            /*264*/    f32 limitX;
+            /*268*/    f32 limitZ;
+            /*26C*/    u32 soundHandle;
+            /*270*/    s16 gridX;
+            /*272*/    s16 gridZ;
+            /*274*/    u8 state;
+            /*275*/    u8 moveDirection;
+            /*276*/    u8 puzzlePieceID;  //The pushblock's identifier, used by WCLevelControl to quickly store which puzzle element is in each grid cell
+            /*277*/    u8 collidedType;
+            } WCPushBlock_Data;
+
+            #define WCPushBlock_STATE_1_Pushable 1
+
+            WCPushBlock_Data* pushblockData;
+            Object* pushblock = v1objdata->unk680.unk28;
+            if (pushblock && pushblock->id == OBJ_WCPushBlock) {
+                pushblockData = pushblock->data;
+                if (pushblockData->state != WCPushBlock_STATE_1_Pushable) {
+                    return 0;
+                }
+            }
+        }
+        return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Push_Block_Away);
     case 9:
         return -0xB;
     case 10:
