@@ -20,6 +20,7 @@
 #include "object_util.h"
 #include "objects/307_SeqDoor.h"
 #include "objects/511_SHboulder.h"
+#include "objects/779_WCLevelControl.h"
 #include "objects/780_WCBeacon.h"
 #include "objects/781_WCPressureSwitch.h"
 #include "trigger_object_macros.h"
@@ -41,12 +42,17 @@
 
 INCBIN(block601, "inc/blocks_0601_WC_central_temple_north_east.bin");
 INCBIN(block602, "inc/blocks_0602_WC_central_temple_east.bin");
+INCBIN(block609, "inc/blocks_0609_WC_central_temple_north.bin");
 INCBIN(block610, "inc/blocks_0610_WC_central_temple_middle.bin");
 INCBIN(block611, "inc/blocks_0611_WC_central_temple_south.bin");
 INCBIN(block612, "inc/blocks_0612_WC_central_temple_southmost.bin");
 INCBIN(block617, "inc/blocks_0617_WC_central_temple_north_west.bin");
 INCBIN(block618, "inc/blocks_0618_WC_central_temple_west.bin");
 INCBIN(block619, "inc/blocks_0619_WC_central_temple_south_west.bin");
+INCBIN(block625, "inc/blocks_0625_WC_moon_passageway.bin");
+INCBIN(block630, "inc/blocks_0630_WC_moon_pushblock_puzzle.bin");
+INCBIN(block594, "inc/blocks_0594_WC_sun_passageway.bin");
+INCBIN(block589, "inc/blocks_0589_WC_sun_pushblock_puzzle.bin");
 INCBIN(block590, "inc/blocks_0590_WC_sun_temple_entrance.bin");
 INCBIN(block585, "inc/blocks_0585_WC_sun_temple_ne.bin");
 INCBIN(block586, "inc/blocks_0586_WC_sun_temple_se.bin");
@@ -319,57 +325,162 @@ static void walled_city_modifications(void) {
     ReAssetID ktTrkblk = reasset_base_id(53);
     int wcBlocksBase = 585;
     int ktBlocksBase = 1086;
-    //TEMPORARY DEFINES (TODO: remove once these are in decomp)
-    #define BIT_WC_Sun_Pressure_Switch_Active 0x7ED
-    #define BIT_WC_Sun_Beacon_Raised 0x7EF
-    #define BIT_WC_Sun_Beacon_Lit 0x7F9
-    #define BIT_WC_SlabDoor_Sun_Symbol_Lit 0x7F7
 
-    #define BIT_WC_Moon_Pressure_Switch_Active 0x7EE
-    #define BIT_WC_Moon_Beacon_Raised 0x7F0
-    #define BIT_WC_Moon_Beacon_Lit 0x7FA
-    #define BIT_WC_SlabDoor_Moon_Symbol_Lit 0x802
-    
-    #define BIT_WC_SlabDoor_Opened 0x813
-    #define BIT_WC_Boss_Door_Opened 0x819
-    #define BIT_WC_King_EarthWalker_Cage_Opened 0x7F5
-    #define BIT_WC_King_EarthWalker_Rescued 0x1DF
-    
-    #define BIT_WC_Sun_Temple_Opened 0x828
-    #define BIT_WC_Moon_Temple_Opened 0x829
-    
-    #define BIT_WC_Sun_Temple_Illusory_Wall_Switch_Pressed 0x205
-    #define SOUND_9FB_Illusory_Wall_Revealed 0x9FB
+    //Approach
+    {
+        //Add new TriggerPlanes
+        {
+            //Obelisk Archway
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 50,
+                        .fadeDistance = 50,
+                        .x = 1285.444,
+                        .y = -733.000,
+                        .z = -2237.867
+                    },
+                    .rotationY = TRIGGER_YAW(270),
+                    .sizeX = TRIGGER_SCALE(0.841),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Approach_Cave_Entrance, &plane, 0, 1); //Load/unload cave entrance objects
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
 
-    #define BIT_WC_Sun_Temple_Maze_Timed_Challenge_Switch_Pressed 0x2B1
-    #define BIT_WC_Sun_Temple_Maze_Illusory_Wall_1_Shown 0x226
-    #define BIT_WC_Sun_Temple_Maze_Illusory_Wall_2_Hidden 0x2A6
-    #define BIT_WC_Sun_Temple_Maze_Illusory_Wall_3_Hidden 0x206
-    #define BIT_WC_Sun_Temple_Maze_Illusory_Wall_4_Hidden 0x25F
-    #define BIT_WC_Sun_Temple_Maze_Solved 0x2A5
-    
-    #define BIT_WC_Moon_Temple_Illusory_Wall_Switch_Pressed 0x265
-    #define BIT_WC_Moon_Temple_Hazards_Deactivated 0x338
+            //Cave entrance
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 50,
+                        .fadeDistance = 50,
+                        .x = 1701.000,
+                        .y = -785.008,
+                        .z = -2469.848
+                    },
+                    .rotationY = 0,
+                    .sizeX = TRIGGER_SCALE(1.2),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Approach_Cave_Exit, &plane, 0, 1); //Load/unload cave exit objects
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
 
-    #define BIT_WC_Sun_Temple_Magic_Bridge_Visible 0x2D4
-    #define BIT_WC_Moon_Temple_Magic_Bridge_Visible 0x2D5
+            //Cave exit
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 100,
+                        .fadeDistance = 100,
+                        .x = 772.980,
+                        .y = -881.985,
+                        .z = -2979.903
+                    },
+                    .rotationY = 0,
+                    .sizeX = TRIGGER_SCALE(1.42),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Approach_Cave_Entrance, &plane, 0, 1); //Load/unload cave entrance objects
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Jungle_Door_Area, &plane, 2, 3); //Load/unload Jungle Door area objects
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup5_Central_Temple, &plane, 4, 5); //Load/unload central temple objects
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
 
-    #define BIT_WC_Transporter_Chamber_Rises 0x335
-    #define BIT_WC_Transporter_Chamber_Opened 0x235
+            //Jungle Door
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 100,
+                        .fadeDistance = 100,
+                        .x = 960.000,
+                        .y = -874.000,
+                        .z = -3840.000
+                    },
+                    .rotationY = 0,
+                    .sizeX = TRIGGER_SCALE(3.1),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Approach_Cave_Exit, &plane, 0, 1); //Load/unload cave exit objects
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Jungle_Door_Area, &plane, 2, 3); //Load/unload Jungle Door area objects
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Moon_Passageway_Door, &plane, 4, 5); //Load/unload Moon Passageway Door
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Sun_Passageway_Door, &plane, 6, 7);  //Load/unload Sun Passageway Door
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
 
-    enum WC_ObjectGroups {
-        WC_ObjGroup0_Sun_Beacon_Tunnel,
-        WC_ObjGroup1_Moon_Beacon_Tunnel,
-        WC_ObjGroup2_Sun_Pushblock_Puzzle,
-        WC_ObjGroup3_Moon_Pushblock_Puzzle,
-        WC_ObjGroup4_Boss_Lobby,
-        WC_ObjGroup5_Central_Temple,
-        WC_ObjGroup6_Sun_Temple_Exterior,
-        WC_ObjGroup7_Moon_Temple_Exterior,
-        WC_ObjGroup8_Sun_Temple_Interior,
-        WC_ObjGroup9_Moon_Temple_Interior
-    };
-    //END OF TEMPORARY DEFINES
+            //Outskirts entrance
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 50,
+                        .fadeDistance = 50,
+                        .x = 1920.000,
+                        .y = -862.000,
+                        .z = -3323.000
+                    },
+                    .rotationY = TRIGGER_YAW(270),
+                    .sizeX = TRIGGER_SCALE(0.97),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Approach_Cave_Exit, &plane, 0, 1); //Load/unload cave exit objects
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Jungle_Door_Area, &plane, 2, 3); //Load/unload Jungle Door area objects
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_ObjGroup5_Central_Temple, &plane, 4, 5); //Load/unload central temple objects
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Outskirts, &plane, 6, 7); //Load/unload outskirts objects
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+
+            //Outskirts exit (load/unload cave exit objects)
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 60,
+                        .fadeDistance = 60,
+                        .x = 0,
+                        .y = -771.000,
+                        .z = -3472.000
+                    },
+                    .rotationY = TRIGGER_YAW(270),
+                    .sizeX = TRIGGER_SCALE(0.97),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Approach_Cave_Exit, &plane, 0, 1); //Load/unload cave exit objects
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Jungle_Door_Area, &plane, 2, 3); //Load/unload Jungle Door area objects
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup5_Central_Temple, &plane, 4, 5); //Load/unload central temple objects
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Outskirts, &plane, 6, 7); //Load/unload outskirts objects
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+
+        }
+    }
 
     //BLOCKS - Central Temple
     {
@@ -382,12 +493,13 @@ static void walled_city_modifications(void) {
             - Collision, UV, and double-sided face fixes around tree border
         */
         BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 601, block601); //NE: Prevent Tricky falling into pit below Sun Beacon
-        BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 602, block602); //E: Fix UV/terrain issues in Sun Beacon tunnel, laser decals
+        BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 602, block602); //E: Fix UV/terrain issues in Sun Beacon tunnel, laser decals, add passageway LOD
+        BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 609, block609); //N: Fix UVs on ceiling of King EarthWalker's cage room
         BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 610, block610); //Middle: Fix gaps in temple's Moon/Sun door entrances, beacon tunnel UV fixes, stop Tricky falling below RedEye statues
         BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 611, block611); //S: Fix a small gap between WCSlabDoor and its surroundings
         BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 612, block612); //Southmost: Fix seams and missing collision on tree border
         BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 617, block617); //NW: Fix stretched UVs on top of the wall beside the tree border
-        BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 618, block618); //W: Fix UV/terrain issues in Moon Beacon tunnel, laser decals
+        BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 618, block618); //W: Fix UV/terrain issues in Moon Beacon tunnel, laser decals, add passageway LOD
         BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 619, block619); //SW: Prevent Tricky falling into pit below Moon Beacon
     }
 
@@ -405,8 +517,7 @@ static void walled_city_modifications(void) {
         BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1101, block1101); //Minor UV fixes: ceiling
     }
 
-    // WCCageDoor
-    // Fix the door playing a sound from far away as you approach Walled City
+    // WCCageDoor (Fix the door playing a sound from far away as you approach Walled City)
     {
         SeqDoor_Setup* cageDoor = reasset_map_objects_get(walledCity, 
             reasset_base_id(0x411B0), NULL);
@@ -783,6 +894,15 @@ static void walled_city_modifications(void) {
 
     //Sun/Moon Temple Passageways
     {
+        //BLOCKS
+        {
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 625, block625); //Moon passageway: fix UVs on trims at the pushblock puzzle boundary
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 630, block630); //Moon pushblock puzzle: fix gaps between vertices, tree discontinuities, visible gaps under trees 
+            
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 594, block594); //Sun passageway: fix UVs on trims at the pushblock puzzle boundary, add animatorIDs for HitAnimators
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 589, block589); //Sun pushblock puzzle: fix gaps between vertices, tree discontinuities, visible gaps under trees 
+        }
+
         //GeneralDoors (align exactly with entrances)
         {
             MODELS_REPLACE_BASE(959, models_wcgeneraldoor);
@@ -819,6 +939,320 @@ static void walled_city_modifications(void) {
                 sunsideDoorR->base.x = 54.521;
                 sunsideDoorR->base.y = -874.000;
                 sunsideDoorR->base.z = -4792.500;
+            }
+        }
+
+        //Move objects into new objectGroups to prevent pop-in along corridors
+        {
+            //Move to new objGroups
+            {
+                typedef struct {
+                    u32 uID;
+                    u32 objectGroup;
+                } ObjectGroupConfigs;
+
+                ObjectGroupConfigs passagewayObjects[] = {
+                    {0x413aa, WC_OBJGROUP_Moon_Passageway_Door}, //WCGeneralDoor, left half
+                    {0x413a9, WC_OBJGROUP_Moon_Passageway_Door}, //WCGeneralDoor, right half
+                    // {0x41b21, WC_OBJGROUP_Moon_Passageway}, //ClubSharpClaw
+                    {0x414a3, WC_OBJGROUP_Moon_Passageway}, //WL_Torch left
+                    {0x414a4, WC_OBJGROUP_Moon_Passageway}, //WL_Torch right
+
+                    {0x413ac, WC_OBJGROUP_Sun_Passageway_Door}, //WCGeneralDoor, left half
+                    {0x413ab, WC_OBJGROUP_Sun_Passageway_Door}, //WCGeneralDoor, right half
+                    // {0x41b1c, WC_OBJGROUP_Sun_Passageway}, //ClubSharpClaw
+                    {0x414ab, WC_OBJGROUP_Sun_Passageway}, //WL_Torch left
+                    {0x414aa, WC_OBJGROUP_Sun_Passageway}, //WL_Torch right
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(passagewayObjects); i++) {
+                    ObjSetup* obj = GET_MAPS_OBJECT(walledCity, passagewayObjects[i].uID);
+                    obj->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                    obj->mapObjGroup = passagewayObjects[i].objectGroup;
+                }
+            }
+
+            //Add TriggerPlanes to manage new objectGroups
+            {
+                //Moon Passageway Door
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_OBJGROUP_Moon_Passageway_Door,
+                            .fadeDistance = 50,
+                            .x = 1865.479,
+                            .y = -874.000,
+                            .z = -4806.829
+                        },
+                        .rotationY = TRIGGER_YAW(270),
+                        .sizeX = TRIGGER_SCALE(0.500),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    };
+                    DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Moon_Passageway, &plane, 0, 1);
+                    DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Sun_Passageway_Door, &plane, 2, 3);
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+
+                //Near Moon Temple Archway
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_ObjGroup7_Moon_Temple_Exterior,
+                            .fadeDistance = 50,
+                            .x = 3007.554,
+                            .y = -969.9134,
+                            .z = -4360.130
+                        },
+                        .rotationY = TRIGGER_YAW(0),
+                        .sizeX = TRIGGER_SCALE(0.9375),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    };
+                    DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Moon_Passageway, &plane, 0, 1);
+                    DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Moon_Passageway_Door, &plane, 2, 3);
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+
+                //Sun Passageway Door
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_OBJGROUP_Sun_Passageway_Door,
+                            .fadeDistance = 50,
+                            .x = 54.521,
+                            .y = -874.000,
+                            .z = -4792.171
+                        },
+                        .rotationY = TRIGGER_YAW(90),
+                        .sizeX = TRIGGER_SCALE(0.500),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    };
+                    DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Sun_Passageway, &plane, 0, 1);
+                    DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Moon_Passageway_Door, &plane, 2, 3);
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+
+                //Near Sun Temple
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_ObjGroup6_Sun_Temple_Exterior,
+                            .fadeDistance = 50,
+                            .x = -1087.554,
+                            .y = -969.9134,
+                            .z = -5238.870
+                        },
+                        .rotationY = TRIGGER_YAW(180),
+                        .sizeX = TRIGGER_SCALE(0.9375),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    };
+                    DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Sun_Passageway, &plane, 0, 1);
+                    DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Sun_Passageway_Door, &plane, 2, 3);
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+            }
+
+            //Edit TriggerPlanes to manage new objectGroups
+            {
+                //Moon Passageway
+                {
+                    Trigger_Setup* plane = GET_TRIGGER(walledCity, 0x41370);
+                    ENTER_OBJGROUP_OFF(WC_OBJGROUP_Sun_Passageway_Door, plane, 2);
+                }
+
+                //Sun Passageway
+                {
+                    Trigger_Setup* plane = GET_TRIGGER(walledCity, 0x41373);
+                    ENTER_OBJGROUP_OFF(WC_OBJGROUP_Moon_Passageway_Door, plane, 2);
+                }
+            }
+        }
+
+        //Add LODAnimators (a new custom kind of animator!)
+        {
+            //Central Temple West (stand-in for Moon Passageway)
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = WC_ObjGroup5_Central_Temple,
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(1728.825, -747, -4808.705),
+                    .animatorID = 1,
+                    .gridOffsetX = +1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                };
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Moon Passageway (stand-in for pushblock puzzle area)
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = WC_OBJGROUP_Moon_Passageway,
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(2191.825, -747, -4808.705),
+                    .animatorID = 1,
+                    .gridOffsetX = +1,
+                    .options = LODAnimator_OPTION_1_Show_LOD_on_Unload
+                };
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Central Temple East (stand-in for Sun Passageway)
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = WC_ObjGroup5_Central_Temple,
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(191.175, -747, -4790.295),
+                    .animatorID = 1,
+                    .gridOffsetX = -1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                };
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Sun Passageway (stand-in for pushblock puzzle area)
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = WC_OBJGROUP_Sun_Passageway,
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-271.825, -747, -4790.295),
+                    .animatorID = 3,
+                    .gridOffsetX = -1,
+                    .options = LODAnimator_OPTION_1_Show_LOD_on_Unload
+                };
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+        }
+
+        //Add HitAnimators, temporarily hiding the section of outskirts that smashes through the Sun Passageway in an impossible way
+        //(In the unmodified prototype you see the inner faces of the outskirts' tunnel from the passageway below, which looks really nonsensical - 
+        // so I'm guessing they intended to hide the outskirts' tunnel section when standing in the passageway corridor, and vice versa!)
+        {
+            typedef struct {
+                Vec3f coords;
+                u8 objGroup;
+                u8 animatorID;
+                u8 show;
+            } WCOutskirtsHitAnimators;
+
+            WCOutskirtsHitAnimators hAnimData[] = {
+                //In Central Temple area
+                { VEC3F(-145.7, -779, -4792), WC_ObjGroup5_Central_Temple, 1, TRUE },   //Show passageway
+                { VEC3F(-145.7, -665, -4792), WC_ObjGroup5_Central_Temple, 2, FALSE },  //Hide outskirts
+
+                //In passageway
+                { VEC3F(-145.7, -779, -4792), WC_OBJGROUP_Sun_Passageway, 1, TRUE },    //Show passageway
+                { VEC3F(-145.7, -665, -4792), WC_OBJGROUP_Sun_Passageway, 2, FALSE },   //Hide outskirts
+
+                //In outskirts
+                { VEC3F(-145.7, -779, -4792), WC_OBJGROUP_Outskirts, 1, FALSE },        //Hide passageway
+                { VEC3F( 191.2, -779, -4792), WC_OBJGROUP_Outskirts, 1, FALSE },        //Hide passageway LOD
+                { VEC3F(-145.7, -665, -4792), WC_OBJGROUP_Outskirts, 2, TRUE },         //Show outskirts
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(hAnimData); i++) {
+                HitAnimator_Setup hitAnim = {
+                    .base = {
+                        .objId = OBJ_HitAnimator,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = hAnimData[i].objGroup,
+                        .fadeDistance = 50,
+                        .x = hAnimData[i].coords.x,
+                        .y = hAnimData[i].coords.y,
+                        .z = hAnimData[i].coords.z
+                    },
+                    .gamebitActivate = BIT_ALWAYS_1,
+                    .mode = hitanimator_configure_mode_flags(
+                        (hAnimData[i].show == FALSE), TRUE, FALSE),
+                    .blocksAnimatorID = hAnimData[i].animatorID
+                };
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitAnim, sizeof(hitAnim));
+            }
+        }
+
+        //Add TriggerAreas, just in case the Sun Corridor's objectGroups are in the wrong state
+        {
+            //Load outskirts
+            {
+                Trigger_Setup area = {
+                    .base = {
+                        .objId = OBJ_TriggerArea,
+                        .actExclusions1 = 0,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = WC_OBJGROUP_Sun_Passageway,
+                        .fadeDistance = 64,
+                    },
+                    COORDS_SETUP(-160, -745, -4800),              
+                    .sizeX = 70,
+                    .sizeY = 40,
+                    .sizeZ = 200,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                };
+                ENTER_OBJGROUP_ON(WC_OBJGROUP_Outskirts, &area, 0);
+                ENTER_OBJGROUP_OFF(WC_OBJGROUP_Sun_Passageway, &area, 1);
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &area, sizeof(area));
+            }
+
+            //Load passageway
+            {
+                Trigger_Setup area = {
+                    .base = {
+                        .objId = OBJ_TriggerArea,
+                        .actExclusions1 = 0,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = WC_OBJGROUP_Outskirts,
+                        .fadeDistance = 64,
+                    },
+                    COORDS_SETUP(-160, -865, -4800),              
+                    .sizeX = 70,
+                    .sizeY = 20,
+                    .sizeZ = 160,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                };
+                ENTER_OBJGROUP_OFF(WC_OBJGROUP_Outskirts, &area, 0);
+                ENTER_OBJGROUP_ON(WC_OBJGROUP_Sun_Passageway, &area, 1);
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &area, sizeof(area));
             }
         }
     }
@@ -1679,55 +2113,60 @@ static void walled_city_modifications(void) {
 
         //Approach route
         {
-            plane = GET_TRIGGER(walledCity, 0x40beb);
-            DIRECTIONAL_OBJGROUP_TOGGLE(5, plane, 0, 4); //90-degree bend after Queen EarthWalker's gateway
+            plane = GET_TRIGGER(walledCity, 0x40beb); //90-degree bend after Queen EarthWalker's gateway
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup5_Central_Temple, plane, 0, 4);
             EMPTY_TRIGGER_COMMAND(plane, 0); //Don't load the central temple's objects until the player's a lot closer
         }
 
         //Central temple
         {
-            plane = GET_TRIGGER(walledCity, 0x40dad);
-            DIRECTIONAL_OBJGROUP_TOGGLE(0, plane, 2, 5); //Sun beacon temple entrance
+            plane = GET_TRIGGER(walledCity, 0x40dad); //Sun beacon temple entrance
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup0_Sun_Beacon_Tunnel, plane, 2, 5);
 
-            plane = GET_TRIGGER(walledCity, 0x40dae);
-            DIRECTIONAL_OBJGROUP_TOGGLE(0, plane, 2, 5); //Sun beacon tunnel exit
+            plane = GET_TRIGGER(walledCity, 0x40dae); //Sun beacon tunnel exit
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup0_Sun_Beacon_Tunnel, plane, 2, 5);
 
-            plane = GET_TRIGGER(walledCity, 0x4104c);
-            DIRECTIONAL_OBJGROUP_TOGGLE(1, plane, 2, 5); //Moon beacon temple entrance
+            plane = GET_TRIGGER(walledCity, 0x4104c); //Moon beacon temple entrance
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup1_Moon_Beacon_Tunnel, plane, 2, 5);
 
-            plane = GET_TRIGGER(walledCity, 0x4104f);
-            DIRECTIONAL_OBJGROUP_TOGGLE(1, plane, 2, 5); //Moon beacon tunnel exit
+            plane = GET_TRIGGER(walledCity, 0x4104f); //Moon beacon tunnel exit
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup1_Moon_Beacon_Tunnel, plane, 2, 5);
 
-            plane = GET_TRIGGER(walledCity, 0x41052);
-            DIRECTIONAL_OBJGROUP_TOGGLE(4, plane, 2, 3); //Boss lobby
+            plane = GET_TRIGGER(walledCity, 0x41052); //Boss lobby tunnel entrance (outdoors)
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup4_Boss_Lobby, plane, 2, 3);
+            DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Moon_Passageway_Door, plane, 4, 5);
+            DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Sun_Passageway_Door, plane, 6, 7);
+
+            plane = GET_TRIGGER(walledCity, 0x41053); //Boss lobby entrance (indoors)
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup5_Central_Temple, plane, 2, 3); //TODO: does this mess up the post-boss sequence? KTrex enables ObjGroup 5 on defeat, so it should be okay?    
         }
 
         //Sun temple route
         {
-            plane = GET_TRIGGER(walledCity, 0x41312);
-            DIRECTIONAL_OBJGROUP_TOGGLE(2, plane, 0, 5); //Sun pushblocks approach
-            DIRECTIONAL_OBJGROUP_TOGGLE(6, plane, 6, 7); //Sun pushblocks approach
+            plane = GET_TRIGGER(walledCity, 0x41312); //Sun pushblocks approach
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup2_Sun_Pushblock_Puzzle, plane, 0, 5);
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup6_Sun_Temple_Exterior, plane, 6, 7);
 
-            plane = GET_TRIGGER(walledCity, 0x41311);
-            DIRECTIONAL_OBJGROUP_TOGGLE(2, plane, 0, 5); //Sun temple approach
+            plane = GET_TRIGGER(walledCity, 0x41311); //Sun temple approach
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup2_Sun_Pushblock_Puzzle, plane, 0, 5);
 
-            plane = GET_TRIGGER(walledCity, 0x41775);
-            DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(6, plane, 0, 1); //Sun temple entry
-            DIRECTIONAL_OBJGROUP_TOGGLE(8, plane, 6, 7); //Sun temple entry
+            plane = GET_TRIGGER(walledCity, 0x41775); //Sun temple entry
+            DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_ObjGroup6_Sun_Temple_Exterior, plane, 0, 1);
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup8_Sun_Temple_Interior, plane, 6, 7);
         }
 
         //Moon temple route
         {
-            plane = GET_TRIGGER(walledCity, 0x4130e);
-            DIRECTIONAL_OBJGROUP_TOGGLE(3, plane, 0, 5); //Moon pushblocks approach
-            DIRECTIONAL_OBJGROUP_TOGGLE(7, plane, 6, 7); //Moon pushblocks approach
+            plane = GET_TRIGGER(walledCity, 0x4130e); //Moon pushblocks approach
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup3_Moon_Pushblock_Puzzle, plane, 0, 5);
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup7_Moon_Temple_Exterior, plane, 6, 7);
 
-            plane = GET_TRIGGER(walledCity, 0x4130f);
-            DIRECTIONAL_OBJGROUP_TOGGLE(3, plane, 0, 6); //Moon temple approach
+            plane = GET_TRIGGER(walledCity, 0x4130f); //Moon temple approach
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup3_Moon_Pushblock_Puzzle, plane, 0, 6);
 
-            plane = GET_TRIGGER(walledCity, 0x41604);
-            DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(7, plane, 6, 7); //Moon temple entry
-            DIRECTIONAL_OBJGROUP_TOGGLE(9, plane, 2, 3); //Moon temple entry
+            plane = GET_TRIGGER(walledCity, 0x41604); //Moon temple entry
+            DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_ObjGroup7_Moon_Temple_Exterior, plane, 6, 7);
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup9_Moon_Temple_Interior, plane, 2, 3);
         }
     }
 }
