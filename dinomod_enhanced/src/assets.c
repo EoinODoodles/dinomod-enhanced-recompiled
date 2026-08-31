@@ -478,6 +478,51 @@ static void walled_city_modifications(void) {
                 DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Outskirts, &plane, 6, 7); //Load/unload outskirts objects
                 reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
             }
+        }
+    }
+
+    //Approach
+    {
+        //Add subtle animation to the caves' light beams
+        {
+
+            TexScroll_Setup texScrollData[] = {
+                { COORDS_SETUP(1593, -693, -2772), .base.mapObjGroup = WC_OBJGROUP_Approach_Cave_Entrance },
+                { COORDS_SETUP(919,  -693, -2699), .base.mapObjGroup = WC_OBJGROUP_Approach_Cave_Exit },
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(texScrollData); i++) {
+                TexScroll_Setup* scroll = &texScrollData[i];
+                scroll->base.objId = OBJ_texscroll;
+                scroll->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                scroll->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                scroll->base.fadeDistance = 255;
+                scroll->textureIndex = 58;
+                scroll->speedU = 2;
+                scroll->gamebitActivate = NO_GAMEBIT;
+                reasset_map_objects_set(walledCity, 
+                    reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll_Setup)
+                );
+            }
+        }
+    }
+
+    //Jungle Door area
+    {
+        //Move mushrooms into objectGroup (so they're not constantly loaded)
+        {
+            u32 mushroomUIDs[] = {
+                0x41111,
+                0x41112,
+                0x41114,
+                0x41115
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(mushroomUIDs); i++) {
+                ObjSetup* mushroom = GET_MAPS_OBJECT(walledCity, mushroomUIDs[i]);
+                mushroom->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                mushroom->mapObjGroup = WC_OBJGROUP_Jungle_Door_Area;
+            }
 
         }
     }
