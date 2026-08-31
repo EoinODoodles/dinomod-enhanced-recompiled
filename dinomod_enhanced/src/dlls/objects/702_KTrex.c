@@ -1,5 +1,6 @@
 #include "configs.h"
 #include "modding.h"
+#include "objects/779_WCLevelControl.h"
 #include "recompconfig.h"
 
 #include "dlls/engine/18_objfsa.h"
@@ -422,8 +423,8 @@ RECOMP_PATCH s32 dll_702_logic_state_1(Object* self, ObjFSA_Data* fsa, f32 updat
 
         if (sKTData->timer <= 0.0f) {
             mainSetBits(BIT_564, 1);
-            gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, 4, 1);
-            gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, 5, 1);
+            gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, WC_ObjGroup4_Boss_Lobby, TRUE);
+            gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, WC_ObjGroup5_Central_Temple, TRUE);
         }
     }
     
