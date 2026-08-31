@@ -40,8 +40,19 @@
 #include "sys/math.h"
 #include "sys/memory.h"
 
+INCBIN(block362, "inc/blocks_0362_SH_Walled_City_gateway.bin");
+INCBIN(block597, "inc/blocks_0597_WC_approach_gateway_corridor.bin");
+INCBIN(block599, "inc/blocks_0599_WC_jungle_door_area_ne.bin");
+INCBIN(block600, "inc/blocks_0600_WC_jungle_door_area_se.bin");
+INCBIN(block616, "inc/blocks_0616_WC_jungle_door_area_sw.bin");
+INCBIN(block615, "inc/blocks_0615_WC_approach_cave_entrance.bin");
+INCBIN(block607, "inc/blocks_0607_WC_approach_cave_exit.bin");
+INCBIN(block606, "inc/blocks_0606_WC_approach_corridor_bend_to_obelisk.bin");
+INCBIN(block598, "inc/blocks_0598_WC_approach_corridor_bend.bin");
+INCBIN(block614, "inc/blocks_0614_WC_approach_obelisk.bin");
 INCBIN(block601, "inc/blocks_0601_WC_central_temple_north_east.bin");
 INCBIN(block602, "inc/blocks_0602_WC_central_temple_east.bin");
+INCBIN(block608, "inc/blocks_0608_WC_jungle_door.bin");
 INCBIN(block609, "inc/blocks_0609_WC_central_temple_north.bin");
 INCBIN(block610, "inc/blocks_0610_WC_central_temple_middle.bin");
 INCBIN(block611, "inc/blocks_0611_WC_central_temple_south.bin");
@@ -483,6 +494,20 @@ static void walled_city_modifications(void) {
 
     //Approach
     {
+        //BLOCKS
+        {
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 597, block597); //Corridor: Fix UV and colour discontinuity where SH and WC meet
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 598, block598); //Corridor bend: Minor UV edits/optimisation
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 606, block606); //Corridor bend to obelisk: Fix gaps/discontinuities in tree border, repair nonmanifold geometry
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 614, block614); //Obelisk: Fix single-sided tree, gaps in tree border, improve glitchy collision around jutting root
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 615, block615); //Cave entrance: fix gap in ceiling, clean up UVs
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 607, block607); //Cave exit: clean up UVs
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 599, block599); //Jungle Door exterior NE: fix gap in trees, clean up UVs
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 600, block600); //Jungle Door exterior SE: clean up exit of outskirts
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 616, block616); //Jungle Door exterior SW: clean up UVs, Tricky dig spot
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 608, block608); //Jungle Door: Blend between exterior and interior of WC
+        }
+
         //Add subtle animation to the caves' light beams
         {
 
@@ -3021,10 +3046,14 @@ static void swapstone_hollow_modifications(void) {
         reasset_objects_set(objects_shseqobject_id, REASSET_BASE_NAMESPACE, objects_shseqobject, objects_shseqobject_end - objects_shseqobject);
     }
 
-    //BLOCKS edits (Tag Blocks shapes with animatorIDs, so they can be removed with HitAnimators)
+    //BLOCKS edits 
     {
+        //Tag Blocks shapes with animatorIDs, so they can be removed with HitAnimators)
         BLOCKS_REPLACE_BASE(shTrkblk, sHollowBlocksBase, 351, block351);
-        BLOCKS_REPLACE_BASE(shTrkblk, sHollowBlocksBase, 358, block358); //add light source
+        BLOCKS_REPLACE_BASE(shTrkblk, sHollowBlocksBase, 358, block358); //Add light source
+
+        //Fix colour discontinuity where SH and WC meet, small vertex alignment fixes, optimise stairs
+        BLOCKS_REPLACE_BASE(shTrkblk, sHollowBlocksBase, 362, block362); 
     }
 
     //Revert changes to SHboulder's DLL usage
