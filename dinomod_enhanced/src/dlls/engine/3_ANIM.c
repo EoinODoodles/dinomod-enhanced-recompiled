@@ -14,7 +14,10 @@
 
 #include "recomp/dlls/engine/3_ANIM_recomp.h"
 
-//#define DEBUG_ANIM
+// #define DEBUG_ANIM_PLAY
+// #define DEBUG_ANIM_EVENT
+// #define DEBUG_ANIM_EVENT_SOUND
+// #define DEBUG_ANIM_EVENT_CODE
 
 // Maximum number of active object sequences
 #define MAX_SEQSLOTS 45
@@ -204,7 +207,6 @@ static s32 start_obj_sequence_hijack(s32 objectSeqIndex, Object* object, s32 ena
 
     return start_obj_sequence_orig(objectSeqIndex, object, enabledActors);
 }
-
 // size:0x8
 typedef struct {
     u32 uid;
@@ -258,7 +260,7 @@ extern s8 _bss_8B;
 
 extern s8 anim_get_free_sfx_slot(AnimObj_Data* st);
 
-#ifdef DEBUG_ANIM
+#ifdef DEBUG_ANIM_EVENT
 RECOMP_PATCH s32 anim_process_event(Object* animObj, ModelInstance* animObjModelInst, AnimCurvesEvent** events, s8 arg3, s32* arg4) {
     AnimState* temp_v1;
     f32 var_fv0;
@@ -421,8 +423,8 @@ RECOMP_PATCH s32 anim_process_event(Object* animObj, ModelInstance* animObjModel
     case ANIM_EVT_STORYBOARD:
         break;
     case ANIM_EVT_SFX:
-#ifdef DEBUG_ANIM
-            recomp_printf("SOUND: %x\n", ((evt->params & 0xFFF) + 1));
+#ifdef DEBUG_ANIM_EVENT_SOUND
+        recomp_printf("SOUND: %x\n", ((evt->params & 0xFFF) + 1));
 #endif
     if (arg3_8) { break; }
     if (((evt->params >> 0xC) & 0xF) != 0xF) {
@@ -570,9 +572,9 @@ RECOMP_PATCH s32 anim_do_code_event_6(Object *animObj, Object *actor, AnimObj_Da
     sp54 = (u8)(arg3 >> 8);
     arg3 = arg3 & 0xFF;
 
-    #ifdef DEBUG_ANIM
+#ifdef DEBUG_ANIM_EVENT_CODE
     recomp_printf("[%s] Anim cmd: %s | Arg: %d | arg4: %d\n", actor->def->name, get_anim_event_6_name(arg3), sp54, arg4);
-    #endif
+#endif
 
     switch (arg3) {
     case ANIM_CODE_EVT_6_2: 
@@ -776,3 +778,11 @@ RECOMP_PATCH s32 anim_do_code_event_6(Object *animObj, Object *actor, AnimObj_Da
     }
     return 1;
 }
+
+#ifdef DEBUG_ANIM_PLAY
+RECOMP_HOOK("assetRomLoadSection") void printSequenceID(void **dest, s32 fileId, s32 offset, s32 length) {
+    if (fileId == OBJSEQ_TAB) {
+        recomp_printf("Playing sequence %0x\n", offset / sizeof(s16));
+    }
+}
+#endif
