@@ -13,6 +13,7 @@
 #include "mp3/mp3.h"
 #include "dll.h"
 #include "game/gamebits.h"
+#include "game/objects/object.h"
 #include "game/objects/object_id.h"
 #include "sys/acache.h"
 #include "sys/asset.h"
@@ -26,6 +27,8 @@
 #include "types.h"
 
 #include "recomp/dlls/engine/6_AMSFX_recomp.h"
+
+// #define DEBUG_SOUNDS
 
 #define IS_MP3 0x8000
 #define PITCH_DEFAULT 100
@@ -120,8 +123,22 @@ static void recomp_sound_remap_garunda_te_frostweeds(u16 soundID, SoundDef* soun
     soundEntry->bankAndClipID = SOUND(1033, MP3);
 }
 
-static void recomp_intercept_soundIDs(u16 soundID, SoundDef* soundEntry, ALBank **bank) {
+static void recomp_intercept_soundIDs(Object* obj, u16 soundID, SoundDef* soundEntry, ALBank **bank) {
     u32 pickupJingleConfig;
+
+#ifdef DEBUG_SOUNDS
+    if (obj && obj->def) {
+        if (obj->controlNo == OBJCONTROL_AnimObj) {
+            AnimObj_Data* animData = obj->data;
+            recomp_printf("PLAY SOUND: %0x [%s (Override)]\n", soundID, (animData->actor && animData->actor->def) ? animData->actor->def->name : "");
+        } else {
+            recomp_printf("PLAY SOUND: %0x [%s]\n", soundID, obj->def->name);
+        }
+    } else {
+        recomp_printf("PLAY SOUND: %0x\n", soundID);
+    }
+#endif
+
     switch (soundID){
         case SOUND_B8A_FirstTimeItemPickup:
             // @recomp: Replace item pickup jingle with the old version (original patch by nuggs)
@@ -165,7 +182,7 @@ RECOMP_PATCH u32 amSfx_Play(Object* obj, u16 soundID, u8 volume, u32* soundHandl
 
     //@recomp: intercept sound calls and edit as needed
     //recomp_printf("AMSFX: play sound #%d (%s)\n", soundID, soundEntry.unk0 & 0x8000 ? "MP3" : "WAV");
-    recomp_intercept_soundIDs(soundID, &soundDef, &bank);
+    recomp_intercept_soundIDs(obj, soundID, &soundDef, &bank);
 
     //Bail if sound's clipID is 0
     if (!(soundDef.bankAndClipID & 0x7FFF)) {
