@@ -1,9 +1,9 @@
 #include "configs.h"
 #include "custom_gamebits.h"
 #include "engine/5_AMSEQ.h"
-#include "macros.h"
 #include "modding.h"
 #include "object_util.h"
+#include "objects/779_WCLevelControl.h"
 #include "recompconfig.h"
 #include "recomputils.h"
 
@@ -11,6 +11,7 @@
 #include "dll.h"
 #include "game/objects/object.h"
 #include "game/gamebits.h"
+#include "macros.h"
 #include "sys/dll.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
@@ -35,44 +36,6 @@
 #define WCLevelControl_handleAct2 WCLevelControl_handle_act2
 #define WCLevelControl_sunPuzzleReset WCLevelControl_sun_puzzle_init_hard
 #define WCLevelControl_moonPuzzleReset WCLevelControl_moon_puzzle_init_hard
-
-#define BIT_WC_Is_Daytime 0x7F1
-#define BIT_WC_Is_Nighttime 0x7F3
-
-#define BIT_WC_Sun_Pressure_Switch_Active 0x7ED
-#define BIT_WC_Sun_Beacon_Raised 0x7EF
-#define BIT_WC_Sun_Beacon_Lit 0x7F9
-#define BIT_WC_SlabDoor_Sun_Symbol_Lit 0x7F7
-
-#define BIT_WC_Moon_Pressure_Switch_Active 0x7EE
-#define BIT_WC_Moon_Beacon_Raised 0x7F0
-#define BIT_WC_Moon_Beacon_Lit 0x7FA
-#define BIT_WC_SlabDoor_Moon_Symbol_Lit 0x802
-
-#define BIT_WC_SlabDoor_Opened 0x813
-#define BIT_WC_Boss_Door_Opened 0x819
-#define BIT_WC_King_EarthWalker_Cage_Opened 0x7F5
-#define BIT_WC_King_EarthWalker_Rescued 0x1DF
-
-#define BIT_WC_Moon_Passageway_Door_Opens 0x814
-#define BIT_WC_Sun_Passageway_Door_Opens 0x815
-
-#define BIT_WC_Sun_Pushblock_Puzzle_Reset 0x808
-#define BIT_WC_Moon_Pushblock_Puzzle_Reset 0x809
-#define BIT_WC_Sun_Pushblock_Puzzle_Progress 0x810
-#define BIT_WC_Moon_Pushblock_Puzzle_Progress 0x811
-#define BIT_WC_Sun_Aperture_Opened 0x812
-#define BIT_WC_Moon_Aperture_Opened 0x813
-
-#define BIT_WC_Sun_Temple_Illusory_Wall_Switch_Pressed 0x205
-#define BIT_WC_Sun_Temple_Maze_Timed_Challenge_Switch_Pressed 0x2B1
-#define BIT_WC_Sun_Temple_Maze_Timed_Challenge_Door_Opened 0x274
-#define BIT_WC_Played_Seq_179_Sun_Temple_Maze_Timed_Challenge_Intro 0x204
-#define BIT_WC_Sun_Temple_Maze_Illusory_Wall_1_Shown 0x226
-#define BIT_WC_Sun_Temple_Maze_Illusory_Wall_2_Hidden 0x2A6
-#define BIT_WC_Sun_Temple_Maze_Illusory_Wall_3_Hidden 0x206
-#define BIT_WC_Sun_Temple_Maze_Illusory_Wall_4_Hidden 0x25F
-#define BIT_WC_Sun_Temple_Maze_Solved 0x2A5
 //END OF TEMPORARY DEFINES
 
 typedef struct {
