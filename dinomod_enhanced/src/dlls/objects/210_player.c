@@ -35,7 +35,7 @@
 
 #include "recomp/dlls/objects/210_player_recomp.h"
 
-#define DEBUG_MESSAGES FALSE
+// #define DEBUG_MESSAGES
 
 extern f32 _data_C[];
 extern u8 _data_14[4];
@@ -236,11 +236,11 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
             }
             break;
         case 0x7000A:
-            #if DEBUG_MESSAGES
+#ifdef DEBUG_MESSAGES
             if (outSender && outSender->def) {
                 recomp_printf("Message received from %s!\n", outSender->def->name);
             }
-            #endif
+#endif
 
             if (messageArgument > 0) {
                 if (mainGetBits(messageArgument) != 0) {
@@ -249,11 +249,11 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                         gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, PLAYER_ASTATE_Collecting);
                     }
 
-                    #if DEBUG_MESSAGES
+#ifdef DEBUG_MESSAGES
                     if (outSender && outSender->def) {
                         recomp_printf("Reply sent to %s! Tutorial seen.\n", outSender->def->name);
                     }
-                    #endif
+#endif
                 } else {
                     mainSetBits(messageArgument, 1);
                     if (fsa->animState != PLAYER_ASTATE_42) {
@@ -266,11 +266,11 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                         case OBJ_SHbluemushroom:
                             objSendMesg(outSender, 0x7000B, player, (void*)TRUE);
                             
-                            #if DEBUG_MESSAGES
+#ifdef DEBUG_MESSAGES
                             if (outSender->def) {
                                 recomp_printf("Reply sent to %s! Tutorial not seen.\n", outSender->def->name);
                             }
-                            #endif
+#endif
 
                             break;
                         }
@@ -285,11 +285,11 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                     case OBJ_SHbluemushroom:
                         objSendMesg(outSender, 0x7000B, player, (void*)-1);
 
-                        #if DEBUG_MESSAGES
+#ifdef DEBUG_MESSAGES
                         if (outSender->def) {
                             recomp_printf("Reply sent to %s! No tutorial gamebit.\n", outSender->def->name);
                         }
-                        #endif
+#endif
 
                         break;
                     }
