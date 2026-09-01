@@ -380,8 +380,7 @@ RECOMP_PATCH void WCBeacon_obj_Control(Object* self) {
     case WCBEACON_STATE_0_Underground:
         //Rise up when the beacon's corresponding pressure switch is activated
         if (mainGetBits(objSetup->gamebitRise)) {
-            //@recomp: exclude Tricky from the sequence, since he's not really animated but can prevent it from playing if he's unloaded
-            gDLL_3_Animation->vtbl->start_obj_sequence(0, self, ~(1 << 4));
+            gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
             objData->state = WCBEACON_STATE_1_Unlit;
         }
         break;
