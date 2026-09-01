@@ -30,7 +30,7 @@ enum WC_ObjectGroups {
 #define BIT_WC_Moon_Beacon_Lit 0x7FA
 #define BIT_WC_SlabDoor_Moon_Symbol_Lit 0x802
 
-#define BIT_WC_SlabDoor_Opened 0x813
+#define BIT_WC_SlabDoor_Opened 0x7F8
 #define BIT_WC_Boss_Door_Opened 0x819
 #define BIT_WC_King_EarthWalker_Cage_Opened 0x7F5
 #define BIT_WC_King_EarthWalker_Rescued 0x1DF
