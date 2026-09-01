@@ -990,6 +990,12 @@ static void walled_city_modifications(void) {
             BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 589, block589); //Sun pushblock puzzle: fix gaps between vertices, tree discontinuities, visible gaps under trees 
         }
 
+        //HITS
+        {
+            //Sun pushblock puzzle: delete duplicate line (essentially) that prevented climbing up in the south-east corner
+            reasset_hits_delete(wcTrkblk, reasset_base_id(589 - wcBlocksBase), reasset_base_id(2));
+        }
+
         //GeneralDoors (align exactly with entrances)
         {
             MODELS_REPLACE_BASE(959, models_wcgeneraldoor);
