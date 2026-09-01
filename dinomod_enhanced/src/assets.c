@@ -1376,11 +1376,11 @@ static void walled_city_modifications(void) {
         }
 
         // Moon Aperture
-        // Set to always enabled (the sun aperture is always enabled as well)
         {
-            WCApertureSymbol_Setup* moonAperture = reasset_map_objects_get(walledCity, 
-                reasset_base_id(0x41463), NULL);
-            moonAperture->gamebitEnabled = BIT_ALWAYS_1;
+            WCApertureSymbol_Setup* moonAperture = GET_MAPS_OBJECT(walledCity, 0x41463);
+
+            //Don't allow the moon to be viewed until the aperture is open
+            moonAperture->gamebitEnabled = BIT_WC_Moon_Aperture_Opened;
 
             //Reduce activation opacity threshold, since this symbol has a reputation for being fussy 
             //(Players probably try to keep the off-centre moon in the centre of screen, rather than the symbol object itself)
@@ -1389,8 +1389,12 @@ static void walled_city_modifications(void) {
 
         // Sun Aperture
         {
-            //Reduce activation opacity threshold to match Moon aperture's reduction
             WCApertureSymbol_Setup* sunAperture = GET_MAPS_OBJECT(walledCity, 0x41471);
+
+            //Don't allow the sun to be viewed until the aperture is open
+            sunAperture->gamebitEnabled = BIT_WC_Sun_Aperture_Opened;
+            
+            //Reduce activation opacity threshold to match Moon aperture's reduction
             sunAperture->opacityThreshold *= 0.75f;
         }
     }
