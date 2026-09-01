@@ -159,5 +159,6 @@ DIMCannonSounds configs_GetDIMCannonSoundMode(void);
 DIMTentModes configs_GetDIMTentMode(void);
 _Bool configs_GetWCPressureSwitchIgnoreProjectiles(void);
 _Bool configs_GetWCBeaconFlames(void);
+_Bool configs_GetWCSunTempleLiftRailDesign(void);
 _Bool configs_GetKTEnhanced(void);
 PlayAsFoxModes configs_GetPlayAsFoxMode(void);

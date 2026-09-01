@@ -6,6 +6,7 @@
 
 #include "PR/os.h"
 #include "common.h"
+#include "sys/main.h"
 
 /* 
     NOTE ON CONFIGS:
@@ -233,6 +234,19 @@ _Bool configs_GetWCPressureSwitchIgnoreProjectiles(void) {
 /* Checks whether Walled City's Beacons should create flame effects. */
 _Bool configs_GetWCBeaconFlames(void) {
     return (recomp_get_config_u32("wc_beacon_flames") != 0);
+}
+
+/* Checks whether to use an alternate design for the Sun Temple lift rails. */
+_Bool configs_GetWCSunTempleLiftRailDesign(void) {
+    return (recomp_get_config_u32("wc_sun_temple_lift_rail_design") != 0);
+}
+
+// Set/unset a gamebit as the WCSunTempleLiftRailDesign option changes
+RECOMP_CALLBACK("*", recomp_on_game_tick_start) void configs_handleWCSunTempleLiftRailDesign(void) {
+    _Bool currentSetting = configs_GetWCSunTempleLiftRailDesign();
+    if (mainGetBits(DINOMOD_BIT_963_WC_Alternate_Sun_Temple_Exterior) != currentSetting) {
+        mainSetBits(DINOMOD_BIT_963_WC_Alternate_Sun_Temple_Exterior, currentSetting);
+    }
 }
 
 /* Checks whether to use King RedEye's "Enhanced" mode */

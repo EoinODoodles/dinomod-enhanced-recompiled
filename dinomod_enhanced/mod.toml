@@ -614,6 +614,18 @@ options = [ "Off", "On" ]
 default = "On"
 
 [[manifest.config_options]]
+id = "wc_sun_temple_lift_rail_design"
+name = "Walled City: Sun-Themed Lift"
+description = '''
+Walled City's Moon Temple features an ornate blue pattern along the sides of its lift's rails. The Sun Temple lacks an equivalent pattern, instead using a plain stone texture.
+
+If you'd like the Sun Temple to use a sun-themed version of that pattern, this option can be enabled. (Suggested by jeebs2kx!)
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "Off"
+
+[[manifest.config_options]]
 id = "cmdmenu_icons_fox"
 name = "Illusion Spell: Fox Icon"
 description = '''
