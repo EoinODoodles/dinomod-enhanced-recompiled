@@ -48,6 +48,9 @@ enum WC_ObjectGroups {
 #define BIT_WC_Sun_Temple_Opened 0x828
 #define BIT_WC_Moon_Temple_Opened 0x829
 
+#define BIT_WC_Played_Seq_0174_Sun_Temple_Opens 0x225
+#define BIT_WC_Played_Seq_0175_Moon_Temple_Opens 0x244
+
 #define BIT_WC_Moon_Temple_Illusory_Wall_Switch_Pressed 0x265
 #define BIT_WC_Moon_Temple_Hazards_Deactivated 0x338
 
