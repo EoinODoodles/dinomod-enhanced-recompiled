@@ -74,6 +74,23 @@ INCBIN(block633, "inc/blocks_0633_WC_moon_temple_nw.bin");
 INCBIN(block629, "inc/blocks_0629_WC_moon_temple_se.bin");
 INCBIN(block634, "inc/blocks_0634_WC_moon_temple_sw.bin");
 INCBIN(block636, "inc/blocks_0636_WC_moon_temple_dial_hall.bin");
+INCBIN(block623, "inc/blocks_0623_WC_outskirts_1.bin");
+INCBIN(block624, "inc/blocks_0624_WC_outskirts_2.bin");
+INCBIN(block626, "inc/blocks_0626_WC_outskirts_3.bin");
+INCBIN(block631, "inc/blocks_0631_WC_outskirts_4.bin");
+INCBIN(block632, "inc/blocks_0632_WC_outskirts_5.bin");
+INCBIN(block627, "inc/blocks_0627_WC_outskirts_6.bin");
+INCBIN(block620, "inc/blocks_0620_WC_outskirts_7.bin");
+INCBIN(block621, "inc/blocks_0621_WC_outskirts_8.bin");
+INCBIN(block613, "inc/blocks_0613_WC_outskirts_9.bin");
+INCBIN(block605, "inc/blocks_0605_WC_outskirts_10.bin");
+INCBIN(block604, "inc/blocks_0604_WC_outskirts_11.bin");
+INCBIN(block596, "inc/blocks_0596_WC_outskirts_12.bin");
+INCBIN(block595, "inc/blocks_0595_WC_outskirts_13.bin");
+INCBIN(block593, "inc/blocks_0593_WC_outskirts_14.bin");
+INCBIN(block588, "inc/blocks_0588_WC_outskirts_15.bin");
+INCBIN(block587, "inc/blocks_0587_WC_outskirts_16.bin");
+INCBIN(block592, "inc/blocks_0592_WC_outskirts_17.bin");
 INCBIN(block1086, "inc/blocks_1086_WC_boss_corner_sw.bin");
 INCBIN(block1087, "inc/blocks_1087_WC_boss_west_corridor_south.bin");
 INCBIN(block1088, "inc/blocks_1088_WC_boss_west_corridor_north.bin");
@@ -2174,6 +2191,30 @@ static void walled_city_modifications(void) {
                 .hitsAnimatorID = TRANSPORTER_CHAMBER_HITS_ANIMATOR
             };
             reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+        }
+    }
+
+    //Outskirts
+    {
+        //BLOCKS (Basic cleanup pass, tidying up broken UVs and some of the more serious gaps in meshes/collision)
+        {
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 623, block623); //1
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 624, block624); //2
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 626, block626); //3
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 631, block631); //4
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 632, block632); //5
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 627, block627); //6
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 620, block620); //7
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 621, block621); //8
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 613, block613); //9
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 605, block605); //10
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 604, block604); //11
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 596, block596); //12
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 595, block595); //13
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 593, block593); //14
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 588, block588); //15
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 587, block587); //16
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 592, block592); //17
         }
     }
 
