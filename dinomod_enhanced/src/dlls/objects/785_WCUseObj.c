@@ -1,4 +1,5 @@
 #include "modding.h"
+#include "object_util.h"
 #include "recomputils.h"
 
 #include "dll.h"
@@ -82,6 +83,14 @@ RECOMP_PATCH void WCUseObj_obj_Control(Object* self) {
         self->srt.transl.y = objSetup->base.y;
         self->srt.transl.z = objSetup->base.z;
 
+        //@recomp: hide Act 2 WCUseObjs' LockIcons if WC's act is somehow 0 instead of 1
+        if ((objData->actID == 0) && 
+            (objSetup->base.actExclusions1 & MAP_ACT(1)) //Only applies to WCUseObjs that are excluded from Act 1
+        ) {
+            self->unkAF |= ARROW_FLAG_8_No_Targetting;
+            return;
+        }
+
         self->unkAF &= ~ARROW_FLAG_8_No_Targetting;
         if (objSetup->gamebitUnlocked != NO_GAMEBIT) {
             //@recomp: handle custom flag, inverting gamebitUnlocked's behaviour (changing from unlocked when set to locked when set)
@@ -109,7 +118,8 @@ RECOMP_PATCH void WCUseObj_obj_Control(Object* self) {
         ) {
             if (objSetup->baseObjSeqIdx != -1) {
                 if (self->id == OBJ_WCInvUseObj) {
-                    if ((objData->actID == 1) && (mainGetBits(BIT_WC_Placed_Gold_RedEye_Tooth) || mainGetBits(BIT_WC_Placed_Silver_RedEye_Tooth))) {
+                    //@recomp: treat an actID of 0 as being equivalent to Act 1
+                    if ((objData->actID <= 1) && (mainGetBits(BIT_WC_Placed_Gold_RedEye_Tooth) || mainGetBits(BIT_WC_Placed_Silver_RedEye_Tooth))) {
                         gDLL_3_Animation->vtbl->start_obj_sequence(objSetup->baseObjSeqIdx + 2, self, -1);
                     } else if ((objData->actID == 2) && (mainGetBits(BIT_WC_Used_Sun_Stone) || mainGetBits(BIT_WC_Used_Moon_Stone))) {
                         gDLL_3_Animation->vtbl->start_obj_sequence(objSetup->baseObjSeqIdx + 2, self, -1);
