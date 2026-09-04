@@ -64,8 +64,8 @@ curves:
 
   # Disable objectGroups 6,7 (objects by the river)
   - { type: 11, delay: 0, params: 2 } # CODE
-  - { code_type: 6, val1: 0x1C, val2: 6 } # 6 (ENABLE_OBJ_GROUP)
-  - { code_type: 6, val1: 0x1C, val2: 7 } # 6 (ENABLE_OBJ_GROUP)
+  - { code_type: 6, val1: 0x1C, val2: 6 } # 6 (DISABLE_OBJ_GROUP)
+  - { code_type: 6, val1: 0x1C, val2: 7 } # 6 (DISABLE_OBJ_GROUP)
 
   # Disable objectGroup 7 (waterfall texscrolls)
   - { type: 11, delay: 0, params: 1 } # CODE @ 171
