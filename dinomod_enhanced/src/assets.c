@@ -157,6 +157,7 @@ INCBIN(models_wcsuntempleswitch,  "inc/models_0964_WCSunTempleSwitch.bin");
 
 INCBIN(objects_vampirebat,        "inc/objects_0053_VampireBat.bin");
 INCBIN(objects_warppoint,         "inc/objects_1124_WarpPoint.bin");
+INCBIN(objects_wcseqobject,       "inc/objects_0252_WCSeqObject.bin");
 INCBIN(objects_wctemplebridge,    "inc/objects_0288_WCTempleBridge.bin");
 
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
@@ -293,32 +294,32 @@ static void walled_city_additions(void) {
                 fxemit.base.x += 0.0f;
                 fxemit.base.y += -0.24524f;
                 fxemit.base.z += 0.846679f;
-                fxemit.unk1A = 0x741; // Circular blue glow inside of aperture
-                fxemit.unk1C = -5;
-                fxemit.unk27 = 0;
+                fxemit.indexInBank = 0x741; // Circular blue glow inside of aperture
+                fxemit.fxRate = -5;
+                fxemit.yawSpeed = 0;
                 break;
             case 1:
                 fxemit.base.x += -0.266602f;
                 fxemit.base.y += -1.635926f - 9.0f;
                 fxemit.base.z += 0.492187f + -70.0f;
-                fxemit.unk1A = 0x25A; // Blue beams
-                fxemit.unk1C = -1;
-                fxemit.unk27 = 0;
+                fxemit.indexInBank = 0x25A; // Blue beams
+                fxemit.fxRate = -1;
+                fxemit.yawSpeed = 0;
                 break;
         }
 
-        fxemit.unk18 = 0;
-        fxemit.unk19 = 0;
+        fxemit.activationRange = 0;
+        fxemit.bank = 0;
         fxemit.toggleGamebit = 0x848; // Active during the aperture cutscene
         fxemit.disableGamebit = -1;
-        fxemit.unk22 = 0;
-        fxemit.unk23 = 0;
-        fxemit.unk24 = 0;
-        fxemit.unk25 = 0;
-        fxemit.unk26 = 0;
-        fxemit.unk28 = 0;
-        fxemit.unk29 = 0;
-        fxemit.unk2A = 0;
+        fxemit.roll = 0;
+        fxemit.pitch = 0;
+        fxemit.yaw = 0;
+        fxemit.rollSpeed = 0;
+        fxemit.pitchSpeed = 0;
+        fxemit.flagConfig = 0;
+        fxemit.interval = 0;
+        fxemit.intervalSoundID = 0;
 
         reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &fxemit, sizeof(fxemit));
     }
@@ -565,8 +566,247 @@ static void walled_city_modifications(void) {
                 mushroom->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
                 mushroom->mapObjGroup = WC_OBJGROUP_Jungle_Door_Area;
             }
-
         }
+
+        //Add levers
+        {
+            UseObj_Setup levers[] = {
+                { COORDS_SETUP(1718.522, -597.755, -3775.0), .gamebitUsed = DINOMOD_BIT_964_WC_Jungle_Door_Lever_Moon },
+                { COORDS_SETUP(201.478,  -597.755, -3775.0), .gamebitUsed = DINOMOD_BIT_965_WC_Jungle_Door_Lever_Sun }
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(levers); i++) {
+                UseObj_Setup* lever = &levers[i];
+                lever->base.objId = OBJ_DIMLever;
+                lever->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                lever->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                lever->base.fadeDistance = 255;
+                lever->base.mapObjGroup = WC_OBJGROUP_Jungle_Door_Area;
+                lever->flags = USEOBJ_SeqControlsUsedBit | USEOBJ_DisableAfterUse | USEOBJ_NoTargetingWhenDisabled;
+                lever->gamebitRequiredItem = NO_GAMEBIT;
+                lever->gamebitEnabled = NO_GAMEBIT;
+                lever->replayStartTime = 155;
+
+                reasset_map_objects_set(walledCity, 
+                    reasset_auto_id(dinomodNs), lever, sizeof(UseObj_Setup)
+                );
+            }
+        }
+
+        //Add ladder
+        {
+            typedef struct {
+                ObjSetup base;
+                s8 yaw;
+                s8 modelIdx;        //Which ladder model to use
+                s16 raisedOffsetY;  //When raised, the ladder starts off this far above its base position
+                s16 unused1C;
+                s16 gamebitRaise;   //Ladder rises up by sequence when this gamebit is set (exclusive to `VFP_Ladders2`)
+                s16 gamebitFall;    //Ladder starts falling when this gamebit is set
+            } Fall_Ladders_Setup;
+
+            Fall_Ladders_Setup ladder = {
+                .base = {
+                    .objId = OBJ_Fall_Ladders,
+                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .fadeDistance = FADE_DISTANCE(640),
+                    .mapObjGroup = WC_OBJGROUP_Jungle_Door_Area
+                },
+                COORDS_SETUP(1331, -695, -3752.859),
+                .raisedOffsetY = 104,
+                .gamebitFall = DINOMOD_BIT_964_WC_Jungle_Door_Lever_Moon
+            };
+            reasset_map_objects_set(walledCity, 
+                reasset_auto_id(dinomodNs), &ladder, sizeof(Fall_Ladders_Setup)
+            );
+        }
+
+        //Add ladder HitAnimators
+        {
+            HitAnimator_Setup hitAnims[] = {
+                { COORDS_SETUP(1346, -766, -3752.859), .hitsAnimatorID = 0xE,   .mode = hitanimator_configure_mode_flags(FALSE, FALSE, FALSE) },
+                { COORDS_SETUP(1346, -738, -3752.859), .blocksAnimatorID = 0xE, .mode = hitanimator_configure_mode_flags(FALSE, TRUE, FALSE) }
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(hitAnims); i++) {
+                HitAnimator_Setup* hitAnim = &hitAnims[i];
+                hitAnim->base.objId = OBJ_HitAnimator;
+                hitAnim->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                hitAnim->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                hitAnim->base.fadeDistance = FADE_DISTANCE(50);
+                hitAnim->base.mapObjGroup = WC_OBJGROUP_Jungle_Door_Area;
+                hitAnim->gamebitActivate = DINOMOD_BIT_964_WC_Jungle_Door_Lever_Moon;
+                
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), hitAnim, sizeof(HitAnimator_Setup));
+            }
+        }
+
+        //Add camera triggers to the ladder
+        {
+            Trigger_Setup camTrigs[] = {
+                { .base.objId = OBJ_TriggerPoint, COORDS_SETUP(1331, -766, -3752.859), 
+                    .sizeX = 26, .sizeY = 100, .sizeZ = 100,
+                    .commands = {
+                        {
+                            .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
+                            .id = TRG_CMD_CAMERA_ACTION,
+                            .paramCombined = 98
+                        },
+                        {
+                            .condition = CMD_COND_OUT | CMD_COND_RE_EXIT,
+                            .id = TRG_CMD_CAMERA_ACTION,
+                            .paramCombined = 1
+                        },
+                    }
+                },
+                { .base.objId = OBJ_TriggerPlane, COORDS_SETUP(1346, -766, -3752.859), 
+                    .sizeX = TRIGGER_SCALE(0.1875), .sizeY = 0x10, .sizeZ = 0x10, 
+                    .rotationX = DEGREES_TO_ANGLE8(270), .rotationY = TRIGGER_YAW(90), 
+                    .commands = {
+                        {
+                            .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
+                            .id = TRG_CMD_CAMERA_ACTION,
+                            .paramCombined = 98
+                        },
+                    }
+                }
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(camTrigs); i++) {
+                Trigger_Setup* camTrig = &camTrigs[i];
+                camTrig->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                camTrig->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                camTrig->base.fadeDistance = FADE_DISTANCE(50);
+                camTrig->base.mapObjGroup = WC_OBJGROUP_Jungle_Door_Area;
+                camTrig->conditionBitFlagIDs[0] = DINOMOD_BIT_964_WC_Jungle_Door_Lever_Moon;
+                camTrig->bitFlagID = NO_GAMEBIT;
+                
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), camTrig, sizeof(Trigger_Setup));
+            }
+        }
+
+        //Add door HitAnimators
+        {
+            #define ANIMATORID_LATCH_W 1
+            #define ANIMATORID_LATCH_E 2
+            #define ANIMATORID_BAR 3
+            #define ANIMATORID_DOOR_CLOSED 4
+            #define ANIMATORID_DOOR_OPEN 5
+            #define ANIMATORID_DOOR_OPEN_HITS 6
+
+            #define MODE_SHAPE_OFF hitanimator_configure_mode_flags(TRUE, TRUE, FALSE)
+            #define MODE_SHAPE_ON hitanimator_configure_mode_flags(FALSE, TRUE, FALSE)
+            #define MODE_HITS_OFF hitanimator_configure_mode_flags(TRUE, FALSE, FALSE)
+            #define MODE_HITS_ON hitanimator_configure_mode_flags(FALSE, FALSE, FALSE)
+
+            #define BIT_MOON DINOMOD_BIT_964_WC_Jungle_Door_Lever_Moon
+            #define BIT_SUN DINOMOD_BIT_965_WC_Jungle_Door_Lever_Sun
+            #define BIT_DOOR DINOMOD_BIT_96A_WC_Jungle_Door_Open
+
+            HitAnimator_Setup hitAnims[] = {
+                { COORDS_SETUP(960, -758, -3593), .blocksAnimatorID = ANIMATORID_DOOR_CLOSED,  .gamebitActivate = BIT_SUN,  .mode = MODE_SHAPE_OFF },
+                { COORDS_SETUP(960, -748, -3593), .blocksAnimatorID = ANIMATORID_DOOR_OPEN,    .gamebitActivate = BIT_SUN,  .mode = MODE_SHAPE_ON },
+ 
+                { COORDS_SETUP(960, -718, -3593), .hitsAnimatorID = ANIMATORID_DOOR_CLOSED,    .gamebitActivate = BIT_SUN,  .mode = MODE_HITS_OFF },
+                { COORDS_SETUP(960, -708, -3593), .hitsAnimatorID = ANIMATORID_DOOR_OPEN_HITS, .gamebitActivate = BIT_DOOR, .mode = MODE_HITS_ON },
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(hitAnims); i++) {
+                HitAnimator_Setup* hitAnim = &hitAnims[i];
+                hitAnim->base.objId = OBJ_HitAnimator;
+                hitAnim->base.loadFlags = OBJSETUP_LOAD_LEVEL;
+                hitAnim->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                hitAnim->base.fadeDistance = FADE_DISTANCE(1000);
+                hitAnim->base.loadDistance = 0xFF;
+                
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), hitAnim, sizeof(HitAnimator_Setup));
+            }
+        }
+
+        //Add LevelName
+        {
+            LevelName_Setup wc = {
+                .base = {
+                    .objId = OBJ_LevelName,
+                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .fadeDistance = 50,
+                    .mapObjGroup = WC_OBJGROUP_Jungle_Door_Area
+                },
+                COORDS_SETUP(960, -748, -3593),
+                .activationRadius = 100,
+                .textID = 715,
+                .gamebitShown = BIT_ALWAYS_1 //Shown by sequence message instead
+            };
+
+            reasset_map_objects_set(walledCity, 
+                reasset_auto_id(dinomodNs), &wc, sizeof(wc)
+            );
+        }
+
+        //Add FXEmits
+        {
+            ReAssetID uID;
+            
+            FXEmit_Setup dustFx[] = {
+                {COORDS_SETUP(738.713, -874, -3683.846)},
+                {COORDS_SETUP(1180.286, -874, -3683.846)},
+            };
+
+            for (u32 i = 0; i < 2; i++) {
+                FXEmit_Setup* fx = &dustFx[i];
+                fx->base.objId = OBJ_FXEmit;
+                fx->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                fx->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                fx->base.mapObjGroup = WC_OBJGROUP_Jungle_Door_FXEmits;
+                fx->base.fadeDistance = 50;
+                fx->activationRange = 0;
+                fx->bank = 0;
+                fx->indexInBank = 0xD4;
+                fx->fxRate = -2;
+                fx->toggleGamebit = DINOMOD_BIT_965_WC_Jungle_Door_Lever_Sun;
+                fx->disableGamebit = DINOMOD_BIT_96A_WC_Jungle_Door_Open;
+
+                reasset_map_objects_set(walledCity, 
+                    reasset_auto_id(dinomodNs), fx, sizeof(FXEmit_Setup));
+            }
+        }
+
+        //Add extra seq to WCSeqObject
+        {
+            ReAssetID objects_wcseqobject_id = reasset_base_id(252); //OBJ_WCSeqObject
+            reasset_objects_set(objects_wcseqobject_id, REASSET_BASE_NAMESPACE, objects_wcseqobject, objects_wcseqobject_end - objects_wcseqobject);
+        }
+
+        //Add WCSeqObject
+        {
+            SeqObj_Setup doorSeq = {
+                .base = {
+                    .objId = OBJ_WCSeqObject,
+                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .fadeDistance = 50,
+                    .mapObjGroup = WC_OBJGROUP_Jungle_Door_Area
+                },
+                COORDS_SETUP(960, -874, -3750),
+                .gamebitPlay = DINOMOD_BIT_965_WC_Jungle_Door_Lever_Sun,
+                .gamebitHasPlayed = DINOMOD_BIT_96A_WC_Jungle_Door_Open,
+                .seqIndex = 14,
+                .playbackOptions = SEQOBJ_OPTIONS_AutoHasPlayed_Set_After_Sequence
+            };
+
+            reasset_map_objects_set(walledCity, 
+                reasset_auto_id(dinomodNs), &doorSeq, sizeof(doorSeq)
+            );
+        }
+
+        //Edit the Sideload in front of King EarthWalker, so Tricky can't load in behind the door while it's still closed
+        {
+            SideLoad_Setup* sideLoad = GET_MAPS_OBJECT(walledCity, 0x40f24);
+            sideLoad->gamebitUnlocked = DINOMOD_BIT_96A_WC_Jungle_Door_Open;
+        }
+
     }
 
     //BLOCKS - Central Temple

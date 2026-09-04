@@ -73,17 +73,16 @@ typedef enum {
     DINOMOD_BIT_960_Unlock_Cheat48 = 0x960,  // len:1 group:1
     DINOMOD_BIT_961_Unlock_Cheat49 = 0x961,  // len:1 group:1
 
-    
     DINOMOD_BIT_962_WC_Boss_Room_Warp_to_Lobby = 0x962,  // len:1 group:1
     DINOMOD_BIT_963_WC_Alternate_Sun_Temple_Exterior = 0x963,  // len:1 group:1
+    DINOMOD_BIT_964_WC_Jungle_Door_Lever_Moon = 0x964,  // len:1 group:1
+    DINOMOD_BIT_965_WC_Jungle_Door_Lever_Sun = 0x965,   // len:1 group:1
+    DINOMOD_BIT_966_WC_Jungle_Door_Latch_West = 0x966,  // len:1 group:1 (Not used currently, but reserved just in case)
+    DINOMOD_BIT_967_WC_Jungle_Door_Latch_East = 0x967,  // len:1 group:1 (Not used currently, but reserved just in case)
+    DINOMOD_BIT_968_WC_Jungle_Door_Bar = 0x968,         // len:1 group:1 (Not used currently, but reserved just in case)
+    DINOMOD_BIT_969_WC_Jungle_Door_Opening = 0x969,     // len:1 group:1 (Not used currently, but reserved just in case)
+    DINOMOD_BIT_96A_WC_Jungle_Door_Open = 0x96A,        // len:1 group:1
     /* More placeholders */
-    DINOMOD_BIT_964_Placeholder = 0x964,  // len:1 group:1
-    DINOMOD_BIT_965_Placeholder = 0x965,  // len:1 group:1
-    DINOMOD_BIT_966_Placeholder = 0x966,  // len:1 group:1
-    DINOMOD_BIT_967_Placeholder = 0x967,  // len:1 group:1
-    DINOMOD_BIT_968_Placeholder = 0x968,  // len:1 group:1
-    DINOMOD_BIT_969_Placeholder = 0x969,  // len:1 group:1
-    DINOMOD_BIT_96A_Placeholder = 0x96A,  // len:1 group:1
     DINOMOD_BIT_96B_Placeholder = 0x96B,  // len:1 group:1
     DINOMOD_BIT_96C_Placeholder = 0x96C,  // len:1 group:1
     DINOMOD_BIT_96D_Placeholder = 0x96D,  // len:1 group:1

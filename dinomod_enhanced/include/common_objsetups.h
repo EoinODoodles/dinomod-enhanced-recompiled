@@ -109,21 +109,22 @@ typedef struct {
 
 typedef struct {
 /*00*/ ObjSetup base;
-/*18*/ s8 unk18;
-/*19*/ s8 unk19;
-/*1A*/ s16 unk1A;
-/*1C*/ s16 unk1C;
+/*18*/ s8 activationRange;
+/*19*/ s8 bank;
+/*1A*/ s16 indexInBank;
+/*1C*/ s16 fxRate;
 /*1E*/ s16 toggleGamebit;
 /*20*/ s16 disableGamebit;
-/*22*/ s8 unk22;
-/*23*/ s8 unk23;
-/*24*/ s8 unk24;
-/*25*/ s8 unk25;
-/*26*/ s8 unk26;
-/*27*/ s8 unk27;
-/*28*/ u8 unk28;
-/*29*/ u8 unk29;
-/*2A*/ s16 unk2A;
+/*22*/ s8 roll;
+/*23*/ s8 pitch;
+/*24*/ s8 yaw;
+/*25*/ s8 rollSpeed;        //animation speed for particle's roll   (0x7F for a slower default speed)
+/*26*/ s8 pitchSpeed;       //animation speed for particle's pitch  (0x7F for a slower default speed)
+/*27*/ s8 yawSpeed;         //animation speed for particle's yaw    (0x7F for a slower default speed)
+/*28*/ u8 flagConfig;       //chooses between 4 partfx flag presets
+/*29*/ u8 interval;         //FXEmit activates repeatedly, at multiples of 100 frames 
+                            //interval = 0 skips interval behaviour, 0xFF disables FXEmit
+/*2A*/ s16 intervalSoundID; //soundID to play during interval activation
 } FXEmit_Setup;
 
 typedef struct {
@@ -322,3 +323,12 @@ typedef struct {
 /*1B*/ u8 unk1B[0x20 - 0x1B];
 /*20*/ s16 gamebit;
 } Transporter_Setup;
+
+typedef struct {
+    ObjSetup base;
+    s16 gamebitShown;
+    s16 unk1A;
+    s16 unk1C;
+    s16 textID;
+    u8 activationRadius;
+} LevelName_Setup;
