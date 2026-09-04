@@ -73,6 +73,16 @@ _Bool configs_LogCanRoll(void) {
     return recomp_get_config_u32("log_rolling") == RECOMP_LOG_ROLL_ENABLED;
 }
 
+/* Checks whether to prevent the player from going into a direction-changing loop when clinging to a rope and holding back on the stick. */
+_Bool configs_RopesTurnOnce(void) {
+    return recomp_get_config_u32("ropes_turn_once") != 0;
+}
+
+/* Checks whether to use an alternate camera-relative control scheme when clinging to a rope. */
+RopeMoveModes configs_RopeMoveMode(void) {
+    return recomp_get_config_u32("ropes_camera_relative");
+}
+
 
 /* GAMEPLAY / QUALITY-OF-LIFE */
 

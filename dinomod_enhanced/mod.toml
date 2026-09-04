@@ -356,6 +356,27 @@ options = [ "Disabled", "Enabled" ]
 default = "Disabled"
 
 [[manifest.config_options]]
+id = "ropes_camera_relative"
+name = "Ropes: Camera Relative Controls"
+description = '''
+The prototype uses tank-style controls when clinging from a rope: tilting back on the control stick causes you to turn through 180 degrees and face the opposite direction, and holding forward causes you to shimmy forward hand-over-hand along the rope.
+
+With this config option, you can instead use camera-relative controls for the ropes if you prefer! Here are the modes:
+
+- Off
+  Use the original tank-style controls.
+
+- On (Initial) [Recommended]
+  Controls are relative to the camera at the moment you first tilt the stick to move. If the camera swings around but you're still holding roughly the same initial stick direction, you'll continue moving forward. Or if you move the stick to a significantly different position, the movement direction will be updated.
+
+- On (Current)
+  Controls are relative to the current camera view.
+'''
+type = "Enum"
+options = [ "Off", "On (Initial)", "On (Current)" ]
+default = "Off"
+
+[[manifest.config_options]]
 id = "ropes_turn_once"
 name = "Ropes: Turn Once"
 description = '''
@@ -363,11 +384,11 @@ When clinging from a rope, tilting back on the control stick causes the player t
 
 If you keep holding the control stick back in the unmodified prototype, the player will continue turning around rapidly, which can be a little disorientating.
 
-With this config option enabled, the player will instead only turn around once when holding back on the stick.
+With this config option enabled, the player will instead only turn around once when holding back on the stick. This only applies to the original tank-style controls.
 '''
 type = "Enum"
-options = [ "Disabled", "Enabled" ]
-default = "Enabled"
+options = [ "Off", "On" ]
+default = "On"
 
 [[manifest.config_options]]
 id = "spell_aim_fire_lock"

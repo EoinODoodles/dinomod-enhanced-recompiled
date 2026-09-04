@@ -65,6 +65,12 @@ typedef enum {
 } RecompLogCanRoll;
 
 typedef enum {
+    ROPE_MOVE_DEFAULT,                      //The original tank-style rope controls.
+    ROPE_MOVE_CAMERA_RELATIVE_INITIAL,      //Camera-relative rope controls, based around the moment you first tilt the stick to move. Moving the stick to a significantly different position will update the camera-based direction.
+    ROPE_MOVE_CAMERA_RELATIVE_CURRENT       //Camera-relative rope controls, always relative to the current viewing angle.
+} RopeMoveModes;
+
+typedef enum {
     RECOMP_PICKUP_JINGLE_OLD_A,
     RECOMP_PICKUP_JINGLE_OLD_B,
     RECOMP_PICKUP_JINGLE_NEW
@@ -118,6 +124,7 @@ _Bool configs_GetSpellAimFireLock(void);
 _Bool configs_LogCanHoldA(void);
 _Bool configs_LogCanRoll(void);
 _Bool configs_RopesTurnOnce(void);
+RopeMoveModes configs_RopeMoveMode(void);
 
 /* GAMEPLAY / QUALITY-OF-LIFE */
 _Bool configs_GetSidekickToyPreventZoomies(void);
