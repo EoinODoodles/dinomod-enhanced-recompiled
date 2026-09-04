@@ -117,6 +117,7 @@ ButtonTappingAssistModes configs_GetButtonTapMode(void);
 _Bool configs_GetSpellAimFireLock(void);
 _Bool configs_LogCanHoldA(void);
 _Bool configs_LogCanRoll(void);
+_Bool configs_RopesTurnOnce(void);
 
 /* GAMEPLAY / QUALITY-OF-LIFE */
 _Bool configs_GetSidekickToyPreventZoomies(void);
