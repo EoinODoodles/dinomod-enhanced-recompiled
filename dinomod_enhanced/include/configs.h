@@ -60,9 +60,16 @@ typedef enum {
 } RecompLogAButtonMode;
 
 typedef enum { 
-    RECOMP_LOG_ROLL_DISABLED,
-    RECOMP_LOG_ROLL_ENABLED
-} RecompLogCanRoll;
+    RECOMP_LOG_ROLL_DISABLED,               //No log rolling
+    RECOMP_LOG_ROLL_ENABLED,                //Roll when double-tapping A (original unmodified behaviour), easy to activate accidentally when paddling 
+    RECOMP_LOG_ROLL_WHEN_TILTING_BACK       //Roll when double-tapping A while tilting back on the control stick
+} RecompLogRollModes;
+
+typedef enum { 
+    RECOMP_LOG_COOLDOWN_NONE,               //No cooldown between log rolling (original unmodified behaviour)
+    RECOMP_LOG_COOLDOWN_QUICK,              //You can roll again once the roll animation has nearly finished.
+    RECOMP_LOG_COOLDOWN_FULL                //You can roll again once the roll animation has fully finished.
+} RecompLogRollCooldowns;
 
 typedef enum {
     ROPE_MOVE_DEFAULT,                      //The original tank-style rope controls.
@@ -122,7 +129,8 @@ RecompPickupJingle configs_GetPickupJingleMode(void);
 ButtonTappingAssistModes configs_GetButtonTapMode(void);
 _Bool configs_GetSpellAimFireLock(void);
 _Bool configs_LogCanHoldA(void);
-_Bool configs_LogCanRoll(void);
+RecompLogRollModes configs_LogRollMode(void);
+RecompLogRollCooldowns configs_LogRollCooldown(void);
 _Bool configs_RopesTurnOnce(void);
 RopeMoveModes configs_RopeMoveMode(void);
 

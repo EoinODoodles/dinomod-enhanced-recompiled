@@ -68,9 +68,14 @@ _Bool configs_LogCanHoldA(void) {
     return recomp_get_config_u32("log_a_button") == RECOMP_LOG_ROWING_HOLD;
 }
 
-/* Checks whether or not the log vehicle's rolling is enabled. */
-_Bool configs_LogCanRoll(void) {
-    return recomp_get_config_u32("log_rolling") == RECOMP_LOG_ROLL_ENABLED;
+/* Checks which option to use for log rolling. */
+RecompLogRollModes configs_LogRollMode(void) {
+    return recomp_get_config_u32("log_rolling");
+}
+
+/* Checks which option to use for the cooldown between log rolling. */
+RecompLogRollCooldowns configs_LogRollCooldown(void) {
+    return recomp_get_config_u32("log_rolling_cooldown");
 }
 
 /* Checks whether to prevent the player from going into a direction-changing loop when clinging to a rope and holding back on the stick. */

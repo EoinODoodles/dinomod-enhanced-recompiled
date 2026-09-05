@@ -509,6 +509,50 @@ RECOMP_PATCH void BWlog_handleWater(Object* self, BWlog_Data* objdata, s32 side)
     }
 }
 
+/* For the roll control mode config: checks whether the current control mode currently allows rolling. */
+static _Bool BWlog_checkRollControlCondition(Object* self, BWlog_Data* objdata) {
+    u8 logRollMode = configs_LogRollMode();
+
+    switch (logRollMode) {
+    case RECOMP_LOG_ROLL_ENABLED:
+        return TRUE;
+    case RECOMP_LOG_ROLL_DISABLED:
+        return FALSE;
+    case RECOMP_LOG_ROLL_WHEN_TILTING_BACK:
+        if (objdata->joyStickY <= -35) { //-70 when fully down
+            return TRUE;
+        }
+        break;
+    }
+
+    return FALSE;
+}
+
+/* For the roll cooldown config: checks whether the cooldown has finished (or returns TRUE if there's no cooldown). */
+static _Bool BWlog_checkRollCooldownCondition(Object* self, BWlog_Data* objdata) {
+    u8 logRollCooldown = configs_LogRollCooldown();
+
+    switch (logRollCooldown) {
+    case RECOMP_LOG_COOLDOWN_NONE:
+        return TRUE;
+    case RECOMP_LOG_COOLDOWN_QUICK:
+        if (objdata->state == BWLog_STATE_0_Main) {
+            return TRUE;
+        } else if (objdata->state == BWLog_STATE_1_Roll_Left || objdata->state == BWLog_STATE_2_Roll_Right) {
+            if (objdata->rollTimer > 28.0f) { //48 when complete
+                return TRUE;
+            }
+        }
+        break;
+    case RECOMP_LOG_COOLDOWN_FULL:
+        if (objdata->state == BWLog_STATE_0_Main) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
 RECOMP_PATCH void BWlog_handleControlsAButton(Object* self, BWlog_Data* objdata) {
     s32 doubleTappedA;
 
@@ -539,7 +583,10 @@ RECOMP_PATCH void BWlog_handleControlsAButton(Object* self, BWlog_Data* objdata)
     }
 
     // @recomp: Disable rolling (unless renabled via an option)
-    if (doubleTappedA && configs_LogCanRoll()) {
+    if (doubleTappedA && 
+        BWlog_checkRollControlCondition(self, objdata) && //Check whether current roll control mode currently allows rolling
+        BWlog_checkRollCooldownCondition(self, objdata)   //Check whether the rolling cooldown has finished (or there's no cooldown)
+    ) {
         //Roll when double-tapping A
         if (objdata->joyStickX > 20) {
             BWlog_startRoll(self, objdata, FALSE);

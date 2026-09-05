@@ -343,17 +343,49 @@ default = "Tap"
 
 [[manifest.config_options]]
 id = "log_rolling"
-name = "Log: Rolling"
+name = "Log: Roll Controls"
 description = '''
-Whether the roll action while riding a log is enabled.
+Which option to use for the rolling action while riding a log.
 
-The December 2000 prototype ROM contains two implementations of the rideable log (one broken due to bugs and one that works). Dinomod Enhanced replaces all instances of the older broken version of the log with the new one that was meant for a specific part of BlackWater Canyon. However, the BlackWater Canyon log includes a roll ability that, presumably, wasn't meant to be used in other areas.
+The December 2000 prototype ROM contains two implementations of the rideable log (one broken due to bugs and one that works). Dinomod Enhanced replaces all instances of the older broken version of the log with the new one that was meant for a specific part of BlackWater Canyon. However, the BlackWater Canyon log includes an extra roll ability that presumably wasn't meant to be used in other areas like Cape Claw and Discovery Falls.
 
-In practice, pressing A repeatedly to row results in accidentally rolling quite often, so this has been disabled by default to better align with the log gameplay intent of areas like Cape Claw and Discovery Falls. Rolling can be re-enabled with this option, though it has no use in the current build.
+In practice, tapping A to paddle forward often results in accidentally rolling the log, which can make them frustrating to control. To address this, this config provides these control modes:
+
+- Off
+  Logs can't roll. Rolling has no practical use in the prototype, so gameplay is unaffected.
+
+- On
+  The original unmodified behaviour. While tilting the stick to the side, the log rolls when double-tapping A.
+
+- On (Tilt Back) [Recommended]
+  Improved rolling controls! While tilting *down* and to the side on the stick, the log rolls when double-tapping A.
 '''
 type = "Enum"
-options = [ "Disabled", "Enabled" ]
-default = "Disabled"
+options = [ "Off", "On", "On (Tilt Back)" ]
+default = "On (Tilt Back)"
+
+[[manifest.config_options]]
+id = "log_rolling_cooldown"
+name = "Log: Roll Cooldown"
+description = '''
+Which option to use for the rolling action while riding a log.
+
+In the unmodified prototype there's no cooldown on the logs' rolling ability, so if you rapidly chain together multiple A button double-taps you'll whirl through the water at preposterous speeds!
+
+This can look a bit unpolished/silly, so some alternate options have been provided for the rolling cooldown:
+
+- None
+  The original unmodified behaviour. Do a barrel roll to your heart's content!
+
+- Quick [Recommended]
+  You can roll again once the roll animation has nearly finished.
+
+- Full
+  You can roll again once the roll animation has fully finished.
+'''
+type = "Enum"
+options = [ "None", "Quick", "Full" ]
+default = "Quick"
 
 [[manifest.config_options]]
 id = "ropes_camera_relative"
