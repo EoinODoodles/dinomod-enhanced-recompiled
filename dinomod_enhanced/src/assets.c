@@ -55,7 +55,7 @@ INCBIN(block989, "inc/blocks_0989_DBriver_waterfall_basin_1.bin");
 INCBIN(hits989, "inc/hits_0989_DBriver_waterfall_basin_1.bin");
 INCBIN(block995, "inc/blocks_0995_DBriver_bend_1.bin");
 INCBIN(block994, "inc/blocks_0994_DBriver_waterfall_basin_2.bin");
-// INCBIN(block338, "inc/blocks_0338 0152.bin");
+INCBIN(block338, "inc/blocks_0338_DF_lower_falls_cliff_face.bin");
 INCBIN(block597, "inc/blocks_0597_WC_approach_gateway_corridor.bin");
 INCBIN(block599, "inc/blocks_0599_WC_jungle_door_area_ne.bin");
 INCBIN(block600, "inc/blocks_0600_WC_jungle_door_area_se.bin");
@@ -4073,6 +4073,17 @@ static void diamond_bay_modifications(void) {
     }
 }
 
+static void discovery_falls_modifications(void) {
+    ReAssetID discoveryFalls = reasset_base_id(MAP_DISCOVERY_FALLS);
+    ReAssetID dfTrkblk = reasset_base_id(11);
+    int dfBlocksBase = 319;
+
+    //BLOCKS
+    {
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 338, block338); //Fix broken decals on climbable cliff-face and archway
+    }
+}
+
 static void discovery_falls_hit_edits(void) {
     ReAssetID df = reasset_base_id(MAP_DISCOVERY_FALLS);
     ReAssetID dfTrkblk = reasset_base_id(11);
@@ -4469,6 +4480,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     // df_patches_shinx();
     // df_modifications();
     diamond_bay_modifications();
+    discovery_falls_modifications();
     discovery_falls_hit_edits();
     add_wctrex_hit_spheres();
     vfp_modifications();
