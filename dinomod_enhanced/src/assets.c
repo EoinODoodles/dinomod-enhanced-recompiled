@@ -4287,6 +4287,56 @@ static void gpsh_modifications(void) {
     }
 }
 
+/* Fix up Test of Combat */
+static void dfsh_modifications(void) {
+    ReAssetID dfsh = reasset_base_id(MAP_SHRINE_DISCOVERY_FALLS);
+
+    // Give each SharpClaw ObjCreator a unique creatorIndex 
+    // (creatorIndex had 4 switch cases programmed but only 3 were used, and the unused 
+    // gamebit fields feature 4 different gamebits, which maybe suggests that the 4 different
+    // ObjCreators were supposed to activate sequentially. The shrine's "Test_Active" state seems
+    // to suggest 3 waves too, with the number of active ObjCreators possibly doubling each time.)
+    {
+        typedef struct {
+        /*00*/ ObjSetup base;
+        /*18*/ s16 gamebit; // Unused in this DLL, but the gamebit used to enable the ObjCreator in the `DFSH_Shrine` DLL is usually the same as the one here.
+        /*1A*/ u16 _unk1A; // Unused in the DLL, but usually set to 0x1C - maybe intended as hit points?
+        /*1C*/ u16 _unk1C;
+        /*1E*/ s8 rotation; // yaw >> 8
+        /*1F*/ s8 creatorIndex; // objCreator's index around the Krazoa symbol, used to determine which gamebit activates it and the parameters for the SharpClaw it spawns
+        } DFSH_ObjCreator_Setup;
+
+        /*
+            The DFSH_ObjCreators are arranged like this around the shrine's 
+            Krazoa floor symbol (showing uIDs, creatorIndex, and unused gamebit field):
+
+                              [Wall Portal]
+
+                                [Columns]
+
+                                    O
+            0x160A #0 (0xF6) ->  O     O  <- 0x160D #1 (0xF7)
+                                    ▲
+            0x160E #2 (0xF9) ->  O     O  <- 0x1617 #1 (0xF8)
+                                    O
+                    
+                [Entrance]
+        */
+
+        u32 dfObjCreatorUIDs[] = {
+            0x160A,
+            0x160D,
+            0x1617,
+            0x160E
+        };
+
+        for (u32 i = 0; i < ARRAYCOUNT(dfObjCreatorUIDs); i++) {
+            DFSH_ObjCreator_Setup* creator = GET_MAPS_OBJECT(dfsh, dfObjCreatorUIDs[i]);
+            creator->creatorIndex = i; //Basing the creatorIndex on the order of the unused gamebit field
+        }
+    }
+}
+
 static void mmsh_modifications(void) {
     ReAssetID mmsh = reasset_base_id(MAP_SHRINE_MOON_MOUNTAIN_PASS);
 
@@ -4454,11 +4504,12 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     add_wctrex_hit_spheres();
     vfp_modifications();
     nw_modifications();
-    gpsh_modifications();
+    dfsh_modifications();
     mmsh_modifications();
     ecsh_modifications();
     ccsh_modifications();
     wgsh_modifications();
+    gpsh_modifications();
     nwsh_modifications();
 }
 
