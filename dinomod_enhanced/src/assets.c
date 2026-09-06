@@ -4060,43 +4060,33 @@ static void discovery_falls_hit_edits(void) {
     ReAssetID dfTrkblk = reasset_base_id(11);
     const int dfTrkblkBase = 319;
 
-    TrackLine* hit;
-
-    // Rough edits to make it possible to go down to the waterfall leading to the shrine. These hits
+    // Edits to make it possible to go down to the waterfall leading to the shrine. These hits
     // in vanilla are for an older DF layout so this patch adjusts them so they don't block the path.
-    // TODO: replace with a more polished patch
     {
         ReAssetID waterfallRiverBlock = reasset_base_id(324 - dfTrkblkBase);
-        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(2));
-        hit->Bx = 237;
-        hit->Bz = 264;
-        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(3));
-        hit->Ax = 237;
-        hit->Az = 264;
 
-        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(5));
-        hit->Ax = 359;
-        hit->Az = 186;
-        hit->Bx = 372;
-        hit->Bz = 115;
+        TrackLine block0324[] = {
+            { HITS_A(0, 468, 450),    HITS_B(115, 468, 430), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(115, 468, 430),  HITS_B(193, 468, 371), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(193, 468, 371),  HITS_B(238, 468, 263), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(238, 468, 263),  HITS_B(343, 468, 196), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(343, 468, 196),  HITS_B(374, 468, 163), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(374, 468, 163),  HITS_B(369, 468, 118), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(369, 468, 118),  HITS_B(394, 468, 108), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(394, 468, 108),  HITS_B(428, 468, 108), .heightA = 65, .heightB = 65, .settingsA = Player_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(428, 468, 108),  HITS_B(427, 468, -0),  .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(85, 468, 220),   HITS_B(0, 468, 275),   .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(123, 468, 166), HITS_B(85, 468, 220),  .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(183, 468, 161), HITS_B(123, 468, 166), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(197, 468, 109), HITS_B(200, 468, 139), .heightA = 65, .heightB = 65, .settingsA = Player_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(200, 468, 139), HITS_B(183, 468, 161), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(256, 468, 81),  HITS_B(197, 468, 109), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(295, 468, 0),   HITS_B(256, 468, 81),  .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+        };
 
-        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(6));
-        hit->Ax = 372;
-        hit->Az = 115;
-
-        reasset_hits_delete(dfTrkblk, waterfallRiverBlock, reasset_base_id(8));
-        reasset_hits_delete(dfTrkblk, waterfallRiverBlock, reasset_base_id(9));
-        reasset_hits_delete(dfTrkblk, waterfallRiverBlock, reasset_base_id(10));
-
-        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(11));
-        hit->Ax = 220;
-        hit->Az = 95;
-        hit->Bx = 180;
-        hit->Bz = 160;
-
-        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(12));
-        hit->Ax = 180;
-        hit->Az = 160;
+        for (u32 i = 0; i < ARRAYCOUNT(block0324); i++) {
+            reasset_hits_set(dfTrkblk, waterfallRiverBlock, reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0324[i]);
+        }
     }
 }
 
