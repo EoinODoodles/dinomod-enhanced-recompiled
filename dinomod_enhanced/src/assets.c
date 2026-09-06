@@ -56,6 +56,8 @@ INCBIN(hits989, "inc/hits_0989_DBriver_waterfall_basin_1.bin");
 INCBIN(block995, "inc/blocks_0995_DBriver_bend_1.bin");
 INCBIN(block994, "inc/blocks_0994_DBriver_waterfall_basin_2.bin");
 INCBIN(block338, "inc/blocks_0338_DF_lower_falls_cliff_face.bin");
+INCBIN(block341, "inc/blocks_0341_DF_BWC_exit_corner.bin");
+INCBIN(block342, "inc/blocks_0342_DF_BWC_exit.bin");
 INCBIN(block597, "inc/blocks_0597_WC_approach_gateway_corridor.bin");
 INCBIN(block599, "inc/blocks_0599_WC_jungle_door_area_ne.bin");
 INCBIN(block600, "inc/blocks_0600_WC_jungle_door_area_se.bin");
@@ -165,6 +167,10 @@ INCBIN(models_wcsuntempleswitch,  "inc/models_0964_WCSunTempleSwitch.bin");
 #define COORDS_SETUP(coordX, coordY, coordZ) .base.x = coordX, .base.y = coordY, .base.z = coordZ
 
 #define FADE_DISTANCE(distance) (((distance*2) + 1) / 16) //Rounded to nearest value
+
+#define NO_ANIMATOR -1
+#define UNIHEIGHT TrackLine_SETTINGA_Unified_Height
+#define PASSTHRU TrackLine_SETTINGB_Nonsolid
 
 #define GET_MAPS_OBJECT(mapID, uID) (reasset_map_objects_get(mapID, reasset_base_id(uID), NULL))
 #define GET_TRIGGER(mapID, uID) ((Trigger_Setup*)GET_MAPS_OBJECT(mapID, uID))
@@ -4051,7 +4057,9 @@ static void discovery_falls_modifications(void) {
 
     //BLOCKS
     {
-        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 338, block338); //Fix broken decals on climbable cliff-face and archway
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 338, block338); //Lower Falls cliff-face: Fix broken decals on edges of climbable section and archway, clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 341, block341); //BWC exit (corner): reduce UV warping, use clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 342, block342); //BWC exit: clean up some UVs, extend dockpoint so it's not hovering in the water, clamped cliff textures
     }
 }
 
@@ -4086,6 +4094,36 @@ static void discovery_falls_hit_edits(void) {
 
         for (u32 i = 0; i < ARRAYCOUNT(block0324); i++) {
             reasset_hits_set(dfTrkblk, waterfallRiverBlock, reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0324[i]);
+        }
+    }
+
+    /* Edit the HITS at BWC's exit
+     - Allowing stepping/clambering up all of the rocks near where the HighTop gives you a Krazoa Tablet.
+     - Preventing falling off the rope platform and accessing BWC too early (important to stop a common source of player confusion).
+    */
+    {
+        TrackLine block0342[] = {
+            { HITS_A(197, -20, 271), HITS_B(0, -26, 230),   .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(0, -20, 556),   HITS_B(166, -20, 568), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(166, -20, 568), HITS_B(350, -20, 523), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(320, -20, 393), HITS_B(284, -20, 332), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(284, -20, 332), HITS_B(234, -20, 300), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(234, -20, 300), HITS_B(197, -20, 271), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(350, -20, 523), HITS_B(368, -14, 405), .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(368, -14, 405), HITS_B(320, -20, 393), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(368, 0, 405),   HITS_B(353, 0, 403),   .heightUnified = 23, .settingsA = (UNIHEIGHT | 0xE), .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(377, 5, 358),   HITS_B(368, 5, 405),   .heightUnified = 18, .settingsA = (UNIHEIGHT | 0xE), .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(330, 23, 308),  HITS_B(284, 23, 332),  .heightUnified = 15, .settingsA = (UNIHEIGHT | 0xE), .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(415, 8, 354),   HITS_B(377, 8, 358),   .heightUnified = 50, .settingsA = (UNIHEIGHT | 0xE), .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(377, 23, 358),  HITS_B(330, 23, 308),  .heightUnified = 35, .settingsA = (UNIHEIGHT | 0xE), .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(330, 38, 308),  HITS_B(340, 38, 277),  .heightUnified = 20, .settingsA = (UNIHEIGHT | 0xE), .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(316, 192, 271), HITS_B(288, 192, 222), .heightUnified = 20, .settingsA = (UNIHEIGHT | 0xE), .settingsB = (PASSTHRU | HITS_Precipice_No_Letting_Go), .animatorID = NO_ANIMATOR },
+            { HITS_A(222, 192, 322), HITS_B(316, 192, 271), .heightUnified = 20, .settingsA = (UNIHEIGHT | 0xE), .settingsB = (PASSTHRU | HITS_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(197, 192, 271), HITS_B(222, 192, 322), .heightUnified = 20, .settingsA = (UNIHEIGHT | 0xE), .settingsB = (PASSTHRU | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
+        };
+
+        for (u32 i = 0; i < ARRAYCOUNT(block0342); i++) {
+            reasset_hits_set(dfTrkblk, reasset_base_id(342 - dfTrkblkBase), reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0342[i]);
         }
     }
 }
