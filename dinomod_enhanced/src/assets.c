@@ -3725,12 +3725,14 @@ static void music_actions_patch(void) {
 
 static void darkice_mines_modifications(void) {
     ReAssetID dim1MapID = reasset_base_id(MAP_DARK_ICE_MINES_1);
+    ReAssetID dim2MapID = reasset_base_id(MAP_DARK_ICE_MINES_2);
+    ReAssetID dim1Trkblk = reasset_base_id(26);
+    ReAssetID dim2Trkblk = reasset_base_id(34);
+    u32 dim1BlocksBase = 711;
+    u32 dim2BlocksBase = 829;
 
     //BLOCKS edits
     {
-        ReAssetID dim1Trkblk = reasset_base_id(26);
-        u32 dim1BlocksBase = 711;
-
         //Fix the river crossing area's invisible rock climbing decal setup (it was being drawn in the wrong order and getting erased by the underlay)
         BLOCKS_REPLACE_BASE(dim1Trkblk, dim1BlocksBase, 718, block718);
         
@@ -3757,23 +3759,7 @@ static void darkice_mines_modifications(void) {
     //Fix DIMCannonCover1's objSeq handling 
     //(there was a bug where it was starting off in its closed position when the CannonClaw has already appeared)
     {
-        typedef struct {
-            ObjSetup base;
-            s16 unk18;
-            s16 gamebitRestoreState;
-            s16 preemptTime;
-            s8 objSeqIdx;
-            u8 yaw;
-            u8 enabledActors;
-            u8 scale;
-            s16 unk22;
-            s16 unk24;
-            s16 unk26;
-            u8 unk28;
-            u8 unk29;
-        } DLL307_Setup; //TODO: use SeqDoor_Setup
-
-        DLL307_Setup* cannonCover = reasset_map_objects_get(dim1MapID, reasset_base_id(0x17F4), NULL);
+        SeqDoor_Setup* cannonCover = reasset_map_objects_get(dim1MapID, reasset_base_id(0x17F4), NULL);
         cannonCover->gamebitRestoreState = NO_GAMEBIT;
     }
 
@@ -3794,6 +3780,16 @@ static void darkice_mines_modifications(void) {
     {
         ReAssetID objects_dimtent_ID = reasset_base_id(320); //OBJ_DIMTent
         reasset_objects_set(objects_dimtent_ID, REASSET_BASE_NAMESPACE, objects_dimtent, objects_dimtent_end - objects_dimtent);
+    }
+
+    //DarkIce Mines 2 (the mine itself)
+    {
+        //HITS
+        {
+            //Allow the player to let go at the bottom the rock climb HITS line, in the room with the Red Mushrooms/crates/door key
+            TrackLine* line = reasset_hits_get(dim2Trkblk, reasset_base_id(848 - dim2BlocksBase), reasset_base_id(6));
+            line->settingsA &= ~(Wall_Climb_No_Letting_Go | Wall_Climb_Stop_at_Bottom | Wall_Climb_Stop_at_Top);
+        }
     }
 }
 
