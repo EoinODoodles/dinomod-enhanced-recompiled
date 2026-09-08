@@ -19,6 +19,7 @@
 #include "mod_common.h"
 #include "object_util.h"
 #include "objects/307_SeqDoor.h"
+#include "objects/427_DFLevelControl.h"
 #include "objects/511_SHboulder.h"
 #include "objects/779_WCLevelControl.h"
 #include "objects/780_WCBeacon.h"
@@ -4059,6 +4060,113 @@ static void discovery_falls_modifications(void) {
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 338, block338); //Lower Falls cliff-face: Fix broken decals on edges of climbable section and archway, clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 341, block341); //BWC exit (corner): reduce UV warping, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 342, block342); //BWC exit: clean up some UVs, extend dockpoint so it's not hovering in the water, clamped cliff textures
+    }
+
+    //Kyte's rope fastening sequences
+    {
+        //Rope near BlackWater Canyon (ensure its position is correctly restored on revisiting)
+        {
+            //DFSequences object
+            SeqObj_Setup* dfSeqObj = GET_MAPS_OBJECT(discoveryFalls, 0x1F63);
+            dfSeqObj->gamebitHasPlayed = BIT_DF_Kyte_Secured_Rope_Near_BWC;
+            dfSeqObj->replayStartTime = 0; //Don't replay (seq preempts nearly work as an approach for restoring the ropes' states,
+                                           //except it briefly makes the rope's spring dynamics go haywire on load, because of the 
+                                           //large position change.)
+
+            //Rope grab TriggerPoint (switch the one near the loose rope end off if Kyte's sequence hasn't played yet)
+            Trigger_Setup* ropeGrabPoint = GET_MAPS_OBJECT(discoveryFalls, 0x421e2);
+            ropeGrabPoint->conditionBitFlagIDs[0] = dfSeqObj->gamebitHasPlayed;
+        }
+
+        //Rope near upper falls (ensure its position is correctly restored on revisiting)
+        {
+            //DFSequences object
+            SeqObj_Setup* dfSeqObj = GET_MAPS_OBJECT(discoveryFalls, 0x2569);
+            dfSeqObj->gamebitHasPlayed = BIT_DF_Kyte_Secured_Rope_Upper_Falls;
+            dfSeqObj->replayStartTime = 0; //Don't replay
+
+            //Rope grab TriggerPoint (switch the one near the loose rope end off if Kyte's sequence hasn't played yet)
+            Trigger_Setup* ropeGrabPoint = GET_MAPS_OBJECT(discoveryFalls, 0x421e0);
+            ropeGrabPoint->conditionBitFlagIDs[0] = dfSeqObj->gamebitHasPlayed;
+        }
+
+        //DFRopeNodes
+        {
+            typedef struct {
+                ObjSetup base;
+                u8 id;
+            } DLL420_Setup;
+
+            //Move Kyte's initial rope setups into their own objGroups
+            {   
+                //Rope near BWC
+                {
+                    u32 kyteRopeNodesBWC[] = {
+                        0x00001f64, 
+                        0x00001f6a
+                    };
+                    for (u32 i = 0; i < ARRAYCOUNT(kyteRopeNodesBWC); i++) {
+                        ObjSetup* ropeNode = GET_MAPS_OBJECT(discoveryFalls, kyteRopeNodesBWC[i]);
+                        ropeNode->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                        ropeNode->mapObjGroup = DF_ObjGroup_Rope_BWC_Detached;
+                    }
+                }
+
+                //Rope near Upper Falls
+                {
+                    u32 kyteRopeNodesUpperFalls[] = {
+                        0x00002565, 
+                        0x00002566
+                    };
+                    for (u32 i = 0; i < ARRAYCOUNT(kyteRopeNodesUpperFalls); i++) {
+                        ObjSetup* ropeNode = GET_MAPS_OBJECT(discoveryFalls, kyteRopeNodesUpperFalls[i]);
+                        ropeNode->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                        ropeNode->mapObjGroup = DF_ObjGroup_Rope_Upper_Falls_Detached;
+                    }
+                }
+            }
+
+            //Add already-attached versions of the rope setups, in separate objGroups
+            {
+                //Rope near BWC
+                {
+                    DLL420_Setup ropeNodes[] = {
+                        { COORDS_SETUP(-16.754, 323.967, 1383.605), .id = 13 },
+                        { COORDS_SETUP(-323.211,  311.6, 1225.899), .id = 14 },
+                    };
+
+                    for (u32 i = 0; i < ARRAYCOUNT(ropeNodes); i++) {
+                        ObjSetup* ropeNode = (ObjSetup*)&ropeNodes[i];
+                        ropeNode->objId = OBJ_DFropenode;
+                        ropeNode->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                        ropeNode->fadeFlags = OBJSETUP_FADE_CAMERA;
+                        ropeNode->mapObjGroup = DF_ObjGroup_Rope_BWC_Attached;
+                        ropeNode->fadeDistance = 0xFF;
+                        reasset_map_objects_set(discoveryFalls, 
+                            reasset_auto_id(dinomodNs), ropeNode, sizeof(DLL420_Setup));
+                    }
+                }
+
+                //Rope near Upper Falls
+                {
+                    DLL420_Setup ropeNodes[] = {
+                        { COORDS_SETUP(-1169.473, 679.081, -610.168), .id = 15 },
+                        { COORDS_SETUP(-917.637, 579.300, -103.565),  .id = 16 },
+                    };
+
+                    for (u32 i = 0; i < ARRAYCOUNT(ropeNodes); i++) {
+                        ObjSetup* ropeNode = (ObjSetup*)&ropeNodes[i];
+                        ropeNode->objId = OBJ_DFropenode;
+                        ropeNode->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                        ropeNode->fadeFlags = OBJSETUP_FADE_CAMERA;
+                        ropeNode->mapObjGroup = DF_ObjGroup_Rope_Upper_Falls_Attached;
+                        ropeNode->fadeDistance = 0x32;
+                        reasset_map_objects_set(discoveryFalls, 
+                            reasset_auto_id(dinomodNs), ropeNode, sizeof(DLL420_Setup));
+                    }
+                }
+            }
+        }
     }
 
     //Upper Falls
