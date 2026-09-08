@@ -332,3 +332,25 @@ typedef struct {
     s16 textID;
     u8 activationRadius;
 } LevelName_Setup;
+
+typedef struct {
+    ObjSetup base;
+    u8 cameraID;
+    u8 unk19;
+    u8 fov;
+    u8 flags;
+    s16 yaw;
+    s16 pitch;
+    s16 roll;
+} StaticCamera_Setup;
+
+typedef enum {
+    CamStatic_FLAG_Aim_Yaw_at_Player = 1,   //Yaw aims at player, otherwise StaticCamera's own fixed yaw is used
+    CamStatic_FLAG_Aim_Pitch_at_Player = 2, //Pitch aims at player, otherwise StaticCamera's own fixed pitch is used
+    CamStatic_FLAG_Use_Player_Roll = 4      //Player's roll value is used, otherwise StaticCamera's own fixed roll is used
+} CamStatic_Flags;
+
+#define CamStatic_LOOK_AT (CamStatic_FLAG_Aim_Yaw_at_Player | CamStatic_FLAG_Aim_Pitch_at_Player)
+
+//For use in Trigger Object CameraAction commands
+#define CamStatic_PreviousCameraEasesIn 0x80
