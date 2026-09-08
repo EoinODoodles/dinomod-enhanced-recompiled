@@ -59,6 +59,7 @@ typedef enum {
     Wall_Climb_No_Letting_Go = 2,  //Can't let go at the top or bottom of a climbable wall (need to keep moving laterally to another section of wall)
     Wall_Climb_Stop_at_Bottom = 4, //Can't let go at the bottom of a climbable wall (NOTE: overrides `Wall_Climb_Stop_at_Top`)
     Wall_Climb_Stop_at_Top = 8,    //Can't clamber over the top of a climbable wall
+    Vehicle_Ignores_Line = 8       //Vehicle can pass through (TODO: does this apply to all vehicles or only logs?)
 } PlayerHitsConfigs; //Player HITS action modifiers (Lower bits of TrackLine settingsA)
 
 #define HITS_A(x, y, z) .Ax = x, .Ay = y, .Az = z
