@@ -8,12 +8,15 @@
 #include "sys/dll.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
+#include "sys/memory.h"
 #include "sys/menu.h"
 #include "sys/print.h"
 #include "sys/objects.h"
 #include "sys/objtype.h"
 #include "dll.h"
 #include "dlls/engine/2_camcontrol.h"
+#include "dlls/engine/89_campath.h"
+#include "dlls/engine/90_camstatic.h"
 
 #include "recomp/dlls/engine/2_camcontrol_recomp.h"
 
@@ -36,7 +39,81 @@ extern s8 sIconState;         //State Machine value for OBJ_LockIcon
 extern s16 sIconRotateSpeed;  //Rotation of lock-on icon
 extern Object* sLockIcon;     //OBJ_LockIcon
 
+extern void* sCamData;         //Cam module specific data
+extern u8 sCamSwitchNeeded;    //Boolean, starts a new camera ease
+extern s8 sNextSetupVal;       //Ease (End Module): arg1 for next module's setup function
+extern s8 sNextFree;           //Ease (End Module): free setting for next module
+extern s32 sEaseDuration;      //Duration of easing between camera modules, in frames
+extern u8 sEaseFlags;          //Which components to lerp during ease (x/y/z/yaw/pitch/roll)
+
 extern void CamControl_set_letterbox_goal(s32 height, s32 startAtGoal);
+extern void CamControl_change_camera_module(s32 dllID, s32 doDeferredFree, s32 setupVal, s32 dataSize, void* data, s32 easeDuration, u8 easeFlags);
+extern CameraAction* CamControl_get_camera_action(s32 actionIndex);
+extern CamControl_Module* CamControl_get_camnormal_module(void);
+
+/** Hijack the `CamControl_tick` function, since `CamControl_update_camera` is already patched by base recomp. */
+typedef s32 (*CamControlTick)(void);
+static CamControlTick tick_func; 
+static void CamControl_tick_custom(void);
+
+RECOMP_HOOK_DLL(CamControl_ctor) void camcontrol_ctor_hook(DLLFile *dll) {
+    tick_func = dinomod_hijack_dll_export(dll, 1, CamControl_tick_custom);
+}
+
+RECOMP_HOOK_RETURN_DLL(CamControl_dtor) void camcontrol_dtor_hook() {
+    tick_func = NULL;
+}
+
+/*0x174*/ extern CamControl_Module* sActiveModule; //Active module: the camera module DLL currently in use
+/*0x1C0*/ extern f32 sFov;
+
+/* The relevant functions are already patched in base recomp, so `CamControl_tick` has been 
+   wrapped/hijacked here to append FOV interpolating onto it.
+
+   TODO: it'd be more efficient to apply FOV without redoing some of the calcs (curvesHermite etc.), 
+   so ask if this could maybe be merged into base recomp?
+*/
+static void CamControl_tick_custom(void) {
+    Camera* camera;
+    f32 tValue;
+    f32 spline[4];
+
+    //Run the base recomp version of the function
+    tick_func();
+
+    //Apply FOV interpolation
+    if (sActiveModule != NULL) {
+        camSetCameraSelector(0);
+        camera = camGetMain();
+
+        sFov = sCam->fov;
+
+        if (sCam->tValue > 0.0f) { //TODO: not a big deal, but tValue will be one tick ahead here because of the wrapping
+            #define Cam_Ease_Skip_FOV 0x40
+
+            //Get Hermite-eased tValue for interpolation
+            spline[3] = 0.0f;
+            spline[2] = 0.0f;
+            spline[0] = 0.0f;
+            spline[1] = 1.0f;
+            tValue = 1.0f - curvesHermite(spline, sCam->tValue, 0);
+        
+            //@recomp: linear interpolate FOV too (avoids a sudden jarring pop when the FOV changes between cameras)
+            if (sCam->easeFlags == (u8)Cam_Ease_All || 
+                (sCam->easeFlags & Cam_Ease_Skip_FOV) == FALSE //Maybe add a custom ease flag like this, so it can optionally be switched off?
+            ) {
+                sCam->unkEC = sCam->goalFov - sCam->fov;
+                camera->fov = sCam->goalFov - (sCam->unkEC * tValue);
+                sFov = camera->fov;
+            }
+        }
+        
+        //Change FOV
+        if (camGetFOV() != sFov) {
+            camSetFOV(sFov);
+        }
+    }
+}
 
 #ifdef DINOMOD_ROM_PATCH
 /**
