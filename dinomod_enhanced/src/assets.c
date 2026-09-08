@@ -4053,6 +4053,8 @@ static void discovery_falls_modifications(void) {
 
     //BLOCKS
     {
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 321, block321); //Shrine exterior: fix gaps between vertices, orthagonalise shrine facade, improve oddly unstable collision, fix warped ground UVs, use clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 343, block343); //Shrine interior: minor UV fixes
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 323, block323); //Shrine area exit climb to Upper Falls: minor UV fixes, add decal to indicate rock climb, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 338, block338); //Lower Falls cliff-face: Fix broken decals on edges of climbable section and archway, clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 341, block341); //BWC exit (corner): reduce UV warping, use clamped cliff textures
@@ -4220,6 +4222,52 @@ static void discovery_falls_hit_edits(void) {
 
         for (u32 i = 0; i < ARRAYCOUNT(block0324); i++) {
             reasset_hits_set(dfTrkblk, waterfallRiverBlock, reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0324[i]);
+        }
+    }
+
+    //Shrine entrance 
+    {
+        /*  - Fix original collision being oddly unreliable in this area! Something to do with the shrine facade being modelled at 45 degrees, maybe?
+            - Add ledge step-ups/clambers. 
+            - Allow the log to get closer to dockpoint.
+            - Prevent log clipping through the wall while going down the shrine waterfall (if you steer way to the side).
+        */
+        TrackLine block0321[] = {
+            { HITS_A(365, 100, 587), HITS_B(437, 86, 635), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(262, 94, 617), HITS_B(365, 100, 587), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(107, 94, 532), HITS_B(262, 94, 617), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(393, 113, 470), HITS_B(210, 92, 272), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(559, 100, 555), HITS_B(393, 113, 470), .heightUnified = 90, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(437, 86, 635), HITS_B(559, 100, 555), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(0, 90, 574), HITS_B(107, 94, 532), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(404, 218, 157), HITS_B(483, 218, 237), .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(309, 218, 208), HITS_B(268, 218, 167), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(268, 218, 167), HITS_B(306, 218, 129), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(306, 218, 129), HITS_B(347, 218, 170), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(347, 218, 170), HITS_B(309, 218, 208), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(470, 218, 368), HITS_B(429, 218, 327), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(429, 218, 327), HITS_B(466, 218, 290), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(466, 218, 290), HITS_B(507, 218, 331), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(507, 218, 331), HITS_B(470, 218, 368), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(573, 171, 371), HITS_B(461, 171, 259), .heightUnified = 104, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(381, 175, 179), HITS_B(265, 175, 63), .heightUnified = 100, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(353, 175, 207), HITS_B(316, 175, 244), .heightA = 43, .heightB = 43, .settingsA = 0, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(316, 175, 244), HITS_B(234, 175, 162), .heightA = 43, .heightB = 43, .settingsA = 0, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(234, 175, 162), HITS_B(299, 175, 97), .heightA = 43, .heightB = 43, .settingsA = 0, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(396, 175, 324), HITS_B(433, 175, 287), .heightA = 43, .heightB = 43, .settingsA = 0, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(475, 175, 403), HITS_B(396, 175, 324), .heightA = 43, .heightB = 43, .settingsA = 0, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(540, 175, 338), HITS_B(475, 175, 403), .heightA = 43, .heightB = 43, .settingsA = 0, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(427, 132, 640), HITS_B(553, 132, 640), .heightUnified = 401, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(295, 132, 640), HITS_B(427, 132, 640), .heightUnified = 336, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(235, 132, 640), HITS_B(295, 132, 640), .heightUnified = 401, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(79, 92, 107), HITS_B(0, 92, 76), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(79, 92, 131), HITS_B(79, 92, 107), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(103, 92, 131), HITS_B(79, 92, 131), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(210, 92, 272), HITS_B(103, 92, 131), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+        };
+
+        for (u32 i = 0; i < ARRAYCOUNT(block0321); i++) {
+            reasset_hits_set(dfTrkblk, reasset_base_id(321 - dfTrkblkBase), reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0321[i]);
         }
     }
 
