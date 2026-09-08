@@ -336,7 +336,7 @@ RECOMP_PATCH void CamControl_change_camera_module(s32 dllID, s32 doDeferredFree,
     // @recomp: give StaticCameras priority over CamClimb 
     {
         //Limit this to just Discovery Falls for now, since it's experimental
-        if (playerUtil_doesStaticCameraHavePriority(objGetPlayer())) {
+        if (dllID == DLL_ID_CAMCLIMB && playerUtil_doesStaticCameraHavePriority(objGetPlayer())) {
 #ifdef DEBUG_CAMERAACTIONS
             recomp_printf("SKIPPING CAMCLIMB, because a StaticCamera is currently active!\n");
 #endif
