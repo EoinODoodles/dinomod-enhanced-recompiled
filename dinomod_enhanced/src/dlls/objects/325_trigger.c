@@ -58,6 +58,73 @@ extern void trigger_func_29C0(u16 localID, Object *activator, s8 dir, s32 activa
 extern void trigger_curve_setup(Object *self, Trigger_Setup *setup);
 extern void trigger_curve_update(Object *self, Object *activator);
 
+extern ModelInstance *sPointModel;
+extern ModelInstance *sPlaneModel;
+
+extern s16 sPointModelRefCount;
+extern s16 sPlaneModelRefCount;
+
+RECOMP_PATCH void trigger_point_setup(Object* self, Trigger_Setup* setup) {
+    Trigger_Data* objdata;
+    ModelInstance* modelInstance;
+    Model* model;
+    Vtx* vertex;
+    u8 _stack_pad[4];
+    f32 x,y,z;
+    f32 radius;
+    f32 modelRadius;
+
+    if (sPointModel == NULL) {
+        sPointModel = modLoadModel(85, 0);
+        sPointModelRefCount = 1;
+    } else {
+        sPointModelRefCount += 1;
+    }
+
+    objdata = (Trigger_Data*)self->data;
+    radius = setup->sizeX << 1;
+    objdata->radiusSquared = radius * radius;
+
+    self->srt.roll = 0;
+    self->srt.pitch = 0;
+    self->srt.yaw = setup->rotationY << 8;
+
+    modelInstance = sPointModel;
+    model = modelInstance->model;
+    vertex = &model->vertices[1];
+    x = (f32)vertex->v.ob[0];
+    y = (f32)vertex->v.ob[1];
+    z = (f32)vertex->v.ob[2];
+    modelRadius = sqrtf((x * x) + (y * y) + (z * z));
+    
+    self->srt.scale = radius / modelRadius;
+
+    //@recomp: support conditionBitFlagIDs[0]
+    objdata->conditionBitFlagIDs[0] = setup->conditionBitFlagIDs[0];
+}
+
+RECOMP_PATCH void trigger_cylinder_setup(Object* self, Trigger_Setup* setup) {
+    Trigger_Data* objdata;
+
+    objdata = (Trigger_Data*)self->data;
+    objdata->radiusSquared = setup->sizeX << 1;
+    objdata->radiusSquared *= objdata->radiusSquared;
+
+    //@recomp: support conditionBitFlagIDs[0]
+    objdata->conditionBitFlagIDs[0] = setup->conditionBitFlagIDs[0];
+}
+
+RECOMP_PATCH void trigger_area_setup(Object *self, Trigger_Setup *setup) {
+    Trigger_Data* objdata = self->data; //@recomp
+
+    self->srt.yaw = setup->rotationY << 8;
+    self->srt.pitch = setup->rotationX << 8;
+    self->srt.roll = 0;
+
+    //@recomp: support conditionBitFlagIDs[0]
+    objdata->conditionBitFlagIDs[0] = setup->conditionBitFlagIDs[0];
+}
+
 RECOMP_PATCH void trigger_control(Object* self) {
     Trigger_Data* objdata;
     Trigger_Setup* setup;
@@ -169,12 +236,38 @@ RECOMP_PATCH void trigger_control(Object* self) {
         
         switch (setup->base.objId) {
         case OBJ_TriggerPoint:
-            if (b_foundActivatorObj) {
+            // @recomp: support conditionBitFlags[0]
+            b_allBitsSet = TRUE;
+            if (objdata->conditionBitFlagIDs[0] > 0) {
+                if (objdata->conditionBitFlagIDs[0] & 0x4000) {
+                    if (mainGetBits(objdata->conditionBitFlagIDs[0] & ~0x4000) != 0) {
+                        b_allBitsSet = FALSE;
+                    }
+                } else {
+                    if (mainGetBits(objdata->conditionBitFlagIDs[0]) == 0) {
+                        b_allBitsSet = FALSE;
+                    }
+                }
+            }
+            if (b_allBitsSet && b_foundActivatorObj) {
                 trigger_point_update(self, activatorObj);
             }
             break;
         case OBJ_TriggerCylinder:
-            if (b_foundActivatorObj) {
+            // @recomp: support conditionBitFlags[0]
+            b_allBitsSet = TRUE;
+            if (objdata->conditionBitFlagIDs[0] > 0) {
+                if (objdata->conditionBitFlagIDs[0] & 0x4000) {
+                    if (mainGetBits(objdata->conditionBitFlagIDs[0] & ~0x4000) != 0) {
+                        b_allBitsSet = FALSE;
+                    }
+                } else {
+                    if (mainGetBits(objdata->conditionBitFlagIDs[0]) == 0) {
+                        b_allBitsSet = FALSE;
+                    }
+                }
+            }
+            if (b_allBitsSet && b_foundActivatorObj) {
                 trigger_cylinder_update(self, activatorObj);
             }
             break;
@@ -203,7 +296,20 @@ RECOMP_PATCH void trigger_control(Object* self) {
             }
             break;
         case OBJ_TriggerArea:
-            if (b_foundActivatorObj) {
+            // @recomp: support conditionBitFlags[0]
+            b_allBitsSet = TRUE;
+            if (objdata->conditionBitFlagIDs[0] > 0) {
+                if (objdata->conditionBitFlagIDs[0] & 0x4000) {
+                    if (mainGetBits(objdata->conditionBitFlagIDs[0] & ~0x4000) != 0) {
+                        b_allBitsSet = FALSE;
+                    }
+                } else {
+                    if (mainGetBits(objdata->conditionBitFlagIDs[0]) == 0) {
+                        b_allBitsSet = FALSE;
+                    }
+                }
+            }
+            if (b_allBitsSet && b_foundActivatorObj) {
                 trigger_area_update(self, activatorObj);
             }
             break;
