@@ -350,7 +350,8 @@ typedef enum {
     CamStatic_FLAG_Use_Player_Roll = 4      //Player's roll value is used, otherwise StaticCamera's own fixed roll is used
 } CamStatic_Flags;
 
-#define CamStatic_LOOK_AT (CamStatic_FLAG_Aim_Yaw_at_Player | CamStatic_FLAG_Aim_Pitch_at_Player)
+#define CamStatic_FLAG_Aim_at_Player_Centre 0x10
+#define CamStatic_LOOK_AT (CamStatic_FLAG_Aim_Yaw_at_Player | CamStatic_FLAG_Aim_Pitch_at_Player | CamStatic_FLAG_Aim_at_Player_Centre)
 
 //For use in Trigger Object CameraAction commands
 #define CamStatic_PreviousCameraEasesIn 0x80
