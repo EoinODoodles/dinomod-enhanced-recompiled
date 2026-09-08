@@ -4058,6 +4058,36 @@ static void discovery_falls_modifications(void) {
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 341, block341); //BWC exit (corner): reduce UV warping, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 342, block342); //BWC exit: clean up some UVs, extend dockpoint so it's not hovering in the water, clamped cliff textures
     }
+
+    //Upper Falls
+    {
+        //Tweak Kyte's out-of-bounds curves (it seems like Rare had yet to move them after updating the shape of the river bend)
+        //Still a bit janky-looking because of the curve tangents, but at least she doesn't fly clean through the wall!
+        //TODO: polish the curve tangents once they're better understood
+        {
+            typedef struct {
+                u32 uID;
+                Vec3f coords;
+            } ObjReposition;
+
+            ObjReposition kyteCurvesOOB[] = {
+                {0x00032e7c, VEC3F(-985.725, 554.922, -1144.031)},
+                {0x00032e82, VEC3F(-978.070, 551.190, -1271.742)},
+                {0x00032e83, VEC3F(-922.070, 551.190, -1215.742)},
+                {0x00032e84, VEC3F(-866.070, 551.190, -1271.742)},
+                {0x00032e85, VEC3F(-922.070, 551.190, -1327.742)},
+                {0x00032e7d, VEC3F(-1043.291, 580.922, -1115.812)},
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(kyteCurvesOOB); i++) {
+                CurveSetup* curve = GET_MAPS_OBJECT(discoveryFalls, kyteCurvesOOB[i].uID);
+                curve->pos.x = kyteCurvesOOB[i].coords.x;
+                curve->pos.y = kyteCurvesOOB[i].coords.y;
+                curve->pos.z = kyteCurvesOOB[i].coords.z;
+            }
+        }
+    }
+
     //Shrine Area
     {
         //Exit Climb
