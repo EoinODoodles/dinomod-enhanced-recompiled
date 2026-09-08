@@ -2,6 +2,7 @@
 #include "player_util.h"
 
 #include "game/objects/object_id.h"
+#include "sys/map_enums.h"
 #include "sys/objects.h"
 #include "dll.h"
 #include "dlls/engine/18_objfsa.h"
@@ -9,6 +10,8 @@
 #include "dlls/objects/210_player.h"
 
 #include "recomp/dlls/objects/210_player_recomp.h"
+
+#define DEBUG_PRIORITISE_STATIC_CAMERA
 
 extern s16 _data_98[];
 extern f32 _data_6F8;
@@ -114,5 +117,27 @@ _Bool playerUtil_isImportantSequencePlaying(void) {
     }
     
     //Otherwise, assume an important sequence is playing
+    return TRUE;
+}
+
+/**
+  * Checks if CamStatic is currently active, for giving it priority over CamClimb and CamNormal.
+  *
+  * TODO: Only applied in Discovery Falls for now until further testing is done.
+  */
+_Bool playerUtil_doesStaticCameraHavePriority(Object* player) {
+    s32 currentCameraDLLID = gDLL_2_Camera->vtbl->get_dll_ID();
+    s16 currentMapID = mapWorldXZToMapID(player->globalPosition.x, player->globalPosition.z);
+
+    //If the active camera DLL isn't CamStatic, continue on with the camera change
+    if (gDLL_2_Camera->vtbl->get_dll_ID() != DLL_ID_CAMSTATIC) {
+        return FALSE;
+    }
+
+    //If the current mapID isn't Discovery Falls, continue on with the camera change (TODO: check if this is safe to use elsewhere!)
+    if (player && mapWorldXZToMapID(player->globalPosition.x, player->globalPosition.z) != MAP_DISCOVERY_FALLS) {
+        return FALSE;
+    }
+
     return TRUE;
 }

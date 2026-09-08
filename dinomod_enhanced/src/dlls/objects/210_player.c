@@ -37,9 +37,11 @@
 #include "recomp/dlls/objects/210_player_recomp.h"
 
 // #define DEBUG_MESSAGES
+// #define DEBUG_PRIORITISE_STATIC_CAMERA
 
 //TEMPORARY DEFINES
 #define PLAYER_ASTATE_Rope_Climb_End 46
+#define BIT_Player_Rope_Controls_No_Letting_Go 0x1F6
 
 DLL_INTERFACE(DLL_420_DFRopeNode) {
     /*:*/ DLL_INTERFACE_BASE(DLL_IObject);
@@ -3435,4 +3437,468 @@ RECOMP_PATCH s32 dll_210_func_178A0(Object* player, ObjFSA_Data* fsa, f32 update
     dll_210_func_7260(player, player->data);
 
     return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Falling);
+}
+
+/*0x4D8*/ extern u16 _data_4D8[];
+/*0x5E0*/ extern s16 _data_5E0[];
+/*0x5E4*/ extern s16 _data_5E4[];
+/*0x5DC*/ extern s16 _data_5DC[];
+
+extern void dll_210_func_12514(Object* player, ObjFSA_Data* fsa);
+
+/**
+  * PLAYER_ASTATE_Wall_Clambering_Climb_Over
+  * - Don't change back to CamNormal if a StaticCamera is currently active (only in Discovery Falls for now, until more testing is done)
+  */
+RECOMP_PATCH s32 dll_210_func_11C60(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
+    Player_Data* objData;
+    Vec3f jointCoords;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 tempY;
+    s32 nextState;
+    s16 pad;
+    s16 sp48;
+    u32 soundHandle;
+
+    objData = player->data;
+
+    if (fsa->unk308 & 0x80) {
+        soundHandle = dll_amSfx->Play(player, _data_4D8[objData->unk430.unk2], mathRnd(0x5A, MAX_VOLUME), NULL, NULL, 0, NULL);
+        dll_amSfx->SetPitch(soundHandle, (mathRnd(-100, 100) * 0.001f) + 1.0f);
+    }
+
+    if (fsa->enteredAnimState) {
+
+        //@recomp: don't exit out of StaticCameras (just in Discovery Falls for now - TODO: check if safe elsewhere!) 
+        if (playerUtil_doesStaticCameraHavePriority(player)) {
+#ifdef DEBUG_PRIORITISE_STATIC_CAMERA
+            recomp_printf("StaticCamera active, skipping top-of-climb camera change.\n");
+#endif
+        } else {
+            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 60, Cam_Ease_All);
+        }
+
+        dll_amSfx->Play(player, objData->unk3B8[mathRnd(10, 14)], MAX_VOLUME, NULL, NULL, 0, NULL);
+        objAnimSet(player, _data_5DC[1], 0.0f, 1);
+        objAnimSetBlend(player, _data_5E0[0], 0);
+        fsa->animTickDelta = 0.012f;
+        mod_func_8001A3FC(player->modelInsts[player->modelInstIdx], 0, 0, 1.0f, player->srt.scale, &jointCoords, &sp48);
+        objData->unk430.unk18.y = jointCoords.f[2] * objData->unk430.unk24.x;
+        objData->unk430.unk18.z = jointCoords.f[2] * objData->unk430.unk24.z;
+        player->srt.transl.y = objData->unk430.unk4;
+        fsa->unk270 = PLAYER_ASTATE_Wall_Clambering_Climb_Over;
+        fsa->animExitAction = dll_210_func_12514;
+    }
+
+    {
+        s32 nextState = dll_210_func_EFB4(player, fsa, updateRate);
+        if (nextState) { return nextState; }
+    }
+
+    player->velocity.y = 0.0f;
+
+    objAnim_func_80024DD0(player, 0, 1, objData->unk430.unk5C);
+    if (player->animProgress > 0.99f) {
+        player->globalPosition.x = objData->unk7EC.x;
+        player->globalPosition.z = objData->unk7EC.z;
+        camInverseTransformPointByObject(player->globalPosition.x, 0.0f, player->globalPosition.z, &player->srt.transl.x, &tempY, &player->srt.transl.z, player->parent);
+        dll_210_func_7260(player, objData);
+        objAnimSet(player, objData->modAnims[0], 0.0f, 1);
+        return FSA_NEXTSTATE_ASYNC(PLAYER_ASTATE_Standing);
+    }
+
+    x = player->srt.transl.x + (objData->unk430.unk18.y * player->animProgress);
+    y = player->srt.transl.y - (objData->unk430.unk18.x * (1.0f - player->animProgress));
+    z = player->srt.transl.z + (objData->unk430.unk18.z * player->animProgress);
+    gDLL_2_Camera->vtbl->reposition_player(x, y, z);
+    shadowsSetCustomObjPos(player, x, y, z);
+    dll_210_func_7260(player, objData);
+
+    return 0;
+}
+
+/**
+  * PLAYER_ASTATE_Wall_Clambering_Drop_Down
+  * - Don't change back to CamNormal if a StaticCamera is currently active (only in Discovery Falls for now, until more testing is done)
+  */
+RECOMP_PATCH s32 dll_210_func_1209C(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
+    Player_Data* objData;
+    Vec3f jointCoords;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 tempY;
+    s32 nextState;
+    s16 pad;
+    s16 sp48;
+    u32 soundHandle;
+
+    objData = player->data;
+
+    if (!(fsa->unk4.unk25C & 0x10) && (fsa->unk4.underwaterDist > 5.0f)) {
+        return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_31);
+    }
+
+    if (fsa->unk308 & 1) {
+        dll_amSfx->Play(player, objData->unk3B8[mathRnd(10, 14)], MAX_VOLUME, NULL, NULL, 0, NULL);
+    }
+
+    if (fsa->unk308 & 0x80) {
+        soundHandle = dll_amSfx->Play(player, _data_4D8[objData->unk430.unk2], mathRnd(0x5A, MAX_VOLUME), NULL, NULL, 0, NULL);
+        dll_amSfx->SetPitch(soundHandle, (mathRnd(-100, 100) * 0.001f) + 1.0f);
+    }
+
+    if (fsa->enteredAnimState) {
+
+        //@recomp: don't exit out of StaticCameras (just in Discovery Falls for now - TODO: check if safe elsewhere!) 
+        if (playerUtil_doesStaticCameraHavePriority(player)) {
+#ifdef DEBUG_PRIORITISE_STATIC_CAMERA
+            recomp_printf("StaticCamera active, skipping end-of-climb camera change.\n");
+#endif
+        } else {
+            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 60, Cam_Ease_All);
+        }
+
+        objAnimSet(player, _data_5E0[1], 0.0f, 1);
+        objAnimSetBlend(player, _data_5E4[0], 0);
+        fsa->animTickDelta = 0.015f;
+        mod_func_8001A3FC(player->modelInsts[player->modelInstIdx], 0, 0, 1.0f, player->srt.scale, &jointCoords, &sp48);
+        objData->unk430.unk18.y = jointCoords.f[2] * objData->unk430.unk24.x;
+        objData->unk430.unk18.z = jointCoords.f[2] * objData->unk430.unk24.z;
+        player->srt.transl.y = objData->unk430.unk8;
+        fsa->unk270 = PLAYER_ASTATE_Wall_Clambering_Drop_Down;
+        fsa->animExitAction = dll_210_func_12514;
+    }
+
+    {
+        s32 nextState = dll_210_func_EFB4(player, fsa, updateRate);
+        if (nextState != 0) { return nextState; }
+    }
+
+    player->velocity.y = 0.0f;
+
+    objAnim_func_80024DD0(player, 0, 1, objData->unk430.unk5C);
+    if (player->animProgress > 0.99f) {
+        player->globalPosition.x = objData->unk7EC.x;
+        player->globalPosition.z = objData->unk7EC.z;
+        camInverseTransformPointByObject(player->globalPosition.x, 0.0f, player->globalPosition.z, &player->srt.transl.x, &tempY, &player->srt.transl.z, player->parent);
+        dll_210_func_7260(player, objData);
+        objAnimSet(player, objData->modAnims[0], 0.0f, 1);
+        return FSA_NEXTSTATE_ASYNC(PLAYER_ASTATE_Standing);
+    }
+
+    x = player->srt.transl.x + (objData->unk430.unk18.y * player->animProgress);
+    y = player->srt.transl.y - (objData->unk430.unk18.x * (1.0f - player->animProgress));
+    z = player->srt.transl.z + (objData->unk430.unk18.z * player->animProgress);
+    gDLL_2_Camera->vtbl->reposition_player(x, y, z);
+    shadowsSetCustomObjPos(player, x, y, z);
+    dll_210_func_7260(player, objData);
+
+    return 0;
+}
+
+/*0x5A0*/ extern s16 _data_5A0[];
+/*0x5B0*/ extern s16 _data_5B0[];
+/*0x5B8*/ extern s16 _data_5B8[];
+
+/**
+  * PLAYER_ASTATE_Ladder_Climbing
+  * - Don't change back to CamNormal if a StaticCamera is currently active (only in Discovery Falls for now, until more testing is done)
+  */
+RECOMP_PATCH s32 dll_210_func_F690(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
+    f32 stickY; //9C
+    f32 animProgress; //98
+    f32 animTickDelta; //94
+    f32 x; //90
+    f32 y; //8C
+    f32 z; //88
+    f32 tempY; //84
+    Vec3f sp78; //78
+    Vec3f sp6C; //6C
+    Player_Data* objData; //t_s0
+    f32 temp_fa0; //t_fa0
+    ModelInstance* modelInstance; //60
+    s16 var_v1; //v_v1
+    f32 temp_fv1; //t_fv1
+    s16 pad_sp56; //pad_56
+    s16 sp54; //54
+
+    objData = player->data;
+    
+    if (fsa->enteredAnimState) {
+        objData->unk8A9 = 1;
+        if ((player->curModAnimId == _data_5B0[0]) || (player->curModAnimId == _data_5B8[0])) {
+            _bss_200 = 8;
+        } else {
+            _bss_200 = 9;
+        }
+        fsa->unk270 = PLAYER_ASTATE_Falling;
+        fsa->animExitAction = dll_210_func_12514;
+    }
+    
+    {
+        s32 nextState = dll_210_func_EFB4(player, fsa, updateRate);
+        if (nextState) { return nextState; }
+    }
+    
+    if ((fsa->unk4.underwaterDist > 25.0f) && (fsa->unk4.floorDist < 100.0f)) {
+        return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Swim_Treading_In_Place);
+    }
+    
+    player->velocity.y = 0.0f;
+    stickY = fsa->yAnalogInput / 60.0f;
+    if (stickY < 0.0f) {
+        stickY = -stickY;
+    }
+    if (stickY < 0.1f) {
+        stickY = 0.1f;
+    }
+    if (stickY > 1.0f) {
+        stickY = 1.0f;
+    }
+    
+    modelInstance = player->modelInsts[player->modelInstIdx];
+    animProgress = 0.0f;
+    animTickDelta = fsa->animTickDelta;
+    _bss_202 = _bss_200;
+    
+    if (fsa->unk308 & 1) {
+        dll_amSfx->Play(player, SOUND_B1C_Ladder_Climb_A, MAX_VOLUME, NULL, NULL, 0, NULL);
+    }
+    
+    switch (_bss_200) {
+    case 8:
+    case 9:
+    case 12:
+    case 13:
+        player->srt.transl.y = objData->unk3CC.unk10;
+        player->curModAnimIdLayered = -1;
+        objData->unk3CC.unk2 = 0;
+        objData->unk3CC.unk14 = objData->unk3CC.unk10;
+        animTickDelta = 0.0f;
+        if (_bss_200 & 1) {
+            _bss_200 = 1;
+        } else {
+            _bss_200 = 0;
+        }
+        break;
+    case 6:
+    case 7:
+        if (fsa->unk308 & 0x80) {
+            dll_amSfx->Play(player, objData->unk3B8[mathRnd(10, 14)], MAX_VOLUME, NULL, NULL, 0, NULL);
+        }
+        
+        if (fsa->unk33A) {
+            player->srt.transl.y = objData->unk3CC.unk4;
+        } else {
+            mod_func_8001A3FC(modelInstance, 0, 0, 0, player->srt.scale, &sp78, &sp54);
+            mod_func_8001A3FC(modelInstance, 0, 0, 1, player->srt.scale, &sp6C, &sp54);
+            temp_fv1 = sp78.y + _bss_204;
+            temp_fa0 = _bss_208 - (sp6C.y - sp78.y);
+            player->srt.transl.y = ((temp_fa0 - temp_fv1) * player->animProgress) + _bss_204;
+        }
+        /* fallthrough */
+    case 10:
+    case 11:
+        if (fsa->unk33A != 0) {
+            player->globalPosition.x = objData->unk7EC.x;
+            player->globalPosition.z = objData->unk7EC.z;
+            camInverseTransformPointByObject(player->globalPosition.x, 0.0f, player->globalPosition.z, 
+                                             &player->srt.transl.x, &tempY, &player->srt.transl.z, 
+                                             player->parent);
+            dll_210_func_7260(player, objData);
+            objAnimSet(player, *objData->modAnims, 0.0f, 1);
+            return -1;
+        }
+        break;
+    case 4:
+    case 5:
+        if (fsa->yAnalogInput > 5.0f) {
+            goto label1; label1: ;
+            objAnimSetProgress(player, 0.0f);
+        } else if (fsa->yAnalogInput < -5.0f) {
+            goto label2; label2: ;
+            objAnimSetProgress(player, 0.0f);
+        } else {
+        
+            if ((fsa->unk310 & A_BUTTON) && (objData->unk3CC.unk0 >= 4)) {
+                return FSA_NEXTSTATE_ASYNC(PLAYER_ASTATE_Ladder_Slide_Down);
+            } else {
+                break;
+            }
+        }
+        /* fallthrough */
+    default:
+        if (fsa->unk308 & 0x80) {
+            dll_amSfx->Play(player, SOUND_B1D_Ladder_Climb_B, MAX_VOLUME, NULL, NULL, 0, NULL);
+        }
+        
+        if ((fsa->unk310 & A_BUTTON) && (objData->unk3CC.unk0 >= 4)) {
+            return FSA_NEXTSTATE_ASYNC(PLAYER_ASTATE_Ladder_Slide_Down);
+        }
+        
+        if (player->animProgress == 1.0f) {
+            if (fsa->yAnalogInput < -5.0f) {
+                objData->unk3CC.unk2 = 0;
+                animTickDelta = -((stickY * 0.01f) + 0.025f);
+                if (_bss_200 < 2) {
+                    _bss_200 += 2;
+                    animProgress = 0.99f;
+                }
+            } else {
+                objData->unk3CC.unk0 += 1;
+                objData->unk3CC.unk2 = 1;
+                animTickDelta = 0.0f;
+                if (_bss_200 < 2) {
+                    _bss_200 ^= 1;
+                }
+                objData->unk3CC.unk14 = player->srt.transl.y + objData->unk3CC.unk1C;
+                objData->unk3CC.unk10 = objData->unk3CC.unk8 + (objData->unk3CC.unk0 * objData->unk3CC.unkC);
+                player->srt.transl.y = objData->unk3CC.unk14;
+            }
+        }
+        
+        if (player->animProgress == 0.0f) {
+            if (fsa->yAnalogInput > 5.0f) {
+                objData->unk3CC.unk2 = 1;
+                animProgress = 0.0f;
+                if (objData->unk3CC.unk0 >= (objData->unk3CC.unk1 - 3)) {
+                    animTickDelta = 0.011f;
+                    if (_bss_200 & 1) {
+                        _bss_200 = 7;
+                    } else {
+                        _bss_200 = 6;
+                    }
+                    _bss_204 = player->srt.transl.y;
+                    _bss_208 = *_bss_1B0 + objData->unk3CC.unk4;
+
+                    //@recomp: don't exit out of StaticCameras (just in Discovery Falls for now - TODO: check if safe elsewhere!) 
+                    if (playerUtil_doesStaticCameraHavePriority(player)) {
+#ifdef DEBUG_PRIORITISE_STATIC_CAMERA
+                        recomp_printf("StaticCamera active, skipping end-of-climb camera change.\n");
+#endif
+                    } else {
+                        gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 30, Cam_Ease_All);
+                    }
+
+                    break;
+                }
+                animTickDelta = (stickY * 0.012f) + 0.025f;
+                if (_bss_200 >= 2) {
+                    if (_bss_200 & 1) {
+                        _bss_200 = 1;
+                    } else {
+                        _bss_200 = 0;
+                    }
+                }
+            } else if (fsa->yAnalogInput < -5.0f) {
+                objData->unk3CC.unk2 = 0;
+                objData->unk3CC.unk0 -= 1;
+                if (objData->unk3CC.unk0 <= 0) {
+                    animProgress = 0.0f;
+                    animTickDelta = 0.016f;
+                    if (_bss_200 & 1) {
+                        _bss_200 = 0xB;
+                    } else {
+                        _bss_200 = 0xA;
+                    }
+
+                    //@recomp: don't exit out of StaticCameras (just in Discovery Falls for now - TODO: check if safe elsewhere!) 
+                    if (playerUtil_doesStaticCameraHavePriority(player)) {
+#ifdef DEBUG_PRIORITISE_STATIC_CAMERA
+                        recomp_printf("StaticCamera active, skipping end-of-climb camera change.\n");
+#endif
+                    } else {
+                        gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 30, Cam_Ease_All);
+                    }
+
+                    player->srt.transl.y = objData->unk3CC.unk8;
+                    break;
+                }
+                animProgress = 0.99f;
+                if (_bss_200 & 1) {
+                    _bss_200 = 2;
+                } else {
+                    _bss_200 = 3;
+                }
+                animTickDelta = -((stickY * 0.01f) + 0.025f);
+                objData->unk3CC.unk10 = objData->unk3CC.unk8 + (objData->unk3CC.unk0 * objData->unk3CC.unkC);
+                player->srt.transl.y = objData->unk3CC.unk14 = player->srt.transl.y - objData->unk3CC.unk1C;
+            } else {
+                if (objAnim_func_80024E2C(player) == 0) {
+                    animProgress = 0.0f;
+                    animTickDelta = 0.01f;
+                    if ((_bss_200 & 1) && (_bss_200 != 5)) {
+                        _bss_200 = 5;
+                    } else if (((_bss_200 & 1) == 0) && (_bss_200 != 4)) {
+                        _bss_200 = 4;
+                    }
+                    break;
+                }
+            }
+        }
+        
+        if (animTickDelta < 0.0f) {
+            animTickDelta = -((stickY * 0.01f) + 0.025f);
+        } else if (animTickDelta > 0.0f) {
+            animTickDelta = (stickY * 0.012f) + 0.025f;
+        }
+        
+        if (objData->unk3CC.unk2 != 0) {
+            player->srt.transl.y = objData->unk3CC.unk14 + ((objData->unk3CC.unk10 - objData->unk3CC.unk14) * player->animProgress);
+        } else {
+            player->srt.transl.y = objData->unk3CC.unk14 + ((objData->unk3CC.unk10 - objData->unk3CC.unk14) * (1.0f - player->animProgress));
+        }
+        
+        break;
+    }
+
+    fsa->animTickDelta = animTickDelta;
+    
+    if (_bss_202 != _bss_200) {
+        objAnimSet(player, _data_5A0[_bss_200], animProgress, 1);
+        if ((_bss_200 < 2) && (objData->unk3CC.unk3 == 0)) {
+            mod_func_8001A3FC(modelInstance, 0, 0, 0, player->srt.scale, &sp78, &sp54);
+            mod_func_8001A3FC(modelInstance, 0, 0, 1, player->srt.scale, &sp6C, &sp54);
+            objData->unk3CC.unk1C = sp6C.f[1] - sp78.f[1];
+            objData->unk3CC.unk3 = 1;
+        }
+    }
+    
+    x = player->srt.transl.x;
+    y = player->srt.transl.y;
+    z = player->srt.transl.z;
+    
+    switch (_bss_200) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+        y = (objData->unk3CC.unk8 + ((objData->unk3CC.unk0 + 1) * objData->unk3CC.unkC));
+        y = player->srt.transl.y + ((y - player->srt.transl.y) * player->animProgress);
+        break;
+    case 10:
+    case 11:
+        x = player->srt.transl.x + ((objData->unk7EC.x - player->srt.transl.x) * player->animProgress);
+        y = player->srt.transl.y + ((objData->unk3CC.unk10 - player->srt.transl.y) * (1.0f - player->animProgress));
+        z = player->srt.transl.z + ((objData->unk7EC.z - player->srt.transl.z) * player->animProgress);
+        break;
+    case 6:
+    case 7:
+        x = player->srt.transl.x + ((objData->unk7EC.x - player->srt.transl.x) * player->animProgress);
+        y = player->srt.transl.y + ((objData->unk3CC.unk4 - player->srt.transl.y) * player->animProgress);
+        z = player->srt.transl.z + ((objData->unk7EC.z - player->srt.transl.z) * player->animProgress);
+        break;
+    default:
+        y = player->srt.transl.y;
+        break;
+    }
+    
+    gDLL_2_Camera->vtbl->reposition_player(x, y, z);
+    shadowsSetCustomObjPos(player, x, y, z);
+    dll_210_func_7260(player, objData);
+    
+    return 0;
 }

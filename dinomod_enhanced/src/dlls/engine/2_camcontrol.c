@@ -1,4 +1,5 @@
 #include "modding.h"
+#include "player_util.h"
 #include "recomputils.h"
 #include "dll_util.h"
 #include "sidekick_util.h"
@@ -19,6 +20,8 @@
 #include "dlls/engine/90_camstatic.h"
 
 #include "recomp/dlls/engine/2_camcontrol_recomp.h"
+
+// #define DEBUG_CAMERAACTIONS
 
 typedef enum {
     LockIcon_STATE_Hidden = 0,
@@ -317,4 +320,109 @@ RECOMP_PATCH void CamControl_lock_icon_tick(void) {
         sIconRotateSpeed = 0;
     }    
     arrow->srt.yaw += sIconRotateSpeed * gUpdateRate;
+}
+
+/**
+  * - Don't apply CamClimb when a StaticCamera is active (fixes camera clipping out of bounds during climbs in Discovery Falls)
+  *   TODO: check if it's okay to apply this throughout the game and not just in Discovery Falls - can it cause problems elsewhere?
+  */
+RECOMP_PATCH void CamControl_change_camera_module(s32 dllID, s32 doDeferredFree, s32 setupVal, s32 dataSize, void* data, s32 easeDuration, u8 easeFlags) {
+    void* currentCamData;
+
+#ifdef DEBUG_CAMERAACTIONS
+    recomp_printf("CamControlChangeModule: %d -> %d\n", sActiveID, dllID);
+#endif
+
+    // @recomp: give StaticCameras priority over CamClimb 
+    {
+        //Limit this to just Discovery Falls for now, since it's experimental
+        if (playerUtil_doesStaticCameraHavePriority(objGetPlayer())) {
+#ifdef DEBUG_CAMERAACTIONS
+            recomp_printf("SKIPPING CAMCLIMB, because a StaticCamera is currently active!\n");
+#endif
+            return;
+        }
+    }
+
+    //Free the previously-used camera data
+    currentCamData = sCamData;
+    if (currentCamData != NULL) {
+        mmFree(currentCamData);
+        sCamData = NULL;
+        sCamSwitchNeeded = FALSE;
+    }
+    
+    //Set up the camera DLL to ease into
+    sNextID = dllID;
+    sEaseDuration = easeDuration;
+    
+    if (data != NULL) {
+        sCamData = mmAlloc(dataSize, ALLOC_TAG_CAM_COL, ALLOC_NAME("camcontrol1"));
+        bcopy(data, sCamData, dataSize);
+    } else {
+        sCamData = NULL;
+    }
+    
+    sNextFree = doDeferredFree;
+    sNextSetupVal = setupVal;
+
+    sCamSwitchNeeded = TRUE;
+    sEaseFlags = easeFlags;
+}
+
+/**
+  * - Fix a bug where camAction could be uninitialised.
+  */
+RECOMP_PATCH void CamControl_change_mode(u32 cameraMode, s32 params) {
+    CamStatic_Params staticCam;
+    CamPath_Params pathCam;
+    CameraAction* camAction;
+    s32 pad[2];
+
+    // @bug: camAction is uninitialized if params == 0
+#ifdef AVOID_UB
+    camAction = NULL;
+#endif
+    
+#ifdef DEBUG_CAMERAACTIONS
+    recomp_printf("CamControlChangeMode: %d, %x\n", cameraMode, params);
+#endif
+
+    switch (cameraMode) {
+    case Camera_MODE_1_Static:
+        staticCam.unk0 = params & 0x7F; //extract lower bits
+        staticCam.unk4 = params & 0x80; //store uppermost bit
+        CamControl_change_camera_module(DLL_ID_CAMSTATIC, TRUE, 0, sizeof(staticCam), &staticCam, 120, 0xFF);
+        break;
+    case Camera_MODE_2_Path:
+        pathCam.unk0 = params & 0x7F; //extract lower bits
+        pathCam.unk4 = params & 0x80; //store uppermost bit
+        CamControl_change_camera_module(DLL_ID_CAMPATH, TRUE, 0, sizeof(pathCam), &pathCam, 120, 0xFF);
+        break;
+    case Camera_MODE_3_Normal:
+        CamControl_change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 120, 0xFF);
+        break;
+    case Camera_MODE_4_Module:
+        CamControl_change_camera_module(DLL_ID_CAMNORMAL + params, TRUE, 0, 0, NULL, 120, 0xFF);
+        break;
+    case Camera_MODE_0_CameraAction:
+    default:
+        if (params != 0) {
+            camAction = CamControl_get_camera_action(params);
+        }
+        if (camAction != NULL) {
+            gDLL_29_Gplay->vtbl->get_current_player_lactions()->unk12 = params;
+            if ((sActiveID == DLL_ID_CAMLOCKON) || (sActiveID == DLL_ID_CAMSEQ)) {
+                CamControl_get_camnormal_module()->dll->vtbl->func3(camAction, 16);
+            } else {
+                if ((camAction->unk0 == 0) || (camAction->unk0 != 1)) {
+                    CamControl_change_camera_module(DLL_ID_CAMNORMAL, FALSE, 2, sizeof(CameraAction), camAction, 0, 0xFF);
+                } else {
+                    CamControl_change_camera_module(DLL_ID_CAMCLIMB, TRUE, 2, sizeof(CameraAction), camAction, 0, 0xFF);
+                }
+            }
+            mmFree(camAction);
+        }
+        break;
+    }
 }

@@ -9,3 +9,4 @@ int playerUtil_is_player_standing_or_walking(Object* player);
 void playerUtil_clear_collected_object(Object* player, Object* collected); 
 void player_get_hand_coords(Vec3f* v);
 _Bool playerUtil_isImportantSequencePlaying(void);
+_Bool playerUtil_doesStaticCameraHavePriority(Object* player);
