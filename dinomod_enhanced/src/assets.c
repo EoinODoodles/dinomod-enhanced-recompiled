@@ -4053,9 +4053,109 @@ static void discovery_falls_modifications(void) {
 
     //BLOCKS
     {
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 323, block323); //Shrine area exit climb to Upper Falls: minor UV fixes, add decal to indicate rock climb, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 338, block338); //Lower Falls cliff-face: Fix broken decals on edges of climbable section and archway, clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 341, block341); //BWC exit (corner): reduce UV warping, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 342, block342); //BWC exit: clean up some UVs, extend dockpoint so it's not hovering in the water, clamped cliff textures
+    }
+    //Shrine Area
+    {
+        //Exit Climb
+        {
+            //Add StaticCameras
+            {
+                StaticCamera_Setup staticCams[] = {
+                    { COORDS_SETUP(-1679.350, 679.964, -1156.490), .cameraID = 101, .fov = 80, .flags = CamStatic_LOOK_AT },
+                    { COORDS_SETUP(-1679.350, 365.964, -1156.490), .cameraID = 102, .fov = 80, .flags = CamStatic_LOOK_AT },
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(staticCams); i++) {
+                    StaticCamera_Setup* cam = &staticCams[i];
+                    cam->base.objId = OBJ_StaticCamera;
+                    cam->base.loadFlags = OBJSETUP_LOAD_MAIN;
+                    cam->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                    cam->base.loadDistance = 0xFF;
+                    cam->base.fadeDistance = 50;
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), cam, sizeof(StaticCamera_Setup));
+                }
+            }
+
+            //Add TriggerPlanes activating the cameras
+            {
+                //Top of climb
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-1709.196, 611, -1045.470),
+                        .rotationY = TRIGGER_YAW(11.25),
+                        .rotationX = 0,
+                        .sizeX = TRIGGER_SCALE(0.795),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    };
+                    ENTER_CAMERAACTION(1, 101, &plane, 0); //Use CameraStatic 101
+                    EXIT_CAMERAACTION(0, 1, &plane, 1); //Use CameraNormal
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+
+                //Middle of climb
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-1688.045, 415.933, -1125.836),
+                        .rotationY = TRIGGER_YAW(90),
+                        .rotationX = DEGREES_TO_ANGLE8(267),
+                        .sizeX = TRIGGER_SCALE(0.56),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    };
+                    ENTER_CAMERAACTION(1, 102, &plane, 0); //Use CameraStatic 102
+                    EXIT_CAMERAACTION(1, 101, &plane, 1); //Use CameraStatic 101
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+
+                //Base of climb
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-1693.514, 284, -1129.321),
+                        .rotationY = TRIGGER_YAW(180),
+                        .rotationX = DEGREES_TO_ANGLE8(22),
+                        .sizeX = TRIGGER_SCALE(0.85),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    };
+                    ENTER_CAMERAACTION(1, 102, &plane, 0); //Use CameraStatic 102
+                    EXIT_CAMERAACTION(0, 1, &plane, 1); //Use CameraNormal
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+            }
+        }
     }
 }
 

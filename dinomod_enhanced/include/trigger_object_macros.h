@@ -101,3 +101,19 @@
 #define TRG_GAMEBIT_ON(gamebit) ((gamebit & 0x3FFF) | (1 << 14))
 #define TRG_GAMEBIT_OFF(gamebit) (gamebit & 0x3FFF)
 #define TRG_GAMEBIT(gamebit, enable) ((gamebit & 0x3FFF) | ((enable == TRUE) << 14))
+
+/* COMMANDS: CameraActions */
+
+//A shortcut for applying a CameraAction when entering a Trigger Object
+#define ENTER_CAMERAACTION(cameraMode, cameraActionIdx, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_CAMERA_ACTION;\
+    (triggerObject)->commands[cmdSlot].param1 = cameraMode;\
+    (triggerObject)->commands[cmdSlot].param2 = cameraActionIdx;
+
+//A shortcut for applying a CameraAction when exiting a Trigger Object
+#define EXIT_CAMERAACTION(cameraMode, cameraActionIdx, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_CAMERA_ACTION;\
+    (triggerObject)->commands[cmdSlot].param1 = cameraMode;\
+    (triggerObject)->commands[cmdSlot].param2 = cameraActionIdx;
