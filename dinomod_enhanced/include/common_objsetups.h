@@ -260,6 +260,7 @@ typedef struct {
 /*00*/ ObjSetup base;
 /*18*/ s8 yaw;
 /*19*/ s8 spawnLogDisabled;
+/*1A*/ s16 range;
 } DFdockpoint_Setup;
 
 typedef struct {
