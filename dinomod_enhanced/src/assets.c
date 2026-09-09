@@ -4067,6 +4067,33 @@ static void discovery_falls_modifications(void) {
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 342, block342); //BWC exit: clean up some UVs, extend dockpoint so it's not hovering in the water, clamped cliff textures
     }
 
+    //Approach (from SwapStone Circle)
+    {
+        //Add texscrolls to the waterfalls' foam
+        {
+            TexScroll2_Setup texScrollData[] = {
+                { COORDS_SETUP(1130.276, 163, 75.210) },
+                { COORDS_SETUP(1004.000, 76,  721)   },
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(texScrollData); i++) {
+                TexScroll2_Setup* scroll = &texScrollData[i];
+                scroll->base.objId = OBJ_texscroll2;
+                scroll->base.loadFlags = OBJSETUP_LOAD_MAIN;
+                scroll->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                scroll->base.loadDistance = FADE_DISTANCE(640);
+                scroll->base.fadeDistance = 32;
+                scroll->textureIndex = 1;
+                scroll->blendTextureIndex = 3;
+                scroll->vSpeedA = 2;
+                scroll->gamebitActivate = NO_GAMEBIT;
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll_Setup)
+                );
+            }
+        }
+    }
+
     //Kyte's rope fastening sequences
     {
         //Rope near BlackWater Canyon (ensure its position is correctly restored on revisiting)
@@ -4196,6 +4223,28 @@ static void discovery_falls_modifications(void) {
                 hitAnim->blocksAnimatorID = 10;
                 reasset_map_objects_set(discoveryFalls, 
                     reasset_auto_id(dinomodNs), hitAnim, sizeof(HitAnimator_Setup));
+            }
+        }
+
+        //Add texscrolls to the waterfalls' foam
+        {
+            TexScroll2_Setup texScrollData[] = {
+                { COORDS_SETUP(-1007, 300, -196), .base.mapObjGroup = DF_ObjGroup14_Middle_and_Upper_Falls },
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(texScrollData); i++) {
+                TexScroll2_Setup* scroll = &texScrollData[i];
+                scroll->base.objId = OBJ_texscroll2;
+                scroll->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                scroll->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                scroll->base.fadeDistance = 32;
+                scroll->textureIndex = 1;
+                scroll->blendTextureIndex = 3;
+                scroll->vSpeedA = 2;
+                scroll->gamebitActivate = NO_GAMEBIT;
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll_Setup)
+                );
             }
         }
     }
