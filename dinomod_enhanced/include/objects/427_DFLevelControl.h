@@ -33,5 +33,6 @@ enum DF_CustomObjectGroups {
     DF_ObjGroup_Rope_BWC_Detached = 20,         //The original DFropenode setup near BWC, but moved into an objGroup of its own (synced with `DF_ObjGroup2_Lower_Falls` via `DFlevelcontrol`)
     DF_ObjGroup_Rope_BWC_Attached,              //A duplicate of the rope setup near BWC, but already attached (used for restoring state without seq preempt messing up rope's spring dynamics)
     DF_ObjGroup_Rope_Upper_Falls_Detached,      //The original upper falls DFropenode setup, but moved into an objGroup of its own (synced with `DF_ObjGroup14_Middle_and_Upper_Falls` via `DFlevelcontrol`)
-    DF_ObjGroup_Rope_Upper_Falls_Attached       //A duplicate of the upper falls' rope setup, but already attached (used for restoring state without seq preempt messing up rope's spring dynamics)
+    DF_ObjGroup_Rope_Upper_Falls_Attached,      //A duplicate of the upper falls' rope setup, but already attached (used for restoring state without seq preempt messing up rope's spring dynamics)
+    DF_ObjGroup_Turbine_Sequence_HitAnimators   //Enables widescreen fixes just while the turbine sequence is active
 };

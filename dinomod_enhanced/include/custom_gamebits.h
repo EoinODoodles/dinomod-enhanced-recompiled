@@ -82,8 +82,8 @@ typedef enum {
     DINOMOD_BIT_968_WC_Jungle_Door_Bar = 0x968,         // len:1 group:1 (Not used currently, but reserved just in case)
     DINOMOD_BIT_969_WC_Jungle_Door_Opening = 0x969,     // len:1 group:1 (Not used currently, but reserved just in case)
     DINOMOD_BIT_96A_WC_Jungle_Door_Open = 0x96A,        // len:1 group:1
+    DINOMOD_BIT_96B_DF_Turbine_Sequence_Active = 0x96B,  // len:1 group:1 (Used to enable widescreen fix HitAnimators just during the sequence)
     /* More placeholders */
-    DINOMOD_BIT_96B_Placeholder = 0x96B,  // len:1 group:1
     DINOMOD_BIT_96C_Placeholder = 0x96C,  // len:1 group:1
     DINOMOD_BIT_96D_Placeholder = 0x96D,  // len:1 group:1
     DINOMOD_BIT_96E_Placeholder = 0x96E,  // len:1 group:1

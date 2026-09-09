@@ -57,6 +57,8 @@ INCBIN(hits989, "inc/hits_0989_DBriver_waterfall_basin_1.bin");
 INCBIN(block995, "inc/blocks_0995_DBriver_bend_1.bin");
 INCBIN(block994, "inc/blocks_0994_DBriver_waterfall_basin_2.bin");
 INCBIN(block338, "inc/blocks_0338_DF_lower_falls_cliff_face.bin");
+INCBIN(block331, "inc/blocks_0331_DF_middle_falls_cradle_station_1.bin");
+INCBIN(block329, "inc/blocks_0329_DF_middle_falls_cradle_station_3_and_turbine.bin");
 INCBIN(block341, "inc/blocks_0341_DF_BWC_exit_corner.bin");
 INCBIN(block342, "inc/blocks_0342_DF_BWC_exit.bin");
 INCBIN(block597, "inc/blocks_0597_WC_approach_gateway_corridor.bin");
@@ -4165,6 +4167,32 @@ static void discovery_falls_modifications(void) {
                             reasset_auto_id(dinomodNs), ropeNode, sizeof(DLL420_Setup));
                     }
                 }
+            }
+        }
+    }
+    //Middle Falls
+    {
+        //Add HitAnimators for Kyte's turbine sequence (enabling temporary widescreen fixes)
+        {
+            HitAnimator_Setup hitAnims[] = {
+                { COORDS_SETUP(-814,    581, -105) },
+                { COORDS_SETUP(250.136, 482, -547.34) }
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(hitAnims); i++) {
+                HitAnimator_Setup* hitAnim = &hitAnims[i];
+                hitAnim->base.objId = OBJ_HitAnimator;
+                hitAnim->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                hitAnim->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                hitAnim->base.fadeFlags = OBJSETUP_FADE_CAMERA,
+                hitAnim->base.mapObjGroup = DF_ObjGroup_Turbine_Sequence_HitAnimators;
+                hitAnim->base.fadeDistance = 50;
+                hitAnim->gamebitActivate = DINOMOD_BIT_96B_DF_Turbine_Sequence_Active;
+                hitAnim->mode = hitanimator_configure_mode_flags(
+                        FALSE, TRUE, FALSE);
+                hitAnim->blocksAnimatorID = 10;
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), hitAnim, sizeof(HitAnimator_Setup));
             }
         }
     }
