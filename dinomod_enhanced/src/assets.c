@@ -56,6 +56,7 @@ INCBIN(block989, "inc/blocks_0989_DBriver_waterfall_basin_1.bin");
 INCBIN(hits989, "inc/hits_0989_DBriver_waterfall_basin_1.bin");
 INCBIN(block995, "inc/blocks_0995_DBriver_bend_1.bin");
 INCBIN(block994, "inc/blocks_0994_DBriver_waterfall_basin_2.bin");
+INCBIN(block336, "inc/blocks_0336_DF_entrance_1_waterfall.bin");
 INCBIN(block321, "inc/blocks_0321_DF_shrine_exterior.bin");
 INCBIN(block343, "inc/blocks_0343_DF_shrine_interior.bin");
 INCBIN(block323, "inc/blocks_0323_DF_upper_falls_shrine_exit_climb.bin");
@@ -4052,6 +4053,44 @@ static void diamond_bay_modifications(void) {
     }
 }
 
+static void swapstone_circle_modifications(void) {
+    ReAssetID swapStoneCircle = reasset_base_id(MAP_SWAPSTONE_CIRCLE);
+    ReAssetID scTrkblk = reasset_base_id(21);
+    int scfBlocksBase = 637;
+
+    //Crawl to Discovery Falls
+    {
+        //Adjust endpoint, so there isn't a big pop in your position when starting a crawl back to SwapStone Circle
+        CurveSetup* dfCrawlEnd = GET_MAPS_OBJECT(swapStoneCircle, 0x34350);
+        dfCrawlEnd->pos.x = -12.309;
+        dfCrawlEnd->pos.y = 166.362;
+        dfCrawlEnd->pos.z = 2665.677;
+        dfCrawlEnd->unk2C = DEGREES_TO_ANGLE8(284.8);
+    }
+
+    //Add texscrolls so Discovery Falls' initial area's water isn't static while crawling in
+    {
+        TexScroll2_Setup texScrollData[] = {
+            { COORDS_SETUP(-162.777, 160.360, 2949.891), .textureIndex = 0,    .blendTextureIndex = 0x14, .uSpeedB = -1, .vSpeedB = -1, .uSpeedA = 0, .vSpeedA = -3 }, //water
+            { COORDS_SETUP(-149.724, 163.000, 2635.210), .textureIndex = 1,    .blendTextureIndex = 3,    .uSpeedB =  0, .vSpeedB =  0, .uSpeedA = 0, .vSpeedA =  5 }, //waterfall
+            { COORDS_SETUP(-146.172, 261.784, 2613.801), .textureIndex = 0x17, .blendTextureIndex = 0x14, .uSpeedB = -1, .vSpeedB = -1, .uSpeedA = 0, .vSpeedA = -5 }, //foam
+        };
+
+        for (u32 i = 0; i < ARRAYCOUNT(texScrollData); i++) {
+            TexScroll2_Setup* scroll = &texScrollData[i];
+            scroll->base.objId = OBJ_texscroll2;
+            scroll->base.loadFlags = OBJSETUP_LOAD_MAIN;
+            scroll->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+            scroll->base.loadDistance = FADE_DISTANCE(640);
+            scroll->base.fadeDistance = 32;
+            scroll->gamebitActivate = NO_GAMEBIT;
+            reasset_map_objects_set(swapStoneCircle, 
+                reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll_Setup)
+            );
+        }
+    }
+}
+
 static void discovery_falls_modifications(void) {
     ReAssetID discoveryFalls = reasset_base_id(MAP_DISCOVERY_FALLS);
     ReAssetID dfTrkblk = reasset_base_id(11);
@@ -4059,6 +4098,7 @@ static void discovery_falls_modifications(void) {
 
     //BLOCKS
     {
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 336, block336); //SC entrance: Fix UVs at base of cliff to the left of crawl point, fix gap in water, use clamped cliff textures and fix seams between them
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 321, block321); //Shrine exterior: fix gaps between vertices, orthagonalise shrine facade, improve oddly unstable collision, fix warped ground UVs, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 343, block343); //Shrine interior: minor UV fixes
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 323, block323); //Shrine area exit climb to Upper Falls: minor UV fixes, add decal to indicate rock climb, use clamped cliff textures
@@ -4440,6 +4480,21 @@ static void discovery_falls_hit_edits(void) {
     ReAssetID df = reasset_base_id(MAP_DISCOVERY_FALLS);
     ReAssetID dfTrkblk = reasset_base_id(11);
     const int dfTrkblkBase = 319;
+
+    //Approach (from SwapStone Circle)
+    {
+        //Adjust angle of HITS, so the crawl back to SwapStone Circle doesn't initially point the wrong way
+        {
+            TrackLine* crawlLine = reasset_hits_get(dfTrkblk, reasset_base_id(336 - dfTrkblkBase), reasset_base_id(16));
+            crawlLine->Ax = 640; 
+            crawlLine->Ay = 167; 
+            crawlLine->Az = 123;
+            
+            crawlLine->Bx = 629; 
+            crawlLine->By = 167; 
+            crawlLine->Bz = 82;
+        }
+    }
 
     // Edits to make it possible to go down to the waterfall leading to the shrine. These hits
     // in vanilla are for an older DF layout so this patch adjusts them so they don't block the path.
@@ -4935,6 +4990,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     warlock_mountain_modifications();
     swapstone_hollow_modifications();
     swapstone_hollow_well_modifications();
+    swapstone_circle_modifications();
     cc_lightfoot_patch();
     cape_claw_modifications();
     darkice_mines_modifications();
