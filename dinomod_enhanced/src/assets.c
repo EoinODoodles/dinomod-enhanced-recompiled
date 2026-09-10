@@ -57,6 +57,7 @@ INCBIN(hits989, "inc/hits_0989_DBriver_waterfall_basin_1.bin");
 INCBIN(block995, "inc/blocks_0995_DBriver_bend_1.bin");
 INCBIN(block994, "inc/blocks_0994_DBriver_waterfall_basin_2.bin");
 INCBIN(block336, "inc/blocks_0336_DF_entrance_1_waterfall.bin");
+INCBIN(block340, "inc/blocks_0340_DF_entrance_2_corner.bin");
 INCBIN(block321, "inc/blocks_0321_DF_shrine_exterior.bin");
 INCBIN(block343, "inc/blocks_0343_DF_shrine_interior.bin");
 INCBIN(block323, "inc/blocks_0323_DF_upper_falls_shrine_exit_climb.bin");
@@ -4099,6 +4100,7 @@ static void discovery_falls_modifications(void) {
     //BLOCKS
     {
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 336, block336); //SC entrance: Fix UVs at base of cliff to the left of crawl point, fix gap in water, use clamped cliff textures and fix seams between them
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 340, block340); //Entrance route - corner: Fix missing 0 vertex alpha on water blend (at T-junction with WaterBaddie), minor UV cleanups, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 321, block321); //Shrine exterior: fix gaps between vertices, orthagonalise shrine facade, improve oddly unstable collision, fix warped ground UVs, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 343, block343); //Shrine interior: minor UV fixes
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 323, block323); //Shrine area exit climb to Upper Falls: minor UV fixes, add decal to indicate rock climb, use clamped cliff textures
@@ -4493,6 +4495,41 @@ static void discovery_falls_hit_edits(void) {
             crawlLine->Bx = 629; 
             crawlLine->By = 167; 
             crawlLine->Bz = 82;
+        }
+
+        //Secluded Waterfall Ascent
+        {
+            TrackLine block0340[] = {
+                { HITS_A(205, 79, 67),   HITS_B(262, 79, 56),   .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | Player_Ignores_Line | 0x2), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(262, 79, 56),   HITS_B(290, 79, 77),   .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | Player_Ignores_Line | 0x2), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(290, 71, 77),   HITS_B(317, 65, 129),  .heightUnified = 133, .settingsA = (TrackLine_SETTINGA_Unified_Height | Wall_Climb_Stop_at_Top), .settingsB = HITS_Wall_Climb, .animatorID = NO_ANIMATOR },
+                { HITS_A(438, 152, 175), HITS_B(429, 158, 95),  .heightA = 127, .heightB = 123, .settingsA = Wall_Climb_Stop_at_Top, .settingsB = HITS_Wall_Climb, .animatorID = NO_ANIMATOR },
+                { HITS_A(454, 247, 234), HITS_B(438, 244, 175), .heightA = 33, .heightB = 35, .settingsA = Wall_Climb_Stop_at_Top, .settingsB = HITS_Wall_Climb, .animatorID = NO_ANIMATOR },
+                { HITS_A(68, 66, 0),     HITS_B(61, 71, 54),    .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | Player_Ignores_Line | 0x2), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(290, 61, 77),   HITS_B(373, 66, 0),    .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | Player_Ignores_Line | 0x2), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(61, 71, 54),    HITS_B(50, 71, 99),    .heightUnified = 62, .settingsA = (TrackLine_SETTINGA_Unified_Height | Wall_Climb_Stop_at_Top), .settingsB = HITS_Wall_Climb, .animatorID = NO_ANIMATOR },
+                { HITS_A(50, -10, 99),   HITS_B(17, -10, 128),  .heightUnified = 143, .settingsA = (TrackLine_SETTINGA_Unified_Height | Wall_Climb_Stop_at_Top), .settingsB = HITS_Wall_Climb, .animatorID = NO_ANIMATOR },
+                { HITS_A(61, 53, 54),    HITS_B(205, 61, 67),   .heightUnified = 63, .settingsA = (TrackLine_SETTINGA_Unified_Height | Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                
+                /*  End line of the first rock climb while ascending to secluded waterfall
+
+                    The left endpoint was moved away from the waterfall wall slightly, since you could easily clip through the waterfall wall by pressing
+                    against it and holding left while dropping down from the rock climb, due to the acute angle between the rock climb wall and the waterfall.
+
+                    The left endpoint was also moved very slightly out from the wall to adjust the angle of the climb,
+                    so that the camera wouldn't end up inside the waterfall wall during the climb (especially in widescreen!)
+                */
+                { HITS_A(317, 158, 129), HITS_B(326, 153, 182), .heightA = 40, .heightB = 39, .settingsA = Wall_Climb_Stop_at_Top, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Wall_Climb), .animatorID = NO_ANIMATOR },
+                
+                //Add barrier HITS for two waterfall walls you can be hugging as you drop down at the end of a rock climb
+                //(Helps reduce the chances of clipping clean through the wall if you hold in the direction of the wall while letting go)
+                { HITS_A(317, 66, 129),  HITS_B(429, 66, 95),   .heightUnified = 92, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(325, 152, 202), HITS_B(438, 152, 175), .heightUnified = 92, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(block0340); i++) {
+                reasset_hits_set(dfTrkblk, reasset_base_id(340 - dfTrkblkBase), reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0340[i]);
+            }
         }
     }
 
