@@ -621,6 +621,20 @@ options = [ "Off", "On" ]
 default = "On"
 
 [[manifest.config_options]]
+id = "dfmole_burrow_effects"
+name = "Mole: Burrow Effects"
+description = '''
+Hidden away in one of Discovery Falls' caves, Krystal encounters the greatest discovery of all: a funny little mole!
+
+In the original prototype the mole's burrowing animations are silent and don't use any particle effects.
+
+This config option adds some, based on those used by Tricky!
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
 id = "dim_tent_cinders"
 name = "DIM Tents: Show Cinders"
 description = '''

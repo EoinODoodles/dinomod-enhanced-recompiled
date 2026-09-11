@@ -236,6 +236,11 @@ _Bool configs_GetMoleDigFix(void) {
     return recomp_get_config_u32("dfmole_dig_fix") != 0;
 }
 
+/* Checks whether to add sound and particle effects the DFMole's dig animations */
+_Bool configs_GetMoleBurrowEffects(void) {
+    return recomp_get_config_u32("dfmole_burrow_effects") != 0;
+}
+
 /* Checks what option to use for DIMCannon's custom sound design. */
 DIMCannonSounds configs_GetDIMCannonSoundMode(void) {
     return recomp_get_config_u32("dim_cannon_sounds");

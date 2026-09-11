@@ -1,5 +1,9 @@
 #include "configs.h"
+#include "dlls/engine/6_amsfx.h"
+#include "math_util.h"
 #include "modding.h"
+#include "object_util.h"
+#include "reasset.h"
 #include "recomputils.h"
 
 #include "PR/ultratypes.h"
@@ -27,10 +31,15 @@
 #define capy_handlePlayerTarget capy_func_644
 #define capy_searchForTarget capy_func_704
 #define capy_animCallback capy_anim_callback
+#define capy_animState0Standing capy_anim_state_0_standing
+#define capy_animState1Burrowed capy_anim_state_1_burrowed
 #define capy_animState3Burrow capy_anim_state_3_burrow
 #define capy_animState8Walking capy_anim_state_8_walking
 #define capy_logicState2GoToDigSpot capy_logic_state_2_go_to_dig_spot
 #define capy_logicState4Idle capy_logic_state_4_idle
+
+#define PARTICLE_CA 0xCA
+#define PARTICLE_CB 0xCB
 //END OF TEMPORARY DEFINES
 
 /*0x0*/ extern  ObjFSA_StateCallback sAnimCallbacks[9];
@@ -53,6 +62,10 @@ typedef struct {
     Object* targetStandIn;  //A temporary stand-in object for the dig logic state's curve nodes, so they can be referenced with fsa->target
     u8 digState;            //Substates for a redesigned implementation of the "GoToDigSpot" logic state
     u16 digTimer;           //Times how long the mole's spent trying to reach dig site, as a failsafe
+    u32 soundHandleBurrow1;  //Sound handle for optional dig loop sounds
+    u32 soundHandleBurrow2;  //Sound handle for optional dig loop sounds
+    u8 digSoundsVolume;    //Volume for fading out optional dig sounds
+    f32 prevAnimProgress;
 } capy_data;
 
 typedef enum {
@@ -120,6 +133,194 @@ static void DFMole_createTargetStandIn(Object* self, capy_data* objData) {
     }
 }
 
+/* Plays sounds while the mole is burrowing */
+static void DFMole_handleBurrowSounds(Object* self) {
+    Baddie* baddie;
+    capy_data* objData;
+    f32 animThreshold;
+
+    baddie = self->data;
+    if (baddie == NULL) {
+        return;
+    }
+
+    objData = baddie->objdata;
+    if (objData == NULL) {
+        return;
+    }
+
+    if (configs_GetMoleBurrowEffects()) {
+        switch (baddie->fsa.animState) {
+        case CAPY_ASTATE_2_Unburrow:
+        case CAPY_ASTATE_3_Burrow:
+            //Start sound when the mole burrows down
+            if (baddie->fsa.animStateTime < gUpdateRate) {
+                if (objData->soundHandleBurrow1) {
+                    dll_amSfx->Stop(objData->soundHandleBurrow1);
+                    objData->soundHandleBurrow1 = 0;
+                }
+                objData->soundHandleBurrow1 = dll_amSfx->Play(self, SOUND_48_Dig_Loop, MAX_VOLUME, NULL, NULL, 0, NULL);
+                dll_amSfx->SetPitch(objData->soundHandleBurrow1, 1.1f + ((f32)mathRnd(-10, 10) / 100.0f));
+                objData->digSoundsVolume = MAX_VOLUME;
+            }
+
+            animThreshold = (baddie->fsa.animState == CAPY_ASTATE_3_Burrow) ? 0.5f : 0.1f;
+
+            if ((objData->prevAnimProgress < animThreshold && self->animProgress >= animThreshold) || 
+                (animThreshold == 0.0f && self->animProgress == 0.0f)
+            ) {
+                if (objData->soundHandleBurrow2) {
+                    dll_amSfx->Stop(objData->soundHandleBurrow2);
+                    objData->soundHandleBurrow2 = 0;
+                }
+                objData->soundHandleBurrow2 = dll_amSfx->Play(self, SOUND_602_Emerge_Snowy, VOLUME_PERCENT(30), NULL, NULL, 0, NULL);
+                dll_amSfx->SetPitch(objData->soundHandleBurrow2, 0.5f + ((f32)mathRnd(-10, 10) / 150.0f));
+            }
+            break;
+        default:
+            if (objData->soundHandleBurrow1) {
+                //Fade out the burrowing sound if the mole is finished burrowing/unburrowing
+                if (objData->digSoundsVolume > gUpdateRate * 4) {
+                    objData->digSoundsVolume -= gUpdateRate * 4;
+                } else {
+                    objData->digSoundsVolume = 0;
+                }
+
+                if (objData->digSoundsVolume) {
+                    dll_amSfx->SetVol(objData->soundHandleBurrow1, objData->digSoundsVolume);
+                } else {
+                    dll_amSfx->Stop(objData->soundHandleBurrow1);
+                    objData->soundHandleBurrow1 = 0;
+
+                    if (objData->soundHandleBurrow2) {
+                        dll_amSfx->Stop(objData->soundHandleBurrow2);
+                        objData->soundHandleBurrow2 = 0;
+                    }
+                }
+            }
+        }
+    } else {
+        if (objData->soundHandleBurrow1) {
+            dll_amSfx->Stop(objData->soundHandleBurrow1);
+            objData->soundHandleBurrow1 = 0;
+        }
+        if (objData->soundHandleBurrow2) {
+            dll_amSfx->Stop(objData->soundHandleBurrow2);
+            objData->soundHandleBurrow2 = 0;
+        }
+    }
+
+    objData->prevAnimProgress = self->animProgress;
+}
+
+/* Creates particle effects while the mole is burrowing */
+static void DFMole_handleBurrowParticles(Object* self) {
+    Baddie* baddie;
+    capy_data* objData;
+    SRT fxTransform;
+    Vec3f offset = VEC3F(0, 0, 0);
+    f32 animThreshold;
+    u8 createParticleA = FALSE;
+    u8 createParticleB = FALSE;
+    s32 yawOffset = 0;
+
+    baddie = self->data;
+    if (baddie == NULL) {
+        return;
+    }
+
+    objData = baddie->objdata;
+    if (objData == NULL) {
+        return;
+    }
+
+    if (configs_GetMoleBurrowEffects() == FALSE) {
+        return;
+    }
+
+    switch (baddie->fsa.animState) {
+    case CAPY_ASTATE_2_Unburrow:
+        if (self->animProgress < 0.5f) {
+            if (!mathRnd(0, 2)) {
+                createParticleA = TRUE;
+            }
+            if (!mathRnd(0, 2)) {
+                createParticleB = TRUE;
+            }
+            yawOffset = M_180_DEGREES;
+            //Position the effects closer to the mole's centre
+            offset.z = +15.0f;
+        }
+        break;
+    case CAPY_ASTATE_3_Burrow:
+        if (!mathRnd(0, 2)) {
+            createParticleA = TRUE;
+        }
+        if (!mathRnd(0, 2)) {
+            createParticleB = TRUE;
+        }
+        //Position the effects closer to the mole's claws
+        offset.z = -10.0f;
+        break;
+    case CAPY_ASTATE_7_DigWall:
+        if (self->animProgress < 0.7f) {
+            if (!mathRnd(0, 2)) {
+                createParticleA = TRUE;
+            }
+            if (!mathRnd(0, 2)) {
+                createParticleB = TRUE;
+            }
+            offset.y = lerp_float(self->animProgress/0.7f, 20.0f, 0.0f);
+            offset.z = -20.0f;
+        }
+        break;
+    }
+
+    if (createParticleA || createParticleB) {
+        fxTransform.transl.x = self->globalPosition.x;
+        fxTransform.transl.y = self->globalPosition.y;
+        fxTransform.transl.z = self->globalPosition.z;
+        fxTransform.yaw = self->srt.yaw;
+        if (yawOffset) {
+            yawOffset += fxTransform.yaw;
+            CIRCLE_WRAP(yawOffset);
+            fxTransform.yaw = yawOffset;
+        }
+        
+        if (offset.x || offset.y || offset.z) {
+            rotate_point_by_angle_2D(offset.x, offset.z, &offset.x, &offset.z, self->srt.yaw);
+            fxTransform.transl.x += offset.x;
+            fxTransform.transl.y += offset.y;
+            fxTransform.transl.z += offset.z;
+        }
+
+        if (createParticleA) {
+            gDLL_17_partfx->vtbl->spawn(self, PARTICLE_CA, &fxTransform, PARTFXFLAG_1 | PARTFXFLAG_200000, -1, NULL);
+        }
+        if (createParticleB) {
+            gDLL_17_partfx->vtbl->spawn(self, PARTICLE_CB, &fxTransform, PARTFXFLAG_1 | PARTFXFLAG_200000, -1, NULL);
+        }
+    }
+}
+
+RECOMP_PATCH void capy_obj_Control(Object* self) {
+    Baddie* baddie = self->data;
+    
+    gDLL_18_objfsa->vtbl->tick(self, &baddie->fsa, 1.0f, 1.0f, sAnimCallbacks, sLogicCallbacks);
+    
+    capy_findFoodTarget(self, baddie, &baddie->fsa);
+
+    if ((baddie->fsa.target != NULL) || (baddie->fsa.hitpoints == 0)) { 
+        capy_handlePlayerTarget(self, 0, baddie, &baddie->fsa);
+    } else {
+        capy_searchForTarget(self, baddie, &baddie->fsa);
+    }
+
+    //@recomp: handle optional sounds and particles
+    DFMole_handleBurrowSounds(self);
+    DFMole_handleBurrowParticles(self);
+}
+
 /* Free the dig spot state's temporary stand-in object too */
 RECOMP_PATCH void capy_obj_Free(Object* self, s32 onlySelf) {
     Baddie* baddie = self->data;
@@ -133,14 +334,111 @@ RECOMP_PATCH void capy_obj_Free(Object* self, s32 onlySelf) {
 
     gDLL_33_BaddieControl->vtbl->free(self, baddie, 1);
 
-    //@recomp: free the stand-in target object
     {
         capy_data* objData = baddie->objdata;
+        
+        //@recomp: free the stand-in target object
         if (objData->targetStandIn) {
             objFreeObject(objData->targetStandIn);
             objData->targetStandIn = NULL;
         }
+
+        //@recomp: free soundHandles
+        if (objData->soundHandle) {
+            dll_amSfx->Stop(objData->soundHandle);
+            objData->soundHandle = 0;
+        }
+        if (objData->soundHandleBurrow1) {
+            dll_amSfx->Stop(objData->soundHandleBurrow1);
+            objData->soundHandleBurrow1 = 0;
+        }
+        if (objData->soundHandleBurrow2) {
+            dll_amSfx->Stop(objData->soundHandleBurrow1);
+            objData->soundHandleBurrow1 = 0;
+        }
     }
+}
+
+/* Fix framerate dependency */
+RECOMP_PATCH s32 capy_animState0Standing(Object* self, ObjFSA_Data* fsa, f32 updateRate) {
+    s32 count;
+    Object** magicPlants;
+    s32 i;
+    s32 magicPlantNearby;
+    Baddie* baddie;
+    capy_data* objData;
+
+    baddie = self->data;
+    objData = baddie->objdata;
+
+    if (fsa->enteredAnimState) {
+        objAnimSet(self, CAPY_MODANIM_3_Standing, 0.0f, 0);
+        fsa->unk33A = FALSE;
+    }
+    fsa->animTickDelta = 0.03f;
+
+    fsa->unk278 = 0.0f;
+    fsa->unk27C = 0.0f;
+    gDLL_18_objfsa->vtbl->turn_to_target(self, fsa, updateRate, 5);
+
+    if (fsa->enteredAnimState) {
+        objData->timer = 0;
+    }
+
+    objData->timer += gUpdateRate; //@recomp: fix framerate dependency
+
+    if ((objGetPlayer() == fsa->target) && (objData->timer > 60)) {
+        if (objData->ateMagicPlant) {
+            fsa->enteredAnimState = TRUE;
+            fsa->unk33A = FALSE;
+            fsa->logicState = CAPY_LSTATE_5_Underground;
+            return FSA_NEXTSTATE_SYNC(CAPY_ASTATE_3_Burrow);
+        }
+
+        magicPlants = objGetAllOfType(OBJTYPE_MagicPlant, &count);
+        magicPlantNearby = FALSE;
+        for (i = 0; i < count; i++) {
+            if (!magicPlantNearby && vec3Distance(&self->globalPosition, &magicPlants[i]->globalPosition) < 300.0f) {
+                magicPlantNearby = TRUE;
+                fsa->target = magicPlants[i];
+            }
+        }
+    }
+
+    return 0;
+}
+
+/* Fix framerate dependency, and make sure player collision is off */
+RECOMP_PATCH s32 capy_animState1Burrowed(Object* self, ObjFSA_Data* fsa, f32 updateRate) {
+    Baddie* baddie = self->data;
+    capy_data* objData;
+
+    objData = baddie->objdata;
+
+    if (fsa->enteredAnimState) {
+        objAnimSet(self, CAPY_MODANIM_1_Unburrow, 0.0f, 0);
+        fsa->unk33A = FALSE;
+    }
+
+    if (objData->timer != 0) {
+        //@recomp: fix framerate dependency
+        if (objData->timer > gUpdateRate) {
+            objData->timer -= gUpdateRate;
+        } else {
+            objData->timer = 0;
+        }
+    }
+
+    fsa->animTickDelta = 0.0f;
+    fsa->unk278 = 0.0f;
+    fsa->unk27C = 0.0f;
+
+    //@recomp: ensure collision doesn't affect player while underground
+    if (fsa->enteredAnimState) {
+        self->objhitInfo->unk58 |= 1;
+    }
+
+    return 0;
 }
 
 /* Fix an issue where the mole couldn't find the designated unburrow points, and would instead
