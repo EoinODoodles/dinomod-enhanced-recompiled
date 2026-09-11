@@ -176,6 +176,11 @@ INCBIN(models_wcsuntempleswitch,  "inc/models_0964_WCSunTempleSwitch.bin");
 
 #define FADE_DISTANCE(distance) (((distance*2) + 1) / 16) //Rounded to nearest value
 
+typedef struct {
+    u32 uID;
+    Vec3f coords;
+} ObjReposition;
+
 #define NO_ANIMATOR -1
 #define UNIHEIGHT TrackLine_SETTINGA_Unified_Height
 #define PASSTHRU TrackLine_SETTINGB_Nonsolid
@@ -538,7 +543,6 @@ static void walled_city_modifications(void) {
 
         //Add subtle animation to the caves' light beams
         {
-
             TexScroll_Setup texScrollData[] = {
                 { COORDS_SETUP(1593, -693, -2772), .base.mapObjGroup = WC_OBJGROUP_Approach_Cave_Entrance },
                 { COORDS_SETUP(919,  -693, -2699), .base.mapObjGroup = WC_OBJGROUP_Approach_Cave_Exit },
@@ -4295,29 +4299,34 @@ static void discovery_falls_modifications(void) {
 
     //Middle Falls - Mole Caves
     {
-        //Tweak the crawl curves' positions, so they're exactly at ground height 
-        //(helps the camera avoid clipping into the wall during the crawl)
+        //Tweak the crawl curves' positions so they're exactly at ground height (so the camera avoids clipping into the wall during the crawl)
+        //And align them exactly along crawlspace (to reduce jumps in camera angle after settling into the crawl curve from the initial HITS line angle)
         {
-            u32 crawlNodeUIDs[] = {
-                0x00030bd3,
-                0x00030bd2,
-                0x00030bd1,
-                0x00030bd0,
+            ObjReposition crawlNodeUIDs[] = {
+                //First cave (the one the mole digs automatically)
+                {0x00030bd3, VEC3F(1069.700, -14, -959.5)}, //Out (End)
+                {0x00030bd2, VEC3F(1122.800, -14, -959.5)}, //Out (Start)
+                {0x00030bd1, VEC3F(1135.585, -14, -959.5)}, //In (End)
+                {0x00030bd0, VEC3F(1082.088, -14, -959.5)}, //In (Start)
 
-                0x00030bce,
-                0x00030bcd,
-                0x00030bcc,
-                0x00030bcb,
+                //Second cave
+                {0x00030bce, VEC3F(1012.670, -14, -878.809)}, //Out (End)
+                {0x00030bcd, VEC3F(1029.050, -14, -834.200)}, //Out (Start)
+                {0x00030bcc, VEC3F(1033.539, -14, -821.972)}, //In (End)
+                {0x00030bcb, VEC3F(1014.892, -14, -872.755)}, //In (Start)
 
-                0x00030b78,
-                0x00030b77,
-                0x00030b73,
-                0x00030b72
+                //Third cave (with the Shrine podium switch)
+                {0x00030b78, VEC3F(924.295, -14, -914.891)}, //Out (End)
+                {0x00030b77, VEC3F(876.073, -14, -879.056)}, //Out (Start)
+                {0x00030b73, VEC3F(861.364, -14, -868.126)}, //In (End) 
+                {0x00030b72, VEC3F(911.424, -14, -905.327)}  //In (Start)
             };
 
             for (u32 i = 0; i < ARRAYCOUNT(crawlNodeUIDs); i++) {
-                CurveSetup* curve = GET_MAPS_OBJECT(discoveryFalls, crawlNodeUIDs[i]);
-                curve->pos.y = -14.0f;
+                CurveSetup* curve = GET_MAPS_OBJECT(discoveryFalls, crawlNodeUIDs[i].uID);
+                curve->pos.x = crawlNodeUIDs[i].coords.x;
+                curve->pos.y = crawlNodeUIDs[i].coords.y;
+                curve->pos.z = crawlNodeUIDs[i].coords.z;
             }
         }
     }
@@ -4385,11 +4394,6 @@ static void discovery_falls_modifications(void) {
         //Still a bit janky-looking because of the curve tangents, but at least she doesn't fly clean through the wall!
         //TODO: polish the curve tangents once they're better understood
         {
-            typedef struct {
-                u32 uID;
-                Vec3f coords;
-            } ObjReposition;
-
             ObjReposition kyteCurvesOOB[] = {
                 {0x00032e7c, VEC3F(-985.725, 554.922, -1144.031)},
                 {0x00032e82, VEC3F(-978.070, 551.190, -1271.742)},
@@ -4591,6 +4595,39 @@ static void discovery_falls_hit_edits(void) {
         for (u32 i = 0; i < ARRAYCOUNT(block0324); i++) {
             reasset_hits_set(dfTrkblk, waterfallRiverBlock, reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0324[i]);
         }
+    }
+
+    //Middle Falls - Mole Caves
+    {
+        TrackLine* line;
+        ReAssetID moleCave = reasset_base_id(326 - dfTrkblkBase);
+
+        //Fix barrier line that was floating slightly
+        line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(5));
+        line->Ax = 243; line->Ay = -14; line->Az = 354;
+        line->Bx = 257; line->By = -14; line->Bz = 373;
+
+        //Tweak crawl lines, so the initial direction more closely matches the actual crawl direction
+        line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(36));
+        line->Ax = 257; line->Ay = -14; line->Az = 373;
+        line->Bx = 269; line->By = -14; line->Bz = 389;
+        line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(37));
+        line->Ax = 258; line->Ay = -14; line->Az = 403;
+        line->Bx = 241; line->By = -14; line->Bz = 380;
+
+        line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(38));
+        line->Ax = 370; line->Ay = -14; line->Az = 423;
+        line->Bx = 389; line->By = -14; line->Bz = 416;
+        line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(39));
+        line->Ax = 396; line->Ay = -14; line->Az = 432;
+        line->Bx = 374; line->By = -14; line->Bz = 440;
+        
+        line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(41));
+        line->Ax = 452; line->Ay = -14; line->Az = 331;
+        line->Bx = 452; line->By = -14; line->Bz = 310;
+        line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(42));
+        line->Ax = 469; line->Ay = -14; line->Az = 310;
+        line->Bx = 469; line->By = -14; line->Bz = 331;
     }
 
     //Shrine entrance 
