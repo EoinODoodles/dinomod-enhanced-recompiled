@@ -4329,6 +4329,14 @@ static void discovery_falls_modifications(void) {
                 curve->pos.z = crawlNodeUIDs[i].coords.z;
             }
         }
+
+        //Align the podium switch closer to apparent centre of the podium's opening
+        {
+            ObjSetup* podiumSwitch = GET_MAPS_OBJECT(discoveryFalls, 0x02149);
+            podiumSwitch->x = 783.874;
+            podiumSwitch->y = 2.968;
+            podiumSwitch->z = -812.073;
+        }
     }
 
     //Upper Falls
