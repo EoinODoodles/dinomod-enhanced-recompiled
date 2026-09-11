@@ -4293,6 +4293,35 @@ static void discovery_falls_modifications(void) {
         }
     }
 
+    //Middle Falls - Mole Caves
+    {
+        //Tweak the crawl curves' positions, so they're exactly at ground height 
+        //(helps the camera avoid clipping into the wall during the crawl)
+        {
+            u32 crawlNodeUIDs[] = {
+                0x00030bd3,
+                0x00030bd2,
+                0x00030bd1,
+                0x00030bd0,
+
+                0x00030bce,
+                0x00030bcd,
+                0x00030bcc,
+                0x00030bcb,
+
+                0x00030b78,
+                0x00030b77,
+                0x00030b73,
+                0x00030b72
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(crawlNodeUIDs); i++) {
+                CurveSetup* curve = GET_MAPS_OBJECT(discoveryFalls, crawlNodeUIDs[i]);
+                curve->pos.y = -14.0f;
+            }
+        }
+    }
+
     //Upper Falls
     {
         //Stalactite Cave (add camera TriggerPlanes)
