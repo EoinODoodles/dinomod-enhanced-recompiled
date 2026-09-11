@@ -231,6 +231,11 @@ VampireBat_BattleMode configs_GetVampireBatMode(void) {
     return recomp_get_config_u32("vampirebat_config");
 }
 
+/* Checks whether to fix up DFMole's "GoToDigSpot" logic state */
+_Bool configs_GetMoleDigFix(void) {
+    return recomp_get_config_u32("dfmole_dig_fix") != 0;
+}
+
 /* Checks what option to use for DIMCannon's custom sound design. */
 DIMCannonSounds configs_GetDIMCannonSoundMode(void) {
     return recomp_get_config_u32("dim_cannon_sounds");

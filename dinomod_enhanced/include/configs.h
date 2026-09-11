@@ -171,6 +171,7 @@ u32 configs_GetMushroomDanceChance(void);
 _Bool configs_GetRedMushroomsEnhanced(void);
 _Bool configs_GetPurpleMushrooms(void);
 VampireBat_BattleMode configs_GetVampireBatMode(void);
+_Bool configs_GetMoleDigFix(void);
 DIMCannonSounds configs_GetDIMCannonSoundMode(void);
 DIMTentModes configs_GetDIMTentMode(void);
 _Bool configs_GetWCPressureSwitchIgnoreProjectiles(void);

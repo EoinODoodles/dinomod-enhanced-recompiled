@@ -402,7 +402,7 @@ With this config option, you can instead use camera-relative controls for the ro
   Controls are relative to the camera at the moment you first tilt the stick to move. If the camera swings around but you're still holding roughly the same initial stick direction, you'll continue moving forward. Or if you move the stick to a significantly different position, the movement direction will be updated.
 
 - On (Current)
-  Controls are relative to the current camera view.
+  Controls are always relative to the current camera view.
 '''
 type = "Enum"
 options = [ "Off", "On (Initial)", "On (Current)" ]
@@ -604,6 +604,20 @@ Alternatively, these options can be used if you'd prefer not to fight the bats:
 '''
 type = "Enum"
 options = [ "Off (Ignore Player)", "Off (Follow Player)", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "dfmole_dig_fix"
+name = "Mole: Dig Spot Fixes"
+description = '''
+Hidden away in one of Discovery Falls' caves, Krystal encounters the greatest discovery of all: a funny little mole! This curious creature helps excavate some nearby dig spots, but they can sometimes get stuck and spend a long time trying to find the wall.
+
+Switching on this config option enables a redesigned version of the dig behaviour, which should hopefully alleviate any wall-walking troubles.
+
+Or, if you believe the only things about this mole that need fixing are the hearts of those who can't accept them in all their silliness (and you'd be correct): you can leave this option off!
+'''
+type = "Enum"
+options = [ "Off", "On" ]
 default = "On"
 
 [[manifest.config_options]]
