@@ -4113,6 +4113,7 @@ static void discovery_falls_modifications(void) {
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 338, block338); //Lower Falls cliff-face: Fix broken decals on edges of climbable section and archway, clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 341, block341); //BWC exit (corner): reduce UV warping, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 342, block342); //BWC exit: clean up some UVs, extend dockpoint so it's not hovering in the water, clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 344, block344); //Middle Falls - mole cave entrance: fix camera clipping through wall when climbing up ladder, small UV fixes, add blend into the mole cave
     }
 
     //Approach (from SwapStone Circle)
@@ -4299,6 +4300,37 @@ static void discovery_falls_modifications(void) {
 
     //Middle Falls - Mole Caves
     {
+        //Add TriggerPlane to base of ladder climb, to stop the camera clipping through the wall
+        //while interpolating back up to the StaticCamera
+        {
+            Trigger_Setup plane = {
+                .base = {
+                    .objId = OBJ_TriggerPlane,
+                    .loadFlags = OBJSETUP_LOAD_MAIN,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = 50,
+                    .fadeDistance = 50,
+                },
+                COORDS_SETUP(29.001, 318.932, -956.258),
+                .rotationY = TRIGGER_YAW(90),
+                .rotationX = DEGREES_TO_ANGLE8(270),
+                .sizeX = TRIGGER_SCALE(0.375),
+                .sizeY = 0x10,
+                .sizeZ = 0x10,
+                .conditionBitFlagIDs[0] = NO_GAMEBIT
+            };
+            EXIT_CAMERAACTION(0, 0x7D, &plane, 0); //Use closer camera
+            ENTER_CAMERAACTION(0, 1, &plane, 1); //Use regular camera
+            reasset_map_objects_set(discoveryFalls, 
+                reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+        }
+
+        //Edit the TriggerPlane just above it too
+        {
+            Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x4273f);
+            EMPTY_TRIGGER_COMMAND(plane, 1); //Don't switch back to regular camera just yet
+        }
+
         //Tweak the crawl curves' positions so they're exactly at ground height (so the camera avoids clipping into the wall during the crawl)
         //And align them exactly along crawlspace (to reduce jumps in camera angle after settling into the crawl curve from the initial HITS line angle)
         {
