@@ -4353,6 +4353,33 @@ static void discovery_falls_modifications(void) {
             }
         }
 
+        //Upper cave (with SharpClaw guarding a hatch)
+        {
+            //Add a TriggerCylinder around the top of the hatch's ladder, 
+            //to bring the camera a little closer to the player during the climb
+            //(avoids camera clipping through the ground at the opposite side of the hatch hole)
+            {
+                Trigger_Setup cylinder = {
+                    .base = {
+                        .objId = OBJ_TriggerCylinder,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(320),
+                        .fadeDistance = FADE_DISTANCE(320),
+                    },
+                    COORDS_SETUP(988, 188.000, -960),
+                    .sizeX = 24,
+                    .sizeY = 29 * 2,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = BIT_101 //Hatch must be open
+                };
+                ENTER_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, TRUE, &cylinder, 0); //Use closer CamClimb
+                EXIT_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, FALSE, &cylinder, 1); //Use regular CamClimb
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &cylinder, sizeof(cylinder));
+            }
+        }
+
         //Lower cave (home to DFMole!)
         {
             //Tweak the crawl curves' positions so they're exactly at ground height (so the camera avoids clipping into the wall during the crawl)
