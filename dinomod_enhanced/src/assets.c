@@ -4300,93 +4300,99 @@ static void discovery_falls_modifications(void) {
 
     //Middle Falls - Mole Caves
     {
-        //Add a second StaticCamera at the base of the climb, to stop the camera clipping through the wall on the way up
+        //Ladder leading back outdoors
         {
-            StaticCamera_Setup staticCam = {
-                .base = {
-                    .objId = OBJ_StaticCamera,
-                    .loadFlags = OBJSETUP_LOAD_MAIN,
-                    .fadeFlags = OBJSETUP_FADE_CAMERA,
-                    .loadDistance = FADE_DISTANCE(640),
-                    .fadeDistance = 50
-                },
-                COORDS_SETUP(42.109, 369.964, -956.889), 
-                .cameraID = 103, 
-                .fov = 70, 
-                .flags = CamStatic_LOOK_AT
-            };
-            reasset_map_objects_set(discoveryFalls, 
-                reasset_auto_id(dinomodNs), &staticCam, sizeof(StaticCamera_Setup));
-        }
+            //Add a second StaticCamera at the base of the climb, to stop the camera clipping through the wall on the way up
+            {
+                StaticCamera_Setup staticCam = {
+                    .base = {
+                        .objId = OBJ_StaticCamera,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(640),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(42.109, 369.964, -956.889), 
+                    .cameraID = 103, 
+                    .fov = 70, 
+                    .flags = CamStatic_LOOK_AT
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &staticCam, sizeof(StaticCamera_Setup));
+            }
 
-        //Add a TriggerPlane to base of ladder climb, to activate the bottom StaticCamera
-        {
-            Trigger_Setup plane = {
-                .base = {
-                    .objId = OBJ_TriggerPlane,
-                    .loadFlags = OBJSETUP_LOAD_MAIN,
-                    .fadeFlags = OBJSETUP_FADE_CAMERA,
-                    .loadDistance = 50,
-                    .fadeDistance = 50,
-                },
-                COORDS_SETUP(29.001, 318.932, -956.258),
-                .rotationY = TRIGGER_YAW(90),
-                .rotationX = DEGREES_TO_ANGLE8(270),
-                .sizeX = TRIGGER_SCALE(0.375),
-                .sizeY = 0x10,
-                .sizeZ = 0x10,
-                .conditionBitFlagIDs[0] = NO_GAMEBIT
-            };
-            EXIT_CAMERAACTION(1, 103, &plane, 0); //Use bottom StaticCamera
-            ENTER_CAMERAACTION(0, 1, &plane, 1); //Use regular camera
-            reasset_map_objects_set(discoveryFalls, 
-                reasset_auto_id(dinomodNs), &plane, sizeof(plane));
-        }
+            //Add a TriggerPlane to base of ladder climb, to activate the bottom StaticCamera
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 50,
+                        .fadeDistance = 50,
+                    },
+                    COORDS_SETUP(29.001, 318.932, -956.258),
+                    .rotationY = TRIGGER_YAW(90),
+                    .rotationX = DEGREES_TO_ANGLE8(270),
+                    .sizeX = TRIGGER_SCALE(0.375),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                };
+                EXIT_CAMERAACTION(1, 103, &plane, 0); //Use bottom StaticCamera
+                ENTER_CAMERAACTION(0, 1, &plane, 1); //Use regular camera
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
 
-        //Edit the TriggerPlane just above it too
-        {
-            Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x4273f);
-            plane->base.y = 352.388; //Raise slightly, so the bottom StaticCamera will have fully finished interpolating in by the time the player climbs up to here
-            EMPTY_TRIGGER_COMMAND(plane, 1); //Don't switch back to regular camera just yet
-        }
-
-        //Tweak the crawl curves' positions so they're exactly at ground height (so the camera avoids clipping into the wall during the crawl)
-        //And align them exactly along crawlspace (to reduce jumps in camera angle after settling into the crawl curve from the initial HITS line angle)
-        {
-            ObjReposition crawlNodeUIDs[] = {
-                //First cave (the one the mole digs automatically)
-                {0x00030bd3, VEC3F(1069.700, -14, -959.5)}, //Out (End)
-                {0x00030bd2, VEC3F(1122.800, -14, -959.5)}, //Out (Start)
-                {0x00030bd1, VEC3F(1135.585, -14, -959.5)}, //In (End)
-                {0x00030bd0, VEC3F(1082.088, -14, -959.5)}, //In (Start)
-
-                //Second cave
-                {0x00030bce, VEC3F(1012.670, -14, -878.809)}, //Out (End)
-                {0x00030bcd, VEC3F(1029.050, -14, -834.200)}, //Out (Start)
-                {0x00030bcc, VEC3F(1033.539, -14, -821.972)}, //In (End)
-                {0x00030bcb, VEC3F(1014.892, -14, -872.755)}, //In (Start)
-
-                //Third cave (with the Shrine podium switch)
-                {0x00030b78, VEC3F(924.295, -14, -914.891)}, //Out (End)
-                {0x00030b77, VEC3F(876.073, -14, -879.056)}, //Out (Start)
-                {0x00030b73, VEC3F(861.364, -14, -868.126)}, //In (End) 
-                {0x00030b72, VEC3F(911.424, -14, -905.327)}  //In (Start)
-            };
-
-            for (u32 i = 0; i < ARRAYCOUNT(crawlNodeUIDs); i++) {
-                CurveSetup* curve = GET_MAPS_OBJECT(discoveryFalls, crawlNodeUIDs[i].uID);
-                curve->pos.x = crawlNodeUIDs[i].coords.x;
-                curve->pos.y = crawlNodeUIDs[i].coords.y;
-                curve->pos.z = crawlNodeUIDs[i].coords.z;
+            //Edit the TriggerPlane just above it too
+            {
+                Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x4273f);
+                plane->base.y = 352.388; //Raise slightly, so the bottom StaticCamera will have fully finished interpolating in by the time the player climbs up to here
+                EMPTY_TRIGGER_COMMAND(plane, 1); //Don't switch back to regular camera just yet
             }
         }
 
-        //Align the podium switch closer to apparent centre of the podium's opening
+        //Lower cave (home to DFMole!)
         {
-            ObjSetup* podiumSwitch = GET_MAPS_OBJECT(discoveryFalls, 0x02149);
-            podiumSwitch->x = 783.874;
-            podiumSwitch->y = 2.968;
-            podiumSwitch->z = -812.073;
+            //Tweak the crawl curves' positions so they're exactly at ground height (so the camera avoids clipping into the wall during the crawl)
+            //And align them exactly along crawlspace (to reduce jumps in camera angle after settling into the crawl curve from the initial HITS line angle)
+            {
+                ObjReposition crawlNodeUIDs[] = {
+                    //First cave (the one the mole digs automatically)
+                    {0x00030bd3, VEC3F(1069.700, -14, -959.5)}, //Out (End)
+                    {0x00030bd2, VEC3F(1122.800, -14, -959.5)}, //Out (Start)
+                    {0x00030bd1, VEC3F(1135.585, -14, -959.5)}, //In (End)
+                    {0x00030bd0, VEC3F(1082.088, -14, -959.5)}, //In (Start)
+
+                    //Second cave
+                    {0x00030bce, VEC3F(1012.670, -14, -878.809)}, //Out (End)
+                    {0x00030bcd, VEC3F(1029.050, -14, -834.200)}, //Out (Start)
+                    {0x00030bcc, VEC3F(1033.539, -14, -821.972)}, //In (End)
+                    {0x00030bcb, VEC3F(1014.892, -14, -872.755)}, //In (Start)
+
+                    //Third cave (with the Shrine podium switch)
+                    {0x00030b78, VEC3F(924.295, -14, -914.891)}, //Out (End)
+                    {0x00030b77, VEC3F(876.073, -14, -879.056)}, //Out (Start)
+                    {0x00030b73, VEC3F(861.364, -14, -868.126)}, //In (End) 
+                    {0x00030b72, VEC3F(911.424, -14, -905.327)}  //In (Start)
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(crawlNodeUIDs); i++) {
+                    CurveSetup* curve = GET_MAPS_OBJECT(discoveryFalls, crawlNodeUIDs[i].uID);
+                    curve->pos.x = crawlNodeUIDs[i].coords.x;
+                    curve->pos.y = crawlNodeUIDs[i].coords.y;
+                    curve->pos.z = crawlNodeUIDs[i].coords.z;
+                }
+            }
+
+            //Align the podium switch closer to apparent centre of the podium's opening
+            {
+                ObjSetup* podiumSwitch = GET_MAPS_OBJECT(discoveryFalls, 0x02149);
+                podiumSwitch->x = 783.874;
+                podiumSwitch->y = 2.968;
+                podiumSwitch->z = -812.073;
+            }
         }
     }
 
