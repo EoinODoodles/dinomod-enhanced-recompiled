@@ -3,6 +3,7 @@
 
 #include "PR/ultratypes.h"
 #include "macros.h"
+#include "sys/main.h"
 #include "sys/math.h"
 #include "sys/print.h"
 
@@ -46,6 +47,37 @@ f32 ease_in_out_cubic(f32 x) {
 }
 f32 ease_in_out_quart(f32 x) {
     return x < 0.5 ? 8 * x * x * x * x : 1 - recomp_powf(-2 * x + 2, 4) / 2;
+}
+
+/** From "Critically Damped Ease-In/Ease-Out Smoothing", in "Game Programming Gems 4" by Thomas Lowe.
+  *
+  * Interpolate from one value to a goal value over a set duration. The goal can move during the interpolation and it will still interpolate smoothly!
+  */
+f32 dampedSmoothToFrom(f32 from, f32 to, f32* vel, f32 smoothTime) {
+    f32 omega = 2.0f/smoothTime;
+    f32 x = omega * gUpdateRateF;
+    f32 exp = 1.0f/(1.0f + x + (0.48f * SQ(x)) + (0.235f * x * x * x));
+    f32 change = from - to;
+    f32 temp = (*vel + omega * change) * gUpdateRateF;
+    *vel = (*vel - omega * temp) * exp;
+    return to + (change + temp) * exp;
+}
+
+/** Adapted from "Critically Damped Ease-In/Ease-Out Smoothing", in "Game Programming Gems 4" by Thomas Lowe 
+  *
+  * Interpolate from one angle to a goal angle over a set duration. The goal can move during the interpolation and it will still interpolate smoothly!
+  */
+s16 dampedSmoothAngleToFrom(s16 from, s16 to, s16* vel, f32 smoothTime) {
+    f32 omega = 2.0f/smoothTime;
+    f32 x = omega * gUpdateRateF;
+    f32 exp = 1.0f/(1.0f + x + (0.48f * SQ(x)) + (0.235f * x * x * x));
+    s32 angleChange = from - to;
+    CIRCLE_WRAP(angleChange);
+    f32 temp = (*vel + omega * angleChange) * gUpdateRateF;
+    *vel = (*vel - omega * temp) * exp;
+    s32 newAngle = to + (angleChange + temp) * exp;
+    CIRCLE_WRAP(newAngle);
+    return newAngle;
 }
 
 /** Rotate a point in a plane, around the origin. */

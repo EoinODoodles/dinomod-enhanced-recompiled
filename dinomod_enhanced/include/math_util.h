@@ -14,6 +14,9 @@
 //Convert degrees into the 8-bit angle format Dinosaur Planet commonly uses for its objSetups
 #define DEGREES_TO_ANGLE8(degrees) ((u8)(degrees*((f32)0x100/360.0f) + 0.5f))
 
+//Convert degrees into the 16-bit angle format Dinosaur Planet commonly uses for calculations
+#define DEGREES_TO_ANGLE16(degrees) ((((s32)degrees * M_360_DEGREES * 2) + 1) / 720)
+
 extern f32 sqrtf(f32 num);
 extern f32 sinf(f32 angle);
 f32 cosf(f32 angle);
@@ -31,6 +34,9 @@ f32 ease_out_quart(f32 tValue);
 f32 ease_in_out_quad(f32 tValue);
 f32 ease_in_out_cubic(f32 tValue);
 f32 ease_in_out_quart(f32 tValue);
+
+f32 dampedSmoothToFrom(f32 from, f32 to, f32* vel, f32 smoothTime);
+s16 dampedSmoothAngleToFrom(s16 from, s16 to, s16* vel, f32 smoothTime);
 
 void rotate_point_by_angle_2D(f32 x, f32 y, f32* ox, f32* oy, s16 theta);
 
