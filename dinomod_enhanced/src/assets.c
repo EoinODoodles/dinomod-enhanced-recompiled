@@ -4300,8 +4300,26 @@ static void discovery_falls_modifications(void) {
 
     //Middle Falls - Mole Caves
     {
-        //Add TriggerPlane to base of ladder climb, to stop the camera clipping through the wall
-        //while interpolating back up to the StaticCamera
+        //Add a second StaticCamera at the base of the climb, to stop the camera clipping through the wall on the way up
+        {
+            StaticCamera_Setup staticCam = {
+                .base = {
+                    .objId = OBJ_StaticCamera,
+                    .loadFlags = OBJSETUP_LOAD_MAIN,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = FADE_DISTANCE(640),
+                    .fadeDistance = 50
+                },
+                COORDS_SETUP(42.109, 369.964, -956.889), 
+                .cameraID = 103, 
+                .fov = 70, 
+                .flags = CamStatic_LOOK_AT
+            };
+            reasset_map_objects_set(discoveryFalls, 
+                reasset_auto_id(dinomodNs), &staticCam, sizeof(StaticCamera_Setup));
+        }
+
+        //Add a TriggerPlane to base of ladder climb, to activate the bottom StaticCamera
         {
             Trigger_Setup plane = {
                 .base = {
@@ -4319,7 +4337,7 @@ static void discovery_falls_modifications(void) {
                 .sizeZ = 0x10,
                 .conditionBitFlagIDs[0] = NO_GAMEBIT
             };
-            EXIT_CAMERAACTION(0, 0x7D, &plane, 0); //Use closer camera
+            EXIT_CAMERAACTION(1, 103, &plane, 0); //Use bottom StaticCamera
             ENTER_CAMERAACTION(0, 1, &plane, 1); //Use regular camera
             reasset_map_objects_set(discoveryFalls, 
                 reasset_auto_id(dinomodNs), &plane, sizeof(plane));
@@ -4328,6 +4346,7 @@ static void discovery_falls_modifications(void) {
         //Edit the TriggerPlane just above it too
         {
             Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x4273f);
+            plane->base.y = 352.388; //Raise slightly, so the bottom StaticCamera will have fully finished interpolating in by the time the player climbs up to here
             EMPTY_TRIGGER_COMMAND(plane, 1); //Don't switch back to regular camera just yet
         }
 
