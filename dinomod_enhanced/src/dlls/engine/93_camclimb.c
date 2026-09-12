@@ -219,11 +219,7 @@ RECOMP_PATCH void camclimb_control(Cam* cam) {
     angleDiff = -mathAtan2f(dx, dz) - (cam->srt.yaw & 0xFFFF);
     angleDiff += M_180_DEGREES;
     CIRCLE_WRAP(angleDiff);
-    if (initialEaseFinished) {
-        cam->srt.yaw += (s32) (angleDiff * gUpdateRate) / angleEaseDivisor; //@recomp: use easing
-    } else {
-        cam->srt.yaw += angleDiff;
-    }
+    cam->srt.yaw += angleDiff;
     
     //Set pitch
     if (useCloserCamera) {
