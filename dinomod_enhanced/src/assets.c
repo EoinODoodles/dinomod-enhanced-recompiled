@@ -66,6 +66,8 @@ INCBIN(block331, "inc/blocks_0331_DF_middle_falls_cradle_station_1.bin");
 INCBIN(block329, "inc/blocks_0329_DF_middle_falls_cradle_station_3_and_turbine.bin");
 INCBIN(block341, "inc/blocks_0341_DF_BWC_exit_corner.bin");
 INCBIN(block342, "inc/blocks_0342_DF_BWC_exit.bin");
+INCBIN(block333, "inc/blocks_0333_DF_foodbag_cave.bin");
+INCBIN(block334, "inc/blocks_0334_DF_lower_falls_foodbag_cave_entrance.bin");
 INCBIN(block597, "inc/blocks_0597_WC_approach_gateway_corridor.bin");
 INCBIN(block599, "inc/blocks_0599_WC_jungle_door_area_ne.bin");
 INCBIN(block600, "inc/blocks_0600_WC_jungle_door_area_se.bin");
@@ -4113,7 +4115,8 @@ static void discovery_falls_modifications(void) {
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 338, block338); //Lower Falls cliff-face: Fix broken decals on edges of climbable section and archway, clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 341, block341); //BWC exit (corner): reduce UV warping, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 342, block342); //BWC exit: clean up some UVs, extend dockpoint so it's not hovering in the water, clamped cliff textures
-        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 344, block344); //Middle Falls - mole cave entrance: fix camera clipping through wall when climbing up ladder, small UV fixes, add blend into the mole cave
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 333, block333); //Lower Falls - foodbag cave interior: fix z-fighting at the back of the ladder, align ladder with climb animation, minor UV fixes at the entrance
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 334, block334); //Lower Falls - foodbag cave entrance: minor UV fixes, use clamped cliff textures, colour discontinuity fix just inside cave
     }
 
     //Approach (from SwapStone Circle)
