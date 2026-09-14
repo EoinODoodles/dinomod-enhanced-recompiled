@@ -149,6 +149,14 @@ typedef enum {
     SEQOBJ_OPTIONS_HasReplayActorMask = 16                      // if set, more than just the seqobj will be controlled by a replay
 } SeqObj_PlaybackOptions;
 
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ u8 roll;
+/*19*/ u8 pitch;
+/*1A*/ u8 yaw;
+/*1B*/ u8 scale;
+} SeqProp_Setup;
+
 typedef enum  {
     USEOBJ_HideIfAlreadyUsed = 0x1,
     USEOBJ_SeqControlsUsedBit = 0x4,
