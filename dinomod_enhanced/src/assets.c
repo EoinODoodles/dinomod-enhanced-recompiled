@@ -4249,6 +4249,105 @@ static void discovery_falls_modifications(void) {
             }
         }
     }
+
+    //Lower Falls
+    {
+        //Foodbag Cave
+        {
+            //Move XYZAnimator out of ObjGroup
+            //(since the raised ladder geometry starts flickering between its up/down state when the XYZAnimator unloads on the way out)
+            //TODO: revisit this once XYZAnimator is decompiled and try to come up with a better fix that keeps it in its objGroup
+            {
+                ObjSetup* ladderAnimator = GET_MAPS_OBJECT(discoveryFalls, 0x00031b47);
+                ladderAnimator->loadFlags = OBJSETUP_LOAD_MAIN;
+                ladderAnimator->loadDistance = FADE_DISTANCE(640);
+            }
+
+            //Add a StaticCamera setup to the entrance (based on Rare's mostly finished camera setup for the ladder down to the mole cave)
+            {
+                #define CAM_ID_FOODBAG_CAVE_UPPER 103
+                #define CAM_ID_FOODBAG_CAVE_LOWER 104
+
+                StaticCamera_Setup staticCams[] = {
+                    { COORDS_SETUP(-626.109, 406.964, 300), .cameraID = CAM_ID_FOODBAG_CAVE_UPPER, .fov = 80, .flags = CamStatic_LOOK_AT },
+                    { COORDS_SETUP(-640.000, 325.000, 300), .cameraID = CAM_ID_FOODBAG_CAVE_LOWER, .fov = 70, .flags = CamStatic_LOOK_AT },
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(staticCams); i++) {
+                    StaticCamera_Setup* cam = &staticCams[i];
+                    cam->base.objId = OBJ_StaticCamera;
+                    cam->base.loadFlags = OBJSETUP_LOAD_MAIN;
+                    cam->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                    cam->base.loadDistance = FADE_DISTANCE(320);
+                    cam->base.fadeDistance = 50;
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), cam, sizeof(StaticCamera_Setup));
+                }
+            }
+
+            //Edit existing TriggerPlane to activate the upper camera
+            {
+                //Top of climb
+                {
+                    Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x30a4e);
+                    ENTER_CAMERAACTION(1, CAM_ID_FOODBAG_CAVE_UPPER, plane, 2); //Use upper StaticCamera
+                    EXIT_CAMERAACTION(0, 1, plane, 3); //Use CamNormal
+                }
+            }
+
+            //Add TriggerPlanes activating the cameras
+            {
+                //Middle of climb
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-623.472, 295.388, 321),
+                        .rotationY = TRIGGER_YAW(90),
+                        .rotationX = DEGREES_TO_ANGLE8(270),
+                        .sizeX = TRIGGER_SCALE(0.375),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    };
+                    ENTER_CAMERAACTION(1, CAM_ID_FOODBAG_CAVE_LOWER, &plane, 0); //Use lower StaticCamera
+                    EXIT_CAMERAACTION(1, CAM_ID_FOODBAG_CAVE_UPPER, &plane, 1); //Use upper StaticCamera
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+
+                //Base of climb
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-623.472, 261.932, 321),
+                        .rotationY = TRIGGER_YAW(90),
+                        .rotationX = DEGREES_TO_ANGLE8(270),
+                        .sizeX = TRIGGER_SCALE(0.375),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    };
+                    EXIT_CAMERAACTION(1, CAM_ID_FOODBAG_CAVE_LOWER, &plane, 0); //Use lower StaticCamera
+                    ENTER_CAMERAACTION(0, 1, &plane, 1); //Use CamNormal
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+            }
+        } 
+    }
+
     //Middle Falls
     {
         //Add HitAnimators for Kyte's turbine sequence (enabling temporary widescreen fixes)
