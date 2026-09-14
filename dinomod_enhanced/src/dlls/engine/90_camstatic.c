@@ -202,10 +202,15 @@ RECOMP_PATCH void camstatic_func_278(Cam* cam) {
     }
 }
 
-/* Add missing FOV easing, to prevent a jarring pop when switching between cameras with different FOVs. */
+/* - Add missing FOV easing, to prevent a jarring pop when switching between cameras with different FOVs. 
+   - Add optional ease speed factor (ignored if 0, like in all of December 2000's StaticCameras)
+*/
 RECOMP_PATCH s32 camstatic_ease(Cam* cam, u8 flags) {
     f32 tValue;
     f32 speed;
+    /* RECOMP */
+    StaticCamera_Setup* objSetup;
+    f32 speedFactor = 0;
 
     sState->goalX = cam->srt.transl.x;
     sState->goalY = cam->srt.transl.y;
@@ -229,7 +234,20 @@ RECOMP_PATCH s32 camstatic_ease(Cam* cam, u8 flags) {
         speed = 0.2f;
     }
 
-    sState->easedDistance += speed * gUpdateRateF;
+    //@recomp: add option to adjust ease speed
+    if (sState->obj) {
+        objSetup = (StaticCamera_Setup*)sState->obj->setup;
+        if (objSetup && objSetup->speedFactor != 0) {
+            speedFactor = objSetup->speedFactor/64.0f;
+        }
+    }
+
+    if (speedFactor) {
+        sState->easedDistance += speed * gUpdateRateF * speedFactor;
+    } else {
+        sState->easedDistance += speed * gUpdateRateF;
+    }
+
     tValue = sState->easedDistance / sState->goalDistance;
     if (tValue > 1.0f) {
         tValue = 1.0f;

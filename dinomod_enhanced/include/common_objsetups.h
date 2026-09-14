@@ -345,7 +345,7 @@ typedef struct {
 typedef struct {
     ObjSetup base;
     u8 cameraID;
-    u8 unk19;
+    u8 speedFactor; //@recomp
     u8 fov;
     u8 flags;
     s16 yaw;
