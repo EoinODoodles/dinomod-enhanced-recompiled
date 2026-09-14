@@ -4759,35 +4759,6 @@ static void discovery_falls_hit_edits(void) {
         }
     }
 
-    // Edits to make it possible to go down to the waterfall leading to the shrine. These hits
-    // in vanilla are for an older DF layout so this patch adjusts them so they don't block the path.
-    {
-        ReAssetID waterfallRiverBlock = reasset_base_id(324 - dfTrkblkBase);
-
-        TrackLine block0324[] = {
-            { HITS_A(0, 468, 450),    HITS_B(115, 468, 430), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(115, 468, 430),  HITS_B(193, 468, 371), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(193, 468, 371),  HITS_B(238, 468, 263), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(238, 468, 263),  HITS_B(343, 468, 196), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(343, 468, 196),  HITS_B(374, 468, 163), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(374, 468, 163),  HITS_B(369, 468, 118), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(369, 468, 118),  HITS_B(394, 468, 108), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(394, 468, 108),  HITS_B(428, 468, 108), .heightA = 65, .heightB = 65, .settingsA = Player_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(428, 468, 108),  HITS_B(427, 468, -0),  .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(85, 468, 220),   HITS_B(0, 468, 275),   .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(123, 468, 166), HITS_B(85, 468, 220),  .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(183, 468, 161), HITS_B(123, 468, 166), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(197, 468, 109), HITS_B(200, 468, 139), .heightA = 65, .heightB = 65, .settingsA = Player_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(200, 468, 139), HITS_B(183, 468, 161), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(256, 468, 81),  HITS_B(197, 468, 109), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(295, 468, 0),   HITS_B(256, 468, 81),  .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-        };
-
-        for (u32 i = 0; i < ARRAYCOUNT(block0324); i++) {
-            reasset_hits_set(dfTrkblk, waterfallRiverBlock, reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0324[i]);
-        }
-    }
-
     //Middle Falls
     {
         //Add clamber lines to the sides of the jetty under the turbine
@@ -4814,20 +4785,20 @@ static void discovery_falls_hit_edits(void) {
             { HITS_A(385, 326, 174), HITS_B(168, 326, 174), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
             { HITS_A(168, 326, 230), HITS_B(215, 326, 230), .heightUnified = 40, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(104, 507, 164), HITS_B(182, 503, 156), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(240, 503, 18),  HITS_B(0, 514, 0), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(169, 608, 64),  HITS_B(169, 608, 13), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
-            { HITS_A(65, 608, 64),   HITS_B(169, 608, 64), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
-            { HITS_A(0, 567, 64),    HITS_B(65, 608, 64), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = HITS_Jump_or_Precipice, .animatorID = NO_ANIMATOR },
+            { HITS_A(240, 503, 18),  HITS_B(0, 514, 0),     .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(169, 608, 64),  HITS_B(169, 608, 13),  .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(65, 608, 64),   HITS_B(169, 608, 64),  .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(0, 567, 64),    HITS_B(65, 608, 64),   .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = HITS_Jump_or_Precipice, .animatorID = NO_ANIMATOR },
             { HITS_A(215, 326, 230), HITS_B(215, 326, 240), .heightA = 53, .heightB = 53, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(245, 280, 0),   HITS_B(138, 280, 131), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(640, 280, 0),   HITS_B(245, 280, 0), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(640, 280, 0),   HITS_B(245, 280, 0),   .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(125, 280, 414), HITS_B(174, 280, 546), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(640, 300, 174), HITS_B(640, 300, 230), .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(588, 300, 121), HITS_B(640, 300, 174), .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(527, 300, 93),  HITS_B(588, 300, 121), .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(451, 300, 67),  HITS_B(527, 300, 93), .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(385, 300, 85),  HITS_B(451, 300, 67), .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(355, 300, 174), HITS_B(385, 300, 85), .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(451, 300, 67),  HITS_B(527, 300, 93),  .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(385, 300, 85),  HITS_B(451, 300, 67),  .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(355, 300, 174), HITS_B(385, 300, 85),  .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(168, 264, 174), HITS_B(355, 284, 174), .heightA = 63, .heightB = 47, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(640, 300, 230), HITS_B(582, 300, 282), .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(582, 300, 282), HITS_B(451, 300, 335), .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
@@ -4838,9 +4809,9 @@ static void discovery_falls_hit_edits(void) {
             { HITS_A(258, 278, 393), HITS_B(168, 275, 391), .heightUnified = 50, .settingsA = (TrackLine_SETTINGA_Unified_Height | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(0, 514, 471),   HITS_B(178, 502, 518), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(35, 514, 230),  HITS_B(104, 507, 164), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(29, 514, 316),  HITS_B(35, 514, 230), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(63, 509, 397),  HITS_B(29, 514, 316), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(146, 503, 410), HITS_B(63, 509, 397), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(29, 514, 316),  HITS_B(35, 514, 230),  .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(63, 509, 397),  HITS_B(29, 514, 316),  .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(146, 503, 410), HITS_B(63, 509, 397),  .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(174, 280, 546), HITS_B(640, 280, 497), .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(168, 275, 391), HITS_B(168, 264, 174), .heightA = 51, .heightB = 60, .settingsA = (Vehicle_Ignores_Line | 0x6), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(172, 502, 523), HITS_B(146, 503, 410), .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | 0x6), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
@@ -4896,6 +4867,35 @@ static void discovery_falls_hit_edits(void) {
         line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(42));
         line->Ax = 469; line->Ay = -14; line->Az = 310;
         line->Bx = 469; line->By = -14; line->Bz = 331;
+    }
+
+    // Edits to make it possible to go down to the waterfall leading to the shrine. These hits
+    // in vanilla are for an older DF layout so this patch adjusts them so they don't block the path.
+    {
+        ReAssetID waterfallRiverBlock = reasset_base_id(324 - dfTrkblkBase);
+
+        TrackLine block0324[] = {
+            { HITS_A(0, 468, 450),    HITS_B(115, 468, 430), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(115, 468, 430),  HITS_B(193, 468, 371), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(193, 468, 371),  HITS_B(238, 468, 263), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(238, 468, 263),  HITS_B(343, 468, 196), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(343, 468, 196),  HITS_B(374, 468, 163), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(374, 468, 163),  HITS_B(369, 468, 118), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(369, 468, 118),  HITS_B(394, 468, 108), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(394, 468, 108),  HITS_B(428, 468, 108), .heightA = 65, .heightB = 65, .settingsA = Player_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(428, 468, 108),  HITS_B(427, 468, -0),  .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(85, 468, 220),   HITS_B(0, 468, 275),   .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(123, 468, 166), HITS_B(85, 468, 220),  .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(183, 468, 161), HITS_B(123, 468, 166), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(197, 468, 109), HITS_B(200, 468, 139), .heightA = 65, .heightB = 65, .settingsA = Player_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(200, 468, 139), HITS_B(183, 468, 161), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(256, 468, 81),  HITS_B(197, 468, 109), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(295, 468, 0),   HITS_B(256, 468, 81),  .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+        };
+
+        for (u32 i = 0; i < ARRAYCOUNT(block0324); i++) {
+            reasset_hits_set(dfTrkblk, waterfallRiverBlock, reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0324[i]);
+        }
     }
 
     //Shrine entrance 
