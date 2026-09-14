@@ -68,6 +68,7 @@ INCBIN(block341, "inc/blocks_0341_DF_BWC_exit_corner.bin");
 INCBIN(block342, "inc/blocks_0342_DF_BWC_exit.bin");
 INCBIN(block333, "inc/blocks_0333_DF_foodbag_cave.bin");
 INCBIN(block334, "inc/blocks_0334_DF_lower_falls_foodbag_cave_entrance.bin");
+INCBIN(block332, "inc/blocks_0332_DF_toxic_cave.bin");
 INCBIN(block597, "inc/blocks_0597_WC_approach_gateway_corridor.bin");
 INCBIN(block599, "inc/blocks_0599_WC_jungle_door_area_ne.bin");
 INCBIN(block600, "inc/blocks_0600_WC_jungle_door_area_se.bin");
@@ -4117,6 +4118,7 @@ static void discovery_falls_modifications(void) {
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 338, block338); //Lower Falls cliff-face: Fix broken decals on edges of climbable section and archway, clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 341, block341); //BWC exit (corner): reduce UV warping, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 342, block342); //BWC exit: clean up some UVs, extend dockpoint so it's not hovering in the water, clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 332, block332); //Middle Falls - toxic cave interior: add missing animatorID to one of the crack shapes, hide dev shape, match ground UVs with section near ladder, fix UV seam to the left when facing podium
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 333, block333); //Lower Falls - foodbag cave interior: fix z-fighting at the back of the ladder, align ladder with climb animation, minor UV fixes at the entrance
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 334, block334); //Lower Falls - foodbag cave entrance: minor UV fixes, use clamped cliff textures, colour discontinuity fix just inside cave
     }
@@ -4395,6 +4397,93 @@ static void discovery_falls_modifications(void) {
 
     //Middle Falls
     {
+
+        //Toxic Cave
+        {
+            //Add a StaticCamera setup to the entrance (based on Rare's mostly finished camera setup for the ladder down to the mole cave)
+            {
+                #define CAM_ID_TOXIC_CAVE_UPPER 105
+                #define CAM_ID_TOXIC_CAVE_LOWER 106
+
+                StaticCamera_Setup staticCams[] = {
+                    { COORDS_SETUP(580, 470, -248), .cameraID = CAM_ID_TOXIC_CAVE_UPPER, .fov = 80, .flags = CamStatic_LOOK_AT },
+                    { COORDS_SETUP(587, 389, -245), .cameraID = CAM_ID_TOXIC_CAVE_LOWER, .fov = 70, .speedFactor = 0x60, .flags = CamStatic_LOOK_AT },
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(staticCams); i++) {
+                    StaticCamera_Setup* cam = &staticCams[i];
+                    cam->base.objId = OBJ_StaticCamera;
+                    cam->base.loadFlags = OBJSETUP_LOAD_MAIN;
+                    cam->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                    cam->base.loadDistance = FADE_DISTANCE(320);
+                    cam->base.fadeDistance = 50;
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), cam, sizeof(StaticCamera_Setup));
+                }
+            }
+
+            //Edit existing TriggerPlane to activate the upper camera
+            {
+                //Top of climb
+                {
+                    Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x30aca);
+                    plane->base.x = 530.745; //Push away from ladder slightly
+                    EXIT_CAMERAACTION(1, CAM_ID_TOXIC_CAVE_UPPER, plane, 1); //Use upper StaticCamera
+                    ENTER_CAMERAACTION(0, 1, plane, 2); //Use CamNormal
+                }
+            }
+
+            //Add Trigger Objects activating the cameras
+            {
+                //Base of climb
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(578, 355, -228.25),
+                        .rotationY = TRIGGER_YAW(90),
+                        .rotationX = DEGREES_TO_ANGLE8(270),
+                        .sizeX = TRIGGER_SCALE(0.375),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    };
+                    EXIT_CAMERAACTION(1, CAM_ID_TOXIC_CAVE_UPPER, &plane, 0); //Use upper StaticCamera
+                    ENTER_CAMERAACTION(1, CAM_ID_TOXIC_CAVE_LOWER, &plane, 1); //Use lower StaticCamera
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+
+                //Enclose the ladder chute in a TriggerCylinder
+                {
+                    Trigger_Setup cylinder = {
+                        .base = {
+                            .objId = OBJ_TriggerCylinder,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = FADE_DISTANCE(320),
+                            .fadeDistance = FADE_DISTANCE(320),
+                        },
+                        COORDS_SETUP(543, 418, -228),
+                        .sizeX = 30,
+                        .sizeY = 64 * 2,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    };
+                    ENTER_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, TRUE, &cylinder, 0); //Use closer CamClimb
+                    EXIT_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, FALSE, &cylinder, 1); //Use regular CamClimb
+                    EXIT_CAMERAACTION(0, 1, &cylinder, 2); //Use CamNormal
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &cylinder, sizeof(cylinder));
+                }
+            }
+        }
+
         //Add HitAnimators for Kyte's turbine sequence (enabling temporary widescreen fixes)
         {
             HitAnimator_Setup hitAnims[] = {
@@ -4920,6 +5009,14 @@ static void discovery_falls_hit_edits(void) {
         for (u32 i = 0; i < ARRAYCOUNT(block0329); i++) {
             reasset_hits_set(dfTrkblk, reasset_base_id(329 - dfTrkblkBase), reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0329[i]);
         }
+    }
+
+    //Middle Falls - Toxic Cave
+    {
+        //Scoot the ladder out from the wall very slightly so Krystal's hands don't clip through it
+        TrackLine* ladder = reasset_hits_get(dfTrkblk, reasset_base_id(331 - dfTrkblkBase), reasset_base_id(8));
+        ladder->Ax = 554;
+        ladder->Bx = 554;
     }
 
     //Middle Falls - Mole Caves
