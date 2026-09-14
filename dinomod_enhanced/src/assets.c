@@ -157,6 +157,8 @@ INCBIN(objects_shbarrelcreator,   "inc/objects_SHbarrelcreator.bin");
 INCBIN(objects_wcdialswitch,      "inc/objects_WCDialProjectileSwitch.bin");
 INCBIN(objects_lodanimator,       "inc/objects_LODAnimator.bin");
 
+INCBIN(models_dfpodium,           "inc/models_0252_DFpodium.bin");
+INCBIN(models_dfpodiumswitch,     "inc/models_0253_DFpodiumswitch.bin");
 INCBIN(models_wcsuntempledoor,    "inc/models_0938_WCSunTempleDoor.bin");
 INCBIN(models_wcmoontempledoor,   "inc/models_0939_WCMoonTempleDoor.bin");
 INCBIN(models_wcslabdoor,         "inc/models_0942_WCSlabDoor.bin");
@@ -4119,6 +4121,46 @@ static void discovery_falls_modifications(void) {
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 334, block334); //Lower Falls - foodbag cave entrance: minor UV fixes, use clamped cliff textures, colour discontinuity fix just inside cave
     }
 
+    //MODELS
+    {
+        MODELS_REPLACE_BASE(252, models_dfpodium); //Fix an issue where the recess vertex positions were asymmetrical, causing the switch to look off-centre
+        MODELS_REPLACE_BASE(253, models_dfpodiumswitch); //Fix an issue where the widths were asymmetrical, causing the switch to look off-centre
+    }
+
+    //Align the podium switches exactly with their podiums
+    {
+        Vec3f positionOffset;
+        u32 podiumUIDPairs[4][2] = {
+            {0x00001fb7, 0x00001fb8 }, //Foodbag cave
+            {0x00002036, 0x00002038 }, //Toxic cave
+            {0x00002152, 0x00002153 }, //Whirlpool cave
+            {0x00002148, 0x00002149 }  //Mole cave
+        };
+        for (u32 i = 0; i < ARRAYCOUNT(podiumUIDPairs); i++) {
+            SeqProp_Setup* podium = GET_MAPS_OBJECT(discoveryFalls, podiumUIDPairs[i][0]);
+            UseObj_Setup* podiumSwitch = GET_MAPS_OBJECT(discoveryFalls, podiumUIDPairs[i][1]);
+
+            //Tweak the mole cave podium very slightly, so it's exactly aligned with the crawl camera
+            if (i == 3) {
+                podium->base.x = 775.393;
+                podium->base.z = -804.238;
+                podium->yaw = DEGREES_TO_ANGLE8(126.89);
+            }
+
+            podiumSwitch->yaw = podium->yaw; //One of the switches didn't have the same yaw as its podium
+            
+            positionOffset.x = 0;
+            positionOffset.y = 17;
+            positionOffset.z = 11.5;
+
+            rotate_point_by_angle_2D(positionOffset.x, positionOffset.z, &positionOffset.x, &positionOffset.z, podium->yaw << 8);
+
+            podiumSwitch->base.x = podium->base.x + positionOffset.x;
+            podiumSwitch->base.y = podium->base.y + positionOffset.y;
+            podiumSwitch->base.z = podium->base.z + positionOffset.z;
+        }
+    }
+
     //Approach (from SwapStone Circle)
     {
         //Add texscrolls to the waterfalls' foam
@@ -4513,14 +4555,6 @@ static void discovery_falls_modifications(void) {
                     curve->pos.y = crawlNodeUIDs[i].coords.y;
                     curve->pos.z = crawlNodeUIDs[i].coords.z;
                 }
-            }
-
-            //Align the podium switch closer to apparent centre of the podium's opening
-            {
-                ObjSetup* podiumSwitch = GET_MAPS_OBJECT(discoveryFalls, 0x02149);
-                podiumSwitch->x = 783.874;
-                podiumSwitch->y = 2.968;
-                podiumSwitch->z = -812.073;
             }
         }
     }
