@@ -3608,22 +3608,22 @@ RECOMP_PATCH s32 dll_210_func_1209C(Object* player, ObjFSA_Data* fsa, f32 update
   * - Don't change back to CamNormal if a StaticCamera is currently active (only in Discovery Falls for now, until more testing is done)
   */
 RECOMP_PATCH s32 dll_210_func_F690(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
-    f32 stickY; //9C
-    f32 animProgress; //98
-    f32 animTickDelta; //94
-    f32 x; //90
-    f32 y; //8C
-    f32 z; //88
-    f32 tempY; //84
-    Vec3f sp78; //78
-    Vec3f sp6C; //6C
-    Player_Data* objData; //t_s0
-    f32 temp_fa0; //t_fa0
-    ModelInstance* modelInstance; //60
-    s16 var_v1; //v_v1
-    f32 temp_fv1; //t_fv1
-    s16 pad_sp56; //pad_56
-    s16 sp54; //54
+    f32 stickY;
+    f32 animProgress;
+    f32 animTickDelta;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 tempY;
+    Vec3f sp78;
+    Vec3f sp6C;
+    Player_Data* objData;
+    f32 temp_fa0;
+    ModelInstance* modelInstance;
+    s16 var_v1;
+    f32 temp_fv1;
+    s16 pad_sp56;
+    s16 sp54;
 
     objData = player->data;
     
@@ -3777,7 +3777,7 @@ RECOMP_PATCH s32 dll_210_func_F690(Object* player, ObjFSA_Data* fsa, f32 updateR
                     //@recomp: don't exit out of StaticCameras (just in Discovery Falls for now - TODO: check if safe elsewhere!) 
                     if (playerUtil_doesStaticCameraHavePriority(player)) {
 #ifdef DEBUG_PRIORITISE_STATIC_CAMERA
-                        recomp_printf("StaticCamera active, skipping end-of-climb camera change.\n");
+                        recomp_printf("StaticCamera active, skipping ladder climb camera change.\n");
 #endif
                     } else {
                         gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 30, Cam_Ease_All);
@@ -3808,7 +3808,7 @@ RECOMP_PATCH s32 dll_210_func_F690(Object* player, ObjFSA_Data* fsa, f32 updateR
                     //@recomp: don't exit out of StaticCameras (just in Discovery Falls for now - TODO: check if safe elsewhere!) 
                     if (playerUtil_doesStaticCameraHavePriority(player)) {
 #ifdef DEBUG_PRIORITISE_STATIC_CAMERA
-                        recomp_printf("StaticCamera active, skipping end-of-climb camera change.\n");
+                        recomp_printf("StaticCamera active, skipping ladder camera change.\n");
 #endif
                     } else {
                         gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 30, Cam_Ease_All);
@@ -3900,5 +3900,130 @@ RECOMP_PATCH s32 dll_210_func_F690(Object* player, ObjFSA_Data* fsa, f32 updateR
     shadowsSetCustomObjPos(player, x, y, z);
     dll_210_func_7260(player, objData);
     
+    return 0;
+}
+
+/**
+  * PLAYER_ASTATE_Ladder_Slide_Down
+  * - Don't change back to CamNormal if a StaticCamera is currently active (only in Discovery Falls for now, until more testing is done)
+  */
+RECOMP_PATCH s32 dll_210_func_1034C(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
+    static f32 _bss_38;
+    f32 sp6C;
+    Player_Data* objData;
+    f32 temp_fv0;
+    f32 velocityY;
+    f32 tempY;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 dy;
+
+    objData = player->data;
+
+    if (fsa->enteredAnimState) {
+        _bss_38 = 0.0f;
+        objAnimSet(player, 0x35, 0.0f, 1U);
+        fsa->animTickDelta = 0.025f;
+        objData->unk3CC.unk1C = player->srt.transl.y;
+        player->srt.transl.y = objData->unk7EC.y;
+        dll_210_func_7260(player, objData);
+        fsa->unk270 = PLAYER_ASTATE_Falling;
+    }
+
+    if (!(fsa->unk4.unk25C & 0x10) && (fsa->unk4.underwaterDist > 5.0f)) {
+        return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_31);
+    }
+
+    fsa->unk4.mode = 2;
+    fsa->flags |= 0x200000;
+    
+    switch (player->curModAnimId) {
+    case 0x35:
+        if (fsa->unk33A) {
+            objAnimSet(player, 0x36, 0.0f, 0);
+            fsa->animTickDelta = 0.025f;
+        }
+        /* fallthrough */
+    case 0x36:
+        sp6C = -_bss_38 * 10.0f;
+        if (fsa->unk308 & 1) {
+            dll_amSfx->Play(player, SOUND_769_Whoosh_Ladder_Slide, MAX_VOLUME, NULL, NULL, 0, NULL);
+        }
+        dy = player->srt.transl.y - (objData->unk3CC.unk8 + 32.0f);
+        if (dy < 0.0f) {
+            dy = 0.0f;
+        }
+        if (dy < sp6C) {
+            temp_fv0 = SQ(_bss_38) / (2.0f * sp6C);
+            velocityY = -sqrtf(2.0f * (temp_fv0) * dy);
+            player->velocity.y = velocityY;
+            if (velocityY >= -0.01f) {
+                objAnimSet(player, 0x37, 0.0f, 1);
+
+                //@recomp: don't exit out of StaticCameras (just in Discovery Falls for now - TODO: check if safe elsewhere!) 
+                if (playerUtil_doesStaticCameraHavePriority(player)) {
+#ifdef DEBUG_PRIORITISE_STATIC_CAMERA
+                    recomp_printf("StaticCamera active, skipping ladder slide camera change.\n");
+#endif
+                } else {
+                    gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 0, Cam_Ease_All);
+                }
+
+                fsa->animTickDelta = 0.02f;
+                objData->unk3CC.unk1C = player->srt.transl.y;
+                player->srt.transl.y = objData->unk3CC.unk8;
+                dll_210_func_7260(player, objData);
+                player->velocity.y = 0.0f;
+            }
+        } else {
+            if (player->velocity.y > -3.0f) {
+                player->velocity.y = player->velocity.y - (0.05f * updateRate);
+            }
+            if (player->velocity.y < -3.0f) {
+                player->velocity.y = -3.0f;
+            }
+            if (player->velocity.y < _bss_38) {
+                _bss_38 = player->velocity.y;
+            }
+        }
+        break;
+    case 0x37:
+        if (fsa->unk308 & 1) {
+            dll_amSfx->Play(player, (u16) objData->unk898[objAnim_func_80025CD4((s32) fsa->unk4.unk68.unk50[0])], MAX_VOLUME, NULL, NULL, 0, NULL);
+        }
+
+        if (fsa->unk33A) {
+            player->globalPosition.x = objData->unk7EC.x;
+            player->globalPosition.z = objData->unk7EC.z;
+            camInverseTransformPointByObject(player->globalPosition.x, 0.0f, player->globalPosition.z, &player->srt.transl.x, &tempY, &player->srt.transl.z, player->parent);
+            dll_210_func_7260(player, objData);
+            objAnimSet(player, objData->modAnims[0], 0.0f, 1);
+            return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Standing);
+        }
+        break;
+    }
+
+    x = player->srt.transl.x;
+    y = player->srt.transl.y;
+    z = player->srt.transl.z;
+
+    switch (player->curModAnimId) {
+        default:
+            y = player->srt.transl.y;
+            break;
+        case 0x35:
+            y = objData->unk3CC.unk1C + ((player->srt.transl.y - objData->unk3CC.unk1C) * player->animProgress);
+            break;
+        case 0x37:
+            x = player->srt.transl.x + ((objData->unk7EC.x - player->srt.transl.x) * player->animProgress);
+            y = player->srt.transl.y + ((objData->unk3CC.unk1C - player->srt.transl.y) * (1.0f - player->animProgress));
+            z = player->srt.transl.z + ((objData->unk7EC.z - player->srt.transl.z) * player->animProgress);
+            break;
+    }
+
+    gDLL_2_Camera->vtbl->reposition_player(x, y, z);
+    shadowsSetCustomObjPos(player, x, y, z);
+
     return 0;
 }
