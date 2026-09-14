@@ -4759,6 +4759,59 @@ static void discovery_falls_hit_edits(void) {
         }
     }
 
+    //Lower Falls
+    {
+        //Foodbag cave
+        {
+            TrackLine block0333[] = {
+                { HITS_A(540, -44, 400), HITS_B(540, -44, 239), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(540, -44, 400), HITS_B(540, -44, 239), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(601, 246, 363), HITS_B(640, 255, 363), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(475, 247, 260), HITS_B(475, 247, 379), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(475, 247, 379), HITS_B(504, 247, 402), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(504, 247, 402), HITS_B(530, 247, 431), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(530, 247, 431), HITS_B(563, 247, 444), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(244, 247, 28),  HITS_B(248, 247, 68), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump), .animatorID = NO_ANIMATOR },
+                { HITS_A(140, -44, 530), HITS_B(293, -44, 579), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(46, -44, 400),  HITS_B(140, -44, 530), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(46, -44, 239), HITS_B(46, -44, 400), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(140, -44, 109), HITS_B(46, -44, 239), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(293, -44, 60),  HITS_B(140, -44, 109), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(446, -44, 109), HITS_B(293, -44, 60), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(540, -44, 239), HITS_B(446, -44, 109), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(446, -44, 530), HITS_B(540, -44, 400), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(293, -44, 579), HITS_B(446, -44, 530), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(474, -44, 335), HITS_B(473, -44, 312), .heightUnified = 291, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = HITS_Ladder, .animatorID = 34 },
+                { HITS_A(248, 247, 68),  HITS_B(276, 247, 96), .heightA = 40, .heightB = 40, .settingsA = 0xE, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump), .animatorID = NO_ANIMATOR },
+                { HITS_A(276, 247, 96),  HITS_B(278, 247, 132), .heightA = 40, .heightB = 40, .settingsA = 0xE, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump), .animatorID = NO_ANIMATOR },
+                { HITS_A(39, 173, 453),  HITS_B(76, 173, 437), .heightA = 40, .heightB = 40, .settingsA = 0xE, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump), .animatorID = NO_ANIMATOR },
+                { HITS_A(76, 173, 437),  HITS_B(94, 173, 402), .heightA = 40, .heightB = 40, .settingsA = 0xE, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump), .animatorID = NO_ANIMATOR },
+                { HITS_A(94, 173, 402),  HITS_B(128, 173, 389), .heightA = 40, .heightB = 40, .settingsA = 0xE, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump), .animatorID = NO_ANIMATOR },
+                
+                //Add lines for the sides/back of the ladder, so you can't walk through it
+                { HITS_A(475, -44, 308), HITS_B(475, -44, 338), .heightUnified = 100, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = 34 },
+                { HITS_A(475, -44, 338), HITS_B(474, -44, 335), .heightUnified = 100, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = 34 },
+                { HITS_A(473, -44, 312), HITS_B(475, -44, 308), .heightUnified = 100, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = 34 },
+                
+                //Add precipice lines to the sections of the wooden platforms that were missing them (aside from the last platform, so you can just walk off)
+                { HITS_A(406, 247, 164), HITS_B(475, 247, 260), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(293, 247, 128), HITS_B(406, 247, 164), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(278, 247, 132), HITS_B(293, 247, 128), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(175, 173, 100), HITS_B(171, 173, 61), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(204, 173, 134), HITS_B(175, 173, 100), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(204, 173, 163), HITS_B(204, 173, 134), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(184, 173, 170), HITS_B(204, 173, 163), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(118, 173, 263), HITS_B(184, 173, 170), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(119, 173, 376), HITS_B(118, 173, 263), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(128, 173, 389), HITS_B(119, 173, 376), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(block0333); i++) {
+                reasset_hits_set(dfTrkblk, reasset_base_id(333 - dfTrkblkBase), reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0333[i]);
+            }
+        }
+    }
+
     //Middle Falls
     {
         //Add clamber lines to the sides of the jetty under the turbine
