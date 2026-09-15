@@ -4397,7 +4397,6 @@ static void discovery_falls_modifications(void) {
 
     //Middle Falls
     {
-
         //Toxic Cave
         {
             //Add a StaticCamera setup to the entrance (based on Rare's mostly finished camera setup for the ladder down to the mole cave)
@@ -4482,6 +4481,20 @@ static void discovery_falls_modifications(void) {
                         reasset_auto_id(dinomodNs), &cylinder, sizeof(cylinder));
                 }
             }
+        }
+
+        //Turbine Lever
+        {
+            //Fix an issue where the lever was hovering in midair slightly away from its housing
+            ObjSetup* lever = GET_MAPS_OBJECT(discoveryFalls, 0x0000250e);
+            lever->x = -1082.4;
+            lever->z = -247.5;
+
+            //Restore the lever's pose on revisit, via objSeq preempt
+            SeqObj_Setup* turbineSeq = GET_MAPS_OBJECT(discoveryFalls, 0x0000252a);
+            turbineSeq->replayStartTime = 980;
+            turbineSeq->replayActorMask = 1 << 3;
+            turbineSeq->playbackOptions |= SEQOBJ_OPTIONS_HasReplayActorMask;
         }
 
         //Add HitAnimators for Kyte's turbine sequence (enabling temporary widescreen fixes)

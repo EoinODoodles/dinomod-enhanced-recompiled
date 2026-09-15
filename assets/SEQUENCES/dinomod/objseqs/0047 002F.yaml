@@ -1,6 +1,8 @@
 # Discovery Falls - Kyte Activates the Turbine
 # Edited to start the turbine mid-sequence (instead of afterwards)
 # Also enables temporary objGroups that add HitAnimators for some widescreen fixes
+# Also fixes an issue where the turbine lever was hovering in midair slightly away from its housing
+# And fixes an issure where the turbine lever still had to-camera posing at the end of the sequence
 
 actors:
 # Actor 0
@@ -25,7 +27,7 @@ actors:
   objectID: 0x1F # Krystal
 
 curves:
-# Curve 0
+# Curve 0 (DFsequences)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 992 } # SETDURATION @ 0
@@ -46,7 +48,7 @@ curves:
     # SOUND_VOLUME
   - { channel: 18, time: 657, value: -0.1976776123046875, interp: 0, weight: 8 }
   - { channel: 18, time: 699, value: 62.27980422973633, interp: 0, weight: 4 }
-# Curve 1
+# Curve 1 (Camera)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 992 } # SETDURATION @ 0
@@ -114,7 +116,7 @@ curves:
   - { channel: 13, time: 930, value: 1408.489501953125, interp: 0, weight: 4 }
     # FIELD_OF_VIEW
   - { channel: 14, time: 486, value: 58.09764099121094, interp: 0, weight: 8 }
-# Curve 2
+# Curve 2 (Kyte)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 992 } # SETDURATION @ 0
@@ -228,7 +230,7 @@ curves:
   - { channel: 13, time: 584, value: 61.89847946166992, interp: 0, weight: 8 }
   - { channel: 13, time: 605, value: 68.53349304199219, interp: 0, weight: 8 }
   - { channel: 13, time: 647, value: 13.483108520507812, interp: 0, weight: 60 }
-# Curve 3
+# Curve 3 (DFturbinelever)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 992 } # SETDURATION @ 0
@@ -251,7 +253,7 @@ curves:
   - { type: 13, delay: 0, params: 0xB000 } # ENVFX (SET_BIT)
   - { type: 127, delay: 0, params: 0x96B } # PARAM
 
-  - { type: 0, delay: 0, params: 992 } # SETTIME @ 454
+  - { type: 0, delay: 0, params: 991 } # SETTIME
 
   # Disable HitAnimators
   - { type: 13, delay: 0, params: 0xC000 } # ENVFX (CLEAR_BIT)
@@ -261,6 +263,7 @@ curves:
   - { type: 11, delay: 0, params: 2 } # CODE
   - { code_type: 6, val1: 0x1C, val2: 24 } # 6 (DISABLE_OBJ_GROUP)
 
+  - { type: 0, delay: 0, params: 992 } # SETTIME
   - { type: 11, delay: 0, params: 1 } # CODE @ 992
   - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
   keyframes:
@@ -271,21 +274,25 @@ curves:
     # ROTATE_Y
   - { channel: 7, time: 0, value: 84.60047912597656, interp: 0, weight: 56 }
   - { channel: 7, time: 475, value: 84.60042572021484, interp: 0, weight: 60 }
+  - { channel: 7, time: 979, value: 84.60042572021484, interp: 0, weight: 0 }
+  - { channel: 7, time: 980, value: 90, interp: 0, weight: 60 } #@recomp: restore pose
     # ROTATE_X
   - { channel: 8, time: 0, value: -5.850608825683594, interp: 1, weight: 8 }
   - { channel: 8, time: 383, value: -5.802398681640625, interp: 1, weight: 8 }
   - { channel: 8, time: 475, value: -1.2139922380447388, interp: 0, weight: 8 }
-  - { channel: 8, time: 482, value: -0.8668045997619629, interp: 0, weight: 4 }
+  - { channel: 8, time: 482, value: -0.8668045997619629, interp: 2, weight: 4 }
+  - { channel: 8, time: 979, value: -0.8668045997619629, interp: 0, weight: 0 }
+  - { channel: 8, time: 980, value: 0, interp: 0, weight: 0 } #@recomp: restore pose
     # TRANSLATE_Z
-  - { channel: 11, time: 0, value: 30.376190185546875, interp: 0, weight: 8 }
-  - { channel: 11, time: 475, value: 30.376190185546875, interp: 0, weight: 4 }
+  - { channel: 11, time: 0, value: 32.9140625, interp: 0, weight: 0 }
     # TRANSLATE_Y
   - { channel: 12, time: 0, value: 30.20930290222168, interp: 0, weight: 8 }
   - { channel: 12, time: 475, value: 30.20930290222168, interp: 0, weight: 4 }
+  - { channel: 12, time: 979, value: 30.20930290222168, interp: 0, weight: 0 }
+  - { channel: 12, time: 980, value: 28.312133789063, interp: 0, weight: 0 }
     # TRANSLATE_X
-  - { channel: 13, time: 0, value: -13.351097106933594, interp: 0, weight: 8 }
-  - { channel: 13, time: 475, value: -13.351097106933594, interp: 0, weight: 4 }
-# Curve 4
+  - { channel: 13, time: 0, value: -10.5796875, interp: 0, weight: 0 }
+# Curve 4 (Krystal)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 992 } # SETDURATION @ 0
