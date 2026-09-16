@@ -477,7 +477,27 @@ RECOMP_PATCH s32 anim_start_obj_sequence(s32 seqno, Object* object, s32 enabledA
     for (i = 0; i < numActors; i++) {
 
 #ifdef DEBUG_ANIM_PLAY
-        recomp_printf("Setting up actor %d, %d: settings: %x, uID: %x\n", i, actors[i].objID, actors[i].settings, actors[i].uid);
+        {
+            extern ObjDef *objLoadObjdef(s32 tabIdx);
+            extern s16 *gFile_OBJINDEX;
+            
+            ObjDef* def;
+            s16 objectID;
+            if (actors[i].objID >= 0 && actors[i].objID <= 1466) {
+                def = objLoadObjdef(gFile_OBJINDEX[actors[i].objID]);
+            } else {
+                def = NULL;
+            }
+            recomp_printf("%s actor %d %s (%d): settings: %x, uID: %x\n", 
+                ((1 << i) & enabledActors) ? "Setting up" : "Skipping masked-out",
+                i, 
+                (actors[i].objID) == (u16)-1 ? object->def->name : (
+                    (actors[i].objID) == (u16)-2 ? "AnimCamera" : (def ? def->name : "")), 
+                actors[i].objID, 
+                actors[i].settings, 
+                actors[i].uid
+            );
+        }
 #endif
 
         //@recomp: add a custom `IGNORE_OBJECT_IF_MISSING` actor config, allowing specific searched actors to be considered optional.
