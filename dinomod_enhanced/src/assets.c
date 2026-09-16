@@ -4155,6 +4155,7 @@ static void discovery_falls_modifications(void) {
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 330, block330); //Middle Falls - corner: fix issue where the rope got skinnier midway, minor UV fixes, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 326, block326); //Middle Falls - mole cave interior: align ladder with climb animation, minor UV fixes at entrance
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 332, block332); //Middle Falls - toxic cave interior: add missing animatorID to one of the crack shapes, hide dev shape, match ground UVs with section near ladder, fix UV seam to the left when facing podium
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 328, block328); //Upper Falls: use clamped cliff textures, fix gap in water, fix floating walkway supports and dockpoint, UV fixes
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 321, block321); //Shrine exterior: fix gaps between vertices, orthagonalise shrine facade, improve oddly unstable collision, fix warped ground UVs, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 343, block343); //Shrine interior: minor UV fixes
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 323, block323); //Shrine area exit climb to Upper Falls: minor UV fixes, add decal to indicate rock climb, use clamped cliff textures
