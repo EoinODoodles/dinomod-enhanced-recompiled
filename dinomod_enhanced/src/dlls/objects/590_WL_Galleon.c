@@ -1,20 +1,21 @@
-#include "PR/ultratypes.h"
 #include "modding.h"
+#include "recomputils.h"
 
+#include "PR/ultratypes.h"
+#include "dll.h"
 #include "dlls/objects/210_player.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
 #include "game/gamebits.h"
-#include "recomputils.h"
 #include "sys/dll.h"
+#include "sys/gfx/animseq.h"
 #include "sys/main.h"
 #include "sys/menu.h"
 #include "sys/print.h"
 #include "sys/objects.h"
 #include "sys/objtype.h"
-#include "game/gamebits.h"
-#include "dll.h"
 
+#include "anim_util.h"
 #include "engine/78_credits.h"
 
 #include "recomp/dlls/objects/590_WL_Galleon_recomp.h"
@@ -28,13 +29,15 @@ typedef struct {
     s16 yaw;
 } WLGalleonObjdata;
 
+/*0x0*/ extern s8 dataShowKrystalsAdventureScreen[];
+/*0x8*/ extern void* dataDLLUnused;
+/*0xC*/ extern u32 sUpdateRateCopy;
+
 /** 
   * - Removes a gamebit check which could prevent the "Scales Escapes with Kyte" sequence from playing 
   *   just before you teleport away to SwapStone Circle (originally by MusicalProgrammer)
   *
   * - Fixes character landing sound during Galleon arrival sequence.
-  *
-  * - Synchronises title credits when skipping sequences.
   */
 RECOMP_PATCH void WLgalleon_control(Object* self) {
     u32 arrivedAtWM;
@@ -90,6 +93,11 @@ RECOMP_PATCH void WLgalleon_control(Object* self) {
     }
     
     if (!arrivedAtWM) {
+        //@recomp: add null check just in case
+        if (player == NULL) {
+            return;
+        }
+
         player->srt.transl.x = -121.0f;
         // player->srt.transl.y = 116.0f;
         player->srt.transl.z = 5.0f;
@@ -98,13 +106,6 @@ RECOMP_PATCH void WLgalleon_control(Object* self) {
         player->srt.transl.y = 100.0f; 
         player->animProgress = 0.0f;
         gDLL_18_objfsa->vtbl->set_anim_state(player, player->data, PLAYER_ASTATE_Standing);
-
-        //@recomp: synchronise the credits when skipping sequences to get here
-        if (credits_get_frame() < 100) {
-            //Play Galleon arrival music (TODO: skip to the playback time it should be at, if possible?)
-            gDLL_5_AMSEQ2->vtbl->set(self, 0x47, 0, 0, 0);
-            credits_sync_frame(CREDITS_SKIP_TO_FRAME);
-        }
 
         trackIntersect_func_8005B5B8(player, self, 0);
         ((DLL_210_Player*)player->dll)->vtbl->func68(player);
@@ -120,4 +121,99 @@ RECOMP_PATCH void WLgalleon_control(Object* self) {
         gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
         self->unkE0 = 2;
     }
+}
+
+/* Play Warlock Mountain Act 1's music when the Galleon Arrival sequences are skipped. */
+static void WLgalleon_animEndCallback(Object* self, Object* animObj, AnimObj_Data* animData) {
+    AnimObj_Setup* animSetup = (AnimObj_Setup*)animObj->setup;
+    u16 sequenceID = 0;
+    if (animSetup) {
+        sequenceID = GET_SEQID(animSetup->sequenceIdBitfield);
+    }
+
+    //@recomp: play regular Warlock Mountain Act 1 music if either of the arrival sequences are skipped
+    if (animData->unk9D & 0x80) {
+        switch (sequenceID) {
+        case 0xB9:
+        case 0xBA:
+            mainSetBits(BIT_Galleon_Arrived_at_Warlock_Mountain, TRUE);
+            gDLL_5_AMSEQ2->vtbl->set(self, 0x11D, 0, 0, 0);
+            break;
+        }
+    }
+}
+
+/**
+  * - Synchronises title credits when skipping past prior sequences to get to Warlock Mountain.
+  * - Adds a custom end-of-sequence callback function.
+  */
+RECOMP_PATCH int WLgalleon_anim_callback(Object* self, Object* animObj, AnimObj_Data* animData, s8 prevCallbackValue) {
+    s32 index;
+    /* RECOMP */
+    AnimObj_Setup* animSetup = (AnimObj_Setup*)animObj->setup;
+    u16 sequenceID = 0;
+
+    //@recomp: get current sequenceID
+    if (animSetup) {
+        sequenceID = GET_SEQID(animSetup->sequenceIdBitfield);
+    }
+
+    sUpdateRateCopy = gUpdateRate; //unused?
+    animData->unk7A = -1;
+    animData->unk62 = 0;
+
+    //@recomp: use custom end-of-sequence callback (for handling when the sequence was skipped)
+    animData->unkF4 = WLgalleon_animEndCallback;
+
+    //@recomp: synchronise the credits when skipping previous sequences to get here
+    if (sequenceID == 0xB9 && animData->time < 30 && credits_get_frame() < 100) {
+        //Play Galleon arrival music (TODO: skip music to the playback time it should be at, maybe?)
+        gDLL_5_AMSEQ2->vtbl->set(self, 0x47, 0, 0, 0);
+        credits_sync_frame(CREDITS_SKIP_TO_FRAME);
+    }
+
+    for (index = 0; index < animData->messageCount; index++){
+        switch (animData->messages[index]) {
+            case 1:
+                self->unkDC = 0xA;
+                break;
+            case 9:
+                self->unkDC = 0xB;
+                break;
+            case 4:
+                self->unkDC = 0xC;
+                break;
+            case 5:
+                self->unkDC = 0xD;
+                break;
+            case 6:
+                gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 1, 0);
+                gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 2, 0);
+                gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 4, 0);
+                mainSetBits(BIT_WL_Load_Unload_Galleon, 0);
+                break;
+            case 2:
+                //Setting envFxActions
+                lfxAction(self, self, 0x77, 0, 0, 0);
+                lfxAction(self, self, 0x78, 0, 0, 0);
+                lfxAction(self, self, 0x80, 0, 0, 0);
+                break;
+            case 3:
+                gDLL_23->vtbl->func_4C(0, 0x1e, 0x50);
+                break;
+            case 7:
+                dataShowKrystalsAdventureScreen[0] = TRUE;
+                break;
+            case 8:
+                dataShowKrystalsAdventureScreen[0] = FALSE;
+                break;
+        }
+    }
+
+    if (mainGetBits(BIT_429) && gDLL_29_Gplay->vtbl->get_obj_group_status(self->mobileMapID, 2)) {
+        gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 1, 0);
+        gDLL_29_Gplay->vtbl->set_obj_group_status(self->mobileMapID, 2, 0);
+    }
+
+    return 0;
 }
