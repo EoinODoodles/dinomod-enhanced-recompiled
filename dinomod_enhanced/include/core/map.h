@@ -35,7 +35,7 @@ typedef enum {
 } TrackLineSettingsB;
 
 typedef enum {
-    HITS_1 = 1,
+    HITS_1 = 1,          //Usually used for invisible walls, whether for Baddies, vehicles, or the player
     HITS_Precipice = 2,  //Cling to ledge when walking over line (can drop off)
     HITS_Wall_Climb = 3, //Other settings determine if player can drop off bottom/clamber over top
     HITS_Jump = 4,       //Always jump when passing line (no dangling off precipice) - smaller jump at low approach speeds
