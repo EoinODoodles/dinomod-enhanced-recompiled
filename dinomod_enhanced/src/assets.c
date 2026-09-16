@@ -58,17 +58,20 @@ INCBIN(block995, "inc/blocks_0995_DBriver_bend_1.bin");
 INCBIN(block994, "inc/blocks_0994_DBriver_waterfall_basin_2.bin");
 INCBIN(block336, "inc/blocks_0336_DF_entrance_1_waterfall.bin");
 INCBIN(block340, "inc/blocks_0340_DF_entrance_2_corner.bin");
-INCBIN(block321, "inc/blocks_0321_DF_shrine_exterior.bin");
-INCBIN(block343, "inc/blocks_0343_DF_shrine_interior.bin");
-INCBIN(block323, "inc/blocks_0323_DF_upper_falls_shrine_exit_climb.bin");
 INCBIN(block338, "inc/blocks_0338_DF_lower_falls_cliff_face.bin");
+INCBIN(block333, "inc/blocks_0333_DF_foodbag_cave.bin");
 INCBIN(block331, "inc/blocks_0331_DF_middle_falls_cradle_station_1.bin");
+INCBIN(block325, "inc/blocks_0325_DF_middle_falls_cradle_station_2.bin");
 INCBIN(block329, "inc/blocks_0329_DF_middle_falls_cradle_station_3_and_turbine.bin");
+INCBIN(block330, "inc/blocks_0330_DF_middle_falls_corner.bin");
+INCBIN(block344, "inc/blocks_0344_DF_middle_falls_mole_cave_entrance.bin");
+INCBIN(block326, "inc/blocks_0326_DF_mole_cave.bin");
 INCBIN(block341, "inc/blocks_0341_DF_BWC_exit_corner.bin");
 INCBIN(block342, "inc/blocks_0342_DF_BWC_exit.bin");
-INCBIN(block333, "inc/blocks_0333_DF_foodbag_cave.bin");
-INCBIN(block334, "inc/blocks_0334_DF_lower_falls_foodbag_cave_entrance.bin");
 INCBIN(block332, "inc/blocks_0332_DF_toxic_cave.bin");
+INCBIN(block323, "inc/blocks_0323_DF_upper_falls_shrine_exit_climb.bin");
+INCBIN(block321, "inc/blocks_0321_DF_shrine_exterior.bin");
+INCBIN(block343, "inc/blocks_0343_DF_shrine_interior.bin");
 INCBIN(block722, "inc/blocks_0722_DIM1_river_end.bin");
 INCBIN(block597, "inc/blocks_0597_WC_approach_gateway_corridor.bin");
 INCBIN(block599, "inc/blocks_0599_WC_jungle_door_area_ne.bin");
@@ -4140,19 +4143,23 @@ static void discovery_falls_modifications(void) {
 
     //BLOCKS
     {
-        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 336, block336); //SC entrance: Fix UVs at base of cliff to the left of crawl point, fix gap in water, use clamped cliff textures and fix seams between them
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 336, block336); //Entrance route - near SC: Fix UVs at base of cliff to the left of crawl point, fix gap in water, use clamped cliff textures and fix seams between them
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 340, block340); //Entrance route - corner: Fix missing 0 vertex alpha on water blend (at T-junction with WaterBaddie), minor UV cleanups, use clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 338, block338); //Lower Falls cliff-face: Fix broken decals on edges of climbable section and archway, clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 333, block333); //Lower Falls - foodbag cave interior: fix z-fighting at the back of the ladder, align ladder with climb animation, minor UV fixes at the entrance
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 334, block334); //Lower Falls - foodbag cave entrance: minor UV fixes, use clamped cliff textures, colour discontinuity fix just inside cave
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 331, block331); //Middle Falls - cradle station 1: use clamped cliff textures, widescreen fix for turbine activation sequence
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 325, block325); //Middle Falls - cradle station 2: use clamped cliff textures, fix sudden skinniness in rope
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 329, block329); //Middle Falls - cradle station 3 and turbine: use clamped cliff textures, widescreen fix for turbine activation sequence, fix floating dockpoint
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 344, block344); //Middle Falls - mole cave entrance: fix camera clipping through wall when climbing up ladder, small UV fixes, align ladder with climb animation, add blend into the mole cave
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 330, block330); //Middle Falls - corner: fix issue where the rope got skinnier midway, minor UV fixes, use clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 326, block326); //Middle Falls - mole cave interior: align ladder with climb animation, minor UV fixes at entrance
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 332, block332); //Middle Falls - toxic cave interior: add missing animatorID to one of the crack shapes, hide dev shape, match ground UVs with section near ladder, fix UV seam to the left when facing podium
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 321, block321); //Shrine exterior: fix gaps between vertices, orthagonalise shrine facade, improve oddly unstable collision, fix warped ground UVs, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 343, block343); //Shrine interior: minor UV fixes
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 323, block323); //Shrine area exit climb to Upper Falls: minor UV fixes, add decal to indicate rock climb, use clamped cliff textures
-        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 331, block331); //Middle Falls - cradle station 1: use clamped cliff textures, widescreen fix for turbine activation sequence
-        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 329, block329); //Middle Falls - cradle station 3 and turbine: use clamped cliff textures, widescreen fix for turbine activation sequence
-        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 338, block338); //Lower Falls cliff-face: Fix broken decals on edges of climbable section and archway, clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 341, block341); //BWC exit (corner): reduce UV warping, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 342, block342); //BWC exit: clean up some UVs, extend dockpoint so it's not hovering in the water, clamped cliff textures
-        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 332, block332); //Middle Falls - toxic cave interior: add missing animatorID to one of the crack shapes, hide dev shape, match ground UVs with section near ladder, fix UV seam to the left when facing podium
-        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 333, block333); //Lower Falls - foodbag cave interior: fix z-fighting at the back of the ladder, align ladder with climb animation, minor UV fixes at the entrance
-        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 334, block334); //Lower Falls - foodbag cave entrance: minor UV fixes, use clamped cliff textures, colour discontinuity fix just inside cave
     }
 
     //MODELS
@@ -5080,8 +5087,15 @@ static void discovery_falls_hit_edits(void) {
 
     //Middle Falls - Toxic Cave
     {
-        //Scoot the ladder out from the wall very slightly so Krystal's hands don't clip through it
-        TrackLine* ladder = reasset_hits_get(dfTrkblk, reasset_base_id(331 - dfTrkblkBase), reasset_base_id(8));
+        TrackLine* ladder;
+
+        //Scoot the exterior ladder out from the wall very slightly so Krystal's hands don't clip through it
+        ladder = reasset_hits_get(dfTrkblk, reasset_base_id(331 - dfTrkblkBase), reasset_base_id(7));
+        ladder->Ax = 316;
+        ladder->Bx = 316;
+
+        //Scoot the interior ladder out from the wall very slightly so Krystal's hands don't clip through it
+        ladder = reasset_hits_get(dfTrkblk, reasset_base_id(331 - dfTrkblkBase), reasset_base_id(8));
         ladder->Ax = 554;
         ladder->Bx = 554;
     }
