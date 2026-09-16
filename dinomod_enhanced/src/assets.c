@@ -69,6 +69,7 @@ INCBIN(block342, "inc/blocks_0342_DF_BWC_exit.bin");
 INCBIN(block333, "inc/blocks_0333_DF_foodbag_cave.bin");
 INCBIN(block334, "inc/blocks_0334_DF_lower_falls_foodbag_cave_entrance.bin");
 INCBIN(block332, "inc/blocks_0332_DF_toxic_cave.bin");
+INCBIN(block722, "inc/blocks_0722_DIM1_river_end.bin");
 INCBIN(block597, "inc/blocks_0597_WC_approach_gateway_corridor.bin");
 INCBIN(block599, "inc/blocks_0599_WC_jungle_door_area_ne.bin");
 INCBIN(block600, "inc/blocks_0600_WC_jungle_door_area_se.bin");
@@ -3753,6 +3754,9 @@ static void darkice_mines_modifications(void) {
         //Fix the river crossing area's invisible rock climbing decal setup (it was being drawn in the wrong order and getting erased by the underlay)
         BLOCKS_REPLACE_BASE(dim1Trkblk, dim1BlocksBase, 718, block718);
         
+        //Avoid camera popping through the wall while climbing ladder near Famished SnowHorn
+        BLOCKS_REPLACE_BASE(dim1Trkblk, dim1BlocksBase, 722, block722);
+
         //Adjust the invisible terrain around the cannon silo, so Sabre doesn't stand in midair above it while it's closed
         BLOCKS_REPLACE_BASE(dim1Trkblk, dim1BlocksBase, 724, block724);
 
@@ -3760,43 +3764,71 @@ static void darkice_mines_modifications(void) {
         BLOCKS_REPLACE_BASE(dim1Trkblk, dim1BlocksBase, 725, block725);
     }
 
-    //Fix the cannon silo's broken HitAnimator setups
+    //Enclose the ladder near the Famished SnowHorn in a TriggerCylinder,
+    //So CamClimb doesn't pop out of bounds during the climb
     {
-        #define GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo 0x157
-
-        HitAnimator_Setup* siloFlatHitAnim = reasset_map_objects_get(dim1MapID, reasset_base_id(0x1D2D), NULL);
-        siloFlatHitAnim->gamebitActivate = GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo;
-        siloFlatHitAnim->mode = hitanimator_configure_mode_flags(TRUE, TRUE, FALSE);
-
-        HitAnimator_Setup* siloRaisedHitAnim = reasset_map_objects_get(dim1MapID, reasset_base_id(0x1D2E), NULL);
-        siloRaisedHitAnim->gamebitActivate = GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo;
-        siloRaisedHitAnim->mode = hitanimator_configure_mode_flags(FALSE, TRUE, FALSE);
+        Trigger_Setup cylinder = {
+            .base = {
+                .objId = OBJ_TriggerCylinder,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = FADE_DISTANCE(320),
+                .fadeDistance = FADE_DISTANCE(320),
+            },
+            COORDS_SETUP(1177, -1268, 31),
+            .sizeX = 30,
+            .sizeY = 64 * 2,
+            .sizeZ = 0x10,
+            .conditionBitFlagIDs[0] = NO_GAMEBIT
+        };
+        ENTER_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, TRUE, &cylinder, 0); //Use closer CamClimb
+        EXIT_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, FALSE, &cylinder, 1); //Use regular CamClimb
+        ENTER_GAMEBIT(DINOMOD_BIT_96E_CamClimb_Skip_Ease, TRUE, &cylinder, 2); //Use no CamClimb ease
+        EXIT_GAMEBIT(DINOMOD_BIT_96E_CamClimb_Skip_Ease, FALSE, &cylinder, 3); //Use regular CamClimb ease
+        reasset_map_objects_set(dim1MapID, 
+            reasset_auto_id(dinomodNs), &cylinder, sizeof(cylinder));
     }
 
-    //Fix DIMCannonCover1's objSeq handling 
-    //(there was a bug where it was starting off in its closed position when the CannonClaw has already appeared)
+    //CannonClaw & Tents Area
     {
-        SeqDoor_Setup* cannonCover = reasset_map_objects_get(dim1MapID, reasset_base_id(0x17F4), NULL);
-        cannonCover->gamebitRestoreState = NO_GAMEBIT;
-    }
+        //Fix the cannon silo's broken HitAnimator setups
+        {
+            #define GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo 0x157
 
-    //Delete a DIMExplosion (causes random explosion sound when approaching tent area)
-    {
-        //Maybe they placed this here temporarily to help debug the mistake in DIMCannonBall's DIMExplosion-creating code?
-        ReAssetID dimExplosion = reasset_base_id(0x1DA4);
-        reasset_map_objects_delete(dim1MapID, dimExplosion);
-    }
+            HitAnimator_Setup* siloFlatHitAnim = reasset_map_objects_get(dim1MapID, reasset_base_id(0x1D2D), NULL);
+            siloFlatHitAnim->gamebitActivate = GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo;
+            siloFlatHitAnim->mode = hitanimator_configure_mode_flags(TRUE, TRUE, FALSE);
 
-    //Edit DIMTent's burnt model, adding draw modes for handling opacity
-    {
-        ReAssetID models_dimtent_burnt_ID = reasset_base_id(886);
-        reasset_models_set(models_dimtent_burnt_ID, REASSET_BASE_NAMESPACE, models_dimtent_burnt, models_dimtent_burnt_end - models_dimtent_burnt);
-    }
+            HitAnimator_Setup* siloRaisedHitAnim = reasset_map_objects_get(dim1MapID, reasset_base_id(0x1D2E), NULL);
+            siloRaisedHitAnim->gamebitActivate = GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo;
+            siloRaisedHitAnim->mode = hitanimator_configure_mode_flags(FALSE, TRUE, FALSE);
+        }
 
-    //Reference DIMTent's unused burnt tent model in its Objects file
-    {
-        ReAssetID objects_dimtent_ID = reasset_base_id(320); //OBJ_DIMTent
-        reasset_objects_set(objects_dimtent_ID, REASSET_BASE_NAMESPACE, objects_dimtent, objects_dimtent_end - objects_dimtent);
+        //Fix DIMCannonCover1's objSeq handling 
+        //(there was a bug where it was starting off in its closed position when the CannonClaw has already appeared)
+        {
+            SeqDoor_Setup* cannonCover = reasset_map_objects_get(dim1MapID, reasset_base_id(0x17F4), NULL);
+            cannonCover->gamebitRestoreState = NO_GAMEBIT;
+        }
+
+        //Delete a DIMExplosion (causes random explosion sound when approaching tent area)
+        {
+            //Maybe they placed this here temporarily to help debug the mistake in DIMCannonBall's DIMExplosion-creating code?
+            ReAssetID dimExplosion = reasset_base_id(0x1DA4);
+            reasset_map_objects_delete(dim1MapID, dimExplosion);
+        }
+
+        //Edit DIMTent's burnt model, adding draw modes for handling opacity
+        {
+            ReAssetID models_dimtent_burnt_ID = reasset_base_id(886);
+            reasset_models_set(models_dimtent_burnt_ID, REASSET_BASE_NAMESPACE, models_dimtent_burnt, models_dimtent_burnt_end - models_dimtent_burnt);
+        }
+
+        //Reference DIMTent's unused burnt tent model in its Objects file
+        {
+            ReAssetID objects_dimtent_ID = reasset_base_id(320); //OBJ_DIMTent
+            reasset_objects_set(objects_dimtent_ID, REASSET_BASE_NAMESPACE, objects_dimtent, objects_dimtent_end - objects_dimtent);
+        }
     }
 
     //DarkIce Mines 2 (the mine itself)
