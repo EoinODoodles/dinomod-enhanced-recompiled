@@ -4574,6 +4574,28 @@ static void discovery_falls_modifications(void) {
                 );
             }
         }
+
+        //Adjust DFcradle's Projectile Switches
+        {
+            u32 cradleSwitchUIDs[] = {
+            0x000020ae,
+            0x000020af,
+            0x000020b0,
+            0x000020b1
+            };
+            for (u32 i = 0; i < ARRAYCOUNT(cradleSwitchUIDs); i++) {
+                ProjectileSwitch_Setup* reverseSwitch = GET_MAPS_OBJECT(discoveryFalls, cradleSwitchUIDs[i]);
+                reverseSwitch->resetDelay = 30;
+
+                //Align the first switch with the rope, since it's just off from being aligned with it
+                if (i == 0) {
+                    reverseSwitch->base.x = 238.274f;
+                    reverseSwitch->base.y = 438.849f;
+                    reverseSwitch->base.z = -557.684f;
+                    reverseSwitch->yaw = DEGREES_TO_ANGLE8(319);
+                }
+            }
+        }
     }
 
     //Middle Falls - Mole Caves
