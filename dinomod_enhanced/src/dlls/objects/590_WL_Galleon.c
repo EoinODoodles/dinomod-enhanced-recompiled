@@ -1,6 +1,7 @@
 #include "PR/ultratypes.h"
 #include "modding.h"
 
+#include "dlls/objects/210_player.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
 #include "game/gamebits.h"
@@ -95,8 +96,8 @@ RECOMP_PATCH void WLgalleon_control(Object* self) {
 
         //@recomp: fix issue where Krystal starts slightly too high above Galleon, causing fall sound (Banjeoin)
         player->srt.transl.y = 100.0f; 
-        *((u16*)((u32)player + 0x0360)) = 0; //modanim (TODO: clean up)
         player->animProgress = 0.0f;
+        gDLL_18_objfsa->vtbl->set_anim_state(player, player->data, PLAYER_ASTATE_Standing);
 
         //@recomp: synchronise the credits when skipping sequences to get here
         if (credits_get_frame() < 100) {
@@ -106,7 +107,7 @@ RECOMP_PATCH void WLgalleon_control(Object* self) {
         }
 
         trackIntersect_func_8005B5B8(player, self, 0);
-        ((DLL_Unknown*)player->dll)->vtbl->func[68].withOneArg((s32)player);
+        ((DLL_210_Player*)player->dll)->vtbl->func68(player);
         self->unkE0 = 1;
         return;
     }
