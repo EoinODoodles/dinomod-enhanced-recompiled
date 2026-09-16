@@ -83,10 +83,10 @@ typedef enum {
     DINOMOD_BIT_969_WC_Jungle_Door_Opening = 0x969,     // len:1 group:1 (Not used currently, but reserved just in case)
     DINOMOD_BIT_96A_WC_Jungle_Door_Open = 0x96A,        // len:1 group:1
     DINOMOD_BIT_96B_DF_Turbine_Sequence_Active = 0x96B,  // len:1 group:1 (Used to enable widescreen fix HitAnimators just during the sequence)
-    DINOMOD_BIT_96C_CamClimb_Closer = 0x96C,  // len:1 group:1 (Temporarily brings the camera closer during rock/vine/ladder climbs)
+    DINOMOD_BIT_96C_CamClimb_Closer = 0x96C,        // len:1 group:1 (Temporarily brings the camera closer during rock/vine/ladder climbs)
+    DINOMOD_BIT_96D_CamClimb_Shorter_Ease = 0x96D,  // len:1 group:1 (Temporarily use only the second half of the usual camera ease, helpful for ladders that are close to walls)
+    DINOMOD_BIT_96E_CamClimb_Skip_Ease = 0x96E,     // len:1 group:1 (Temporarily skip the camera ease entirely when climbing, helpful for ladders that are close to walls)
     /* More placeholders */
-    DINOMOD_BIT_96D_Placeholder = 0x96D,  // len:1 group:1
-    DINOMOD_BIT_96E_Placeholder = 0x96E,  // len:1 group:1
     DINOMOD_BIT_96F_Placeholder = 0x96F,  // len:1 group:1
     DINOMOD_BIT_970_Placeholder = 0x970,  // len:1 group:1
     DINOMOD_BIT_971_Placeholder = 0x971,  // len:1 group:1

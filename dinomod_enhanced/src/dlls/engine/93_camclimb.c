@@ -23,6 +23,8 @@
 
 // #define DEBUG_EASE
 
+#define CLOSER_CAMERA_FACTOR 0.75f
+
 //TEMPORARY DEFINES
 #define camclimb_setup camclimb_func_18
 #define camclimb_control camclimb_func_340
@@ -81,13 +83,14 @@ RECOMP_PATCH void camclimb_setup(Cam* cam, s32 mode, CamClimb_Params* data) {
     f32 maxY;
     f32 currentY;
     CamControl_Module* camnormal;
+    /* RECOMP */
+    u8 useCloserCamera = mainGetBits(DINOMOD_BIT_96C_CamClimb_Closer);
 
     if (sState == NULL) {
         sState = mmAlloc(sizeof(CamClimb), ALLOC_TAG_CAM_COL, ALLOC_NAME("camclimb"));
     }
     
     if ((mode != 1) && (mode == 2)) {
-        //Cut to camera
         sState->pitchOffsetInitial = sState->pitchOffset;
         sState->minYInitial = sState->minY;
         sState->maxYInitial = sState->maxY;
@@ -118,6 +121,26 @@ RECOMP_PATCH void camclimb_setup(Cam* cam, s32 mode, CamClimb_Params* data) {
     sState->easeDuration = 60;
     sState->distance = distance;
     sState->speedY = 0.05f;
+
+    if (mainGetBits(DINOMOD_BIT_96E_CamClimb_Skip_Ease)) {
+        //@recomp: optionally skip easing
+        if (useCloserCamera) {
+            sState->distanceInitial = sState->distanceGoal * CLOSER_CAMERA_FACTOR;
+        } else {
+            sState->distanceInitial = sState->distanceGoal;
+        }
+        sState->distance = sState->distanceInitial;
+        sState->easeTimer = 5;
+    } else if (mainGetBits(DINOMOD_BIT_96D_CamClimb_Shorter_Ease)) {
+        //@recomp: optionally use a shorter ease (only the latter half)
+        if (useCloserCamera) {
+            sState->distanceInitial = ((sState->distanceGoal * CLOSER_CAMERA_FACTOR) + sState->distance) / 2.0f;
+        } else {
+            sState->distanceInitial = (sState->distanceGoal + sState->distance) / 2.0f;
+        }
+        sState->distance = sState->distanceInitial;
+        sState->easeTimer /= 2;
+    } 
 
     //@recomp: handle yaw differently
     {
@@ -184,7 +207,7 @@ RECOMP_PATCH void camclimb_control(Cam* cam) {
     {
         //@recomp: add a way to bring the camera closer during the climb (to avoid situations where it'd clip out of surroundings)
         if (useCloserCamera) {
-            distance = (sState->desiredDistance * 0.75f) - sState->distance;
+            distance = (sState->desiredDistance * CLOSER_CAMERA_FACTOR) - sState->distance;
         } else {
             distance = sState->desiredDistance - sState->distance;
         }
