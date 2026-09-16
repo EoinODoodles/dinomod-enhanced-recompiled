@@ -364,3 +364,18 @@ typedef enum {
 
 //For use in Trigger Object CameraAction commands
 #define CamStatic_PreviousCameraEasesIn 0x80
+
+typedef struct {
+    ObjSetup base;
+    s16 gamebit;            //GamebitID to set when switch is hit
+    s16 resetDelay;         //Number of seconds until the switch resets to its unpressed state (if `Switch_FLAG_Resets_After_Delay` is set)
+    u8 pitch;               //Rotation
+    u8 scale;               //Scale multiplier (0x64 = 100%)
+    u8 modelIndexAndFlags;  //Flags on lowest two bits, modelIndex on upper bits
+    u8 yaw;                 //Rotation
+    u8 tintR;
+    u8 tintG;
+    u8 tintB;
+    u8 enableTint;          //Enable tinting the switch to a different colour
+} ProjectileSwitch_Setup;
+
