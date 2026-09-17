@@ -2,6 +2,7 @@
 
 #include "PR/gbi.h"
 #include "types.h"
+#include "dlls/engine/29_gplay.h"
 #include "dlls/objects/325_trigger.h"
 
 /* TRANSFORMS */
@@ -130,3 +131,64 @@
     (triggerObject)->commands[cmdSlot].id = TRG_CMD_CAMERA_ACTION;\
     (triggerObject)->commands[cmdSlot].param1 = cameraMode;\
     (triggerObject)->commands[cmdSlot].param2 = cameraActionIdx;
+
+/* COMMANDS: SAVE POINT */
+
+#define ROTATE_CHECKPOINT_YAW_180 0x8000
+
+//A shortcut for staging save data (and setting a restart point if there is none) when entering a Trigger Object
+#define ENTER_SET_SAVEPOINT(includeMapData, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_SAVE_POINT;\
+    (triggerObject)->commands[cmdSlot].paramCombined = (includeMapData ? 0 : GPLAY_SAVEPOINT_SkipMapSave);
+
+//A shortcut for staging save data (and setting a restart point if there is none) when exiting a Trigger Object
+#define EXIT_SET_SAVEPOINT(includeMapData, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_SAVE_POINT;\
+    (triggerObject)->commands[cmdSlot].paramCombined = (includeMapData ? 0 : GPLAY_SAVEPOINT_SkipMapSave) | ROTATE_CHECKPOINT_YAW_180;
+
+/* COMMANDS: RESTART POINT */
+
+//SET
+
+//A shortcut for staging a restart point when entering a Trigger Object
+#define ENTER_SET_RESTARTPOINT(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_RESTART;\
+    (triggerObject)->commands[cmdSlot].paramCombined = 0;
+
+//A shortcut for staging a restart point when exiting a Trigger Object
+#define EXIT_SET_RESTARTPOINT(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_RESTART;\
+    (triggerObject)->commands[cmdSlot].paramCombined = ROTATE_CHECKPOINT_YAW_180;
+
+//CLEAR
+
+//A shortcut for clearing the restart point when entering a Trigger Object
+#define ENTER_CLEAR_RESTARTPOINT(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_RESTART;\
+    (triggerObject)->commands[cmdSlot].paramCombined = 1;
+
+//A shortcut for clearing the restart point when exiting a Trigger Object
+#define EXIT_CLEAR_RESTARTPOINT(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_RESTART;\
+    (triggerObject)->commands[cmdSlot].paramCombined = 1;
+
+//GOTO
+
+//A shortcut for activating the restart point when entering a Trigger Object
+#define ENTER_GOTO_RESTARTPOINT(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_RESTART;\
+    (triggerObject)->commands[cmdSlot].paramCombined = 2;
+
+//A shortcut for activating the restart point when exiting a Trigger Object
+#define EXIT_GOTO_RESTARTPOINT(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_RESTART;\
+    (triggerObject)->commands[cmdSlot].paramCombined = 2;
+
