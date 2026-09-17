@@ -18,8 +18,8 @@
 
 //TEMPORARY DEFINES
 typedef struct {
-    /* 0000 */ f32 unk0;
-    /* 0004 */ f32 unk4; // curveProgress? (lerp t-value from 0 to 100?)
+    /* 0000 */ f32 unk0; // lerp t-value from 0 to 1
+    /* 0004 */ f32 unk4; 
     /* 0008 */ f32 unk8;
     /* 000C */ f32 unkC;
     /* 0010 */ s32 unk10;
@@ -117,7 +117,9 @@ RECOMP_PATCH void DFCradle_obj_Control(Object* self) {
         //Play rope straining noise at random intervals
         if ((objData->soundTimer -= gUpdateRate) < 0) { //@recomp: fix framerate dependency
             dll_amSfx->Play(self, sSoundIDs[mathRnd(0, 2)], MAX_VOLUME, NULL, NULL, 0, NULL);
-            objData->soundTimer = mathRnd(40, 60);
+            
+            //@recomp: fix framerate dependency (assume average N64 gUpdateRate of 2)
+            objData->soundTimer = mathRnd(40, 60) * 2; 
         }
         
         if (objData->pauseTimer) {
@@ -152,9 +154,9 @@ RECOMP_PATCH void DFCradle_obj_Control(Object* self) {
         //Pause when reaching a pulley (longer pause if the player's close)
         if (!objData->pauseTimer && (cradleStation != objData->prevCradleStation)) {
             if (dx < SQ(200)) {
-                objData->pauseTimer = 40;
+                objData->pauseTimer = 40 * 2; //@recomp: fix framerate dependency
             } else {
-                objData->pauseTimer = 10;
+                objData->pauseTimer = 10 * 2; //@recomp: fix framerate dependency
             }
         }
         objData->prevCradleStation = cradleStation;
@@ -164,7 +166,9 @@ RECOMP_PATCH void DFCradle_obj_Control(Object* self) {
          - the cradle's pauseTimer just reset (finished waiting after slowing down to stop at a pulley)
          - the cradle's moving down but the player's at a higher station, or moving up and the player's at a lower station
          */
-        if ((objData->pauseTimer == 10) && (self != player->parent) && doDirectionReverse) {
+        if ((objData->pauseTimer == (10 * 2)) && //@recomp: fix framerate dependency
+            (self != player->parent) && doDirectionReverse
+        ) {
             objData->direction = -objData->direction;
 
             //@recomp: don't set gamebit here
@@ -175,7 +179,7 @@ RECOMP_PATCH void DFCradle_obj_Control(Object* self) {
             // }
         }
         
-        if (objData->pauseTimer <= 10) {
+        if (objData->pauseTimer <= (10 * 2)) { //@recomp: fix framerate dependency
             objects = objGetAllOfType(OBJTYPE_Pulley, &count);
 
             //Rotate pulley objects
@@ -218,9 +222,9 @@ RECOMP_PATCH void DFCradle_obj_Control(Object* self) {
                     objData->speed = 0/*0.0f*/;
                     
                     if (dx < SQ(200)) {
-                        objData->pauseTimer = 60;
+                        objData->pauseTimer = 60 * 2; //@recomp: fix framerate dependency
                     } else {
-                        objData->pauseTimer = 20;
+                        objData->pauseTimer = 20 * 2; //@recomp: fix framerate dependency
                     }
 
                     //@recomp: don't set gamebit here
