@@ -201,17 +201,30 @@ typedef struct {
 
 typedef struct {
 /*00*/ ObjSetup base;
-/*18*/ u8 unk18; // yaw?
-/*19*/ u8 unk19; // pitch?
-/*1A*/ u8 unk1A; // width? (x)
-/*1B*/ u8 unk1B; // height? (y) divided by 2
-/*1C*/ u8 unk1C; // length? (z)
+/*18*/ u8 yaw;
+/*19*/ u8 roll;
+/*1A*/ u8 halfWidth;  // x dimension (stored halved), centred around origin
+/*1B*/ u8 halfHeight; // y dimension (stored halved), base of box at origin
+/*1C*/ u8 halfLength; // z dimension (stored halved), centred around origin
 /*1D*/ u8 effect;
-/*1E*/ u8 _unk1E;
-/*1F*/ u8 gamebitDisableValue; // disabled if the target gamebit is this value
-/*20*/ s16 gamebit; // -1 if this effect box is always enabled
-/*22*/ u8 target; // 0 = player, 1 = sidekick, 2 = objtype 6
+/*1E*/ u8 _unk1E;     // Unused, but rarely set to 1 in ROM?
+/*1F*/ u8 gamebitDisableValue;      // disabled if the target gamebit is this value
+/*20*/ s16 gamebitEnable;           // -1 if this effect box is always enabled
+/*22*/ u8 target;                   // see `EffectBox_Targets`
 } EffectBox_Setup;
+
+typedef enum {
+    EffectBox_EFFECT_Fall_Reset = 0,        //Puts camera underneath you and causes fall reset
+    EffectBox_EFFECT_WMInsert_Unk = 4,      //? (used in the unused WMInsert map)
+    EffectBox_EFFECT_Gravity_Unk = 8,       //? (something to do with player gravity?)
+    EffectBox_EFFECT_Stealth_Region = 12    //Robots can't see you when inside! Used a lot in CRF
+} EffectBox_Effects;
+
+typedef enum {
+    EffectBox_TARGET_Player = 0,
+    EffectBox_TARGET_Sidekick = 1,
+    EffectBox_TARGET_Pushblock = 2
+} EffectBox_Targets;
 
 typedef struct {
     ObjSetup base;

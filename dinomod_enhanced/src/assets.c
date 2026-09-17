@@ -28,6 +28,7 @@
 
 #include "PR/ultratypes.h"
 #include "dlls/objects/common/collectable.h"
+#include "dlls/engine/29_gplay.h"
 #include "dlls/engine/33_BaddieControl.h"
 #include "dlls/objects/325_trigger.h"
 #include "dlls/objects/418_DFriverflow.h"
@@ -3931,15 +3932,15 @@ static void diamond_bay_additions(void) {
                 .y = -956.03f,
                 .z = -1551.03f
             },
-            .unk18 = (19832 / 256), // yaw
-            .unk19 = 0, // pitch
-            .unk1A = 200, // x radius
-            .unk1B = 30, // y radius
-            .unk1C = 100, // z radius
-            .effect = 0, // fall reset
+            .yaw = (19832 / 256), // yaw
+            .roll = 0, // pitch
+            .halfWidth = 200, // x radius
+            .halfHeight = 30, // y radius
+            .halfLength = 100, // z radius
+            .effect = EffectBox_EFFECT_Fall_Reset,
             .gamebitDisableValue = 1,
-            .gamebit = RIVER_BIT, // disable when the SwapStone Hollow river is unblocked
-            .target = 0 // player
+            .gamebitEnable = RIVER_BIT, // disable when the SwapStone Hollow river is unblocked
+            .target = EffectBox_TARGET_Player
         };
 
         reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &riverFallResetBox, sizeof(riverFallResetBox));
@@ -5253,6 +5254,74 @@ static void discovery_falls_hit_edits(void) {
     }
 }
 
+static void moon_mountain_pass_modifications(void) {
+    ReAssetID moonMountainPass = reasset_base_id(MAP_MOON_MOUNTAIN_PASS);
+    ReAssetID mmpTrkblk = reasset_base_id(25);
+    int mmpBlocksBase = 670;
+
+    //Add a fall reset to the water below the climb up from Discovery Falls
+    {
+        EffectBox_Setup fallReset = {
+            .base = {
+                .objId = OBJ_EffectBox,
+                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .mapObjGroup = 0, //TODO: use enum for MMP objGroups
+                .fadeDistance = 50,
+            },
+            COORDS_SETUP(1076, -193, 242.5),
+            .yaw = DEGREES_TO_ANGLE8(340),
+            .roll = 0,
+            .halfWidth = 146,
+            .halfHeight = 90,
+            .halfLength = 150,
+            .effect = EffectBox_EFFECT_Fall_Reset,
+            .gamebitEnable = NO_GAMEBIT,
+            .target = EffectBox_TARGET_Player
+        };
+
+        reasset_map_objects_set(moonMountainPass, 
+                reasset_auto_id(dinomodNs), &fallReset, sizeof(fallReset));
+    }
+
+    //Add a savepoint TriggerPlane at the top of the climb from Discovery Falls,
+    //Just in case the player dies by falling into the EffectBox
+    {
+        Trigger_Setup plane = {
+            .base = {
+                .objId = OBJ_TriggerPlane,
+                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .mapObjGroup = 0, //TODO: use enum for MMP objGroups
+                .fadeDistance = 50,
+            },
+            COORDS_SETUP(916.796, 247.000, 458.498),
+            .rotationY = TRIGGER_YAW(180),
+            .sizeX = TRIGGER_SCALE(0.45),
+            .sizeY = 0x10,
+            .sizeZ = 0x10,
+            .conditionBitFlagIDs[0] = NO_GAMEBIT
+        };
+        ENTER_SET_SAVEPOINT(TRUE, &plane, 0);
+        EXIT_SET_SAVEPOINT(TRUE, &plane, 1);
+        reasset_map_objects_set(moonMountainPass, 
+            reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+    }
+
+    //Fix mid-air savepoint at the bottom of the climb up from Discovery Falls
+    {
+        Trigger_Setup* plane = GET_MAPS_OBJECT(moonMountainPass, 0x426ea);
+        plane->base.x = 1280;
+        plane->base.y = 4;
+        plane->base.z = 324;
+        plane->rotationY = TRIGGER_YAW(90); //rotate to align with the archway, so it can't be missed before reaching the EffectBox
+        
+        //Split bidirectional save onto separate commands, so they can face different ways on reload
+        ENTER_SET_SAVEPOINT(TRUE, plane, 0);
+        EXIT_SET_SAVEPOINT(TRUE, plane, 1);
+    }
+}
+
 static void custom_objects(void) {
     // SHbarrel
     {
@@ -5649,6 +5718,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     darkice_mines_modifications();
     diamond_bay_modifications();
     vfp_modifications();
+    moon_mountain_pass_modifications();
     golden_plains_modifications();
     // golden_plains_fuel_modifications();
     walled_city_modifications();
