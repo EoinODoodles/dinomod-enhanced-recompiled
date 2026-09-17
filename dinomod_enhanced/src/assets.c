@@ -4603,7 +4603,8 @@ static void discovery_falls_modifications(void) {
             };
             for (u32 i = 0; i < ARRAYCOUNT(cradleSwitchUIDs); i++) {
                 ProjectileSwitch_Setup* reverseSwitch = GET_MAPS_OBJECT(discoveryFalls, cradleSwitchUIDs[i]);
-                reverseSwitch->resetDelay = 30;
+                reverseSwitch->resetDelay = 15;
+                reverseSwitch->modelIndexAndFlags |= Switch_FLAG_Resets_After_Delay;
 
                 //Align the first switch with the rope, since it's just off from being aligned with it
                 if (i == 0) {
