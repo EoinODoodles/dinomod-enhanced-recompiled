@@ -40,6 +40,7 @@
 #include "sys/map_enums.h"
 #include "sys/math.h"
 #include "sys/memory.h"
+#include "sys/objtype.h"
 
 INCBIN(block351, "inc/blocks_0351_SHriver_rocky_waterfall.bin");
 INCBIN(block358, "inc/blocks_0358_SH_reflection_pool.bin");
@@ -4339,6 +4340,14 @@ static void discovery_falls_modifications(void) {
 
     //Lower Falls
     {
+        //Edit the TriggerPoint that activates the HighTop's cutscene so the player must be riding the log
+        {
+            Trigger_Setup* point = GET_MAPS_OBJECT(discoveryFalls, 0x00001e86);
+            point->activatorObjType = OBJTYPE_Vehicle;
+            point->commands[0].condition |= CMD_COND_CONTINUOUS;
+            point->conditionBitFlagIDs[0] = CHECK_IF_GAMEBIT_UNSET | BIT_17;
+        }
+
         //Foodbag Cave
         {
             //Move XYZAnimator out of ObjGroup

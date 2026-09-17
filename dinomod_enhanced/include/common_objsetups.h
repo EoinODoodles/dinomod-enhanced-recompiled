@@ -379,3 +379,5 @@ typedef struct {
     u8 enableTint;          //Enable tinting the switch to a different colour
 } ProjectileSwitch_Setup;
 
+#define CHECK_IF_GAMEBIT_UNSET 0x4000 //For Trigger_Setups' conditionBitFlagIDs
+
