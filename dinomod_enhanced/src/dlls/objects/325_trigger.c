@@ -25,8 +25,9 @@
 #include "dll.h"
 #include "dlls/objects/common/sidekick.h"
 #include "dlls/objects/210_player.h"
-
 #include "dlls/objects/325_trigger.h"
+
+#include "trigger_object_macros.h"
 
 #include "recomp/dlls/objects/325_trigger_recomp.h"
 
@@ -662,7 +663,19 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             break;
         case TRG_CMD_SAVE_POINT:
             // "Trigger [%d], Save Point\n" (default.dol)
-            gDLL_29_Gplay->vtbl->savepoint(&self->srt.transl, (self->srt.yaw >> 8), cmd->param2, mapGetLayer());
+
+            //@recomp: add option to reverse saved yaw (so one TriggerPlane can save opposite directions on enter/exit savepoint commands)
+            {
+                s32 angle = self->srt.yaw;
+                if (cmd->paramCombined & ROTATE_CHECKPOINT_YAW_180) {
+                    angle += M_180_DEGREES;
+                    CIRCLE_WRAP(angle);
+                }
+                
+                //@recomp: fix yaw accidentally getting shifted from angle16->angle8 twice 
+                //(Gplay savepoint func expects angle16 for the yaw arg, then shifts to angle8 when storing yaw in save data)
+                gDLL_29_Gplay->vtbl->savepoint(&self->srt.transl, angle, cmd->param2, mapGetLayer());
+            }
             break;
         case TRG_CMD_MAP_LAYER:
             // @recomp: Dino Mod trigger mapLayer command extension (originally by MusicalProgrammer)
@@ -679,10 +692,19 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             }
             break;
         case TRG_CMD_RESTART:
-            switch (cmd->param1) {
+            switch (cmd->param1 & 0x7F) { //@recomp: mask off uppermost bit
             case 0:
                 // "Restart Set [%d]\n"
-                gDLL_29_Gplay->vtbl->restart_set(&self->srt.transl, self->srt.yaw, mapGetLayer());
+
+                //@recomp: add option to reverse saved yaw (so one TriggerPlane can save opposite directions on enter/exit restartpoint commands)
+                {
+                    s32 angle = self->srt.yaw;
+                    if (cmd->paramCombined & ROTATE_CHECKPOINT_YAW_180) {
+                        angle += M_180_DEGREES;
+                        CIRCLE_WRAP(angle);
+                    }
+                    gDLL_29_Gplay->vtbl->restart_set(&self->srt.transl, angle, mapGetLayer());
+                }
                 break;
             case 1:
                 // "Restart Clear [%d]\n"
