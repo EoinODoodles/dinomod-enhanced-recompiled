@@ -117,10 +117,10 @@ RECOMP_PATCH void trigger_point_setup(Object* self, Trigger_Setup* setup) {
     modelInstance = sPointModel;
     model = modelInstance->model;
     vertex = &model->vertices[1];
-    x = (f32)vertex->v.ob[0];
-    y = (f32)vertex->v.ob[1];
-    z = (f32)vertex->v.ob[2];
-    modelRadius = sqrtf((x * x) + (y * y) + (z * z));
+    x = vertex->v.ob[0];
+    y = vertex->v.ob[1];
+    z = vertex->v.ob[2];
+    modelRadius = sqrtf(SQ(x) + SQ(y) + SQ(z));
     
     self->srt.scale = radius / modelRadius;
 
