@@ -5627,28 +5627,25 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     vampire_bat_patch();
     warp_point_patch();
 
-    shrine_fxemit_modifications();
     warlock_mountain_platform_modifications();
     warlock_mountain_modifications();
+    nw_modifications();
     swapstone_hollow_modifications();
     swapstone_hollow_well_modifications();
     swapstone_circle_modifications();
     cc_lightfoot_patch();
     cape_claw_modifications();
-    darkice_mines_modifications();
-    golden_plains_modifications();
-    walled_city_modifications();
-    dragon_rock_upper_modifications();
-    dragon_rock_bottom_modifications();
-    golden_plains_modifications();
-    // golden_plains_fuel_modifications();
-    music_actions_patch();
-    diamond_bay_modifications();
     discovery_falls_modifications();
     discovery_falls_hit_edits();
-    add_wctrex_hit_spheres();
+    darkice_mines_modifications();
+    diamond_bay_modifications();
     vfp_modifications();
-    nw_modifications();
+    golden_plains_modifications();
+    // golden_plains_fuel_modifications();
+    walled_city_modifications();
+    add_wctrex_hit_spheres();
+    dragon_rock_upper_modifications();
+    dragon_rock_bottom_modifications();
     dfsh_modifications();
     mmsh_modifications();
     ecsh_modifications();
@@ -5656,6 +5653,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     wgsh_modifications();
     gpsh_modifications();
     nwsh_modifications();
+    shrine_fxemit_modifications();
 }
 
 REASSET_ON_RESOLVE void dinomod_reasset_on_resolve(void) {
