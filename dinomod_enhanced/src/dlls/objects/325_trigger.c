@@ -64,6 +64,31 @@ extern ModelInstance *sPlaneModel;
 extern s16 sPointModelRefCount;
 extern s16 sPlaneModelRefCount;
 
+/** 
+  * MusicalProgrammer's custom TriggerPlane logic for optionally checking if a gamebit *isn't* set.
+  * It's been split out here as a function of its own, so more Trigger Objects can use this logic.
+  *
+  * TODO: TriggerPlanes can check gamebit 0, which has been preserved here since I'm unsure 
+  * if it's safe to remove it. Would it be safe to only ever check "conditionBitFlagID > 0"?
+  */
+static void trigger_checkConditionGamebit(s32* b_allBitsSet, s16 conditionBitFlagID, u8 checkGamebitZero) {
+    #define CHECK_IF_GAMEBIT_UNSET 0x4000
+
+    *b_allBitsSet = TRUE;
+    
+    if (conditionBitFlagID > (checkGamebitZero ? -1 : 0)) {
+        if (conditionBitFlagID & CHECK_IF_GAMEBIT_UNSET) {
+            if (mainGetBits(conditionBitFlagID & ~CHECK_IF_GAMEBIT_UNSET)) {
+                *b_allBitsSet = FALSE;
+            }
+        } else {
+            if (mainGetBits(conditionBitFlagID) == 0) {
+                *b_allBitsSet = FALSE;
+            }
+        }
+    }
+}
+
 RECOMP_PATCH void trigger_point_setup(Object* self, Trigger_Setup* setup) {
     Trigger_Data* objdata;
     ModelInstance* modelInstance;
@@ -237,54 +262,24 @@ RECOMP_PATCH void trigger_control(Object* self) {
         switch (setup->base.objId) {
         case OBJ_TriggerPoint:
             // @recomp: support conditionBitFlags[0]
-            b_allBitsSet = TRUE;
-            if (objdata->conditionBitFlagIDs[0] > 0) {
-                if (objdata->conditionBitFlagIDs[0] & 0x4000) {
-                    if (mainGetBits(objdata->conditionBitFlagIDs[0] & ~0x4000) != 0) {
-                        b_allBitsSet = FALSE;
-                    }
-                } else {
-                    if (mainGetBits(objdata->conditionBitFlagIDs[0]) == 0) {
-                        b_allBitsSet = FALSE;
-                    }
-                }
-            }
+            trigger_checkConditionGamebit(&b_allBitsSet, objdata->conditionBitFlagIDs[0], FALSE);
+
             if (b_allBitsSet && b_foundActivatorObj) {
                 trigger_point_update(self, activatorObj);
             }
             break;
         case OBJ_TriggerCylinder:
             // @recomp: support conditionBitFlags[0]
-            b_allBitsSet = TRUE;
-            if (objdata->conditionBitFlagIDs[0] > 0) {
-                if (objdata->conditionBitFlagIDs[0] & 0x4000) {
-                    if (mainGetBits(objdata->conditionBitFlagIDs[0] & ~0x4000) != 0) {
-                        b_allBitsSet = FALSE;
-                    }
-                } else {
-                    if (mainGetBits(objdata->conditionBitFlagIDs[0]) == 0) {
-                        b_allBitsSet = FALSE;
-                    }
-                }
-            }
+            trigger_checkConditionGamebit(&b_allBitsSet, objdata->conditionBitFlagIDs[0], FALSE);
+
             if (b_allBitsSet && b_foundActivatorObj) {
                 trigger_cylinder_update(self, activatorObj);
             }
             break;
         case OBJ_TriggerPlane:
-            b_allBitsSet = TRUE;
-            if (objdata->conditionBitFlagIDs[0] >= 0) {
-                // @recomp: Dino Mod condition bit extension for checking unset flags (originally by MusicalProgrammer)
-                if (objdata->conditionBitFlagIDs[0] & 0x4000) {
-                    if (mainGetBits(objdata->conditionBitFlagIDs[0] & ~0x4000) != 0) {
-                        b_allBitsSet = FALSE;
-                    }
-                } else {
-                    if (mainGetBits(objdata->conditionBitFlagIDs[0]) == 0) {
-                        b_allBitsSet = FALSE;
-                    }
-                }
-            }
+            // @recomp: support checking if conditionBitFlags[0] is *unset* (added by MusicalProgrammer)
+            trigger_checkConditionGamebit(&b_allBitsSet, objdata->conditionBitFlagIDs[0], TRUE);
+
             if (b_allBitsSet && b_foundActivatorObj) {
                 trigger_plane_update(self, activatorObj);
             }
@@ -297,18 +292,8 @@ RECOMP_PATCH void trigger_control(Object* self) {
             break;
         case OBJ_TriggerArea:
             // @recomp: support conditionBitFlags[0]
-            b_allBitsSet = TRUE;
-            if (objdata->conditionBitFlagIDs[0] > 0) {
-                if (objdata->conditionBitFlagIDs[0] & 0x4000) {
-                    if (mainGetBits(objdata->conditionBitFlagIDs[0] & ~0x4000) != 0) {
-                        b_allBitsSet = FALSE;
-                    }
-                } else {
-                    if (mainGetBits(objdata->conditionBitFlagIDs[0]) == 0) {
-                        b_allBitsSet = FALSE;
-                    }
-                }
-            }
+            trigger_checkConditionGamebit(&b_allBitsSet, objdata->conditionBitFlagIDs[0], FALSE);
+
             if (b_allBitsSet && b_foundActivatorObj) {
                 trigger_area_update(self, activatorObj);
             }
