@@ -1,8 +1,6 @@
 #include "modding.h"
 #include "recomputils.h"
 
-#include "recomp/dlls/engine/66_pausemenu_recomp.h"
-
 #include "PR/ultratypes.h"
 #include "sys/joypad.h"
 #include "sys/fonts.h"
@@ -16,6 +14,8 @@
 #include "dlls/engine/66_pausemenu.h"
 
 #include "player_stats.h"
+
+#include "recomp/dlls/engine/66_pausemenu_recomp.h"
 
 extern s32 D_8008C890;
 
@@ -78,7 +78,7 @@ static void printWithDropshadow(char message[], s16 x, s16 y, s32 colour_main, s
   * - Adds in the completion percentage text's missing drop-shadow 
   * - Adapts for widescreen mode (only used by ROM patches, recomp handles widescreen differently)
   */
-RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
+RECOMP_PATCH void pausemenu_Draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
     s32 ulx;
     s32 uly;
     s32 lrx;
@@ -152,7 +152,7 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
             #endif
             
             //Draw completion percentage
-            sprintf(completionPercentage, formatCompletionPercentage, gDLL_30_Task->vtbl->get_completion_percentage());
+            sprintf(completionPercentage, formatCompletionPercentage, gDLL_30_Task->vtbl->GetCompletionPercentage());
             printWithDropshadow(completionPercentage, 264, 36, colour_main, colour_shadow, opacity_main, ALIGN_TOP_CENTER);
     
             //Draw gameplay time
@@ -210,7 +210,7 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
     fontWindowDraw(gfx, 0, 0, 1);
 }
 
-RECOMP_PATCH s32 pausemenu_update1(void) {
+RECOMP_PATCH s32 pausemenu_Update1(void) {
     s32 action;
     s32 index;
     s32 selectedItem;

@@ -58,7 +58,7 @@ typedef struct {
     Allows Sabre's Small Food Bag to be purchased
     Allows the Krazoa Translator to be purchased
 */
-RECOMP_HOOK_DLL(SPShop_ctor) void hook_edit_shop_item_data() {
+RECOMP_HOOK_DLL(SPShop_ctor) void hook_edit_shop_item_data(void) {
     //Firefly Lantern
     shopItemData[SPItem_Firefly_Lantern].sabre.hide = BIT_Sabre_Fireflies;
     shopItemData[SPItem_Firefly_Lantern].krystal.hide = BIT_Krystal_Fireflies;
@@ -72,7 +72,7 @@ RECOMP_HOOK_DLL(SPShop_ctor) void hook_edit_shop_item_data() {
 }
 
 /** Adds a fade-to-black when leaving the shop (Banjeoin) */
-RECOMP_PATCH void SPShop_control(Object* self) {
+RECOMP_PATCH void SPShop_obj_Control(Object* self) {
     Extended_SPShop_Data* objData; 
     Object* player;
 
@@ -129,6 +129,6 @@ RECOMP_PATCH void SPShop_control(Object* self) {
 }
 
 //@recomp: extend object's Data struct
-RECOMP_PATCH u32 SPShop_get_data_size(Object *self, u32 a1) {
+RECOMP_PATCH u32 SPShop_obj_GetDataSize(Object *self, u32 a1) {
     return sizeof(Extended_SPShop_Data);
 }

@@ -4,7 +4,7 @@
 #include "sys/dll.h"
 #include "sys/objects.h"
 
-#include "recomp/dlls/objects/782_WCpushblock_recomp.h"
+#include "recomp/dlls/objects/782_WCPushBlock_recomp.h"
 
 typedef struct {
 /*000*/    s8 unk0[0x260 - 0];
@@ -28,7 +28,7 @@ typedef struct {
 } WCPushBlock_Setup;
 
 //Prevents crash when the Sun Blocks loads in Walled City (originally by MusicalProgrammer)
-RECOMP_PATCH void dll_782_setup(Object* self, WCPushBlock_Setup* setup, s32 arg2) {
+RECOMP_PATCH void WCPushBlock_obj_Setup(Object* self, WCPushBlock_Setup* setup, s32 arg2) {
     WCPushBlock_Data* objdata = self->data;
     ObjectHitInfo* hitInfo; //@recomp
     

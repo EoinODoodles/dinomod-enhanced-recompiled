@@ -52,7 +52,7 @@ RECOMP_PATCH void SHtricky_control(Object *self) {
         objdata->unk0 = 2;
         break;
     case 2:
-        ((DLL_ISidekick*)sidekick->dll)->vtbl->func22(sidekick, self);
+        ((DLL_ISidekick*)sidekick->dll)->vtbl->Func22(sidekick, self);
         objdata->unk0 = 3;
         break;
     case 3:

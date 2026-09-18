@@ -320,7 +320,7 @@ static void walled_city_modifications(void) {
         SeqDoor_Setup* cageDoor = (SeqDoor_Setup*)reasset_map_objects_get(walledCity, 
             reasset_base_id(0x411B0), NULL);
         cageDoor->gamebitOpenA = NO_GAMEBIT;
-        cageDoor->gamebitRestoreState = BIT_7F5;
+        cageDoor->gamebitRestoreState = BIT_WC_King_EarthWalker_Cage_Opened;
     }
 
     // WCSlabDoor
