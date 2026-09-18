@@ -106,6 +106,11 @@ _Bool configs_GetFrostWeedTwigsConfig(void) {
     return recomp_get_config_u32("garunda_te_frostweeds_accept_twigs") != 0;
 }
 
+/* Checks whether to assist with Discovery Falls' infamously difficult whirlpool cave. */
+_Bool configs_GetDFWhirlpoolAssist(void) {
+    return recomp_get_config_u32("dfwhirlpool_assist") != 0;
+}
+
 /* Checks whether Walled City's Pressure Switch quality-of-life edits are enabled. */
 _Bool configs_GetWCPressureSwitchQOL(void) {
     return (recomp_get_config_u32("wc_pressure_switch_refill") != 0);

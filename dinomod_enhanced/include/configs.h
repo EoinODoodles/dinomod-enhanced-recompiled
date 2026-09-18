@@ -138,6 +138,7 @@ RopeMoveModes configs_RopeMoveMode(void);
 _Bool configs_GetSidekickToyPreventZoomies(void);
 u32 configs_GetFrostWeedMax(void);
 _Bool configs_GetFrostWeedTwigsConfig(void);
+_Bool configs_GetDFWhirlpoolAssist(void);
 _Bool configs_GetWCPressureSwitchQOL(void);
 _Bool configs_GetIceBlastCostReduced(void);
 

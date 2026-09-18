@@ -635,6 +635,20 @@ options = [ "Off", "On" ]
 default = "On"
 
 [[manifest.config_options]]
+id = "dfwhirlpool_assist"
+name = "Whirlpool Cave: Barrel Assist"
+description = '''
+One of Discovery Falls' puzzles involves dropping an explosive barrel into swirling waters and shooting it just as it passes in front of a destructible wall.
+
+This challenge has a reputation for being very difficult, especially appearing so early on in the game! 
+
+If you'd like a way of managing its difficulty, this config option can be enabled. Barrels will drift out towards the wall crack as they circle the whirlpool, eventually coming to a halt in range of it.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "Off"
+
+[[manifest.config_options]]
 id = "dim_tent_cinders"
 name = "DIM Tents: Show Cinders"
 description = '''
