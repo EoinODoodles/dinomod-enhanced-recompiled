@@ -12,6 +12,7 @@
 
 #include "recomp/dlls/_asm/218_recomp.h"
 
+// #define DEBUG_WATERBADDIE_TERRAIN
 // #define DEBUG_WATERBADDIE_CURVES
 
 //TEMPORARY DEFINES
@@ -53,11 +54,13 @@ typedef struct {
     s32 curveValue;         //objData version of sCurveValue, so it only affects a particular WaterBaddie
     f32 stunnedTimer;       //objData version of sStunnedTimer, so it only affects a particular WaterBaddie
     s8 curveSearchTimer;    //Interval between curve searches, for when the WaterBaddie fails to find its curves on setup
+    s8 terrainSearchTimer;  //Interval between terrain height searches, for when the WaterBaddie loads while its local Block is unloaded
     u8 customFlags;         //`WaterBaddie_CustomFlags`
 } WaterBaddie_DataActual;
 
 typedef enum {
-    WaterBaddie_CUSTOMFLAG_1_Shallow_Water = 1
+    WaterBaddie_CUSTOMFLAG_1_Shallow_Water = 1,
+    WaterBaddie_CUSTOMFLAG_2_Terrain_Heights_Found = 2
 } WaterBaddie_CustomFlags;
 
 typedef enum {
@@ -88,6 +91,57 @@ extern void WaterBaddie_searchForTarget(Object* self, Baddie* baddie, ObjFSA_Dat
 
 /*0x44*/ extern s32 sCurveValue;
 
+/**
+  * Searches for the water and ground height at the WaterBaddie's home location.
+  *
+  * Adapted from a section of Rare's code, but split out as its own function so it can be repeated 
+  * if the WaterBaddie's local Block wasn't loaded during setup, causing the heights not to be found.
+  */
+static void WaterBaddie_findTerrainHeights(Object* self, WaterBaddie_DataActual* objData) {
+    s32 count;
+    f32 depth;
+    s32 i;
+    TrackHeightResult** trackResult;
+
+    count = trackGetHeight(self, self->srt.transl.x, self->srt.transl.y, self->srt.transl.z, &trackResult, 0, 0);
+    objData->waterHeight = 0.0f;
+    
+    //Find the local water height
+    //(This is only done during setup, so it assumes the WaterBaddie will be swimming around a perfectly flat water plane)
+    if (count) {
+        for (i = 0, objData->waterHeight = -9999.0f; i < count; i++){
+            depth = trackResult[i]->y - self->srt.transl.y;
+            if ((trackResult[i]->unk14 == 0xE) && (objData->waterHeight < depth)) {
+                objData->waterHeight = depth;
+            }
+        }
+    }    
+    objData->waterHeight += self->srt.transl.y;
+
+    //@recomp: store ground height too (closest under the water height)
+    {
+        for (i = 0, objData->groundHeight = -9999.0f; i < count; i++){
+            if ((trackResult[i]->unk14 != 0xE) && 
+                (trackResult[i]->y < objData->waterHeight) && 
+                (objData->groundHeight < trackResult[i]->y)
+            ) {
+                objData->groundHeight = trackResult[i]->y;
+            }
+        }
+        objData->groundHeight += 3.0f; //Add a little bit of padding
+
+        //Flag when the WaterBaddie is in shallow water
+        if (objData->waterHeight - 15.0f < objData->groundHeight) {
+            objData->customFlags |= WaterBaddie_CUSTOMFLAG_1_Shallow_Water;
+        }
+    }
+
+    //Flag that the heights were found
+    if (count) {
+        objData->customFlags |= WaterBaddie_CUSTOMFLAG_2_Terrain_Heights_Found;
+    }
+}
+
 /* Store the ground height too, as well as the water height */
 RECOMP_PATCH void WaterBaddie_obj_Setup(Object* self, Baddie_Setup* objSetup, s32 reset) {
     Baddie* baddie;
@@ -117,40 +171,9 @@ RECOMP_PATCH void WaterBaddie_obj_Setup(Object* self, Baddie_Setup* objSetup, s3
     objData->prevYaw = self->srt.yaw;
     objData->moveSpeed = objSetup->unk2F / 100.0f;
     
-    count = trackGetHeight(self, self->srt.transl.x, self->srt.transl.y, self->srt.transl.z, &trackResult, 0, 0);
-    objData->waterHeight = 0.0f;
-    
-    //Find the local water height
-    //(This is only done during setup, so it assumes the WaterBaddie will be swimming around a perfectly flat water plane)
-    if (count) {
-        for (i = 0, objData->waterHeight = -9999.0f; i < count; i++){
-            depth = trackResult[i]->y - self->srt.transl.y;
-            if ((trackResult[i]->unk14 == 0xE) && (objData->waterHeight < depth)) {
-                objData->waterHeight = depth;
-            }
-        }
-    }    
-
-    objData->waterHeight += self->srt.transl.y;
     objData->unk18 = 0.075f;
 
-    //@recomp: store ground height too (closest under the water height)
-    {
-        for (i = 0, objData->groundHeight = -9999.0f; i < count; i++){
-            if ((trackResult[i]->unk14 != 0xE) && 
-                (trackResult[i]->y < objData->waterHeight) && 
-                (objData->groundHeight < trackResult[i]->y)
-            ) {
-                objData->groundHeight = trackResult[i]->y;
-            }
-        }
-        objData->groundHeight += 3.0f; //Add a little bit of padding
-
-        //Flag when the WaterBaddie is in shallow water
-        if (objData->waterHeight - 15.0f < objData->groundHeight) {
-            objData->customFlags |= WaterBaddie_CUSTOMFLAG_1_Shallow_Water;
-        }
-    }
+    WaterBaddie_findTerrainHeights(self, objData);
 }
 
 /* Edited to handle when the WaterBaddie fails to find its curves.
@@ -181,6 +204,34 @@ RECOMP_PATCH void WaterBaddie_obj_Control(Object* self) {
         return;
     }
 
+    //@recomp: don't do anything until the terrain heights are found (i.e. wait until local Block loads)
+    objData = baddie->objdata;
+    if ((objData->customFlags & WaterBaddie_CUSTOMFLAG_2_Terrain_Heights_Found) == FALSE) {
+        //Keep trying to find the heights at intervals
+        if (objData->terrainSearchTimer == 0) {
+#ifdef DEBUG_WATERBADDIE_TERRAIN
+            recomp_printf("WaterBaddie %x hasn't found its trackHeights yet. Searching...\n", self->setup->uID);
+#endif
+            WaterBaddie_findTerrainHeights(self, objData);
+            objData->curveValue = baddie->unk3F8->unk0.unk10;
+            objData->terrainSearchTimer = 30;
+        } else {
+            objData->terrainSearchTimer -= gUpdateRate;
+            if (objData->terrainSearchTimer < 0) {
+                objData->terrainSearchTimer = 0;
+            }
+        }
+
+        //Return if it's still not found
+        if ((objData->customFlags & WaterBaddie_CUSTOMFLAG_2_Terrain_Heights_Found) == FALSE) {
+            return;
+        } else {
+#ifdef DEBUG_WATERBADDIE_TERRAIN
+            recomp_printf("WaterBaddie %x found its trackHeights!\n", self->setup->uID);
+#endif
+        }
+    }
+
     if (self->unkE0 == 0) {
         self->srt.transl.x = objSetup->base.x;
         self->srt.transl.y = objSetup->base.y;
@@ -198,7 +249,6 @@ RECOMP_PATCH void WaterBaddie_obj_Control(Object* self) {
     if (gDLL_33_BaddieControl->vtbl->func11(self, baddie, 1)) {
         //@recomp: don't continue until the WaterBaddie's curves are found
         {
-            objData = baddie->objdata;
             if (objData->curveValue < 0) {
 #ifdef DEBUG_WATERBADDIE_CURVES
                 diPrintf("ERROR: WaterBaddie %x couldn't find curve! %d\n", self->setup->uID, objData->curveValue);
