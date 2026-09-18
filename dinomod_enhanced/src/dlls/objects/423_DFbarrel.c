@@ -2,11 +2,13 @@
 #include "configs.h"
 #include "math_util.h"
 #include "modding.h"
+#include "player_util.h"
 #include "recomputils.h"
 
 #include "PR/os.h"
 #include "common.h"
 #include "dlls/objects/210_player.h"
+#include "game/objects/interaction_arrow.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
 #include "sys/map_enums.h"
@@ -18,7 +20,9 @@
 #include "recomp/dlls/objects/423_DFbarrel_recomp.h"
 
 //TEMPORARY DEFINES
+#define DFbarrel_obj_Control DFbarrel_control
 #define DFbarrel_handleMovement DFbarrel_handle_movement
+#define DFbarrel_handleDamage DFbarrel_handle_damage
 //END OF TEMPORARY DEFINES
 
 typedef struct {
@@ -32,6 +36,8 @@ typedef struct {
     f32 velocityY;              //Copy of barrel's velocity, for flow/bouyancy calcs
     f32 velocityZ;              //Copy of barrel's velocity, for flow/bouyancy calcs
 } DFBarrel_Data;
+
+extern void DFbarrel_handleDamage(Object* self);
 
 RECOMP_PATCH void DFbarrel_handleMovement(Object* self) {
     DFBarrel_Data* objData;
@@ -203,4 +209,53 @@ RECOMP_PATCH void DFbarrel_handleMovement(Object* self) {
     }
 
     trackGetLineIntersect(&position, &self->srt.transl, 10.0f, 0, NULL, self, 8, -1, 0xFF, 0);
+}
+
+static void DFbarrel_dropIfPlayerUnderwater(Object* self) {
+    Object* player = objGetPlayer();
+    if (player == NULL || player->data == NULL) {
+        return;
+    }
+
+    Player_Data* playerData = player->data;
+    if (playerData->unk0.unk4.underwaterDist > 25.0f) {
+        playerUtil_stop_carrying(player);
+    }
+}
+
+RECOMP_PATCH void DFbarrel_obj_Control(Object* self) {
+    DFBarrel_Data* objData = self->data;
+    
+    //Do nothing if not on a map
+    if (mapWorldCoordsToBlockIndex(self->srt.transl.x, self->srt.transl.y, self->srt.transl.z) == -1) {
+        return;
+    }
+    
+    //@recomp: barrel falls into the water if the player's swimming (TODO: handle this in the player DLL instead)
+    {
+        s32 pickupState = gDLL_54_pickup->vtbl->get_state(self->data);
+        if (pickupState == PICKUP_Held) {
+            DFbarrel_dropIfPlayerUnderwater(self);
+        }
+    }
+
+    switch (objData->framesSinceDetonation) {
+    case 0:
+        if (gDLL_54_pickup->vtbl->control(self, &objData->pickup) == FALSE) {
+            DFbarrel_handleMovement(self);
+            DFbarrel_handleDamage(self);
+        }
+        break;
+    case 1:
+        func_800267A4(self);
+        self->unkAF |= ARROW_FLAG_8_No_Targetting;
+        objData->framesSinceDetonation = 20;
+        return;
+    default:
+        objData->framesSinceDetonation++;
+        /* fallthrough */
+    case 20:
+        objFreeObject(self);
+        break;
+    }
 }
