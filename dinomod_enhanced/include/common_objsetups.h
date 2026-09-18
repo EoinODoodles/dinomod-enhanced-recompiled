@@ -392,5 +392,10 @@ typedef struct {
     u8 enableTint;          //Enable tinting the switch to a different colour
 } ProjectileSwitch_Setup;
 
+typedef enum {
+    Switch_FLAG_Can_Be_Toggled_Via_Attacks = 1, //Repeated Projectile Spell hits will toggle the switch's state
+    Switch_FLAG_Resets_After_Delay = 2          //Switch resets resets to its unpressed state after a number of seconds (specified by `objData->resetDelay`)
+} ProjectileSwitch_Flags;
+
 #define CHECK_IF_GAMEBIT_UNSET 0x4000 //For Trigger_Setups' conditionBitFlagIDs
 
