@@ -320,7 +320,7 @@ static void walled_city_modifications(void) {
         SeqDoor_Setup* cageDoor = (SeqDoor_Setup*)reasset_map_objects_get(walledCity, 
             reasset_base_id(0x411B0), NULL);
         cageDoor->gamebitOpenA = NO_GAMEBIT;
-        cageDoor->gamebitRestoreState = BIT_7F5;
+        cageDoor->gamebitRestoreState = BIT_WC_King_EarthWalker_Cage_Opened;
     }
 
     // WCSlabDoor
@@ -2246,6 +2246,30 @@ static void nwsh_modifications(void) {
     }
 }
 
+static void crf_modifications(void) {
+    ReAssetID crf = reasset_base_id(MAP_CLOUDRUNNER_FORTRESS);
+
+    // Remove part of the courtyard EWTrobotpatrol curve network that goes towards the entrance.
+    // There's rubble blocking this path now, so if the robots are restored back into the game
+    // they clip through it. Also, the robots are loaded in by a trigger in the rubble so the
+    // robots can also spawn behind the player if these are left in. This is probably a leftover
+    // from an earlier version of CRF.
+    {
+        reasset_map_objects_delete(crf, reasset_base_id(0x8B0));
+        reasset_map_objects_delete(crf, reasset_base_id(0x8B1));
+        reasset_map_objects_delete(crf, reasset_base_id(0x8B2));
+
+        CurveSetup* curve = reasset_map_objects_get(crf, reasset_base_id(0x827), NULL);
+        curve->links[3] = -1; // unlink 0x8B2
+    }
+
+    // Increase number of courtyard robots from 3 to 4
+    {
+        EWTrobotpatrolB_Setup* base = reasset_map_objects_get(crf, reasset_base_id(0x2C5C), NULL);
+        base->unk18 = 4;
+    }
+}
+
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     custom_objects();
     custom_dlls();
@@ -2342,6 +2366,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     ccsh_modifications();
     wgsh_modifications();
     nwsh_modifications();
+    crf_modifications();
 }
 
 REASSET_ON_RESOLVE void dinomod_reasset_on_resolve(void) {

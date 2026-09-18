@@ -154,7 +154,7 @@ static void skip_galleon_fight(Object* self) {
     }
 
     gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
-    gDLL_30_Task->vtbl->mark_task_completed(1);
+    gDLL_30_Task->vtbl->MarkTaskCompleted(1);
 
     galleon_delete_cannons();
 }

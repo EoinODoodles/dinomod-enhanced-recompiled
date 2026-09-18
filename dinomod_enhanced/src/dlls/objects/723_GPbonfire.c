@@ -70,7 +70,7 @@ extern void GPbonfire_func_A44(Object* self);
 extern int GPbonfire_anim_callback(Object* self, Object* animObj, AnimObj_Data* animObjData, s8 arg3);
 
 //Allows GPbonfire to be lit and ChimneySweep immediately lifted (originally by jeebs2kx)
-RECOMP_PATCH void GPbonfire_setup(Object* self, GPBonfire_Setup* setup, s32 arg2) {
+RECOMP_PATCH void GPbonfire_obj_Setup(Object* self, GPBonfire_Setup* setup, s32 arg2) {
     GPBonfire_Data* objdata;
 
     objdata = self->data;

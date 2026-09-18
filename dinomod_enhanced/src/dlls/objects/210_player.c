@@ -27,7 +27,7 @@
 #include "sys/gfx/animseq.h"
 #include "dll.h"
 #include "dlls/objects/common/vehicle.h"
-#include "dlls/objects/common/group48.h"
+#include "dlls/objects/common/weapon.h"
 #include "dlls/objects/common/foodbag.h"
 #include "dlls/objects/common/dinocaller.h"
 #include "dlls/objects/210_player.h"
@@ -415,7 +415,7 @@ RECOMP_PATCH void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2)
                 arg1->unk8A8 = 2;
             }
             if ((temp_s2 != NULL) && (player->animProgressLayered > 0.7f) && (temp_s2->controlNo == OBJCONTROL_Weapon)) {
-                ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func7(temp_s2, 0.15f);
+                ((DLL_IWeapon*)temp_s2->dll)->vtbl->func7(temp_s2, 0.15f);
             }
             if (temp_s3 != 0) {
                 arg1->unk878 = 3;
@@ -424,7 +424,7 @@ RECOMP_PATCH void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2)
             break;
         case 13:
             if ((temp_s2 != NULL) && (temp_s2->controlNo == OBJCONTROL_Weapon)) {
-                ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func7(temp_s2, 1.0f);
+                ((DLL_IWeapon*)temp_s2->dll)->vtbl->func7(temp_s2, 1.0f);
             }
             arg1->unk8A8 = 2;
             arg1->unk878 = 0;
@@ -442,7 +442,7 @@ RECOMP_PATCH void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2)
                 arg1->unk8A8 = 0;
             }
             if ((temp_s2 != NULL) && (player->animProgressLayered < 0.7f) && (temp_s2->controlNo == OBJCONTROL_Weapon)) {
-                ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func8(temp_s2);
+                ((DLL_IWeapon*)temp_s2->dll)->vtbl->func8(temp_s2);
             }
             if (temp_s3 != 0) {
                 // @recomp: Don't disable forcefield or illusion when stowing weapon
@@ -455,7 +455,7 @@ RECOMP_PATCH void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2)
             break;
         case 14:
             if (temp_s2->controlNo == OBJCONTROL_Weapon) {
-                ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func8(temp_s2);
+                ((DLL_IWeapon*)temp_s2->dll)->vtbl->func8(temp_s2);
             }
             // arg1->unk87C = -1; //@recomp: don't unequip spells
             arg1->unk8A8 = 0;
@@ -1422,7 +1422,7 @@ RECOMP_PATCH s32 dll_210_func_18630(Object* self, ObjFSA_Data* fsa, f32 arg2) {
         }
     } else {
         if (weapon->controlNo == OBJCONTROL_Weapon) {
-            ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func11(weapon);
+            ((DLL_IWeapon *)weapon->dll)->vtbl->func11(weapon);
         }
         sp47 = 1;
         objData->flags &= ~0x40;
@@ -1452,9 +1452,9 @@ RECOMP_PATCH s32 dll_210_func_18630(Object* self, ObjFSA_Data* fsa, f32 arg2) {
             self->objhitInfo->unk61 = 0;
         }
         if (weapon->controlNo == OBJCONTROL_Weapon) {
-            ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func12(weapon, 1);
-            ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func13(weapon, (&objData->unk3B4[objData->unk8A1])->unk30);
-            ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func18(weapon, (&objData->unk3B4[objData->unk8A1])->unk1C, (&objData->unk3B4[objData->unk8A1])->unk20);
+            ((DLL_IWeapon *)weapon->dll)->vtbl->func12(weapon, 1);
+            ((DLL_IWeapon *)weapon->dll)->vtbl->func13(weapon, (&objData->unk3B4[objData->unk8A1])->unk30);
+            ((DLL_IWeapon *)weapon->dll)->vtbl->func18(weapon, (&objData->unk3B4[objData->unk8A1])->unk1C, (&objData->unk3B4[objData->unk8A1])->unk20);
         }
     }
     self->objhitInfo->unk5F = (&objData->unk3B4[objData->unk8A1])->unk4;

@@ -6,7 +6,7 @@
 #include "dll.h"
 #include "dlls/objects/768_SPshop.h"
 
-#include "recomp/dlls/objects/772_SPitembeam_recomp.h"
+#include "recomp/dlls/objects/772_SPItemBeam_recomp.h"
 
 typedef struct {
     ObjSetup base;
@@ -19,7 +19,7 @@ typedef struct {
   * SPitembeam could run its control before the SPshop Object has loaded. 
   * Could also be encountered by no-clipping and fall resetting in the shop.
   */
-RECOMP_PATCH void SPitembeam_control(Object* self) {
+RECOMP_PATCH void SPItemBeam_obj_Control(Object* self) {
     s32 pad[2];
     Object* shop;
     SPitembeam_Setup* objSetup;
@@ -34,8 +34,8 @@ RECOMP_PATCH void SPitembeam_control(Object* self) {
     }
 
     //Check if the beam's item isn't visible (and shouldn't be spotlighted)
-    if ((((DLL_768_SPShop*)shop->dll)->vtbl->is_item_shown(shop, objSetup->itemIndex) == FALSE) ||
-        (((DLL_768_SPShop*)shop->dll)->vtbl->is_item_hidden(shop, objSetup->itemIndex))
+    if ((((DLL_768_SPShop*)shop->dll)->vtbl->IsItemShown(shop, objSetup->itemIndex) == FALSE) ||
+        (((DLL_768_SPShop*)shop->dll)->vtbl->IsItemHidden(shop, objSetup->itemIndex))
     ) {
         self->srt.flags |= OBJFLAG_INVISIBLE;
         self->stateFlags |= OBJSTATE_CONTROL_DISABLED;

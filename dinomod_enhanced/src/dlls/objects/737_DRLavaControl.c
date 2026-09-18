@@ -30,11 +30,11 @@ typedef struct {
 
 extern s16 lfxEmitterUnk1E[];
 
-extern void DRLavaControl_freeze_update_effects(Object* self, Extended_DRLavaControl_Data* objData, s32 effectIndex);
-extern Object* DRLavaControl_create_light(Object* self, s32 lfxSetupUnk1E);
+extern void DRLavaControl_freezeUpdateEffects(Object* self, Extended_DRLavaControl_Data* objData, s32 effectIndex);
+extern Object* DRLavaControl_createLight(Object* self, s32 lfxSetupUnk1E);
 
 // Fix DRLavaControl LFXEmitters from crashing after you leave section, after cooling lava (originally by MusicalProgrammer)
-RECOMP_PATCH void DRLavaControl_freeze_update_effects(Object* self, Extended_DRLavaControl_Data* objData, s32 effectIndex) {
+RECOMP_PATCH void DRLavaControl_freezeUpdateEffects(Object* self, Extended_DRLavaControl_Data* objData, s32 effectIndex) {
     f32 distance;
     f32 temperature_tValue; //0.0 when cooled, 1.0 when hot
     u16 dataUnused[] = { 288, 287, 286, 282 }; //unused indices?
@@ -62,7 +62,7 @@ RECOMP_PATCH void DRLavaControl_freeze_update_effects(Object* self, Extended_DRL
         }
         if (effectIndex) {
             // diPrintf(" Creating LIGHT %i  x %f z %f \n", arg2, self->srt.transl.x, self->srt.transl.z);
-            objData->lfxEmitter = DRLavaControl_create_light(self, (objData->lfxEmitterVal - effectIndex) + 3);
+            objData->lfxEmitter = DRLavaControl_createLight(self, (objData->lfxEmitterVal - effectIndex) + 3);
         }
         objData->effectIndex = effectIndex;
     }
@@ -100,11 +100,11 @@ RECOMP_PATCH void DRLavaControl_freeze(Object* self) {
         }
     }
 
-    DRLavaControl_freeze_update_effects(self, objData, objData->freezeTimer / 5);
+    DRLavaControl_freezeUpdateEffects(self, objData, objData->freezeTimer / 5);
 }
 
 /** gUpdateRate tends to be 2 or 3 on N64, so multiplying initial values to keep freeze durations equal across framerates */
-RECOMP_PATCH void DRLavaControl_setup(Object* self, DRLavaControl_Setup* objSetup, s32 arg2) {
+RECOMP_PATCH void DRLavaControl_obj_Setup(Object* self, DRLavaControl_Setup* objSetup, s32 arg2) {
     Extended_DRLavaControl_Data* objData;
     s32 isFrozen;
 
@@ -121,18 +121,18 @@ RECOMP_PATCH void DRLavaControl_setup(Object* self, DRLavaControl_Setup* objSetu
     objData->flags |= isFrozen;
     objData->lfxEmitterVal = lfxEmitterUnk1E[objSetup->dataIndex];
     if (objData->flags & 1) {
-        DRLavaControl_freeze_update_effects(self, objData, 0);
+        DRLavaControl_freezeUpdateEffects(self, objData, 0);
         return;
     }
-    DRLavaControl_freeze_update_effects(self, objData, 3);
+    DRLavaControl_freezeUpdateEffects(self, objData, 3);
     gDLL_5_AMSEQ2->vtbl->set(self, 0x102, 0, 0, 0);
 }
 
-RECOMP_PATCH u32 DRLavaControl_get_data_size(Object *self, u32 a1) {
+RECOMP_PATCH u32 DRLavaControl_obj_GetDataSize(Object *self, u32 a1) {
     return sizeof(Extended_DRLavaControl_Data);
 }
 
-RECOMP_PATCH void DRLavaControl_free(Object* self, s32 arg1) {
+RECOMP_PATCH void DRLavaControl_obj_Free(Object* self, s32 arg1) {
     Extended_DRLavaControl_Data* objData = self->data;
 
     if (objData->lfxEmitter && (arg1 == 0)) {

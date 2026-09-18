@@ -6,7 +6,7 @@
 #include "sys/print.h"
 
 typedef enum {
-    FLAG_WARLOCK_MOUNTAIN_SETUP = BIT_WM_Map_Setup,
+    FLAG_WARLOCK_MOUNTAIN_SETUP = BIT_WM_Map_Act,
 
     FLAG_SPELLSTONE_DIM_COLLECTED = BIT_SpellStone_DIM,
     FLAG_SPELLSTONE_DIM_ACTIVATED = BIT_SpellStone_DIM_Activated,

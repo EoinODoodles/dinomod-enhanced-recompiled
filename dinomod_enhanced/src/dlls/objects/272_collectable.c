@@ -448,7 +448,7 @@ RECOMP_PATCH void collectable_setup(Object* self, Collectable_Setup* objSetup, s
         lfxAction.unk1f = self->def->lightIdx;
         lfxAction.unk20 = self->def->nLights;
         lfxAction.unk21 = 0;
-        gDLL_11_Newlfx->vtbl->func0(self, self, &lfxAction, 0, 0, 0);
+        gDLL_11_Newlfx->vtbl->DoAction(self, self, &lfxAction, 0, 0, 0);
         self->unkD6 = lfxAction.unk10;
     }
 
@@ -882,6 +882,6 @@ RECOMP_PATCH void collectable_collect(Object* self) {
         lfxAction.unke = 0;
         lfxAction.unk1b = 0;
         lfxAction.unk10 = self->unkD6;
-        gDLL_11_Newlfx->vtbl->func0(self, self, &lfxAction, 0, 0, 0);
+        gDLL_11_Newlfx->vtbl->DoAction(self, self, &lfxAction, 0, 0, 0);
     }
 }

@@ -51,7 +51,7 @@ RECOMP_PATCH void mainSetBits(s32 entry, u32 value) {
         }
 
         if (gFile_BITTABLE[entry].field_0x2 & (1 << 5)) {
-            gDLL_30_Task->vtbl->mark_task_completed(gFile_BITTABLE[entry].task);
+            gDLL_30_Task->vtbl->MarkTaskCompleted(gFile_BITTABLE[entry].task);
         }
 
         startBit = gFile_BITTABLE[entry].start;

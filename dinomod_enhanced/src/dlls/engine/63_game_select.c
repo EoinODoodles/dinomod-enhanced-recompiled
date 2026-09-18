@@ -394,7 +394,7 @@ static void dll_63_draw_custom(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
             }
 #endif
 
-            numRecentTasks = gDLL_30_Task->vtbl->get_num_recently_completed();
+            numRecentTasks = gDLL_30_Task->vtbl->GetNumRecentlyCompleted();
             if (numRecentTasks > 3) {
                 numRecentTasks = 3;
             }
@@ -408,7 +408,7 @@ static void dll_63_draw_custom(Gfx **gdl, Mtx **mtxs, Vertex **vtxs) {
             // @recomp: Fix memory leak with task strings
             free_recent_task_strs();
             for (i = 0; i < numRecentTasks; i++) {
-                recent_task_strs[i] = gDLL_30_Task->vtbl->get_recently_completed_task_text(i);
+                recent_task_strs[i] = gDLL_30_Task->vtbl->GetRecentlyCompletedTaskText(i);
             }
             num_recent_task_strs = numRecentTasks;
 

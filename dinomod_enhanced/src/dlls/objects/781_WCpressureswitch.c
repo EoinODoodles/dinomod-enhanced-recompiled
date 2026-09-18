@@ -2,12 +2,7 @@
 
 #include "game/objects/object.h"
 
-#include "recomp/dlls/objects/781_WCpressureswitch_recomp.h"
-
-//TEMPORARY DEFINES
-#define WCPressureSwitch_obj_GetModelFlags WCpressureswitch_get_model_flags
-#define WCPressureSwitch_addObject WCpressureswitch_add_object
-//END OF TEMPORARY DEFINES
+#include "recomp/dlls/objects/781_WCPressureSwitch_recomp.h"
 
 typedef struct {
 f32 x;
