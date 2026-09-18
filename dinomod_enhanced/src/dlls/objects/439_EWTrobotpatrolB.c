@@ -79,7 +79,7 @@ RECOMP_HOOK_DLL(EWTrobotpatrolB_obj_Setup) void EWTrobotpatrolB_obj_Setup_hook(O
             roboStarts[roboIdx] = objdata->nodes[nodeIdx];
             objdata->roboCurveUIDs[roboIdx] = objdata->nodes[nodeIdx]->uID;
         }
-        // Note: spawn late so that initial pathing knows about all initially in use curves
+        // Note: spawn late so that initial pathing knows about all initially in-use curves
         for (s32 roboIdx = 0; roboIdx < setup->unk18; roboIdx++) {
             EWTrobotpatrolB_spawnRobo(self, roboStarts[roboIdx]);
         }
@@ -133,7 +133,7 @@ RECOMP_PATCH void EWTrobotpatrolB_pathRoboRandom(Object* self, Object* robo, u32
     s32 validLinks[4];
     s32 i;
 
-    // @recomp: full rewrite to ignore in use curves
+    // @recomp: full rewrite to ignore in-use curves
     count = 0;
     node = EWTrobotpatrolB_getPathNode(self, currUID);
     for (i = 0; i < 4; i++) {
@@ -182,7 +182,7 @@ RECOMP_PATCH void EWTrobotpatrolB_pathRoboToPlayer(Object* self, Object* robo, u
         }
     }
     // Choose the link with the shortest path
-    // @recomp: Ignore curves that are in use by other robos
+    // @recomp: Ignore curves that are in-use by other robos
     shortestDist = -1;
     bestLinkIdx = -1;
     i = 0;

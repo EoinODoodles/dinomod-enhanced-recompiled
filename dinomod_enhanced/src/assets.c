@@ -2263,6 +2263,11 @@ static void crf_modifications(void) {
         curve->links[3] = -1; // unlink 0x8B2
     }
 
+    // Increase number of courtyard robots from 3 to 4
+    {
+        EWTrobotpatrolB_Setup* base = reasset_map_objects_get(crf, reasset_base_id(0x2C5C), NULL);
+        base->unk18 = 4;
+    }
 }
 
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {

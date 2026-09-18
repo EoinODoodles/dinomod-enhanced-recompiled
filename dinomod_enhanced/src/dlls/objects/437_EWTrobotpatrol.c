@@ -113,7 +113,10 @@ typedef struct {
 /*000*/ u8 unk0; // unused
 /*004*/ s32 destCurveUID;
 /*008*/ s32 prevCurveUID;
-/*00C*/ u8 _unkC[0x14 - 0xC];
+        // @RECOMP: custom data inserted into unused bytes
+/*00C*/ //u8 _unkC[0x14 - 0xC];
+        u32 chatterSoundHandle;
+        u32 stunSoundHandle;
 /*014*/ f32 destDist; // current distance to destination position
 /*018*/ s16 alertTimer;
 /*01A*/ s16 gunCooldown;
@@ -126,7 +129,11 @@ typedef struct {
 /*024*/ Unk80008E40 voxRoute;
 /*04C*/ Vec3f savedPosition;
 /*058*/ Vec3f destPos; // position to move to
-/*064*/ u8 _unk64[0x74 - 0x64];
+        // @RECOMP: custom data inserted into unused bytes
+/*064*/ //u8 _unk64[0x74 - 0x64];
+        Vec3f heardPlayerPos;
+        s16 heardPlayerTimer;
+        s16 chatterSfxTimer;
 /*074*/ Object* base;
 /*078*/ EWTrobotpatrolCallback baseCallback;
 /*07C*/ Object* player;
@@ -140,7 +147,11 @@ typedef struct {
 /*1D0*/ EWTrobotpatrol_StunState stunState;
 } EWTrobotpatrol_Data;
 
-/*0x0*/ extern DLTri sLaserTris[2];
+// @recomp: fix one side of the laser pointer
+/*0x0*/ static DLTri sLaserTris[] = {
+    {0x40, 0, 2, 1, {0}}, 
+    {0x40, 1, 2, 0, {0}} // @recomp: just reverse the winding order, so the fadeout looks right 
+};
 
 /*0x0*/ extern Texture* sLaserBeamTexture; // red laser beam
 /*0x4*/ extern Texture* sNoiseTexture; // noise pattern
@@ -152,6 +163,42 @@ void EWTrobotpatrol_checkForPlayer(Object* self, EWTrobotpatrol_Data* objdata);
 void EWTrobotpatrol_gunPrint(Object* self, ModelInstance* modelInst, Gfx** gdl, Mtx** mtxs, Vtx** vtxs, DLTri** pols);
 void EWTrobotpatrol_fireGun(Object* self, EWTrobotpatrol_Gun* gun);
 s32 EWTrobotpatrol_aimRaycast(Vec3f* barrelPos, Vec3f* aimPoint, Vec3f* fireAtPoint, Vec3f* a3, Object* target);
+void EWTrobotpatrol_stun(Object* self, EWTrobotpatrol_StunState* stun, f32 dirX, f32 dirY, f32 dirZ, f32 arg5);
+
+RECOMP_PATCH u32 EWTrobotpatrol_obj_GetDataSize(Object *self, u32 offsetAddr) {
+    return sizeof(EWTrobotpatrol_Data); // @recomp: new size
+}
+
+RECOMP_PATCH void EWTrobotpatrol_obj_Update(Object* self) {
+    Object* hitBy;
+    EWTrobotpatrol_Data* objdata;
+    s32 damageType;
+
+    damageType = func_80025F40(self, &hitBy, NULL, NULL);
+    objdata = self->data;
+    if ((damageType == Damage_Type_Projectile) || (damageType == Damage_Type_Explosion)) {
+        EWTrobotpatrol_stun(self, &objdata->stunState, 
+            hitBy->srt.transl.x - self->srt.transl.x, 
+            hitBy->srt.transl.y - self->srt.transl.y, 
+            hitBy->srt.transl.z - self->srt.transl.z, 
+            15.0f);
+        // @recomp: Play stunned sound from RobotAnimPatrol
+        if (objdata->stunSoundHandle != 0) {
+            dll_amSfx->Stop(objdata->stunSoundHandle);
+        }
+        dll_amSfx->Play(self, SOUND_B16, MAX_VOLUME, &objdata->stunSoundHandle, NULL, 0, NULL);
+    }
+}
+
+RECOMP_HOOK_DLL(EWTrobotpatrol_obj_Free) void EWTrobotpatrol_obj_Free_hook(Object* self, s32 onlySelf) {
+    EWTrobotpatrol_Data* objdata = self->data;
+    if (objdata->chatterSoundHandle != 0) {
+        dll_amSfx->Stop(objdata->chatterSoundHandle);
+    }
+    if (objdata->stunSoundHandle != 0) {
+        dll_amSfx->Stop(objdata->stunSoundHandle);
+    }
+}
 
 // Like EWTrobotpatrol_checkForPlayer, but for the combat searching state
 static s32 recomp_isPlayerPerceptible(Object* self, EWTrobotpatrol_Data* objdata, Object* player) {
@@ -161,11 +208,6 @@ static s32 recomp_isPlayerPerceptible(Object* self, EWTrobotpatrol_Data* objdata
 
     objdata->player = player;
     gun = &objdata->gun;
-
-    // new: Can't see player if they're in a seq
-    if (((DLL_210_Player*)player->dll)->vtbl->func66(player, 1) == 0) {
-        return FALSE;
-    }
 
     if (objdata->hasVoxLineOfSightToPlayer) {
         // Player in LOS
@@ -188,13 +230,71 @@ static s32 recomp_isPlayerPerceptible(Object* self, EWTrobotpatrol_Data* objdata
     vec2Player.f[0] = player->srt.transl.x - self->srt.transl.x;
     vec2Player.f[1] = player->srt.transl.y - self->srt.transl.y;
     vec2Player.f[2] = player->srt.transl.z - self->srt.transl.z;
-    if (sqrtf(SQ(vec2Player.f[0]) + SQ(vec2Player.f[1]) + SQ(vec2Player.f[2])) < 150.0f) {
+    if (sqrtf(SQ(vec2Player.f[0]) + SQ(vec2Player.f[1]) + SQ(vec2Player.f[2])) < 75.0f) {
         // Check if player is moving?
         temp_v0_3 = (s32)((DLL_210_Player*)player->dll)->vtbl->func66(player, 2);
         return temp_v0_3 == 3 || temp_v0_3 == 4;
     }
 
     return FALSE;
+}
+
+RECOMP_PATCH void EWTrobotpatrol_checkForPlayer(Object* self, EWTrobotpatrol_Data* objdata) {
+    Object* player;
+    Vec3f vec2Player;
+    Vec3f sp64;
+    f32 temp_fa1;
+    s32 temp_v0_3;
+    EWTrobotpatrol_Data* objdata2;
+    EWTrobotpatrol_Beam* beam;
+    SRT sp3C;
+    s32 _pad;
+
+    player = objGetPlayer();
+    objdata->player = player;
+    if (objdata->alertMode == 2) {
+        return;
+    }
+    objdata2 = self->data;
+    beam = &objdata2->beam;
+    vec2Player.f[0] = player->srt.transl.x - self->srt.transl.x;
+    vec2Player.f[1] = player->srt.transl.y - self->srt.transl.y;
+    vec2Player.f[2] = player->srt.transl.z - self->srt.transl.z;
+    f32 playerDist = sqrtf(SQ(vec2Player.f[0]) + SQ(vec2Player.f[1]) + SQ(vec2Player.f[2]));
+    if (playerDist < 150.0f) {
+        // Player in range
+        if (objdata->hasVoxLineOfSightToPlayer) {
+            // Player in LOS
+            sp64.x = player->srt.transl.x - beam->obj->srt.transl.x;
+            sp64.y = player->srt.transl.y - beam->obj->srt.transl.y;
+            sp64.z = player->srt.transl.z - beam->obj->srt.transl.z;
+            temp_fa1 = sqrtf(SQ(beam->dir.x) + SQ(beam->dir.z));
+            sp3C.yaw = -beam->obj->srt.yaw;
+            sp3C.pitch = -mathAtan2f(beam->dir.y, temp_fa1);
+            sp3C.roll = 0;
+            mathRotateYPR(&sp3C, &sp64);
+            // Check if in beam cone
+            if (sqrtf(SQ(sp64.x) + SQ(sp64.y)) <= 40.0f) {
+                objdata->alertMode = 2;
+                objdata->heardPlayerTimer = 0;
+            }
+        }
+        if (objdata->alertMode != 2 && playerDist < 150.0f) {
+            // Check if player is moving
+            temp_v0_3 = (s32)((DLL_210_Player*)player->dll)->vtbl->func66(player, 2);
+            if ((temp_v0_3 != 3) && (temp_v0_3 != 4)) {
+                objdata->alertMode = 0;
+            } else {
+                // @recomp:
+                //objdata->alertMode = 2;
+                //objdata->player = player;
+                objdata->heardPlayerTimer = 2 * 60;
+                objdata->heardPlayerPos.x = player->srt.transl.x;
+                objdata->heardPlayerPos.y = player->srt.transl.y;
+                objdata->heardPlayerPos.z = player->srt.transl.z;
+            }
+        }
+    }
 }
 
 RECOMP_PATCH void EWTrobotpatrol_moveAndShoot(Object* self, EWTrobotpatrol_Data* objdata, EWTrobotpatrol_Body* body, EWTrobotpatrol_ControllerState* cont) {
@@ -233,7 +333,8 @@ RECOMP_PATCH void EWTrobotpatrol_moveAndShoot(Object* self, EWTrobotpatrol_Data*
         case 1:
             EWTrobotpatrol_move(self, body, objdata, 1);
             // @recomp: Custom perception check that works better with the unused "searching" gun state
-            if ((playerDist < 300.0f) && recomp_isPlayerPerceptible(self, objdata, player)) {
+            if ((playerDist < 300.0f) && recomp_isPlayerPerceptible(self, objdata, player) 
+                    && ((DLL_210_Player*)player->dll)->vtbl->func66(player, 1) != 0) { // @recomp: Ignore player if in seq
                 objdata->combatState = 2;
                 objdata->alertTimer = 300;
                 objdata->gunCooldown = 15; // @recomp: Increase initial cooldown to give gun time to line up a shot
@@ -305,6 +406,24 @@ RECOMP_PATCH void EWTrobotpatrol_moveAndShoot(Object* self, EWTrobotpatrol_Data*
             objdata->activateState = 2;
             objdata->combatState = 0;
         }
+    }
+}
+
+RECOMP_HOOK_DLL(EWTrobotpatrol_updateBody) void EWTrobotpatrol_updateBody_hook(Object* self, EWTrobotpatrol_Data* objdata, EWTrobotpatrol_Body* body) {
+    // @recomp: Chatter SFX from RobotAnimPatrol
+    objdata->chatterSfxTimer -= gUpdateRate;
+    if (objdata->chatterSfxTimer < 0) {
+        objdata->chatterSfxTimer = mathRnd(240, 600);
+        dll_amSfx->Play(self, (mathRnd(0, 1) + SOUND_131), MAX_VOLUME, &objdata->chatterSoundHandle, NULL, 0, NULL);
+    }
+    if ((objdata->chatterSoundHandle != 0) && (dll_amSfx->IsPlaying(objdata->chatterSoundHandle) == 0)) {
+        dll_amSfx->Stop(objdata->chatterSoundHandle);
+        objdata->chatterSoundHandle = 0;
+    }
+    // @recomp: Stop stun sound
+    if (objdata->stunSoundHandle != 0) {
+        dll_amSfx->Stop(objdata->stunSoundHandle);
+        objdata->stunSoundHandle = 0;
     }
 }
 
@@ -401,6 +520,7 @@ RECOMP_PATCH void EWTrobotpatrol_obj_Print(Object* self, Gfx** gdl, Mtx** mtxs, 
         beamShadow->tr.y = beam->srt.transl.y;
         beamShadow->tr.z = beam->srt.transl.z;
         beamShadow->flags |= OBJ_SHADOW_FLAG_FADE_OUT; // this results in the shadow never appearing
+        beamShadow->flags &= ~OBJ_SHADOW_FLAG_ENABLED; // @recomp: just hide the shadow for real
         beamShadow->r = beamShadowR;
         beamShadow->g = beamShadowG;
         beamShadow->b = beamShadowB;
@@ -417,6 +537,17 @@ RECOMP_PATCH void EWTrobotpatrol_obj_Print(Object* self, Gfx** gdl, Mtx** mtxs, 
             beam->opacityWithFade = 160;
         }
         beam->opacityWithFade = (u8) ((beam->opacityWithFade * (beam->opacity + 1)) >> 8);
+        // @recomp: Fade out beam as the gun deploys
+        beam->opacityWithFade = (u8) ((beam->opacityWithFade * ((u8)((1.0f - self->animProgress) * 255))) >> 8);
+        // @recomp: Hide beam while stunned
+        if (objdata->stunState.timer > 0) {
+            if (objdata->stunState.timer > 40) { // 40 is when the robo is in between being stunned and recovered
+                beam->opacityWithFade = 0;
+            } else {
+                f32 stunEndProgress = (40 - objdata->stunState.timer) / 40.0f;
+                beam->opacityWithFade = (u8) ((beam->opacityWithFade * ((u8)(stunEndProgress * 255))) >> 8);
+            }
+        }
         // ? Was this originally trying to apply the shadow color to the beam model itself?
         savedAmbientR = ambientR;
         savedAmbientG = ambientG;
@@ -533,7 +664,6 @@ RECOMP_PATCH void EWTrobotpatrol_gunPrint(Object* self, ModelInstance* modelInst
         G_AD_PATTERN | G_CD_NOISE | G_CK_NONE | G_TC_FILT | G_TF_BILERP | G_TT_NONE | G_TL_TILE | G_TD_CLAMP | G_TP_PERSP | G_CYC_2CYCLE | G_PM_NPRIMITIVE, 
         G_AC_NONE | G_ZS_PIXEL | G_RM_NOOP | G_RM_ZB_CLD_SURF2);
     dlApplyOtherMode(gdl);
-    dlClearGeometryMode(gdl, G_CULL_BOTH); // @recomp: Disable backface culling so the whole laser is visible
     magnitude = sqrtf(SQ(gun->dir.x) + SQ(gun->dir.z));
     barrelSRT.yaw = mathAtan2f(gun->dir.x, gun->dir.z);
     barrelSRT.pitch = -mathAtan2f(gun->dir.y, magnitude);
@@ -569,7 +699,7 @@ RECOMP_PATCH void EWTrobotpatrol_gunPrint(Object* self, ModelInstance* modelInst
     vtx->v.cn[1] = 0;
     vtx->v.cn[2] = 0;
     vtx->v.cn[3] = 205;
-    vtx->v.tc[0] = qu105(16); // @recomp
+    vtx->v.tc[0] = qu105(15); // @recomp
     vtx->v.tc[1] = qu105(0); // @recomp
     vtx++;
 
@@ -591,7 +721,7 @@ RECOMP_PATCH void EWTrobotpatrol_gunPrint(Object* self, ModelInstance* modelInst
     vtx->v.cn[1] = 0;\
     vtx->v.cn[2] = 0;\
     vtx->v.cn[3] = 105;
-    vtx->v.tc[0] = qu105(16); // @recomp
+    vtx->v.tc[0] = qu105(15); // @recomp
     vtx->v.tc[1] = qu105(31); // @recomp
     vtx++;
 
@@ -615,7 +745,6 @@ RECOMP_PATCH void EWTrobotpatrol_gunPrint(Object* self, ModelInstance* modelInst
         EWTrobotpatrol_fireGun(self, gun);
         gun->shouldShoot = 0;
     }
-    dlSetGeometryMode(gdl, G_CULL_BACK); // @recomp: Restore backface culling (we disabled it above)
     texRenderReset();
     lightAmbientDL(gdl);
 }
@@ -641,6 +770,7 @@ RECOMP_PATCH s32 EWTrobotpatrol_aimRaycast(Vec3f* barrelPos, Vec3f* aimPoint, Ve
     sp44.f[1] = aimPoint->f[1] - barrelPos->f[1];
     sp44.f[2] = aimPoint->f[2] - barrelPos->f[2];
     var_fv1 = sqrtf(SQ(sp44.f[0]) + SQ(sp44.f[1]) + SQ(sp44.f[2]));
+    f32 aimPointDist = var_fv1; // @recomp
     if (var_fv1 != 0.0f) {
         var_fv1 = 1.0f / var_fv1;
     }
@@ -672,34 +802,38 @@ RECOMP_PATCH s32 EWTrobotpatrol_aimRaycast(Vec3f* barrelPos, Vec3f* aimPoint, Ve
         hasVoxHit = TRUE;
     }
     if (sp42 && sp38 < 1.0f && hasVoxHit) {
-        f32 sphereHitDist = vec3DistanceSquared(barrelPos, &sp5C);
-        f32 voxHitDist = vec3DistanceSquared(barrelPos, &hitPos);
+        f32 sphereHitDist = vec3Distance(barrelPos, &sp5C);
+        f32 voxHitDist = vec3Distance(barrelPos, &hitPos);
 
+        // Note: extend the point by half its distance so that the fadeout of the laser point
+        //       ends roughly at where the actual point is.
         if (sphereHitDist < voxHitDist) {
-            fireAtPoint->f[0] = sp5C.f[0] + (sp44.f[0] * 5);
-            fireAtPoint->f[1] = sp5C.f[1] + (sp44.f[1] * 5);
-            fireAtPoint->f[2] = sp5C.f[2] + (sp44.f[2] * 5);
+            fireAtPoint->f[0] = sp5C.f[0] + (sp44.f[0] * (sphereHitDist / 2.0f));
+            fireAtPoint->f[1] = sp5C.f[1] + (sp44.f[1] * (sphereHitDist / 2.0f));
+            fireAtPoint->f[2] = sp5C.f[2] + (sp44.f[2] * (sphereHitDist / 2.0f));
             return 1;
         } else {
-            fireAtPoint->f[0] = hitPos.f[0] + (sp44.f[0] * 15);
-            fireAtPoint->f[1] = hitPos.f[1] + (sp44.f[1] * 15);
-            fireAtPoint->f[2] = hitPos.f[2] + (sp44.f[2] * 15);
+            fireAtPoint->f[0] = hitPos.f[0] + (sp44.f[0] * (voxHitDist / 2.0f));
+            fireAtPoint->f[1] = hitPos.f[1] + (sp44.f[1] * (voxHitDist / 2.0f));
+            fireAtPoint->f[2] = hitPos.f[2] + (sp44.f[2] * (voxHitDist / 2.0f));
             return 2;
         }
     } else if (sp42 && sp38 < 1.0f) {
-        fireAtPoint->f[0] = sp5C.f[0] + (sp44.f[0] * 5);
-        fireAtPoint->f[1] = sp5C.f[1] + (sp44.f[1] * 5);
-        fireAtPoint->f[2] = sp5C.f[2] + (sp44.f[2] * 5);
+        f32 sphereHitDist = vec3Distance(barrelPos, &sp5C);
+        fireAtPoint->f[0] = sp5C.f[0] + (sp44.f[0] * (sphereHitDist / 2.0f));
+        fireAtPoint->f[1] = sp5C.f[1] + (sp44.f[1] * (sphereHitDist / 2.0f));
+        fireAtPoint->f[2] = sp5C.f[2] + (sp44.f[2] * (sphereHitDist / 2.0f));
         return 1;
     } else if (hasVoxHit) {
-        fireAtPoint->f[0] = hitPos.f[0] + (sp44.f[0] * 15);
-        fireAtPoint->f[1] = hitPos.f[1] + (sp44.f[1] * 15);
-        fireAtPoint->f[2] = hitPos.f[2] + (sp44.f[2] * 15);
+        f32 voxHitDist = vec3Distance(barrelPos, &hitPos);
+        fireAtPoint->f[0] = hitPos.f[0] + (sp44.f[0] * (voxHitDist / 2.0f));
+        fireAtPoint->f[1] = hitPos.f[1] + (sp44.f[1] * (voxHitDist / 2.0f));
+        fireAtPoint->f[2] = hitPos.f[2] + (sp44.f[2] * (voxHitDist / 2.0f));
         return 2;
     } else {
-        fireAtPoint->f[0] = aimPoint->f[0];
-        fireAtPoint->f[1] = aimPoint->f[1];
-        fireAtPoint->f[2] = aimPoint->f[2];
+        fireAtPoint->f[0] = aimPoint->f[0] + (sp44.f[0] * (aimPointDist / 2.0f));
+        fireAtPoint->f[1] = aimPoint->f[1] + (sp44.f[1] * (aimPointDist / 2.0f));
+        fireAtPoint->f[2] = aimPoint->f[2] + (sp44.f[2] * (aimPointDist / 2.0f));
         return 0;
     }
 }
@@ -713,5 +847,34 @@ RECOMP_HOOK_DLL(EWTrobotpatrol_stun) void EWTrobotpatrol_stun_hook(Object* self)
         if (objdata->gun.mode == 2) {
             EWTrobotpatrol_setGunMode(&objdata->gun, 1, NULL);
         }
+    }
+}
+
+RECOMP_PATCH void EWTrobotpatrol_curveMove(Object* self, EWTrobotpatrol_Data* objdata, EWTrobotpatrol_Body* body) {
+    f32 xDiff;
+    f32 zDiff;
+    CurveSetup* destNode;
+    EWTrobotpatrol_Data* objdata2;
+
+    objdata2 = self->data;
+    destNode = gDLL_26_Curves->vtbl->func_39C(objdata->destCurveUID);
+    if (destNode != NULL) {
+        objdata->destPos.x = destNode->pos.x;
+        objdata->destPos.y = self->srt.transl.y;
+        objdata->destPos.z = destNode->pos.z;
+        EWTrobotpatrol_move(self, body, objdata, 1);
+        // @recomp: If the player was heard but not seen, aim beam at that position instead of at the dest node
+        if (objdata->heardPlayerTimer > 0) {
+            objdata->heardPlayerTimer -= gUpdateRate;
+            xDiff = objdata->heardPlayerPos.x - self->srt.transl.x;
+            zDiff = objdata->heardPlayerPos.z - self->srt.transl.z;
+        } else {
+            xDiff = destNode->pos.x - self->srt.transl.x;
+            zDiff = destNode->pos.z - self->srt.transl.z;
+        }
+        objdata2->beam.yawTarget = mathAtan2f(-xDiff, -zDiff);
+        xDiff = self->srt.transl.x - destNode->pos.x;
+        zDiff = self->srt.transl.z - destNode->pos.z;
+        objdata->destDist = sqrtf(SQ(xDiff) + SQ(zDiff));
     }
 }
