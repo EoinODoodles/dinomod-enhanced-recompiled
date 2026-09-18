@@ -399,3 +399,11 @@ typedef enum {
 
 #define CHECK_IF_GAMEBIT_UNSET 0x4000 //For Trigger_Setups' conditionBitFlagIDs
 
+typedef struct {
+    ObjSetup base;
+    s16 _unused18;
+    u8 yaw;
+    s16 _unused1C;
+    s16 gamebitDisable; //@recomp: repurpose padding, barrel disappears after this gamebit is set
+} DFBarrel_Setup;
+

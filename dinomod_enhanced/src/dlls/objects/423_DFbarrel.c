@@ -20,6 +20,7 @@
 #include "recomp/dlls/objects/423_DFbarrel_recomp.h"
 
 //TEMPORARY DEFINES
+#define DFbarrel_obj_Setup DFbarrel_setup
 #define DFbarrel_obj_Control DFbarrel_control
 #define DFbarrel_handleMovement DFbarrel_handle_movement
 #define DFbarrel_handleDamage DFbarrel_handle_damage
@@ -29,7 +30,7 @@ typedef struct {
     Pickup pickup;
     u8 damage;                  //Damage accumulated by the barrel (explodes if it's damaged at all, though!)
     u8 framesSinceDetonation;   //Seems intended to count up to deleting the barrel after it explodes, but it's deleted immediately anyway
-    s32 _unusedC;
+    u32 customFlags;            //@recomp: repurpose unused field
     f32 accelerationX;          //Acceleration from DFriverflow currents
     f32 accelerationZ;          //Acceleration from DFriverflow currents
     f32 velocityX;              //Copy of barrel's velocity, for flow/bouyancy calcs
@@ -37,7 +38,32 @@ typedef struct {
     f32 velocityZ;              //Copy of barrel's velocity, for flow/bouyancy calcs
 } DFBarrel_Data;
 
+typedef enum {
+    DFBarrel_CUSTOMFLAG_1_Unload = 1
+} DFBarrel_CustomFlags;
+
 extern void DFbarrel_handleDamage(Object* self);
+
+RECOMP_PATCH void DFbarrel_obj_Setup(Object* self, DFBarrel_Setup* objSetup, s32 reset) {
+    objAddObjectType(self, OBJTYPE_Barrel);
+    self->srt.yaw = objSetup->yaw << 8;
+    self->stateFlags |= OBJSTATE_UPDATE_DISABLED;
+    gDLL_54_pickup->vtbl->setup(self, (Pickup*)self->data, 33);
+    
+    //@recomp: don't save barrels' locations in Discovery Falls
+    //(they're already positioned beside a DFbarrelcreator, which can lead to duplicate barrels on revisiting)
+    //TODO: is this safe to use elsewhere?
+    if (self->mapID == MAP_DISCOVERY_FALLS) {
+        gDLL_54_pickup->vtbl->set_dont_save((Pickup*)self->data, TRUE);
+    }
+
+    //@recomp: hide the barrel if it needs to be unloaded immediately
+    if (mainGetBits(objSetup->gamebitDisable)) {
+        DFBarrel_Data* objData = self->data;
+        objData->customFlags |= DFBarrel_CUSTOMFLAG_1_Unload;
+        self->opacity = 0;
+    }
+}
 
 RECOMP_PATCH void DFbarrel_handleMovement(Object* self) {
     DFBarrel_Data* objData;
@@ -226,6 +252,12 @@ static void DFbarrel_dropIfPlayerUnderwater(Object* self) {
 RECOMP_PATCH void DFbarrel_obj_Control(Object* self) {
     DFBarrel_Data* objData = self->data;
     
+    //@recomp: unload self if a gamebit was already set during setup
+    if (objData->customFlags & DFBarrel_CUSTOMFLAG_1_Unload) {
+        objFreeObject(self);
+        return;
+    }
+
     //Do nothing if not on a map
     if (mapWorldCoordsToBlockIndex(self->srt.transl.x, self->srt.transl.y, self->srt.transl.z) == -1) {
         return;

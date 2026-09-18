@@ -36,6 +36,7 @@
 #include "game/objects/object_id.h"
 #include "game/gamebits.h"
 #include "macros.h"
+#include "sys/curves.h"
 #include "sys/pi.h"
 #include "sys/map.h"
 #include "sys/map_enums.h"
@@ -4816,6 +4817,14 @@ static void discovery_falls_modifications(void) {
                 reasset_map_objects_set(discoveryFalls, 
                     reasset_auto_id(dinomodNs), &plane, sizeof(plane));
             }
+        }
+
+        //Whirlpool Cave
+        {
+            //Don't load the cutscene SharpClaw's DFbarrel when revisiting after the cutscene
+            //(Since this barrel unloads when you enter the whirlpool cave, unlike the DFbarrelcreator's ones)
+            DFBarrel_Setup* seqBarrel = GET_MAPS_OBJECT(discoveryFalls, 0x00002115);
+            seqBarrel->gamebitDisable = BIT_5E;
         }
 
         //Tweak Kyte's out-of-bounds curves (it seems like Rare had yet to move them after updating the shape of the river bend)
