@@ -4736,6 +4736,31 @@ static void discovery_falls_modifications(void) {
 
     //Upper Falls
     {
+        //Add a TriggerCylinder enclosing the short ladder up to the top of the shrine exit climb 
+        //So CamClimb doesn't pop out of bounds during the initial ladder-mounting camera ease
+        {
+            Trigger_Setup cylinder = {
+                .base = {
+                    .objId = OBJ_TriggerCylinder,
+                    .loadFlags = OBJSETUP_LOAD_MAIN,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = FADE_DISTANCE(160),
+                    .fadeDistance = FADE_DISTANCE(160),
+                },
+                COORDS_SETUP(-1665, 582, -886),
+                .sizeX = 22,
+                .sizeY = 28 * 2,
+                .sizeZ = 0x10,
+                .conditionBitFlagIDs[0] = NO_GAMEBIT
+            };
+            ENTER_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, TRUE, &cylinder, 0); //Use closer CamClimb
+            EXIT_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, FALSE, &cylinder, 1); //Use regular CamClimb
+            ENTER_GAMEBIT(DINOMOD_BIT_96E_CamClimb_Skip_Ease, TRUE, &cylinder, 2); //Use no CamClimb ease
+            EXIT_GAMEBIT(DINOMOD_BIT_96E_CamClimb_Skip_Ease, FALSE, &cylinder, 3); //Use regular CamClimb ease
+            reasset_map_objects_set(discoveryFalls, 
+                reasset_auto_id(dinomodNs), &cylinder, sizeof(cylinder));
+        }
+
         //Stalactite Cave (add camera TriggerPlanes)
         {
             //Entrance tunnel start (under waterfall)
