@@ -121,8 +121,8 @@ RECOMP_PATCH void SnowHorn_garundaTeControl(Object* self, SnowHorn_Data* objdata
                     //@recomp: option of accepting FrostWeed twigs as well
                     && (frostWeed->id == OBJ_Tumbleweed2 || (FROSTWEED_TWIGS_ACCEPTED && frostWeed->id == OBJ_Tumbleweed2twig)) 
                     && vec3DistanceXZSquared(&self->globalPosition, &frostWeed->globalPosition) < setup->unkRadius * setup->unkRadius) {
-                if (!((DLL_227_Tumbleweed*)frostWeed->dll)->vtbl->is_gravitating(frostWeed)) {
-                    ((DLL_227_Tumbleweed*)(frostWeed->dll))->vtbl->gravitate_towards_point(frostWeed, &objdata->playerPositionCopy);
+                if (!((DLL_227_Tumbleweed*)frostWeed->dll)->vtbl->IsGravitating(frostWeed)) {
+                    ((DLL_227_Tumbleweed*)(frostWeed->dll))->vtbl->GravitateTowardsPoint(frostWeed, &objdata->playerPositionCopy);
                     objdata->frostWeed = frostWeed;
                     // if (0){
                     //     objdata->garundaTe_weedsEaten = FROSTWEED_MAX_OVERRIDE;

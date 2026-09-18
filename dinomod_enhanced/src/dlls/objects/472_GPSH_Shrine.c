@@ -246,7 +246,7 @@ RECOMP_PATCH void GPSH_Shrine_control(Object* self) {
             // @recomp: Set spirit bit
             ((DLL_210_Player*)player->dll)->vtbl->set_spirit_bits(player, PLAYER_SPIRIT_8, TRUE);
             // @recomp: Set SwapStone Circle act
-            mainSetBits(BIT_SC_Map_Setup, 7); // TODO: doesnt SC do this on its own?
+            mainSetBits(BIT_SC_Map_Act, 7); // TODO: doesnt SC do this on its own?
             gDLL_29_Gplay->vtbl->set_act(MAP_WARLOCK_MOUNTAIN, 8);
             // @recomp: Clear bit 0x5AD and 0x5B1 (prevent giant Krystal)
             mainSetBits(0x5AD, 0);

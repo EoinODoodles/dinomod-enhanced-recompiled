@@ -525,8 +525,8 @@ RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits() {
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_13_WM_WARP_CRYSTAL].gamebitHide = BIT_WM_Sabre_Transporter_Visible;
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_14_DIM_DOOR_KEY_1].gamebitHide = BIT_24B;
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_15_DIM_DOOR_KEY_2].gamebitHide = BIT_285;
-    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_25_WC_SILVER_TOOTH].gamebitHide = BIT_25B;
-    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_26_WC_GOLD_TOOTH].gamebitHide = BIT_25A;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_25_WC_SILVER_TOOTH].gamebitHide = BIT_WC_Placed_Silver_RedEye_Tooth;
+    dPage1ItemsSabre[INVENTORY_ITEM_SABRE_26_WC_GOLD_TOOTH].gamebitHide = BIT_WC_Placed_Gold_RedEye_Tooth;
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_31_SPELLSTONE_DIM_ACTIVATED].gamebitHide = BIT_877;
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_32_SPELLSTONE_WC_ACTIVATED].gamebitHide = BIT_DB_Unlock_Act_Three;
 
@@ -1178,8 +1178,8 @@ RECOMP_PATCH void cmdmenu_update_stats(void) {
     stats.playerHealthMax = ((DLL_210_Player*)player->dll)->vtbl->get_health_max(player);
 
     if (sidekick != NULL) {
-        stats.sidekickBlueFood = ((DLL_ISidekick*)sidekick->dll)->vtbl->get_blue_food_count(sidekick);
-        stats.sidekickRedFood = ((DLL_ISidekick*)sidekick->dll)->vtbl->get_red_food_count(sidekick);
+        stats.sidekickBlueFood = ((DLL_ISidekick*)sidekick->dll)->vtbl->GetBlueFoodCount(sidekick);
+        stats.sidekickRedFood = ((DLL_ISidekick*)sidekick->dll)->vtbl->GetRedFoodCount(sidekick);
         stats.sidekickMaxFood = 8;
     } else {
         stats.sidekickBlueFood = 0;
@@ -2926,9 +2926,9 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
         if (sidekick != NULL) {
             // @bug: sideCommandIndex is undefined if this sidekick func returns 0
 #ifndef AVOID_UB
-            ((DLL_ISidekick*)sidekick->dll)->vtbl->func26(sidekick, &sideCommandIndex);
+            ((DLL_ISidekick*)sidekick->dll)->vtbl->Func26(sidekick, &sideCommandIndex);
 #else
-            if (!((DLL_ISidekick*)sidekick->dll)->vtbl->func26(sidekick, &sideCommandIndex)) {
+            if (!((DLL_ISidekick*)sidekick->dll)->vtbl->Func26(sidekick, &sideCommandIndex)) {
                 sideCommandIndex = sPrevSidekickCommandIndex;
             }
 #endif

@@ -250,27 +250,6 @@ static int dinomod_kt_can_see_player(void) {
         ((!reversed && (sKTData->segmentPos + 0.25f) <= sKTData->playerSegmentPos) || (reversed && sKTData->playerSegmentPos <= (sKTData->segmentPos - 0.25f))));
 }
 
-static int dinomod_kt_is_player_in_next_segment(void) {
-    static s8 segmentToBitfield[4] = {0x02, 0x08, 0x01, 0x04};
-
-    s32 reversed = sKTData->flags & KTFLAG_REVERSED;
-    s32 segment = KTFLAG_GET_SEGMENT(sKTData->flags);
-
-    if (reversed) {
-        segment -= 1;
-        if (segment < 0) {
-            segment = 3;
-        }
-    } else {
-        segment += 1;
-        if (segment > 3) {
-            segment = 0;
-        }
-    }
-
-    return sKTData->playerSegmentBitfield & segmentToBitfield[segment];
-}
-
 RECOMP_HOOK_DLL(dll_702_setup) void dll_702_setup_hook(Object* self, KTrex_ObjSetup* setup, s32 arg2) {
     dinomodInitHack = FALSE;
 

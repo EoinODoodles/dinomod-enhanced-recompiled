@@ -616,7 +616,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                 switch (cmd->param1) {
                 case 0:
                     // "Trigger [%d], Sidekick Auto Heel\n" (default.dol)
-                    ((DLL_ISidekick *)sidekick->dll)->vtbl->func23(sidekick);
+                    ((DLL_ISidekick *)sidekick->dll)->vtbl->Func23(sidekick);
                     break;
                 case 1:
                     // "killing sidekick\n"
@@ -632,7 +632,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
                     }
                     if (findTarget != NULL) {
                         // "Trigger [%d], Sidekick Find On Object %d\n"
-                        ((DLL_ISidekick *)sidekick->dll)->vtbl->func22(sidekick, findTarget);
+                        ((DLL_ISidekick *)sidekick->dll)->vtbl->Func22(sidekick, findTarget);
                     }
                     break;
                 }

@@ -396,7 +396,7 @@ RECOMP_PATCH void CannonClaw_obj_Control(Object* self) {
             //@recomp: fix missing null check for the sidekick
             sidekick = objGetSidekick();
             if (sidekick) {
-                ((DLL_ISidekick*)sidekick->dll)->vtbl->func21(sidekick, 0, NULL);
+                ((DLL_ISidekick*)sidekick->dll)->vtbl->Func21(sidekick, 0, NULL);
             }
 
             //Start dying
