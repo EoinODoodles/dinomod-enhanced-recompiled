@@ -17,6 +17,8 @@
 
 #include "player_stats.h"
 
+// #define DEBUG_BOOKMARK_LOCATION
+
 extern s32 D_8008C890;
 
 extern const char formatCompletionPercentage[];
@@ -210,6 +212,16 @@ RECOMP_PATCH void pausemenu_draw(Gfx** gfx, Mtx** mtx, Vertex** vtx) {
     fontWindowDraw(gfx, 0, 0, 1);
 }
 
+#ifdef DEBUG_BOOKMARK_LOCATION
+//@recomp: save everything (useful for quickly returning to a spot when developing patches)
+static void debugSetBookmark(void) {
+    Object* player = objGetPlayer();
+    if (player) {
+        gDLL_29_Gplay->vtbl->savepoint(&player->globalPosition, player->srt.yaw, 0, mapGetLayer());
+    }
+}
+#endif
+
 RECOMP_PATCH s32 pausemenu_update1(void) {
     s32 action;
     s32 index;
@@ -246,6 +258,9 @@ RECOMP_PATCH s32 pausemenu_update1(void) {
     } else if (pauseScreenState == PAUSE_MENU_GAME_SAVED) {
 
         if (gameSavedMessageTimer == 0) {
+#ifdef BOOKMARK_PLAYER_LOCATION
+            debugSetBookmark();
+#endif
             gDLL_29_Gplay->vtbl->save_game();
         }
 
