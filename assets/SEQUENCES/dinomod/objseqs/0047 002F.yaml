@@ -2,7 +2,7 @@
 # Edited to start the turbine mid-sequence (instead of afterwards)
 # Also enables temporary objGroups that add HitAnimators for some widescreen fixes
 # Also fixes an issue where the turbine lever was hovering in midair slightly away from its housing
-# And fixes an issure where the turbine lever still had to-camera posing at the end of the sequence
+# And fixes an issue where the turbine lever still had to-camera posing at the end of the sequence
 
 actors:
 # Actor 0
