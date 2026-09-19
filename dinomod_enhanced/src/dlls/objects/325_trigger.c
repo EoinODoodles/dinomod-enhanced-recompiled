@@ -666,6 +666,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
 
             //@recomp: add option to reverse saved yaw (so one TriggerPlane can save opposite directions on enter/exit savepoint commands)
             {
+                //TODO: could try using dir var to adjust the yaw automatically! Need to test on all existing SavePoint Trigger objects
                 s32 angle = self->srt.yaw;
                 if (cmd->paramCombined & ROTATE_CHECKPOINT_YAW_180) {
                     angle += M_180_DEGREES;
@@ -698,6 +699,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
 
                 //@recomp: add option to reverse saved yaw (so one TriggerPlane can save opposite directions on enter/exit restartpoint commands)
                 {
+                    //TODO: could try using dir var to adjust the yaw automatically! Need to test on all existing RestartPoint Trigger objects
                     s32 angle = self->srt.yaw;
                     if (cmd->paramCombined & ROTATE_CHECKPOINT_YAW_180) {
                         angle += M_180_DEGREES;
