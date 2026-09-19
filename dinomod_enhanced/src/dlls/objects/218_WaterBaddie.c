@@ -321,7 +321,34 @@ RECOMP_PATCH s32 WaterBaddie_logicState0Hit(Object* self, ObjFSA_Data* fsa, f32 
         return FSA_NEXTSTATE_SYNC(WaterBaddie_LSTATE_1_Dying);
     }
     
-    //Drift straight ahead for about 3 seconds
+    //@recomp: keep following curves in this state, so the baddie doesn't drift straight ahead and potentially out of bounds
+    //(they used get stuck if they ventured off through a wall into where there's no block, especially in Discovery Falls' stalactite cave)
+    {
+        UnkCurvesStruct* curves;
+        f32 curveDelta;
+        f32 dx;
+        f32 dz;
+
+        curves = baddie->unk3F8;
+        
+        dx = curves->unk0.unk68.x - self->srt.transl.x;
+        dz = curves->unk0.unk68.z - self->srt.transl.z;
+        curveDelta = 10.0f / sqrtf(SQ(dx) + SQ(dz));
+
+        if ((curves_func_800053B0(&curves->unk0, curveDelta) || objData->curveValue != curves->unk0.unk10) && 
+            gDLL_26_Curves->vtbl->func_4704(curves) && 
+            gDLL_26_Curves->vtbl->func_4288(baddie->unk3F8, self, 400.0f, dCurveTypes, -1)
+        ) {
+            baddie->unk3B2 &= ~8;
+        }
+        objData->curveValue = curves->unk0.unk10;
+
+        gDLL_18_objfsa->vtbl->func6(self, fsa, curves->unk0.unk68.x, curves->unk0.unk68.z, 0, 0, 60.0f);
+
+        gDLL_33_BaddieControl->vtbl->func3(self, fsa, self->data, 1.0f, 12.0f);
+    }
+
+    //Change state after about 3 seconds
     if (objData->stunnedTimer > 200.0f) {
         return FSA_NEXTSTATE_SYNC(WaterBaddie_LSTATE_4_Top);
     } else {
