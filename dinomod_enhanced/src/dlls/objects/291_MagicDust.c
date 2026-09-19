@@ -337,7 +337,7 @@ RECOMP_PATCH void MagicDust_free(Object* self, s32 onlySelf) {
 	MagicPlant_Data* magicPlantData;
 
 	//Check if the MagicDust is parented
-	if (!self || !self->unkC4){
+	if (self == NULL || self->unkC4  == NULL){
 		return;
 	}
 	parent = self->unkC4;
