@@ -10,6 +10,7 @@
 #include "dlls/objects/210_player.h"
 // #include "dlls/objects/715_StaticCamera.h"
 #include "game/gamebits.h"
+#include "game/objects/object.h"
 #include "sys/dll.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
@@ -84,7 +85,7 @@ RECOMP_PATCH void camstatic_func_18(Cam* cam, s32 arg1, CamStatic_Params* data) 
     sState->cameraLost = FALSE;
     
     staticCam = camstatic_findStaticCamera(player->srt.transl.x, player->srt.transl.y, player->srt.transl.z, data->cameraID, OBJCONTROL_StaticCamera);
-    if (staticCam == NULL) {
+    if (staticCam == NULL || staticCam->stateFlags & OBJSTATE_DESTROYED) { //@recomp: check if the StaticCamera was freed
         sState->cameraLost = TRUE;
         return;
     }
@@ -144,6 +145,12 @@ RECOMP_PATCH void camstatic_func_278(Cam* cam) {
     f32 dz;
     Object* player;
     s32 easeFinished;
+
+    //@recomp: check if the StaticCamera was freed
+    if (sState->obj != NULL && sState->obj->stateFlags & OBJSTATE_DESTROYED) { 
+        sState->obj = NULL;
+        sState->cameraLost = TRUE;
+    }
 
     if (sState->cameraLost) {
         gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 0, Cam_Ease_All);
