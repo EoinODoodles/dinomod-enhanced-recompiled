@@ -31,6 +31,9 @@
 
 #include "recomp/dlls/engine/65_options_recomp.h"
 
+// #define DEBUG_OPTIONS_CHEATS
+// #define ALLOW_UNLOCKING_CHEATS_WITH_C_LEFT_AND_RIGHT
+
 static s32 rsDimOpacity = 0;
 static s32 rsDimOpacityPrev = 0;
 static s32 rsMessageOpacity = 0;
@@ -1171,8 +1174,6 @@ RECOMP_PATCH void options_goto_cheats_page(void) {
 
     sRedrawFrames = 2;
 }
-
-// #define ALLOW_UNLOCKING_CHEATS_WITH_C_LEFT_AND_RIGHT
 
 // offset: 0x2D50 | func: 15
 /* RECOMP_PATCH */ void options_handle_action_cheats_page(s32 action, s32 selectedItemIdx) {
