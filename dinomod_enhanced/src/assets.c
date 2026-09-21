@@ -69,12 +69,17 @@ INCBIN(block329, "inc/blocks_0329_DF_middle_falls_cradle_station_3_and_turbine.b
 INCBIN(block330, "inc/blocks_0330_DF_middle_falls_corner.bin");
 INCBIN(block344, "inc/blocks_0344_DF_middle_falls_mole_cave_entrance.bin");
 INCBIN(block326, "inc/blocks_0326_DF_mole_cave.bin");
-INCBIN(block341, "inc/blocks_0341_DF_BWC_exit_corner.bin");
-INCBIN(block342, "inc/blocks_0342_DF_BWC_exit.bin");
 INCBIN(block332, "inc/blocks_0332_DF_toxic_cave.bin");
+INCBIN(block328, "inc/blocks_0328_DF_upper_falls.bin");
+INCBIN(block327, "inc/blocks_0327_DF_stalactite_cave.bin");
+INCBIN(block322, "inc/blocks_0322_DF_demolition_cave.bin");
+INCBIN(block319, "inc/blocks_0319_DF_whirlpool_cave.bin");
 INCBIN(block323, "inc/blocks_0323_DF_upper_falls_shrine_exit_climb.bin");
+INCBIN(block320, "inc/blocks_0320_DF_shrine_area_exit.bin");
 INCBIN(block321, "inc/blocks_0321_DF_shrine_exterior.bin");
 INCBIN(block343, "inc/blocks_0343_DF_shrine_interior.bin");
+INCBIN(block341, "inc/blocks_0341_DF_BWC_exit_corner.bin");
+INCBIN(block342, "inc/blocks_0342_DF_BWC_exit.bin");
 INCBIN(block722, "inc/blocks_0722_DIM1_river_end.bin");
 INCBIN(block597, "inc/blocks_0597_WC_approach_gateway_corridor.bin");
 INCBIN(block599, "inc/blocks_0599_WC_jungle_door_area_ne.bin");
@@ -4158,6 +4163,10 @@ static void discovery_falls_modifications(void) {
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 326, block326); //Middle Falls - mole cave interior: align ladder with climb animation, minor UV fixes at entrance
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 332, block332); //Middle Falls - toxic cave interior: add missing animatorID to one of the crack shapes, hide dev shape, match ground UVs with section near ladder, fix UV seam to the left when facing podium
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 328, block328); //Upper Falls: use clamped cliff textures, fix gap in water, fix floating walkway supports and dockpoint, UV fixes
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 327, block327); //Upper Falls - stalactite cave: UV fixes on floor, UV fixes on walls of climbable area, fix a section of the entrance arch being included in torches' vertex colour animation
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 322, block322); //Upper Falls - demolition cave: UV fixes, darken wall cracks slightly, optimise floor triangles
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 319, block319); //Upper Falls - whirlpool cave: UV fixes, transparency order fixes
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 320, block320); //Shrine area exit: fix colour difference on the animated section of wall (demolished in whirlpool cave), use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 321, block321); //Shrine exterior: fix gaps between vertices, orthagonalise shrine facade, improve oddly unstable collision, fix warped ground UVs, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 343, block343); //Shrine interior: minor UV fixes
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 323, block323); //Shrine area exit climb to Upper Falls: minor UV fixes, add decal to indicate rock climb, use clamped cliff textures
@@ -4827,12 +4836,89 @@ static void discovery_falls_modifications(void) {
             }
         }
 
-        //Whirlpool Cave
+        //Demolition Caves
         {
             //Don't load the cutscene SharpClaw's DFbarrel when revisiting after the cutscene
             //(Since this barrel unloads when you enter the whirlpool cave, unlike the DFbarrelcreator's ones)
-            DFBarrel_Setup* seqBarrel = GET_MAPS_OBJECT(discoveryFalls, 0x00002115);
-            seqBarrel->gamebitDisable = BIT_5E;
+            {
+                DFBarrel_Setup* seqBarrel = GET_MAPS_OBJECT(discoveryFalls, 0x00002115);
+                seqBarrel->gamebitDisable = BIT_DF_Played_Seq_002E_Demolition_Cave_SharpClaw_Antics;
+            }
+
+            //Fix floating crate in one of the demolition cul-de-sacs
+            {
+                ObjSetup* bigCrate = GET_MAPS_OBJECT(discoveryFalls, 0x42e64);
+                bigCrate->y = 435;
+            }
+        }
+        
+        //Whirlpool Cave
+        {
+            //Add HitAnimator for the water flowing below the whirlpool
+            {
+                HitAnimator_Setup hitAnimator = {
+                    .base = {
+                        .objId = OBJ_HitAnimator,
+                        .actExclusions1 = 0,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup9_Whirlpool_Cave_HitAnimator,
+                        .fadeDistance = 32,
+                    },
+                    COORDS_SETUP(-2362, 407, -1511),
+                    .mode = hitanimator_configure_mode_flags(
+                        FALSE, TRUE, FALSE),
+                    .gamebitActivate = BIT_DF_Whirlpool_Cave_Wall_Demolished,
+                    .blocksAnimatorID = 7
+                };
+
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &hitAnimator, sizeof(hitAnimator));
+            }
+
+            //Move last destructible wall's HitAnimator and DFdebris3 into Whirlpool Cave objGroup, 
+            //to avoid unloading before the explosion finishes playing out (the unload TriggerPlane for their
+            //default objGroup is positioned just beyond the wall, so they could vanish at soon as you stepped through)
+            {
+                u32 wallExplodeUIDs[] = {
+                    0x00002c02, //HitAnimator
+                    0x00002c0a  //DFdebris3
+                };
+                for (u32 i = 0; i < ARRAYCOUNT(wallExplodeUIDs); i++) {
+                    ObjSetup* explodeWallSetup = GET_MAPS_OBJECT(discoveryFalls, wallExplodeUIDs[i]);
+                    explodeWallSetup->mapObjGroup = DF_ObjGroup9_Whirlpool_Cave_HitAnimator;
+                }
+            }
+
+            //Add DFdebris3 to the whirlpool wall, so it doesn't just instantly vanish
+            {
+                CFExplodeWall_CustomSetup dfDebris = {
+                    .base = {
+                        .objId = OBJ_DFdebris3,
+                        .actExclusions1 = 0,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup9_Whirlpool_Cave_HitAnimator,
+                        .fadeDistance = 32,
+                    },
+                    COORDS_SETUP(-1988.434, 385, -1639.172),
+                    .pieceCount = 4,
+                    .yaw = DEGREES_TO_ANGLE16(4),
+                    .displacementOrigin = VEC3F(20, -7, -15),
+                    .explosionPower = 800,
+                    .floorOffset = 0,
+                    .acceleration = -1,
+                    .lifetimeMax = 200,
+                    .gamebitFinished = NO_GAMEBIT,
+                    .gamebitExplode = BIT_DF_Whirlpool_Cave_Wall_Demolished,
+                    .options = CFExplodeWall_CUSTOMOPTION_Use_Default_Explosion_Sound | 
+                               CFExplodeWall_CUSTOMOPTION_Camera_Shake | 
+                               CFExplodeWall_CUSTOMOPTION_No_Falloff_On_Piece_Sounds
+                };
+
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &dfDebris, sizeof(dfDebris));
+            }
         }
 
         //Tweak Kyte's out-of-bounds curves (it seems like Rare had yet to move them after updating the shape of the river bend)
