@@ -4762,60 +4762,69 @@ static void discovery_falls_modifications(void) {
                 reasset_auto_id(dinomodNs), &cylinder, sizeof(cylinder));
         }
 
-        //Stalactite Cave (add camera TriggerPlanes)
+        //Stalactite Cave 
         {
-            //Entrance tunnel start (under waterfall)
+            //Add camera TriggerPlanes to the narrow entrance (to avoid the camera getting stuck)
             {
-                Trigger_Setup plane = {
-                    .base = {
-                        .objId = OBJ_TriggerPlane,
-                        .loadFlags = OBJSETUP_LOAD_MAIN,
-                        .fadeFlags = OBJSETUP_FADE_CAMERA,
-                        .loadDistance = 50,
-                        .fadeDistance = 50,
-                    },
-                    COORDS_SETUP(-1898.763, 520.000, -341.005),
-                    .rotationY = TRIGGER_YAW(70),
-                    .rotationX = 0,
-                    .sizeX = TRIGGER_SCALE(0.5),
-                    .sizeY = 0x10,
-                    .sizeZ = 0x10,
-                    .conditionBitFlagIDs[0] = NO_GAMEBIT
-                };
-                ENTER_CAMERAACTION(0, 0x7E, &plane, 0); //Use CameraAction (closer camera with higher FOV)
-                EXIT_CAMERAACTION(0, 1, &plane, 1); //Use default camera
-                reasset_map_objects_set(discoveryFalls, 
-                    reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                //Entrance tunnel start (under waterfall)
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-1898.763, 520.000, -341.005),
+                        .rotationY = TRIGGER_YAW(70),
+                        .rotationX = 0,
+                        .sizeX = TRIGGER_SCALE(0.5),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    };
+                    ENTER_CAMERAACTION(0, 0x7E, &plane, 0); //Use CameraAction (closer camera with higher FOV)
+                    EXIT_CAMERAACTION(0, 1, &plane, 1); //Use default camera
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
 
-                plane.rotationY = TRIGGER_YAW(110);
-                plane.base.x = -1898.763;
-                plane.base.z = -457.527;
-                reasset_map_objects_set(discoveryFalls, 
-                    reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                    plane.rotationY = TRIGGER_YAW(110);
+                    plane.base.x = -1898.763;
+                    plane.base.z = -457.527;
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+
+                //Entrance tunnel end (inside cave)
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-2078.836, 612.000, -225.221),
+                        .rotationY = TRIGGER_YAW(135.5),
+                        .rotationX = 0,
+                        .sizeX = TRIGGER_SCALE(0.344),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    };
+                    ENTER_CAMERAACTION(0, 1, &plane, 0); //Use default camera
+                    EXIT_CAMERAACTION(0, 0x7E, &plane, 1); //Use CameraAction (closer camera with higher FOV)
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
             }
 
-            //Entrance tunnel end (inside cave)
+            //Fix midair save point
             {
-                Trigger_Setup plane = {
-                    .base = {
-                        .objId = OBJ_TriggerPlane,
-                        .loadFlags = OBJSETUP_LOAD_MAIN,
-                        .fadeFlags = OBJSETUP_FADE_CAMERA,
-                        .loadDistance = 50,
-                        .fadeDistance = 50,
-                    },
-                    COORDS_SETUP(-2078.836, 612.000, -225.221),
-                    .rotationY = TRIGGER_YAW(135.5),
-                    .rotationX = 0,
-                    .sizeX = TRIGGER_SCALE(0.344),
-                    .sizeY = 0x10,
-                    .sizeZ = 0x10,
-                    .conditionBitFlagIDs[0] = NO_GAMEBIT
-                };
-                ENTER_CAMERAACTION(0, 1, &plane, 0); //Use default camera
-                EXIT_CAMERAACTION(0, 0x7E, &plane, 1); //Use CameraAction (closer camera with higher FOV)
-                reasset_map_objects_set(discoveryFalls, 
-                    reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x00030daa);
+                plane->base.y = 544.235f;
             }
         }
 
