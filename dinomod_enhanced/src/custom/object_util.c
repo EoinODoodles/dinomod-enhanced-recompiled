@@ -6,6 +6,10 @@
 
 extern s16 *gFile_OBJINDEX;
 
+//TEMPORARY DEFINES
+#define HitAnimator_Mode_Update_Visibility HitAnimator_Mode_No_Fade
+//END OF TEMPORARY DEFINES
+
 /** Convert an OBJINDEX index (decomp OBJ_* enum) into an OBJECTS index */
 s32 objindex_to_object_id(s32 objIndex){
     if (!gFile_OBJINDEX){
@@ -69,9 +73,9 @@ ObjSetup *objsetup_next(ObjSetup* setup){
   *
   * `removeWhenSet` removes the line/shape when the HitAnimator's gamebit is set, rather than before it's set.
   * `isBlocksAnimator` decides whether the HitAnimator is targetting a Blocks shape rather than a Hits line.
-  * `fadeBlocks` decides whether or not to fade a Blocks shape in/out when affecting its state. 
+  * `dontAffectShapeVisibility` decides whether or not to update Blocks shapes' visibility too. 
   */
-u8 hitanimator_configure_mode_flags(_Bool removeWhenSet, _Bool isBlocksAnimator, _Bool fadeBlocks) {
+u8 hitanimator_configure_mode_flags(_Bool removeWhenSet, _Bool isBlocksAnimator, _Bool dontAffectShapeVisibility) {
     u8 mode = 0;
 
     if (removeWhenSet) {
@@ -80,8 +84,10 @@ u8 hitanimator_configure_mode_flags(_Bool removeWhenSet, _Bool isBlocksAnimator,
 
     if (isBlocksAnimator) {
         mode |= HitAnimator_Mode_BLOCKS;
-        if (!fadeBlocks) {
-            mode |= HitAnimator_Mode_No_Fade;
+        //TODO: update the arg so it's just "if (affectShapeVisibility) { ... }" 
+        //(requires inverting bool arg on all current uses of this func in assets.c)
+        if (dontAffectShapeVisibility == FALSE) { 
+            mode |= HitAnimator_Mode_Update_Visibility;
         }
     } else {
         mode |= HitAnimator_Mode_HITS;
