@@ -4842,6 +4842,12 @@ static void discovery_falls_modifications(void) {
             //(Since this barrel unloads when you enter the whirlpool cave, unlike the DFbarrelcreator's ones)
             {
                 DFBarrel_Setup* seqBarrel = GET_MAPS_OBJECT(discoveryFalls, 0x00002115);
+                
+                //Remove from objGroup, since it can unload out of Krystal's hands if you carry it into the whirlpool cave
+                seqBarrel->base.loadFlags = OBJSETUP_LOAD_MAIN; 
+                seqBarrel->base.loadDistance = FADE_DISTANCE(640); //Far enough to stay loaded when it drifts to the distant side of the whirlpool
+
+                //Don't appear on revisit
                 seqBarrel->gamebitDisable = BIT_DF_Played_Seq_002E_Demolition_Cave_SharpClaw_Antics;
             }
 
