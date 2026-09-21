@@ -198,7 +198,6 @@ typedef struct {
 #define PASSTHRU TrackLine_SETTINGB_Nonsolid
 
 #define GET_MAPS_OBJECT(mapID, uID) (reasset_map_objects_get(mapID, reasset_base_id(uID), NULL))
-#define GET_TRIGGER(mapID, uID) ((Trigger_Setup*)GET_MAPS_OBJECT(mapID, uID))
 
 #define OBJECT_GET_OBJSEQS(objDef) ((s16*)((u8*)objDef + (u32)objDef->pSeq))
 
@@ -1437,13 +1436,13 @@ static void walled_city_modifications(void) {
                 {
                     //Moon Passageway
                     {
-                        Trigger_Setup* plane = GET_TRIGGER(walledCity, 0x41370);
+                        Trigger_Setup* plane = GET_MAPS_OBJECT(walledCity, 0x41370);
                         ENTER_OBJGROUP_OFF(WC_OBJGROUP_Sun_Passageway_Door, plane, 2);
                     }
 
                     //Sun Passageway
                     {
-                        Trigger_Setup* plane = GET_TRIGGER(walledCity, 0x41373);
+                        Trigger_Setup* plane = GET_MAPS_OBJECT(walledCity, 0x41373);
                         ENTER_OBJGROUP_OFF(WC_OBJGROUP_Moon_Passageway_Door, plane, 2);
                     }
                 }
@@ -2515,58 +2514,58 @@ static void walled_city_modifications(void) {
 
         //Approach route
         {
-            plane = GET_TRIGGER(walledCity, 0x40beb); //90-degree bend after Queen EarthWalker's gateway
+            plane = GET_MAPS_OBJECT(walledCity, 0x40beb); //90-degree bend after Queen EarthWalker's gateway
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup5_Central_Temple, plane, 0, 4);
             EMPTY_TRIGGER_COMMAND(plane, 0); //Don't load the central temple's objects until the player's a lot closer
         }
 
         //Central temple
         {
-            plane = GET_TRIGGER(walledCity, 0x40dad); //Sun beacon temple entrance
+            plane = GET_MAPS_OBJECT(walledCity, 0x40dad); //Sun beacon temple entrance
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup0_Sun_Beacon_Tunnel, plane, 2, 5);
 
-            plane = GET_TRIGGER(walledCity, 0x40dae); //Sun beacon tunnel exit
+            plane = GET_MAPS_OBJECT(walledCity, 0x40dae); //Sun beacon tunnel exit
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup0_Sun_Beacon_Tunnel, plane, 2, 5);
 
-            plane = GET_TRIGGER(walledCity, 0x4104c); //Moon beacon temple entrance
+            plane = GET_MAPS_OBJECT(walledCity, 0x4104c); //Moon beacon temple entrance
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup1_Moon_Beacon_Tunnel, plane, 2, 5);
 
-            plane = GET_TRIGGER(walledCity, 0x4104f); //Moon beacon tunnel exit
+            plane = GET_MAPS_OBJECT(walledCity, 0x4104f); //Moon beacon tunnel exit
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup1_Moon_Beacon_Tunnel, plane, 2, 5);
 
-            plane = GET_TRIGGER(walledCity, 0x41052); //Boss lobby tunnel entrance (outdoors)
+            plane = GET_MAPS_OBJECT(walledCity, 0x41052); //Boss lobby tunnel entrance (outdoors)
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup4_Boss_Lobby, plane, 2, 3);
             DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Moon_Passageway_Door, plane, 4, 5);
             DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Sun_Passageway_Door, plane, 6, 7);
 
-            plane = GET_TRIGGER(walledCity, 0x41053); //Boss lobby entrance (indoors)
+            plane = GET_MAPS_OBJECT(walledCity, 0x41053); //Boss lobby entrance (indoors)
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup5_Central_Temple, plane, 2, 3); //TODO: does this mess up the post-boss sequence? KTrex enables ObjGroup 5 on defeat, so it should be okay?    
         }
 
         //Sun temple route
         {
-            plane = GET_TRIGGER(walledCity, 0x41312); //Sun pushblocks approach
+            plane = GET_MAPS_OBJECT(walledCity, 0x41312); //Sun pushblocks approach
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup2_Sun_Pushblock_Puzzle, plane, 0, 5);
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup6_Sun_Temple_Exterior, plane, 6, 7);
 
-            plane = GET_TRIGGER(walledCity, 0x41311); //Sun temple approach
+            plane = GET_MAPS_OBJECT(walledCity, 0x41311); //Sun temple approach
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup2_Sun_Pushblock_Puzzle, plane, 0, 5);
 
-            plane = GET_TRIGGER(walledCity, 0x41775); //Sun temple entry
+            plane = GET_MAPS_OBJECT(walledCity, 0x41775); //Sun temple entry
             DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_ObjGroup6_Sun_Temple_Exterior, plane, 0, 1);
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup8_Sun_Temple_Interior, plane, 6, 7);
         }
 
         //Moon temple route
         {
-            plane = GET_TRIGGER(walledCity, 0x4130e); //Moon pushblocks approach
+            plane = GET_MAPS_OBJECT(walledCity, 0x4130e); //Moon pushblocks approach
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup3_Moon_Pushblock_Puzzle, plane, 0, 5);
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup7_Moon_Temple_Exterior, plane, 6, 7);
 
-            plane = GET_TRIGGER(walledCity, 0x4130f); //Moon temple approach
+            plane = GET_MAPS_OBJECT(walledCity, 0x4130f); //Moon temple approach
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup3_Moon_Pushblock_Puzzle, plane, 0, 6);
 
-            plane = GET_TRIGGER(walledCity, 0x41604); //Moon temple entry
+            plane = GET_MAPS_OBJECT(walledCity, 0x41604); //Moon temple entry
             DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_ObjGroup7_Moon_Temple_Exterior, plane, 6, 7);
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup9_Moon_Temple_Interior, plane, 2, 3);
         }
@@ -3456,7 +3455,7 @@ static void swapstone_hollow_modifications(void) {
 
     // Edit TriggerCylinder around Rocky, so it unsets the "Exiting the Shop" gamebit
     {
-        Trigger_Setup* cylinder = GET_TRIGGER(sHollow, 0xbe040a9);
+        Trigger_Setup* cylinder = GET_MAPS_OBJECT(sHollow, 0xbe040a9);
         cylinder->commands[1].id = TRG_CMD_BITS;
         cylinder->commands[1].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
         cylinder->commands[1].paramCombined = TRG_GAMEBIT(BIT_SP_Exiting_Shop, FALSE);
@@ -3464,7 +3463,7 @@ static void swapstone_hollow_modifications(void) {
 
     // Edit TriggerPlane approaching Rocky, so it unsets the "Exiting the Shop" gamebit too (just in case)
     {
-        Trigger_Setup* plane = GET_TRIGGER(sHollow, 0x34732);
+        Trigger_Setup* plane = GET_MAPS_OBJECT(sHollow, 0x34732);
         plane->commands[7].id = TRG_CMD_BITS;
         plane->commands[7].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
         plane->commands[7].paramCombined = TRG_GAMEBIT(BIT_SP_Exiting_Shop, FALSE);
@@ -3473,7 +3472,7 @@ static void swapstone_hollow_modifications(void) {
     // Edit TriggerPlane just inside the gateway to Walled City, so 
     // the river crossing area's objects are loaded when approaching from Walled City
     {
-        Trigger_Setup* plane = GET_TRIGGER(sHollow, 0x40B75);
+        Trigger_Setup* plane = GET_MAPS_OBJECT(sHollow, 0x40B75);
         DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(6, plane, 1, 2);
     }
 }
