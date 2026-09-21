@@ -9,6 +9,7 @@
 #include "PR/os.h"
 #include "common.h"
 #include "dlls/objects/210_player.h"
+#include "dlls/objects/418_DFriverflow.h"
 #include "game/objects/interaction_arrow.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
