@@ -4238,7 +4238,7 @@ static void discovery_falls_modifications(void) {
         {
             //DFSequences object
             SeqObj_Setup* dfSeqObj = GET_MAPS_OBJECT(discoveryFalls, 0x1F63);
-            dfSeqObj->gamebitHasPlayed = BIT_DF_Kyte_Secured_Rope_Near_BWC;
+            dfSeqObj->gamebitHasPlayed = BIT_DF_Played_Seq_0016_Kyte_Secures_Rope_Near_BWC;
             dfSeqObj->replayStartTime = 0; //Don't replay (seq preempts nearly work as an approach for restoring the ropes' states,
                                            //except it briefly makes the rope's spring dynamics go haywire on load, because of the 
                                            //large position change.)
@@ -4252,7 +4252,7 @@ static void discovery_falls_modifications(void) {
         {
             //DFSequences object
             SeqObj_Setup* dfSeqObj = GET_MAPS_OBJECT(discoveryFalls, 0x2569);
-            dfSeqObj->gamebitHasPlayed = BIT_DF_Kyte_Secured_Rope_Upper_Falls;
+            dfSeqObj->gamebitHasPlayed = BIT_DF_Played_Seq_000F_Kyte_Secures_Rope_Upper_Falls;
             dfSeqObj->replayStartTime = 0; //Don't replay
 
             //Rope grab TriggerPoint (switch the one near the loose rope end off if Kyte's sequence hasn't played yet)

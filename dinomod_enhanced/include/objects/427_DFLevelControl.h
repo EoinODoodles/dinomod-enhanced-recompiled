@@ -25,8 +25,94 @@ typedef enum {
     DF_ObjGroup17_Shrine_Exterior_Whirlpool_Cave_Waterfall //Texscroll for the Whirlpool Cave's exterior waterfall (once blown up)
 } DF_ObjectGroups;
 
-#define BIT_DF_Kyte_Secured_Rope_Near_BWC 0x10B
-#define BIT_DF_Kyte_Secured_Rope_Upper_Falls 0x28F
+#define BIT_DF_Play_Seq_0167_Seq_Arrival_So_This_Is_Discovery_Falls 0x15
+#define BIT_DF_Played_Seq_0167_Arrival_So_This_Is_Discovery_Falls 0x16
+
+#define BIT_DF_Play_Seq_0168_Krystal_Meets_HighTop_Archaeologist 0x17
+#define BIT_DF_Played_Seq_0168_Krystal_Meets_HighTop_Archaeologist 0x18
+
+#define BIT_DF_Play_Seq_02AD_Krystal_Meets_Foodbag_SharpClaw 0x4BB
+#define BIT_DF_Played_Seq_02AD_Krystal_Meets_Foodbag_SharpClaw 0x4BC
+
+#define BIT_DF_Play_Seq_0016_Kyte_Secures_Rope_Near_BWC 0x10A
+#define BIT_DF_Played_Seq_0016_Kyte_Secures_Rope_Near_BWC 0x10B
+
+#define BIT_DF_Play_Seq_000F_Kyte_Secures_Rope_Upper_Falls 0x28E
+#define BIT_DF_Played_Seq_000F_Kyte_Secures_Rope_Upper_Falls 0x28F
+
+#define BIT_DF_Play_Seq_002F_Kyte_Activates_Turbine 0x28D
+#define BIT_DF_Played_Seq_002F_Kyte_Activates_Turbine BIT_DF_Cradle_Powered
+
+#define BIT_DF_Cradle_Moving_Down 0x1C //Also set when hitting nearby Projectile Switches: intended to reverse cradle direction (but buggy)
+
+#define BIT_DF_Toxic_Cave_Destroy_Gas_Vent 0x20
+#define BIT_DF_Toxic_Cave_Destroyed_Gas_Vent 0x21
+#define BIT_DF_Toxic_Cave_Destroy_Wall 0x37
+#define BIT_DF_Toxic_Cave_Destroyed_Wall 0x38
+
+#define BIT_DF_Play_Seq_003E_Mole_Cave_SharpClaw_Hides 0x31
+#define BIT_DF_Played_Seq_003E_Mole_Cave_SharpClaw_Hides 0x32
+
+#define BIT_DF_Mole_Cave_Destroy_Door 0x293
+#define BIT_DF_Mole_Cave_Destroyed_Door 0x294
+
+#define BIT_DF_Play_Seq_002C_Mole_Cave_Hatch_Opens 0x100
+#define BIT_DF_Played_Seq_002C_Mole_Cave_Hatch_Opens 0x101
+
+#define BIT_DF_Mole_Dug_Wall_1 BIT_CapyTunnel1
+#define BIT_DF_Mole_Dug_Wall_2 BIT_CapyTunnel2
+#define BIT_DF_Mole_Dug_Wall_3 BIT_CapyTunnel3
+
+#define BIT_DF_Play_Seq_002E_Demolition_Cave_SharpClaw_Antics 0x3F
+#define BIT_DF_Played_Seq_002E_Demolition_Cave_SharpClaw_Antics 0x5E
+
+#define BIT_DF_Demolition_Cave_Destroy_Whirlpool_Wall_1 0x11E
+#define BIT_DF_Demolition_Cave_Destroyed_Whirlpool_Wall_1 0x11F
+#define BIT_DF_Demolition_Cave_Destroy_Whirlpool_Wall_2 0x1
+#define BIT_DF_Demolition_Cave_Destroyed_Whirlpool_Wall_2 0x2
+#define BIT_DF_Demolition_Cave_Destroy_Whirlpool_Wall_3 0x3
+#define BIT_DF_Demolition_Cave_Destroyed_Whirlpool_Wall_3 0x4
+#define BIT_DF_Demolition_Cave_Destroy_Whirlpool_Wall_4 0x2A0
+#define BIT_DF_Demolition_Cave_Destroyed_Whirlpool_Wall_4 0x342
+#define BIT_DF_Demolition_Cave_Destroy_Crate_Wall 0x11C
+#define BIT_DF_Demolition_Cave_Destroyed_Crate_Wall 0x11D
+#define BIT_DF_Demolition_Cave_Destroy_Plant_Wall_1 0x2a1
+#define BIT_DF_Demolition_Cave_Destroyed_Plant_Wall_1 0x2a2
+#define BIT_DF_Demolition_Cave_Destroy_Plant_Wall_2 0x2a3
+#define BIT_DF_Demolition_Cave_Destroyed_Plant_Wall_2 0x2a4 
+#define BIT_DF_Demolition_Cave_Destroy_SharpClaw_Wall 0x345
+#define BIT_DF_Demolition_Cave_Destroyed_SharpClaw_Wall 0x346
+#define BIT_DF_Demolition_Cave_Destroy_Far_Wall 0x343
+#define BIT_DF_Demolition_Cave_Destroyed_Far_Wall 0344
+
+// #define BIT_DF_Whirlpool_Cave_Wall_Demolished 0x105
+#define BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished 0x106
+
+#define BIT_DF_Play_Seq_0031_Activate_Shrine_Switch_1 0x10E //Foodbag Cave
+#define BIT_DF_Played_Seq_0031_Activate_Shrine_Switch_1 BIT_DF_Shrine_Door_Light_Activated_One //Foodbag Cave
+
+#define BIT_DF_Play_Seq_0032_Activate_Shrine_Switch_2 0x10F //Toxic Cave
+#define BIT_DF_Played_Seq_0032_Activate_Shrine_Switch_2 BIT_DF_Shrine_Door_Light_Activated_Two //Toxic Cave
+
+#define BIT_DF_Play_Seq_0033_Activate_Shrine_Switch_3 0x110 //Mole Cave
+#define BIT_DF_Played_Seq_0033_Activate_Shrine_Switch_3 BIT_DF_Shrine_Door_Light_Activated_Three //Mole Cave
+
+#define BIT_DF_Play_Seq_0034_Activate_Shrine_Switch_4 0x1F7 //Whirlpool Cave
+#define BIT_DF_Played_Seq_0034_Activate_Shrine_Switch_4 BIT_DF_Shrine_Door_Light_Activated_Four //Whirlpool Cave
+
+#define BIT_DF_Seq_0035_Shrine_Door_Opens 0x4A1
+#define BIT_DF_Seq_0035_Shrine_Door_Opened 0x4A2
+
+#define BIT_DF_Shrine_Door_Opens 0x10C
+#define BIT_DF_Shrine_Door_Opened 0x10D
+
+#define BIT_DF_Play_Seq_003C_Krystal_Returns_From_The_Shrine 0x1A
+#define BIT_DF_Played_Seq_003C_Krystal_Returns_From_The_Shrine 0x1B
+
+#define BIT_DF_Play_Seq_0067_Kyte_Wants_To_Visit_CloudRunner_Fortress 0x29D
+#define BIT_DF_Played_Seq_0067_Kyte_Wants_To_Visit_CloudRunner_Fortress 0x29F
+
+#define BIT_DF_8DE 0x8DE
 //END OF TEMPORARY DEFINES
 
 enum DF_CustomObjectGroups {
