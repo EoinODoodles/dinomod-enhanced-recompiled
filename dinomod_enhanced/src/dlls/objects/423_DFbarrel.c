@@ -2,6 +2,7 @@
 #include "configs.h"
 #include "math_util.h"
 #include "modding.h"
+#include "object_util.h"
 #include "player_util.h"
 #include "recomputils.h"
 
@@ -58,7 +59,7 @@ RECOMP_PATCH void DFbarrel_obj_Setup(Object* self, DFBarrel_Setup* objSetup, s32
     }
 
     //@recomp: hide the barrel if it needs to be unloaded immediately
-    if (mainGetBits(objSetup->gamebitDisable)) {
+    if (GAMEBIT_SPECIFIED_AND_SET(objSetup->gamebitDisable)) {
         DFBarrel_Data* objData = self->data;
         objData->customFlags |= DFBarrel_CUSTOMFLAG_1_Unload;
         self->opacity = 0;
