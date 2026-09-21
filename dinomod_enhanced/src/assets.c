@@ -655,8 +655,8 @@ static void walled_city_modifications(void) {
         //Add ladder HitAnimators
         {
             HitAnimator_Setup hitAnims[] = {
-                { COORDS_SETUP(1346, -766, -3752.859), .hitsAnimatorID = 0xE,   .mode = hitanimator_configure_mode_flags(FALSE, FALSE, FALSE) },
-                { COORDS_SETUP(1346, -738, -3752.859), .blocksAnimatorID = 0xE, .mode = hitanimator_configure_mode_flags(FALSE, TRUE, FALSE) }
+                { COORDS_SETUP(1346, -766, -3752.859), .hitsAnimatorID = 0xE,   .mode = HITANIMATOR_MODE_HITS_ON },
+                { COORDS_SETUP(1346, -738, -3752.859), .blocksAnimatorID = 0xE, .mode = HITANIMATOR_MODE_SHAPE_ON }
             };
 
             for (u32 i = 0; i < ARRAYCOUNT(hitAnims); i++) {
@@ -725,21 +725,16 @@ static void walled_city_modifications(void) {
             #define ANIMATORID_DOOR_OPEN 5
             #define ANIMATORID_DOOR_OPEN_HITS 6
 
-            #define MODE_SHAPE_OFF hitanimator_configure_mode_flags(TRUE, TRUE, FALSE)
-            #define MODE_SHAPE_ON hitanimator_configure_mode_flags(FALSE, TRUE, FALSE)
-            #define MODE_HITS_OFF hitanimator_configure_mode_flags(TRUE, FALSE, FALSE)
-            #define MODE_HITS_ON hitanimator_configure_mode_flags(FALSE, FALSE, FALSE)
-
             #define BIT_MOON DINOMOD_BIT_964_WC_Jungle_Door_Lever_Moon
             #define BIT_SUN DINOMOD_BIT_965_WC_Jungle_Door_Lever_Sun
             #define BIT_DOOR DINOMOD_BIT_96A_WC_Jungle_Door_Open
 
             HitAnimator_Setup hitAnims[] = {
-                { COORDS_SETUP(960, -758, -3593), .blocksAnimatorID = ANIMATORID_DOOR_CLOSED,  .gamebitActivate = BIT_SUN,  .mode = MODE_SHAPE_OFF },
-                { COORDS_SETUP(960, -748, -3593), .blocksAnimatorID = ANIMATORID_DOOR_OPEN,    .gamebitActivate = BIT_SUN,  .mode = MODE_SHAPE_ON },
+                { COORDS_SETUP(960, -758, -3593), .blocksAnimatorID = ANIMATORID_DOOR_CLOSED,  .gamebitActivate = BIT_SUN,  .mode = HITANIMATOR_MODE_SHAPE_OFF },
+                { COORDS_SETUP(960, -748, -3593), .blocksAnimatorID = ANIMATORID_DOOR_OPEN,    .gamebitActivate = BIT_SUN,  .mode = HITANIMATOR_MODE_SHAPE_ON },
  
-                { COORDS_SETUP(960, -718, -3593), .hitsAnimatorID = ANIMATORID_DOOR_CLOSED,    .gamebitActivate = BIT_SUN,  .mode = MODE_HITS_OFF },
-                { COORDS_SETUP(960, -708, -3593), .hitsAnimatorID = ANIMATORID_DOOR_OPEN_HITS, .gamebitActivate = BIT_DOOR, .mode = MODE_HITS_ON },
+                { COORDS_SETUP(960, -718, -3593), .hitsAnimatorID = ANIMATORID_DOOR_CLOSED,    .gamebitActivate = BIT_SUN,  .mode = HITANIMATOR_MODE_HITS_OFF },
+                { COORDS_SETUP(960, -708, -3593), .hitsAnimatorID = ANIMATORID_DOOR_OPEN_HITS, .gamebitActivate = BIT_DOOR, .mode = HITANIMATOR_MODE_HITS_ON },
             };
 
             for (u32 i = 0; i < ARRAYCOUNT(hitAnims); i++) {
@@ -1207,7 +1202,7 @@ static void walled_city_modifications(void) {
                     }
                 }
             
-                //Add HitAnimator for removing these lines
+                //Add HitAnimator for enabling these lines
                 {
                     HitAnimator_Setup hitA = {
                         .base = {
@@ -1222,8 +1217,7 @@ static void walled_city_modifications(void) {
                             .z = -4605.000
                         },
                         .gamebitActivate = BIT_WC_Boss_Door_Opened,
-                        .mode = hitanimator_configure_mode_flags(
-                            FALSE, FALSE, FALSE),
+                        .mode = HITANIMATOR_MODE_HITS_ON,
                         .hitsAnimatorID = BOSS_RAMP_HITS_ANIMATOR
                     };
                     reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -1567,8 +1561,8 @@ static void walled_city_modifications(void) {
                             .z = hAnimData[i].coords.z
                         },
                         .gamebitActivate = BIT_ALWAYS_1,
-                        .mode = hitanimator_configure_mode_flags(
-                            (hAnimData[i].show == FALSE), TRUE, FALSE),
+                        .mode = hitAnimator_configureModeFlags(
+                            (hAnimData[i].show == FALSE), TRUE, TRUE),
                         .blocksAnimatorID = hAnimData[i].animatorID
                     };
                     reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitAnim, sizeof(hitAnim));
@@ -1770,8 +1764,7 @@ static void walled_city_modifications(void) {
                     //Sun Temple (edit)
                     hitAnim = GET_MAPS_OBJECT(walledCity, 0xBE03005);
                     hitAnim->gamebitActivate = BIT_WC_Sun_Temple_Magic_Bridge_Visible;
-                    hitAnim->mode = hitanimator_configure_mode_flags(
-                        FALSE, TRUE, FALSE),
+                    hitAnim->mode = HITANIMATOR_MODE_SHAPE_ON,
                     hitAnim->blocksAnimatorID = MAGIC_BRIDGE_ANIMATORID;
 
                     //Moon Temple (add)
@@ -1788,8 +1781,7 @@ static void walled_city_modifications(void) {
                             .z = -4534
                         },
                         .gamebitActivate = BIT_WC_Moon_Temple_Magic_Bridge_Visible,
-                        .mode = hitanimator_configure_mode_flags(
-                            FALSE, TRUE, FALSE),
+                        .mode = HITANIMATOR_MODE_SHAPE_ON,
                         .blocksAnimatorID = MAGIC_BRIDGE_ANIMATORID
                     };
                     reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -1802,8 +1794,7 @@ static void walled_city_modifications(void) {
                     //Sun Temple (edit)
                     hitAnim = GET_MAPS_OBJECT(walledCity, 0xBE03006);
                     hitAnim->gamebitActivate = BIT_WC_Sun_Temple_Magic_Bridge_Visible;
-                    hitAnim->mode = hitanimator_configure_mode_flags(
-                        TRUE, FALSE, FALSE),
+                    hitAnim->mode = HITANIMATOR_MODE_HITS_OFF,
                     hitAnim->hitsAnimatorID = MAGIC_BRIDGE_ANIMATORID;
 
                     //Moon Temple (add)
@@ -1820,8 +1811,7 @@ static void walled_city_modifications(void) {
                             .z = -4481
                         },
                         .gamebitActivate = BIT_WC_Moon_Temple_Magic_Bridge_Visible,
-                        .mode = hitanimator_configure_mode_flags(
-                            TRUE, FALSE, FALSE),
+                        .mode = HITANIMATOR_MODE_HITS_OFF,
                         .hitsAnimatorID = MAGIC_BRIDGE_ANIMATORID
                     };
                     reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -1907,8 +1897,7 @@ static void walled_city_modifications(void) {
                             },
                             COORDS_SETUP(-1088, -1011, -5540),
                             .gamebitActivate = BIT_WC_Sun_Temple_Opened,
-                            .mode = hitanimator_configure_mode_flags(
-                                FALSE, FALSE, FALSE),
+                            .mode = HITANIMATOR_MODE_HITS_ON,
                             .hitsAnimatorID = TEMPLE_STEP_ANIMATORID
                         };
                         reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -1944,8 +1933,7 @@ static void walled_city_modifications(void) {
                             },
                             COORDS_SETUP(-1088, -983, -5558),
                             .gamebitActivate = BIT_WC_Sun_Temple_Opened,
-                            .mode = hitanimator_configure_mode_flags(
-                                TRUE, FALSE, FALSE),
+                            .mode = HITANIMATOR_MODE_HITS_OFF,
                             .hitsAnimatorID = TEMPLE_ENTRANCE_ANIMATORID
                         };
                         reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -1964,8 +1952,7 @@ static void walled_city_modifications(void) {
                             },
                             COORDS_SETUP(-1088, -976.612, -5564.950),
                             .gamebitActivate = BIT_WC_Sun_Temple_Opened,
-                            .mode = hitanimator_configure_mode_flags(
-                                TRUE, TRUE, FALSE),
+                            .mode = HITANIMATOR_MODE_SHAPE_OFF,
                             .blocksAnimatorID = TEMPLE_ENTRANCE_ANIMATORID
                         };
                         reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -1988,8 +1975,7 @@ static void walled_city_modifications(void) {
                             },
                             COORDS_SETUP(-1087.7, -880.4, -5648.5),
                             .gamebitActivate = DINOMOD_BIT_963_WC_Alternate_Sun_Temple_Exterior,
-                            .mode = hitanimator_configure_mode_flags(
-                                TRUE, TRUE, FALSE),
+                            .mode = HITANIMATOR_MODE_SHAPE_OFF,
                             .blocksAnimatorID = 30
                         };
                         reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitAnimOriginal, sizeof(hitAnimOriginal));
@@ -2008,8 +1994,7 @@ static void walled_city_modifications(void) {
                             },
                             COORDS_SETUP(-1087.7, -880.4, -5648.5),
                             .gamebitActivate = DINOMOD_BIT_963_WC_Alternate_Sun_Temple_Exterior,
-                            .mode = hitanimator_configure_mode_flags(
-                                FALSE, TRUE, FALSE),
+                            .mode = HITANIMATOR_MODE_SHAPE_ON,
                             .blocksAnimatorID = 31
                         };
                         reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitAnimAlternate, sizeof(hitAnimAlternate));
@@ -2229,8 +2214,7 @@ static void walled_city_modifications(void) {
                             },
                             COORDS_SETUP(3008, -1011, -4060),
                             .gamebitActivate = BIT_WC_Moon_Temple_Opened,
-                            .mode = hitanimator_configure_mode_flags(
-                                FALSE, FALSE, FALSE),
+                            .mode = HITANIMATOR_MODE_HITS_ON,
                             .hitsAnimatorID = TEMPLE_STEP_ANIMATORID
                         };
                         reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -2265,8 +2249,7 @@ static void walled_city_modifications(void) {
                             },
                             COORDS_SETUP(3008, -983, -4042),
                             .gamebitActivate = BIT_WC_Moon_Temple_Opened,
-                            .mode = hitanimator_configure_mode_flags(
-                                TRUE, FALSE, FALSE),
+                            .mode = HITANIMATOR_MODE_HITS_OFF,
                             .hitsAnimatorID = TEMPLE_ENTRANCE_ANIMATORID
                         };
                         reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -2285,8 +2268,7 @@ static void walled_city_modifications(void) {
                             },
                             COORDS_SETUP(3008, -976.612, -4035.050),
                             .gamebitActivate = BIT_WC_Moon_Temple_Opened,
-                            .mode = hitanimator_configure_mode_flags(
-                                TRUE, TRUE, FALSE),
+                            .mode = HITANIMATOR_MODE_SHAPE_OFF,
                             .blocksAnimatorID = TEMPLE_ENTRANCE_ANIMATORID
                         };
                         reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -2480,8 +2462,7 @@ static void walled_city_modifications(void) {
                         .z = -4799.000
                     },
                     .gamebitActivate = BIT_WC_Transporter_Chamber_Opened,
-                    .mode = hitanimator_configure_mode_flags(
-                        TRUE, FALSE, FALSE),
+                    .mode = HITANIMATOR_MODE_HITS_OFF,
                     .hitsAnimatorID = TRANSPORTER_CHAMBER_HITS_ANIMATOR
                 };
                 reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -3018,8 +2999,7 @@ static void swapstone_hollow_additions(void) {
                     .z = 967.463
                 },
                 .gamebitActivate = BOULDER_BIT,
-                .mode = hitanimator_configure_mode_flags(
-                    TRUE, FALSE, FALSE),
+                .mode = HITANIMATOR_MODE_HITS_OFF,
                 .hitsAnimatorID = BOULDER_HITS_ANIMATOR
             };
             reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -3167,16 +3147,16 @@ static void swapstone_hollow_additions(void) {
     //Add HitAnimators for removing tangible parts of the water
     {
         HitAnimator_Config hitAnimatorData[] = {
-            {VEC3F(2369.237, -620,  737.118),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block351 (waterfall near Rocky)
-            {VEC3F(2119.723, -620,  477.954),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block347 (river bend with log dockpoint)
-            {VEC3F(1588.987, -620,  436.598),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block360 (river section beside 4 White Mushrooms)
-            {VEC3F(1158.884, -620,  538.609),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block346 (river crossing, Queen EarthWalker side)
-            {VEC3F(903.856,  -620,  789.503),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block349 (river crossing, well side)
-            {VEC3F(590.928,  -620,  965.955),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block989 (Diamond Bay waterfall basin 1) (upper river)
-            {VEC3F(285.865,  -1000, 994.401),   RIVER_BIT, 3, FALSE, TRUE, FALSE}, //                                         (rapids)
-            {VEC3F(557.214,  -825,  1013.432),  RIVER_BIT, 1, TRUE, FALSE, FALSE}, //                                         (ledge-grab HITS line)
-            {VEC3F(180.215,  -1000, 1625.786),  RIVER_BIT, 3, FALSE, TRUE, FALSE}, //block995 (Diamond Bay river bend)
-            {VEC3F(-263.215, -1000, 1740.963),  RIVER_BIT, 3, FALSE, TRUE, FALSE}, //block994 (Diamond Bay waterfall basin 2) (water)
+            {VEC3F(2369.237, -620,  737.118),   RIVER_BIT, 1, FALSE, TRUE, TRUE}, //block351 (waterfall near Rocky)
+            {VEC3F(2119.723, -620,  477.954),   RIVER_BIT, 1, FALSE, TRUE, TRUE}, //block347 (river bend with log dockpoint)
+            {VEC3F(1588.987, -620,  436.598),   RIVER_BIT, 1, FALSE, TRUE, TRUE}, //block360 (river section beside 4 White Mushrooms)
+            {VEC3F(1158.884, -620,  538.609),   RIVER_BIT, 1, FALSE, TRUE, TRUE}, //block346 (river crossing, Queen EarthWalker side)
+            {VEC3F(903.856,  -620,  789.503),   RIVER_BIT, 1, FALSE, TRUE, TRUE}, //block349 (river crossing, well side)
+            {VEC3F(590.928,  -620,  965.955),   RIVER_BIT, 1, FALSE, TRUE, TRUE}, //block989 (Diamond Bay waterfall basin 1) (upper river)
+            {VEC3F(285.865,  -1000, 994.401),   RIVER_BIT, 3, FALSE, TRUE, TRUE}, //                                         (rapids)
+            {VEC3F(557.214,  -825,  1013.432),  RIVER_BIT, 1, TRUE, FALSE, TRUE}, //                                         (ledge-grab HITS line)
+            {VEC3F(180.215,  -1000, 1625.786),  RIVER_BIT, 3, FALSE, TRUE, TRUE}, //block995 (Diamond Bay river bend)
+            {VEC3F(-263.215, -1000, 1740.963),  RIVER_BIT, 3, FALSE, TRUE, TRUE}, //block994 (Diamond Bay waterfall basin 2) (water)
         };
 
         for (u32 i = 0; i < ARRAYCOUNT(hitAnimatorData); i++) {
@@ -3194,8 +3174,8 @@ static void swapstone_hollow_additions(void) {
                     .z = data->coords.z
                 },
                 .gamebitActivate = data->gamebit,
-                .mode = hitanimator_configure_mode_flags(
-                    data->removeWhenSet, data->isBlocksAnimator, data->blocksFade),
+                .mode = hitAnimator_configureModeFlags(
+                    data->removeWhenSet, data->isBlocksAnimator, data->affectVisibility),
                 .hitsAnimatorID =   (data->isBlocksAnimator == FALSE) * data->animatorID,
                 .blocksAnimatorID = (data->isBlocksAnimator == TRUE)  * data->animatorID
             };
@@ -3549,8 +3529,7 @@ static void swapstone_hollow_well_additions(void) {
                 .z = 609.779
             },
             .gamebitActivate = VINES_BIT,
-            .mode = hitanimator_configure_mode_flags(
-                TRUE, FALSE, FALSE),
+            .mode = HITANIMATOR_MODE_HITS_OFF,
             .hitsAnimatorID = 1,
         };
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -3572,8 +3551,7 @@ static void swapstone_hollow_well_additions(void) {
                 .z = 609.779
             },
             .gamebitActivate = VINES_BIT,
-            .mode = hitanimator_configure_mode_flags(
-                TRUE, TRUE, FALSE),
+            .mode = HITANIMATOR_MODE_SHAPE_OFF,
             .blocksAnimatorID = 3,
         };
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -3807,11 +3785,11 @@ static void darkice_mines_modifications(void) {
 
             HitAnimator_Setup* siloFlatHitAnim = reasset_map_objects_get(dim1MapID, reasset_base_id(0x1D2D), NULL);
             siloFlatHitAnim->gamebitActivate = GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo;
-            siloFlatHitAnim->mode = hitanimator_configure_mode_flags(TRUE, TRUE, FALSE);
+            siloFlatHitAnim->mode = HITANIMATOR_MODE_SHAPE_OFF;
 
             HitAnimator_Setup* siloRaisedHitAnim = reasset_map_objects_get(dim1MapID, reasset_base_id(0x1D2E), NULL);
             siloRaisedHitAnim->gamebitActivate = GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo;
-            siloRaisedHitAnim->mode = hitanimator_configure_mode_flags(FALSE, TRUE, FALSE);
+            siloRaisedHitAnim->mode = HITANIMATOR_MODE_SHAPE_ON;
         }
 
         //Fix DIMCannonCover1's objSeq handling 
@@ -4031,11 +4009,7 @@ static void diamond_bay_additions(void) {
     //(There's one in SH's map too, but having a copy in Diamond Bay's objects seems to 
     // help this behave reliably, with this spot being on the boundary between two maps)
     {
-        HitAnimator_Config hitAnimatorData[] = {
-            {VEC3F(1197.214,  -813,  -1546.568),  RIVER_BIT, 1, TRUE, FALSE, FALSE}, //block989 (Diamond Bay waterfall basin 1) (ledge-grab HITS line)
-        };
-
-        HitAnimator_Config* data = &hitAnimatorData[0];
+        //block989 (Diamond Bay waterfall basin 1) (ledge-grab HITS line)
         HitAnimator_Setup hitA = {
             .base = {
                 .objId = OBJ_HitAnimator,
@@ -4043,16 +4017,12 @@ static void diamond_bay_additions(void) {
                 .loadFlags = OBJSETUP_LOAD_LEVEL,
                 .fadeFlags = OBJSETUP_FADE_CAMERA,
                 .loadDistance = 140,
-                .fadeDistance = 140,
-                .x = data->coords.x,
-                .y = data->coords.y,
-                .z = data->coords.z
+                .fadeDistance = 140
             },
-            .gamebitActivate = data->gamebit,
-            .mode = hitanimator_configure_mode_flags(
-                data->removeWhenSet, data->isBlocksAnimator, data->blocksFade),
-            .hitsAnimatorID =   ((data->isBlocksAnimator == FALSE) ? data->animatorID : 0),
-            .blocksAnimatorID = ((data->isBlocksAnimator == TRUE) ? data->animatorID : 0)
+            COORDS_SETUP(1197.214,  -813,  -1546.568),
+            .gamebitActivate = RIVER_BIT,
+            .mode = HITANIMATOR_MODE_HITS_OFF,
+            .hitsAnimatorID = 1
         };
 
         reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -4572,8 +4542,7 @@ static void discovery_falls_modifications(void) {
                 hitAnim->base.mapObjGroup = DF_ObjGroup_Turbine_Sequence_HitAnimators;
                 hitAnim->base.fadeDistance = 50;
                 hitAnim->gamebitActivate = DINOMOD_BIT_96B_DF_Turbine_Sequence_Active;
-                hitAnim->mode = hitanimator_configure_mode_flags(
-                        FALSE, TRUE, FALSE);
+                hitAnim->mode = HITANIMATOR_MODE_SHAPE_ON;
                 hitAnim->blocksAnimatorID = 10;
                 reasset_map_objects_set(discoveryFalls, 
                     reasset_auto_id(dinomodNs), hitAnim, sizeof(HitAnimator_Setup));
@@ -4872,8 +4841,7 @@ static void discovery_falls_modifications(void) {
                         .fadeDistance = 32,
                     },
                     COORDS_SETUP(-2362, 407, -1511),
-                    .mode = hitanimator_configure_mode_flags(
-                        FALSE, TRUE, FALSE),
+                    .mode = HITANIMATOR_MODE_SHAPE_ON,
                     .gamebitActivate = BIT_DF_Whirlpool_Cave_Wall_Demolished,
                     .blocksAnimatorID = 7
                 };

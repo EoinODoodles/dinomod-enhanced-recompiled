@@ -28,7 +28,7 @@ typedef struct {
     u8 animatorID;
     u8 removeWhenSet;
     u8 isBlocksAnimator;
-    u8 blocksFade;
+    u8 affectVisibility;
 } HitAnimator_Config;
 
-u8 hitanimator_configure_mode_flags(_Bool removeWhenSet, _Bool isBlocksAnimator, _Bool dontAffectShapeVisibility);
+u8 hitAnimator_configureModeFlags(_Bool removeWhenSet, _Bool isBlocksAnimator, _Bool affectShapeVisibility);

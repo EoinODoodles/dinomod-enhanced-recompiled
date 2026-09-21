@@ -13,10 +13,15 @@ typedef struct {
 
 typedef enum {
     HitAnimator_Mode_Invert = 1,  //Remove the target when gamebit set (instead of enabling it when gamebit set)
-    HitAnimator_Mode_No_Fade = 2, //When targetting BLOCKS Shapes: show/hide immediately
+    HitAnimator_Mode_Update_Visibility = 2, //When targetting BLOCKS Shapes: show/hide the shapes as well as removing their collision
     HitAnimator_Mode_BLOCKS = 4,  //Targetting BLOCKS Shapes
     HitAnimator_Mode_HITS = 8     //Targetting HITS Lines
 } HitAnimator_Modes;
+
+#define HITANIMATOR_MODE_SHAPE_OFF hitAnimator_configureModeFlags(TRUE, TRUE, TRUE)  //Shape switched off when gamebit set
+#define HITANIMATOR_MODE_SHAPE_ON hitAnimator_configureModeFlags(FALSE, TRUE, TRUE)  //Shape switched on when gamebit set
+#define HITANIMATOR_MODE_HITS_OFF hitAnimator_configureModeFlags(TRUE, FALSE, FALSE) //Line switched off when gamebit set
+#define HITANIMATOR_MODE_HITS_ON hitAnimator_configureModeFlags(FALSE, FALSE, FALSE) //Line switched on when gamebit set
 
 typedef struct {
     ObjSetup base;
@@ -433,4 +438,3 @@ typedef enum {
     CFExplodeWall_CUSTOMOPTION_Piece_Plays_Impact_Sound = 4,
     CFExplodeWall_CUSTOMOPTION_No_Falloff_On_Piece_Sounds = 8
 } CFExplodeWall_CustomOptions;
-
