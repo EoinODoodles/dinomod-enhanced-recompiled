@@ -407,3 +407,30 @@ typedef struct {
     s16 gamebitDisable; //@recomp: repurpose padding, barrel disappears after this gamebit is set
 } DFBarrel_Setup;
 
+typedef struct {
+    ObjSetup base;
+    u8 pieceCount;
+    s16 yaw;
+    s16 pitch;
+    s16 roll;
+    Vec3s16 displacementOrigin;
+    Vec3s16 _unk26;
+    s16 explosionPower;
+    s16 floorOffset;
+    s16 acceleration;
+    Vec3s16 _unk32;
+    u16 lifetimeMax;
+    s16 _unk3A;
+    s16 _unk3C;
+    s16 gamebitFinished;
+    s16 gamebitExplode;
+    u8 options; //@recomp: repurpose padding
+} CFExplodeWall_CustomSetup;
+
+typedef enum {
+    CFExplodeWall_CUSTOMOPTION_Use_Default_Explosion_Sound = 1,
+    CFExplodeWall_CUSTOMOPTION_Camera_Shake = 2,
+    CFExplodeWall_CUSTOMOPTION_Piece_Plays_Impact_Sound = 4,
+    CFExplodeWall_CUSTOMOPTION_No_Falloff_On_Piece_Sounds = 8
+} CFExplodeWall_CustomOptions;
+
