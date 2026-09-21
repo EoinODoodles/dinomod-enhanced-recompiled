@@ -258,7 +258,7 @@ RECOMP_PATCH s32 pausemenu_update1(void) {
     } else if (pauseScreenState == PAUSE_MENU_GAME_SAVED) {
 
         if (gameSavedMessageTimer == 0) {
-#ifdef BOOKMARK_PLAYER_LOCATION
+#ifdef DEBUG_BOOKMARK_LOCATION
             debugSetBookmark();
 #endif
             gDLL_29_Gplay->vtbl->save_game();
