@@ -8,6 +8,8 @@ typedef struct {
 /*19*/ s8 gridOffsetZ;  //The z position offset (in worldSpace grid units) to the Block that needs an LOD stand-in
 /*1A*/ s8 animatorID;   //animatorID for the local block's LOD shapes, which will be shown/hidden as the nearby Block disappears/appears
 /*1B*/ u8 options;      //See `LODAnimator_Options`
+/*1C*/ s16 gamebitActivate;     //Optional: Animator only active after this gamebit is set 
+/*1E*/ s16 gamebitDeactivate;   //Optional: Animator deactivates (hiding LOD) when a different gamebit is set
 } LODAnimator_Setup;
 
 typedef enum {

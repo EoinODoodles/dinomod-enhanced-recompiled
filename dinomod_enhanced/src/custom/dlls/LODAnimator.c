@@ -1,8 +1,10 @@
 #include "math_util.h"
+#include "object_util.h"
 #include "recomputils.h"
 
 #include "game/objects/object.h"
 #include "macros.h"
+#include "sys/main.h"
 #include "sys/map.h"
 #include "sys/math.h"
 #include "sys/objects.h"
@@ -21,9 +23,9 @@
 /*
     TODO: Maybe consider adding these?
 
-    - Optional activator gamebit
     - Optional gamebit that gets set when the nearby block is missing/found
     - A mode where the LOD fades out when the nearby block is found, instead of vanishing immediately
+    - Activate secondary animatorID based on camera distance to target block (i.e. more abstracted shapes when further away?)
 */
 
 typedef struct {
@@ -32,6 +34,7 @@ typedef struct {
     u8 prevFlags;
     s8 nearbyBlockIndex;    //The loadedBlockIdx of the nearby Block that needs an LOD stand-in
     s8 ownBlockIndex;       //The loadedBlockIdx of the LODAnimator's local Block (which contains extra LOD shapes)
+    s8 prevGamebitValue;
 } LODAnimator_Data;
 
 typedef enum {
@@ -55,6 +58,12 @@ void LODAnimator_obj_Setup(Object* self, LODAnimator_Setup* objSetup, s32 reset)
     LODAnimator_CheckIfNearbyBlockAppeared(self);
 
     blockAddLODAnimator(self);
+
+    if (GAMEBIT_SPECIFIED(objSetup->gamebitDeactivate)) {
+        objData->prevGamebitValue = mainGetBits(objSetup->gamebitDeactivate);
+    } else {
+        objData->prevGamebitValue = -1;
+    }
 }
 
 // export: 1
@@ -68,6 +77,11 @@ void LODAnimator_obj_Control(Object* self) {
 
     objSetup = (LODAnimator_Setup*)self->setup;
     objData = self->data;
+
+    //Optionally wait for a gamebit to be set before doing anything
+    if (GAMEBIT_SPECIFIED_AND_NOT_SET(objSetup->gamebitActivate)) {
+        return;
+    }
 
 #ifdef DEBUG_ANIMATOR
     {
@@ -94,6 +108,20 @@ void LODAnimator_obj_Control(Object* self) {
     }
     if (objData->ownBlock == NULL) {
         return;
+    }
+
+    //Optionally switch off the LOD when a gamebit is set
+    if (GAMEBIT_SPECIFIED(objSetup->gamebitDeactivate)) {
+        s16 gamebitValue = mainGetBits(objSetup->gamebitDeactivate);
+        if (objData->prevGamebitValue != gamebitValue) {
+            objData->prevGamebitValue = gamebitValue;
+            if (gamebitValue) {
+                LODAnimator_UpdateShapes(self, FALSE);
+            }
+        }
+        if (gamebitValue) {
+            return;
+        }
     }
 
     //Try to find the nearby BLOCK that has an LOD stand-in
@@ -199,6 +227,11 @@ static s32 LODAnimator_UpdateShapes(Object* self, s32 showLOD) {
 
     objData = self->data;
     objSetup = (LODAnimator_Setup*)self->setup;
+
+    //Optionally wait for a gamebit to be set before doing anything
+    if (GAMEBIT_SPECIFIED_AND_NOT_SET(objSetup->gamebitActivate)) {
+        return FALSE;
+    }
 
     block = objData->ownBlock;
     if (block == NULL) {
