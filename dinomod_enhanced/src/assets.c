@@ -4150,6 +4150,19 @@ static void discovery_falls_modifications(void) {
         MODELS_REPLACE_BASE(253, models_dfpodiumswitch); //Fix an issue where the widths were asymmetrical, causing the switch to look off-centre
     }
 
+    //MAPS - VisGrid
+    {
+        u32 size;
+        VisGridCellROM* gridA1 = reasset_maps_get_grid_a1(discoveryFalls, &size);
+        VisGridCellROM* gridA2 = reasset_maps_get_grid_a2(discoveryFalls, &size);
+
+        //Shrine interior visible from the waterfall basin below the whirlpool cave
+        {
+            u32 cellIdx = VISGRID_CELL_IDX(discoveryFalls, 1, 0);
+            VISGRID_SET_CELL_RANGE_PAIRED(2, &gridA1[cellIdx], &gridA2[cellIdx], 9, 9, 7, 7);
+        }
+    }
+
     //Align the podium switches exactly with their podiums
     {
         Vec3f positionOffset;

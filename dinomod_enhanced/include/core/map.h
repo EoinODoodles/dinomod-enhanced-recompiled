@@ -65,5 +65,35 @@ typedef enum {
 #define HITS_A(x, y, z) .Ax = x, .Ay = y, .Az = z
 #define HITS_B(x, y, z) .Bx = x, .By = y, .Bz = z
 
+/** 
+  * MAPS files' visgrid data.
+  *
+  * NOTE: the VisGrid has a different field order in ROM compared to 
+  * how it's processed by `mapCheckBlockGrid`!
+  * (Core code processes the VisGrid data like xMin/xMax/zMin/zMax, which can be a source of confusion.)
+  */
+typedef struct {
+    u8 xMin : 4;
+    u8 zMin : 4;
+    u8 xMax : 4;
+    u8 zMax : 4;
+} VisGridRangeROM;
+
+typedef struct {
+    VisGridRangeROM range[4];
+} VisGridCellROM;
+
+#define VISGRID_CELL_IDX(mapID, x, z) ((z * ((MapHeader*)reasset_maps_get_header(mapID))->gridSizeX) + x)
+
+#define VISGRID_SET_CELL_RANGE(rangeIdx, cell, xMin, xMax, zMin, zMax) \
+    (cell)->range[rangeIdx].x##Min = xMin;\
+    (cell)->range[rangeIdx].x##Max = xMax;\
+    (cell)->range[rangeIdx].z##Min = zMin;\
+    (cell)->range[rangeIdx].z##Max = zMax;
+
+#define VISGRID_SET_CELL_RANGE_PAIRED(rangeIdx, cellGridA, cellGridB, xMin, xMax, zMin, zMax) \
+    VISGRID_SET_CELL_RANGE(rangeIdx, cellGridA, xMin, xMax, zMin, zMax);\
+    VISGRID_SET_CELL_RANGE(rangeIdx, cellGridB, xMin, xMax, zMin, zMax);
+
 void blockAddLODAnimator(Object* lodAnimator);
 void blockRemoveLODAnimator(Object* lodAnimator);
