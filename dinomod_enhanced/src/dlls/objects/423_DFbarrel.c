@@ -3,6 +3,7 @@
 #include "math_util.h"
 #include "modding.h"
 #include "object_util.h"
+#include "objects/427_DFLevelControl.h"
 #include "player_util.h"
 #include "recomputils.h"
 
@@ -95,7 +96,9 @@ RECOMP_PATCH void DFbarrel_handleMovement(Object* self) {
 
     //@recomp: optionally have the barrel drift towards and stay at the crack in Discovery Falls' whirlpool cave
     u8 doRegularMove = TRUE;
-    if (self->mapID == MAP_DISCOVERY_FALLS && configs_GetDFWhirlpoolAssist()) {
+    if (self->mapID == MAP_DISCOVERY_FALLS && configs_GetDFWhirlpoolAssist() && 
+        (mainGetBits(BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished) == FALSE)
+    ) {
         #define ATTRACT_DISTANCE 100.0f
         Object* whirlpoolCrack = objGetObjectByUID(0x00002620);
         f32 distance;
@@ -112,8 +115,10 @@ RECOMP_PATCH void DFbarrel_handleMovement(Object* self) {
         }
     }
 
-    //Get swept away by DFriverflow objects
-    if (doRegularMove) {
+    //Get swept away by DFriverflow objects (@recomp: but not when Discovery Falls' whirlpool is shallow)
+    if (doRegularMove && 
+        (self->mapID != MAP_DISCOVERY_FALLS || mainGetBits(BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished) == FALSE)
+    ) {
         objData->accelerationX = objData->accelerationZ = 0.0f;
 
         for (objects = objGetAllOfType(OBJTYPE_Riverflow, &count), i = 0; i < count; i++) {
