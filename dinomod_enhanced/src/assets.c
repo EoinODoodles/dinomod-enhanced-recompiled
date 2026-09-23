@@ -72,6 +72,7 @@ INCBIN(block344, "inc/blocks_0344_DF_middle_falls_mole_cave_entrance.bin");
 INCBIN(block326, "inc/blocks_0326_DF_mole_cave.bin");
 INCBIN(block332, "inc/blocks_0332_DF_toxic_cave.bin");
 INCBIN(block328, "inc/blocks_0328_DF_upper_falls.bin");
+INCBIN(block324, "inc/blocks_0324_DF_upper_falls_rapids.bin");
 INCBIN(block327, "inc/blocks_0327_DF_stalactite_cave.bin");
 INCBIN(block322, "inc/blocks_0322_DF_demolition_cave.bin");
 INCBIN(block319, "inc/blocks_0319_DF_whirlpool_cave.bin");
@@ -4134,11 +4135,12 @@ static void discovery_falls_modifications(void) {
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 326, block326); //Middle Falls - mole cave interior: align ladder with climb animation, minor UV fixes at entrance
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 332, block332); //Middle Falls - toxic cave interior: add missing animatorID to one of the crack shapes, hide dev shape, match ground UVs with section near ladder, fix UV seam to the left when facing podium
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 328, block328); //Upper Falls: use clamped cliff textures, fix gap in water, fix floating walkway supports and dockpoint, UV fixes
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 324, block324); //Upper Falls - rapids: use clamped cliff textures, minor UV fixes, add LOD for shrine area
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 327, block327); //Upper Falls - stalactite cave: UV fixes on floor, UV fixes on walls of climbable area, fix a section of the entrance arch being included in torches' vertex colour animation
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 322, block322); //Upper Falls - demolition cave: UV fixes, darken wall cracks slightly, optimise floor triangles
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 319, block319); //Upper Falls - whirlpool cave: UV fixes, transparency order fixes
-        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 320, block320); //Shrine area exit: fix colour difference on the animated section of wall (demolished in whirlpool cave), use clamped cliff textures
-        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 321, block321); //Shrine exterior: fix gaps between vertices, orthagonalise shrine facade, improve oddly unstable collision, fix warped ground UVs, use clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 320, block320); //Shrine area exit: move reverse side of destructible whirlpool cave wall here, use clamped cliff textures, add LODs for whirlpool cave and climb
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 321, block321); //Shrine exterior: fix gaps between vertices, orthagonalise shrine facade, improve oddly unstable collision, fix warped ground UVs, use clamped cliff textures, add LODs for interior, door, and rapids
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 343, block343); //Shrine interior: minor UV fixes
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 323, block323); //Shrine area exit climb to Upper Falls: minor UV fixes, add decal to indicate rock climb, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 341, block341); //BWC exit (corner): reduce UV warping, use clamped cliff textures
@@ -4153,14 +4155,20 @@ static void discovery_falls_modifications(void) {
 
     //MAPS - VisGrid
     {
-        u32 size;
-        VisGridCellROM* gridA1 = reasset_maps_get_grid_a1(discoveryFalls, &size);
-        VisGridCellROM* gridA2 = reasset_maps_get_grid_a2(discoveryFalls, &size);
+        VisGridCellROM* gridA1 = reasset_maps_get_grid_a1(discoveryFalls, NULL);
+        VisGridCellROM* gridA2 = reasset_maps_get_grid_a2(discoveryFalls, NULL);
 
         //Shrine interior visible from the waterfall basin below the whirlpool cave
         {
             u32 cellIdx = VISGRID_CELL_IDX(discoveryFalls, 1, 0);
             VISGRID_SET_CELL_RANGE_PAIRED(2, &gridA1[cellIdx], &gridA2[cellIdx], 9, 9, 7, 7);
+        }
+
+        //Upper Falls visible from just outside the shrine
+        //(so it doesn't suddenly disappear looking back at it from the end of the rapids)
+        {
+            u32 cellIdx = VISGRID_CELL_IDX(discoveryFalls, 2, 0);
+            VISGRID_SET_CELL_RANGE_PAIRED(2, &gridA1[cellIdx], &gridA2[cellIdx], 6, 6, 8, 9);
         }
     }
 
@@ -4856,7 +4864,7 @@ static void discovery_falls_modifications(void) {
                     },
                     COORDS_SETUP(-2362, 407, -1511),
                     .mode = HITANIMATOR_MODE_SHAPE_ON,
-                    .gamebitActivate = BIT_DF_Whirlpool_Cave_Wall_Demolished,
+                    .gamebitActivate = BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished,
                     .blocksAnimatorID = 7
                 };
 
@@ -4907,6 +4915,74 @@ static void discovery_falls_modifications(void) {
                 reasset_map_objects_set(discoveryFalls, 
                     reasset_auto_id(dinomodNs), &dfDebris, sizeof(dfDebris));
             }
+
+            //Add VisAnimator showing the whirlpool cave's inner water 
+            {
+                VisAnimator_Setup visAnimator = {
+                    .base = {
+                        .objId = OBJ_VisAnimator,
+                        .actExclusions1 = 0,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup8_Whirlpool_Cave,
+                        .fadeDistance = 30,
+                    },
+                    COORDS_SETUP(-2014.160, 570, -1639.186),
+                    .animatorID1 = 4,
+                    .gamebitID = BIT_ALWAYS_0,
+                    .initialVisibility = TRUE
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &visAnimator, sizeof(visAnimator));
+            }
+
+            //Add a TriggerPlane to manage objGroups, just in case the player clips out through the "window" of the cave
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 50,
+                        .fadeDistance = 50,
+                    },
+                    COORDS_SETUP(-1927.434, 440, -1673.172),
+                    .rotationY = TRIGGER_YAW(90),
+                    .rotationX = 0,
+                    .sizeX = TRIGGER_SCALE(0.85),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE(DF_ObjGroup8_Whirlpool_Cave, &plane, 0, 1);
+                DIRECTIONAL_OBJGROUP_TOGGLE(DF_ObjGroup9_Whirlpool_Cave_HitAnimator, &plane, 2, 3);
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(DF_ObjGroup3_Shrine_Exterior, &plane, 4, 5);
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(DF_ObjGroup11_Shrine_Door, &plane, 6, 7);
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+        }
+
+        //Shrine Waterfall Rapids
+        {
+            //Add LOD for the distant shrine area
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_CAMERA,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(960),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1278, 562, -921),
+                    .animatorID = 10,
+                    .gridOffsetZ = -1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
         }
 
         //Tweak Kyte's out-of-bounds curves (it seems like Rare had yet to move them after updating the shape of the river bend)
@@ -4933,6 +5009,211 @@ static void discovery_falls_modifications(void) {
 
     //Shrine Area
     {
+        //Move Whirlpool Cave waterfall's texscroll into the main shrine exterior objGroup
+        //(Rare gave it its own unique ObjGroup for some reason, but I'm not sure if it ever loads?)
+        // {
+        //     TexScroll2_Setup* texScroll = GET_MAPS_OBJECT(discoveryFalls, 0x00031e4f);
+        //     texScroll->base.mapObjGroup = DF_ObjGroup3_Shrine_Exterior;
+        // }
+
+        //Add HitAnimator for the reverse side of the Whirlpool Cave's destructible wall
+        {
+            HitAnimator_Setup hitAnimator = {
+                .base = {
+                    .objId = OBJ_HitAnimator,
+                    .actExclusions1 = 0,
+                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .mapObjGroup = DF_ObjGroup3_Shrine_Exterior,
+                    .fadeDistance = 32,
+                },
+                COORDS_SETUP(-1772.884, 398.895, -1682.142),
+                .mode = HITANIMATOR_MODE_SHAPE_OFF,
+                .gamebitActivate = BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished,
+                .blocksAnimatorID = 3
+            };
+
+            reasset_map_objects_set(discoveryFalls, 
+                reasset_auto_id(dinomodNs), &hitAnimator, sizeof(hitAnimator));
+        }
+
+        //Replace the Whirlpool Cave waterfall's HitAnimator with a VisAnimator
+        //(fixes a bug where it used to become solid terrain!)
+        {
+            VisAnimator_Setup* visAnimator = GET_MAPS_OBJECT(discoveryFalls, 0x00032f62);
+            visAnimator->base.objId = OBJ_VisAnimator;
+            bzero(visAnimator, sizeof(VisAnimator_Setup) - sizeof(ObjSetup));
+            visAnimator->animatorID1 = 1;
+            visAnimator->gamebitID = BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished;
+            visAnimator->initialVisibility = FALSE;
+        }
+
+        //View into Whirlpool Cave
+        {
+            //Add VisAnimator hiding the whirlpool cave's light beams
+            {
+                VisAnimator_Setup visAnimator = {
+                    .base = {
+                        .objId = OBJ_VisAnimator,
+                        .actExclusions1 = 0,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup3_Shrine_Exterior,
+                        .fadeDistance = 30,
+                    },
+                    COORDS_SETUP(-2014.160, 500, -1639.186),
+                    .animatorID1 = 6,
+                    .gamebitID = BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished,
+                    .initialVisibility = TRUE
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &visAnimator, sizeof(visAnimator));
+            }
+
+            //Add VisAnimator hiding the whirlpool cave's inner water 
+            //(since it can flicker vertically when the whirlpool objGroup and its XYZAnimator are unloaded)
+            {
+                VisAnimator_Setup visAnimator = {
+                    .base = {
+                        .objId = OBJ_VisAnimator,
+                        .actExclusions1 = 0,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup3_Shrine_Exterior,
+                        .fadeDistance = 30,
+                    },
+                    COORDS_SETUP(-2014.160, 540, -1639.186),
+                    .animatorID1 = 4,
+                    .gamebitID = BIT_ALWAYS_1,
+                    .initialVisibility = TRUE
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &visAnimator, sizeof(visAnimator));
+            }
+        }
+
+        //LODs
+        {
+            //Add LOD for the climb back up from the shrine (viewed from Whirlpool Cave "window")
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_CAMERA,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(640),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1772.884, 431.895, -1682.142),
+                    .animatorID = 10,
+                    .gridOffsetZ = +1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Add LOD for the rapids (viewed from far side of shrine exterior area, or from whirlpool cave)
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_CAMERA,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(1280),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1279, 431.895, -1682.142),
+                    .animatorID = 10,
+                    .gridOffsetZ = +1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Add LOD for the shrine interior (viewed from whirlpool cave, or just barely from exit climb block)
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_CAMERA,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(1280),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1279, 401.895, -1682.142),
+                    .animatorID = 11,
+                    .gridOffsetX = +1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Add LOD for the shrine door (viewed from whirlpool cave)
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_CAMERA,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(1280),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1279, 370.895, -1682.142),
+                    .animatorID = 12,
+                    .gridOffsetX = +1,
+                    .gamebitDeactivate = BIT_DF_Shrine_Door_Opens, //Disappear when the door's open
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Add LOD for the whirlpool cave interior
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_CAMERA,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(1280),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1281, 370.895, -1682.142),
+                    .animatorID = 11,
+                    .gridOffsetX = -1,
+                    .gamebitActivate = BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+        }
+
+        //Adjust shrine door pieces, centring them exactly
+        //(Also prevents bug where the other door pieces were at random nearby positions/angles for a single frame -
+        // they used to pop into place as the SeqDoor objSeq kicked in! Now they're in the correct position from the start)
+        {
+            u32 shrineDoorUIDs[] = {
+                0x1F84,
+                0x31A3B,
+                0x31A48,
+                0x31A49
+            };
+            for (u32 i = 0; i < ARRAYCOUNT(shrineDoorUIDs); i++) {
+                SeqDoor_Setup* doorPiece = GET_MAPS_OBJECT(discoveryFalls, shrineDoorUIDs[i]);
+                doorPiece->base.x = -840.968;
+                doorPiece->base.y = 273.301;
+                doorPiece->base.z = -1719.032;
+                doorPiece->yaw = DEGREES_TO_ANGLE8(315);
+
+                //Unload when open, too
+                doorPiece->options |= SeqDoor_OPTION_4_Unload_At_End_of_Sequence | SeqDoor_OPTION_2_Unload_If_Already_Open;
+            }
+        }
+
         //Exit Climb
         {
             //Add StaticCameras
