@@ -117,6 +117,8 @@ void LODAnimator_obj_Control(Object* self) {
             objData->prevGamebitValue = gamebitValue;
             if (gamebitValue) {
                 LODAnimator_UpdateShapes(self, FALSE);
+            } else if ((objData->flags & LODAnimator_FLAG_1_Nearby_Block_Found) == FALSE) {
+                LODAnimator_UpdateShapes(self, TRUE);
             }
         }
         if (gamebitValue) {
