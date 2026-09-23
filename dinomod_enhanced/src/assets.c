@@ -391,6 +391,20 @@ static void walled_city_modifications(void) {
     int wcBlocksBase = 585;
     int ktBlocksBase = 1086;
 
+    //MAPS - VisGrid
+    {
+        VisGridCellROM* gridA1 = reasset_maps_get_grid_a1(walledCity, NULL);
+        VisGridCellROM* gridA2 = reasset_maps_get_grid_a2(walledCity, NULL);
+
+        //See a little of the end of the outskirts through its exit onto the Jungle Door area,
+        //so it doesn't immediately vanish as you're crossing its threshold
+        //(TODO: revisit and refine this area's visibility a bit more)
+        {
+            u32 cellIdx = VISGRID_CELL_IDX(walledCity, 3, 5);
+            VISGRID_SET_CELL_RANGE_PAIRED(0, &gridA1[cellIdx], &gridA2[cellIdx], 6, 7, 7, 7);
+        }
+    }
+
     //Approach
     {
         //BLOCKS
