@@ -4371,6 +4371,31 @@ static void discovery_falls_modifications(void) {
             point->conditionBitFlagIDs[0] = CHECK_IF_GAMEBIT_UNSET | BIT_17;
         }
 
+        //Cave under Lower Falls
+        {
+            //Add a TriggerCylinder bringing the camera closer (avoiding getting stuck at entrance)
+            Trigger_Setup cylinder = {
+                .base = {
+                    .objId = OBJ_TriggerCylinder,
+                    .loadFlags = OBJSETUP_LOAD_MAIN,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = 50,
+                    .fadeDistance = 50,
+                },
+                COORDS_SETUP(350.751, 0, -128.523),
+                .rotationY = TRIGGER_YAW(0),
+                .rotationX = 0,
+                .sizeX = 143,
+                .sizeY = 64 * 2,
+                .sizeZ = 0x10,
+                .conditionBitFlagIDs[0] = NO_GAMEBIT
+            };
+            ENTER_CAMERAACTION(0, 0x7D, &cylinder, 0); //Use CameraAction (closer camera with higher FOV)
+            EXIT_CAMERAACTION(0, 1, &cylinder, 1); //Use default camera
+            reasset_map_objects_set(discoveryFalls, 
+                reasset_auto_id(dinomodNs), &cylinder, sizeof(cylinder));
+        }
+
         //Foodbag Cave
         {
             //Move XYZAnimator out of ObjGroup
