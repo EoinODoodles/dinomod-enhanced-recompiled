@@ -4245,6 +4245,13 @@ static void discovery_falls_modifications(void) {
                 );
             }
         }
+
+        //Adjust TriggerPlane just as you enter the main Lower Falls
+        {
+            Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x00001e85);
+            plane->sizeX = TRIGGER_SCALE(1.7f); //Increase size just in case you might pass over it when noclipping
+            DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(DF_ObjGroup1_Entrance_Magic_Plant_Basin, plane, 4, 5);
+        }
     }
 
     //Kyte's rope fastening sequences
