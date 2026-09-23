@@ -15,6 +15,7 @@
 #include "configs.h"
 #include "custom_textable_ids.h"
 #include "custom_gamebits.h"
+#include "map_util.h"
 #include "math_util.h"
 #include "mod_common.h"
 #include "object_util.h"
