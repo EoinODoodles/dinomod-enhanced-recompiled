@@ -116,6 +116,21 @@
     (triggerObject)->commands[cmdSlot].paramCombined = TRG_GAMEBIT(gamebit, enable);
 
     
+/* COMMANDS: SOUND */
+
+//A shortcut for playing a non-looping sound when entering a Trigger Object (NOTE: sound play on exit not supported by Trigger Objects)
+#define ENTER_PLAY_SOUND(soundID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_SOUND;\
+    (triggerObject)->commands[cmdSlot].paramCombined = soundID;
+
+//A shortcut for playing a looping sound when entering a Trigger Object, and stopping the loop on exiting the object
+#define ENTER_PLAY_LOOPING_SOUND(soundID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER | CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_SOUND;\
+    (triggerObject)->commands[cmdSlot].paramCombined = soundID;
+
+    
 /* COMMANDS: CameraActions */
 
 //A shortcut for applying a CameraAction when entering a Trigger Object
