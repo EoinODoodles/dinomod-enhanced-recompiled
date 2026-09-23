@@ -5603,14 +5603,15 @@ static void discovery_falls_hit_edits(void) {
             - Add ledge step-ups/clambers. 
             - Allow the log to get closer to dockpoint.
             - Prevent log clipping through the wall while going down the shrine waterfall (if you steer way to the side).
+            - Prevent log entering the shrine if you careen down towards the entrance from the top of the rapids.
         */
         TrackLine block0321[] = {
             { HITS_A(365, 100, 587), HITS_B(437, 86, 635), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(262, 94, 617), HITS_B(365, 100, 587), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(107, 94, 532), HITS_B(262, 94, 617), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(393, 113, 470), HITS_B(210, 92, 272), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(559, 100, 555), HITS_B(393, 113, 470), .heightUnified = 90, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(437, 86, 635), HITS_B(559, 100, 555), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(393, 113, 470), HITS_B(210, 92, 272), .heightUnified = 500, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(559, 100, 555), HITS_B(393, 113, 470), .heightUnified = 500, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(437, 86, 635), HITS_B(559, 100, 555), .heightUnified = 500, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(0, 90, 574), HITS_B(107, 94, 532), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(404, 218, 157), HITS_B(483, 218, 237), .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(309, 218, 208), HITS_B(268, 218, 167), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
@@ -5635,7 +5636,7 @@ static void discovery_falls_hit_edits(void) {
             { HITS_A(79, 92, 107), HITS_B(0, 92, 76), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(79, 92, 131), HITS_B(79, 92, 107), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(103, 92, 131), HITS_B(79, 92, 131), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(210, 92, 272), HITS_B(103, 92, 131), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(210, 92, 272), HITS_B(103, 92, 131), .heightUnified = 500, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
         };
 
         for (u32 i = 0; i < ARRAYCOUNT(block0321); i++) {
