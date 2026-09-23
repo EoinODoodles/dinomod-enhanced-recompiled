@@ -4595,7 +4595,8 @@ static void discovery_falls_modifications(void) {
         //Add texscrolls to the waterfalls' foam
         {
             TexScroll2_Setup texScrollData[] = {
-                { COORDS_SETUP(-1007, 300, -196), .base.mapObjGroup = DF_ObjGroup14_Middle_and_Upper_Falls },
+                { COORDS_SETUP(-1007, 300, -196), .base.mapObjGroup = DF_ObjGroup14_Middle_and_Upper_Falls }, //Under turbine
+                { COORDS_SETUP(-1660.168, 514, -427.757), .base.mapObjGroup = DF_ObjGroup14_Middle_and_Upper_Falls }, //Stalactite cave entrance
             };
 
             for (u32 i = 0; i < ARRAYCOUNT(texScrollData); i++) {
