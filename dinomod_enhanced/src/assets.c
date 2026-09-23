@@ -5064,7 +5064,7 @@ static void discovery_falls_modifications(void) {
         {
             VisAnimator_Setup* visAnimator = GET_MAPS_OBJECT(discoveryFalls, 0x00032f62);
             visAnimator->base.objId = OBJ_VisAnimator;
-            bzero(visAnimator, sizeof(VisAnimator_Setup) - sizeof(ObjSetup));
+            bzero(((u8*)visAnimator) + sizeof(ObjSetup), sizeof(VisAnimator_Setup) - sizeof(ObjSetup));
             visAnimator->animatorID1 = 1;
             visAnimator->gamebitID = BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished;
             visAnimator->initialVisibility = FALSE;
