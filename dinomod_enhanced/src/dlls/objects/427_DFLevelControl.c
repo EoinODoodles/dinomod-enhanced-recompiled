@@ -1,10 +1,9 @@
-#include "dll.h"
 #include "modding.h"
-#include "recomp/dlls/objects/427_DFlevelcontrol_recomp.h"
 #include "recomputils.h"
 
 #include "objects/427_DFLevelControl.h"
 
+#include "dll.h"
 #include "common.h"
 #include "sys/main.h"
 #include "sys/map_enums.h"
