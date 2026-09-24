@@ -4731,6 +4731,25 @@ static void discovery_falls_modifications(void) {
                 }
             }
         }
+
+        //Add LOD for the distant mole caves entrance
+        {
+            LODAnimator_Setup lod = {
+                .base = {
+                    .objId = OBJ_LODAnimator,
+                    .loadFlags = OBJSETUP_LOAD_CAMERA,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = FADE_DISTANCE(960),
+                    .fadeDistance = 50
+                },
+                COORDS_SETUP(-590, 509, -657),
+                .animatorID = 10,
+                .gridOffsetX = +1,
+                .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+            };
+            reasset_map_objects_set(discoveryFalls, 
+                reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+        }
     }
 
     //Middle Falls - Mole Caves
