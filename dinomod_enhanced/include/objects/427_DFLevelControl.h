@@ -106,6 +106,8 @@ typedef enum {
 #define BIT_DF_Shrine_Door_Opens 0x10C
 #define BIT_DF_Shrine_Door_Opened 0x10D
 
+#define BIT_DF_Defeated_Shrine_Entrance_SharpClaw 0x91F
+
 #define BIT_DF_Play_Seq_003C_Krystal_Returns_From_The_Shrine 0x1A
 #define BIT_DF_Played_Seq_003C_Krystal_Returns_From_The_Shrine 0x1B
 

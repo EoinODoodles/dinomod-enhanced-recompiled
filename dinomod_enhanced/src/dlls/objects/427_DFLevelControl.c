@@ -95,6 +95,9 @@ RECOMP_PATCH void DFlevelcontrol_obj_Setup(Object* self, ObjSetup* setup, s32 re
         objdata->state = DFLevelControl_STATE_2_Finished;
     } else {
         objdata->state = DFLevelControl_STATE_0_Shrine_Door_Closed;
+
+        //@recomp: hide the SharpClaw behind the Shrine door, if it's not open yet
+        mainSetBits(BIT_DF_Defeated_Shrine_Entrance_SharpClaw, TRUE);
     }
 
     objdata->openedWhirlpoolCave = mainGetBits(BIT_DF_Demolition_Cave_Destroyed_Whirlpool_Wall_4);
@@ -142,6 +145,9 @@ RECOMP_PATCH void DFlevelcontrol_obj_Control(Object* self) {
             mainGetBits(BIT_DF_Shrine_Door_Light_Activated_Four)) {
             gDLL_29_Gplay->vtbl->set_obj_group_status(self->mapID, DF_ObjGroup11_Shrine_Door, TRUE);
             objdata->state++;
+
+            //@recomp: unhide the SharpClaw inside the Shrine entrance
+            mainSetBits(BIT_DF_Defeated_Shrine_Entrance_SharpClaw, FALSE);
         }
         break;
     case DFLevelControl_STATE_1_Shrine_Door_Unlocked:
