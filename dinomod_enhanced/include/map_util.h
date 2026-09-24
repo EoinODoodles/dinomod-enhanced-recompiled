@@ -2,6 +2,16 @@
 
 #include "PR/ultratypes.h"
 #include "sys/map_enums.h"
+#include "sys/math.h"
+
+#define GET_MAPS_OBJECT(mapID, uID) (reasset_map_objects_get(mapID, reasset_base_id(uID), NULL))
+#define COORDS_SETUP(coordX, coordY, coordZ) .base.x = coordX, .base.y = coordY, .base.z = coordZ
+#define FADE_DISTANCE(distance) (((distance*2) + 1) / 16) //Rounded to nearest value
+
+typedef struct {
+    u32 uID;
+    Vec3f coords;
+} ObjReposition;
 
 // The same as the `HitsLine` / `ModLine` structs, but with `settingsA` / `settingsB` changed to unsigned variables 
 // as a modding convenience (avoiding implicit conversion warnings when combining flags).
@@ -26,7 +36,8 @@ union { //height can be treated as a single s16 value, using the uppermost bit o
 } TrackLine; 
 
 typedef enum {
-    TrackLine_SETTINGA_Unified_Height = 0x80 //The line's height is read as a single s16 value, instead of separate s8 heights above pointA/pointB
+    TrackLine_SETTINGA_Unified_Height = 0x80, //The line's height is read as a single s16 value, instead of separate s8 heights above pointA/pointB
+    TrackLine_SETTINGA_Unk10 = 0x10 //Used sometimes on barrier collision, beside steep terrain?
 } TrackLineSettingsA;
 
 typedef enum {
@@ -64,6 +75,10 @@ typedef enum {
 
 #define HITS_A(x, y, z) .Ax = x, .Ay = y, .Az = z
 #define HITS_B(x, y, z) .Bx = x, .By = y, .Bz = z
+
+#define UNIHEIGHT TrackLine_SETTINGA_Unified_Height
+#define PASSTHRU TrackLine_SETTINGB_Nonsolid
+#define NO_ANIMATOR -1
 
 /** 
   * MAPS files' visgrid data.

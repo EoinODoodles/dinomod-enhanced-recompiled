@@ -192,21 +192,6 @@ INCBIN(models_wcsuntempleswitch,  "inc/models_0964_WCSunTempleSwitch.bin");
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 #define MODELS_REPLACE_BASE(modelID, file) (reasset_models_set(reasset_base_id(modelID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 
-#define COORDS_SETUP(coordX, coordY, coordZ) .base.x = coordX, .base.y = coordY, .base.z = coordZ
-
-#define FADE_DISTANCE(distance) (((distance*2) + 1) / 16) //Rounded to nearest value
-
-typedef struct {
-    u32 uID;
-    Vec3f coords;
-} ObjReposition;
-
-#define NO_ANIMATOR -1
-#define UNIHEIGHT TrackLine_SETTINGA_Unified_Height
-#define PASSTHRU TrackLine_SETTINGB_Nonsolid
-
-#define GET_MAPS_OBJECT(mapID, uID) (reasset_map_objects_get(mapID, reasset_base_id(uID), NULL))
-
 #define OBJECT_GET_OBJSEQS(objDef) ((s16*)((u8*)objDef + (u32)objDef->pSeq))
 
 #define INCFST(fileID, filename, ext) \
