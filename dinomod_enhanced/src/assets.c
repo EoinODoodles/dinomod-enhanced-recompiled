@@ -4295,7 +4295,7 @@ static void discovery_falls_modifications(void) {
         {
             TexScroll2_Setup texScrollData[] = {
                 { COORDS_SETUP(1130.276, 163, 75.210) },
-                { COORDS_SETUP(1004.000, 76,  721)   },
+                { COORDS_SETUP(1000, 135, 697) },
             };
 
             for (u32 i = 0; i < ARRAYCOUNT(texScrollData); i++) {
@@ -4310,7 +4310,7 @@ static void discovery_falls_modifications(void) {
                 scroll->vSpeedA = 2;
                 scroll->gamebitActivate = NO_GAMEBIT;
                 reasset_map_objects_set(discoveryFalls, 
-                    reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll_Setup)
+                    reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll2_Setup)
                 );
             }
         }
