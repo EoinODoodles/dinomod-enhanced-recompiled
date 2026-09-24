@@ -115,7 +115,22 @@
     (triggerObject)->commands[cmdSlot].id = TRG_CMD_BITS;\
     (triggerObject)->commands[cmdSlot].paramCombined = TRG_GAMEBIT(gamebit, enable);
 
-    
+
+/* COMMANDS: MUSIC ACTION */
+
+//A shortcut for playing a music track when entering a Trigger Object (NOTE: music play on exit not supported by Trigger Objects)
+#define ENTER_PLAY_MUSIC(musicID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_MUSIC_ACTION;\
+    (triggerObject)->commands[cmdSlot].paramCombined = musicID;
+
+//A shortcut for stopping a music track when exiting a Trigger Object (NOTE: music stop on enter not supported by Trigger Objects)
+#define EXIT_STOP_MUSIC(musicID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_MUSIC_ACTION;\
+    (triggerObject)->commands[cmdSlot].paramCombined = musicID;
+
+
 /* COMMANDS: SOUND */
 
 //A shortcut for playing a non-looping sound when entering a Trigger Object (NOTE: sound play on exit not supported by Trigger Objects)
@@ -131,7 +146,7 @@
     (triggerObject)->commands[cmdSlot].paramCombined = soundID;
 
     
-/* COMMANDS: CameraActions */
+/* COMMANDS: CAMERA ACTION */
 
 //A shortcut for applying a CameraAction when entering a Trigger Object
 #define ENTER_CAMERAACTION(cameraMode, cameraActionIdx, triggerObject, cmdSlot)\
@@ -146,6 +161,7 @@
     (triggerObject)->commands[cmdSlot].id = TRG_CMD_CAMERA_ACTION;\
     (triggerObject)->commands[cmdSlot].param1 = cameraMode;\
     (triggerObject)->commands[cmdSlot].param2 = cameraActionIdx;
+
 
 /* COMMANDS: SAVE POINT */
 
@@ -163,6 +179,7 @@
     (triggerObject)->commands[cmdSlot].id = TRG_CMD_SAVE_POINT;\
     (triggerObject)->commands[cmdSlot].paramCombined = (includeMapData ? 0 : GPLAY_SAVEPOINT_SkipMapSave) | ROTATE_CHECKPOINT_YAW_180;
 
+    
 /* COMMANDS: RESTART POINT */
 
 //SET
