@@ -89,5 +89,8 @@ enum CustomSoundID {
     SOUND_BC0_DIM_Tent_Burn_LOOP = 0xBC0,        //Same as 0x50B, but with falloff increased
     SOUND_BC1_DIM_Cannon_Rotate_LOOP = 0xBC1,    //Same as 0x1D4, but with falloff increased
     SOUND_BC2_SharpClaw_Laugh = 0xBC2,      //Same as 0x8D2, but with falloff increased
-    SOUND_BC3_SharpClaw_Nyeh = 0xBC3        //Same as 0xB26, but with falloff increased
+    SOUND_BC3_SharpClaw_Nyeh = 0xBC3,       //Same as 0xB26, but with falloff increased
+    SOUND_BC4_Waterfall_Small = 0xBC4,      //Same as 0x4, but with falloff
+    SOUND_BC5_Waterfall_Medium = 0xBC5,     //Same as 0x987, but with smaller falloff
+    SOUND_BC6_Waterfall_Large = 0xBC6       //Same as 0xBC5, but with doubled falloff
 };

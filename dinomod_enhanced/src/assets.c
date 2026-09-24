@@ -10,6 +10,7 @@
 #include "custom/dlls/LODAnimator.h"
 #include "custom_object_ids.h"
 #include "custom_objsetups.h"
+#include "custom_sound_ids.h"
 #include "compression_util.h"
 #include "common_objsetups.h"
 #include "configs.h"
@@ -4217,6 +4218,74 @@ static void discovery_falls_modifications(void) {
             podiumSwitch->base.x = podium->base.x + positionOffset.x;
             podiumSwitch->base.y = podium->base.y + positionOffset.y;
             podiumSwitch->base.z = podium->base.z + positionOffset.z;
+        }
+    }
+
+    //Add sounds to small/medium waterfalls and rapids (only the large lower falls had sounds originally)
+    {
+        SfxPlayer_Setup sfxPlayers[] = {
+            //Approach
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(1130.275, 163, 54),    .base.mapObjGroup = DF_ObjGroup1_Entrance_Magic_Plant_Basin, .fadeDuration = 180, .gamebit = NO_GAMEBIT },    //Entrance
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(994.810,  96,  448),   .base.mapObjGroup = DF_ObjGroup1_Entrance_Magic_Plant_Basin, .fadeDuration = 180, .volume = VOLUME_PERCENT(80), .pitch = -4 }, //Entrance cascade
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(1177.916, 247, 1138),  .base.mapObjGroup = DF_ObjGroup1_Entrance_Magic_Plant_Basin, .fadeDuration = 180, .volume = VOLUME_PERCENT(60), .pitch = 0 },  //Secluded waterfalls 1
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(1081.721, 247, 1222),  .base.mapObjGroup = DF_ObjGroup1_Entrance_Magic_Plant_Basin, .fadeDuration = 180, .volume = VOLUME_PERCENT(60), .pitch = 2 },  //Secluded waterfalls 2
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(1020.721, 183, 817.5), .base.mapObjGroup = DF_ObjGroup1_Entrance_Magic_Plant_Basin, .fadeDuration = 180, .volume = VOLUME_PERCENT(80), .pitch = -3 }, //Secluded waterfalls cascade 1
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(1002.129, 96,  740),   .base.mapObjGroup = DF_ObjGroup1_Entrance_Magic_Plant_Basin, .fadeDuration = 180, .volume = VOLUME_PERCENT(80), .pitch = -7 }, //Secluded waterfalls cascade 2
+
+            //Lower Falls
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(745.306,  30,  760.75), .base.mapObjGroup = DF_ObjGroup2_Lower_Falls, .fadeDuration = 180, .volume = VOLUME_PERCENT(80), .pitch = -6 }, //Cascade to lower falls
+            
+            //Middle Falls
+            { .soundID = SOUND_BC5_Waterfall_Medium, COORDS_SETUP(-1062.626, 391, -180.5),   .base.mapObjGroup = DF_ObjGroup14_Middle_and_Upper_Falls, .fadeDuration = 180, .volume = VOLUME_PERCENT(66), .pitch = -4, .halfRadius = 320/2 }, //Under turbine
+            { .soundID = SOUND_BC5_Waterfall_Medium, COORDS_SETUP(-1017.616, 391, -534.851), .base.mapObjGroup = DF_ObjGroup14_Middle_and_Upper_Falls, .fadeDuration = 180, .volume = VOLUME_PERCENT(100), .pitch = -1, .halfRadius = 320/2 }, //Under upper rope platform
+            
+            //Upper Falls
+            { .soundID = SOUND_BC6_Waterfall_Large, COORDS_SETUP(-1672.693, 514, -408.609), .base.loadDistance = FADE_DISTANCE(960), .fadeDuration = 180, .volume = VOLUME_PERCENT(25), .pitch = -2, .halfRadius = 640/4, .flags = SfxPlayer_CUSTOMFLAG_20_Double_Radius }, //Middle of upper falls
+            { .soundID = SOUND_BC5_Waterfall_Medium, COORDS_SETUP(-1744.202, 490, -428.392), .base.loadDistance = FADE_DISTANCE(320), .fadeDuration = 60, .volume = VOLUME_PERCENT(100), .pitch = 2, .halfRadius = 320/2 }, //Stalactite cave entrance
+            
+            //Upper Falls Rapids
+            { .soundID = SOUND_BC6_Waterfall_Large, COORDS_SETUP(-1039.484, 460, -1116), .base.loadDistance = FADE_DISTANCE(960), .fadeDuration = 180, .volume = VOLUME_PERCENT(50), .pitch = 2, .halfRadius = 640/4, .flags = SfxPlayer_CUSTOMFLAG_20_Double_Radius }, //Middle of rapids
+            { .soundID = SOUND_BC6_Waterfall_Large, COORDS_SETUP(-918.864, 514, -1280), .base.loadDistance = FADE_DISTANCE(960), .fadeDuration = 180, .volume = VOLUME_PERCENT(100), .pitch = 6, .halfRadius = 640/4, .flags = SfxPlayer_CUSTOMFLAG_20_Double_Radius }, //Top of rapids waterfall
+            { .soundID = SOUND_BC5_Waterfall_Medium, COORDS_SETUP(-923, 162, -1295),     .base.mapObjGroup = DF_ObjGroup3_Shrine_Exterior, .fadeDuration = 120, .volume = VOLUME_PERCENT(100), .pitch = -3, .halfRadius = 640/4, .flags = SfxPlayer_CUSTOMFLAG_20_Double_Radius  }, //Bottom of rapids waterfall
+            
+            //Stalactite Cave (not in an objGroup, since it's on the boundary between two objGroups)
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(-2333, 503, -576), .base.loadDistance = FADE_DISTANCE(320), .fadeDuration = 120, .volume = VOLUME_PERCENT(70), .pitch = 0 }, //Cascade down to demolition cave
+            
+            //Whirlpool Cave
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(-2384.841, 419.5, -1496.5), .base.mapObjGroup = DF_ObjGroup8_Whirlpool_Cave, .fadeDuration = 120, .volume = VOLUME_PERCENT(50), .pitch = 0 }, //Cascades into whirlpool cave
+            
+            //Shrine Exterior Area
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(-1884, 151, -1683), .base.mapObjGroup = DF_ObjGroup3_Shrine_Exterior, .fadeDuration = 30, .volume = VOLUME_PERCENT(100), .pitch = 2, .gamebit = BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished }, //Under whirlpool cave
+        };
+
+        for (u32 i = 0; i < ARRAYCOUNT(sfxPlayers); i++) {
+            SfxPlayer_Setup* sfx = &sfxPlayers[i];
+            sfx->base.objId = OBJ_sfxPlayer;
+
+            if (sfx->halfRadius == 0) {
+                sfx->halfRadius = 320/2;
+            }
+
+            if (sfx->base.mapObjGroup < 32) {
+                sfx->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+            } else {
+                sfx->base.loadFlags = OBJSETUP_LOAD_MAIN;
+            }
+            sfx->base.fadeDistance = FADE_DISTANCE(320);
+
+            sfx->flags |= SfxPlayer_FLAG_1_Looping_Sound | 
+                          SfxPlayer_FLAG_2_Play_if_Gamebit_Set | 
+                          SfxPlayer_CUSTOMFLAG_40_Play_if_Gamebit_Set_on_Setup;
+            if (sfx->fadeDuration > 0) {
+                sfx->flags |= SfxPlayer_CUSTOMFLAG_10_Fade;
+            }
+
+            if (sfx->gamebit == 0) {
+                sfx->gamebit = NO_GAMEBIT;
+            }
+
+            reasset_map_objects_set(discoveryFalls, 
+                reasset_auto_id(dinomodNs), &sfxPlayers[i], sizeof(SfxPlayer_Setup));
         }
     }
 
