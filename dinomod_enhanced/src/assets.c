@@ -5470,7 +5470,12 @@ static void discovery_falls_hit_edits(void) {
 
     //Middle Falls
     {
-        //Add clamber lines to the sides of the jetty under the turbine
+        /* - Add clamber lines to the sides of the jetty under the turbine 
+           - Try to avoid the log ending up on the jetty (or worse: clipped under/inside it!) by raising the height of the log lines surrounding it
+           - Don't let the log pass through the turbine - Rare had a HITS line here, but it didn't affect the log
+           - Allow the player onto the little island in between the two waterfalls, just on the approach angles that have less steep terrain 
+           - Allow the player step onto the turbine lever platform from below
+           - Don't let the player fall through the tiny gap between the turbine and the turbine lever platform (since falling directly down through here softlocks the player collision somehow!) */
         TrackLine block0329[] = {
             { HITS_A(122, 280, 362), HITS_B(125, 280, 414), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(136, 280, 230), HITS_B(122, 280, 362), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
@@ -5493,7 +5498,7 @@ static void discovery_falls_hit_edits(void) {
             { HITS_A(168, 326, 174), HITS_B(168, 326, 230), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
             { HITS_A(385, 326, 174), HITS_B(168, 326, 174), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
             { HITS_A(168, 326, 230), HITS_B(215, 326, 230), .heightUnified = 40, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(104, 507, 164), HITS_B(182, 503, 156), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(104, 507, 164), HITS_B(182, 503, 156), .heightA = 40, .heightB = 40, .settingsA = Player_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(240, 503, 18),  HITS_B(0, 514, 0),     .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(169, 608, 64),  HITS_B(169, 608, 13),  .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
             { HITS_A(65, 608, 64),   HITS_B(169, 608, 64),  .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
@@ -5508,22 +5513,22 @@ static void discovery_falls_hit_edits(void) {
             { HITS_A(451, 300, 67),  HITS_B(527, 300, 93),  .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(385, 300, 85),  HITS_B(451, 300, 67),  .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(355, 300, 174), HITS_B(385, 300, 85),  .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(168, 264, 174), HITS_B(355, 284, 174), .heightA = 63, .heightB = 47, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(138, 264, 174), HITS_B(355, 284, 174), .heightUnified = 284, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(640, 300, 230), HITS_B(582, 300, 282), .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(582, 300, 282), HITS_B(451, 300, 335), .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(451, 300, 335), HITS_B(387, 300, 320), .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(387, 300, 320), HITS_B(355, 300, 230), .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(355, 300, 230), HITS_B(259, 261, 230), .heightA = 29, .heightB = 69, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(259, 261, 230), HITS_B(258, 288, 393), .heightA = 70, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(258, 278, 393), HITS_B(168, 275, 391), .heightUnified = 50, .settingsA = (TrackLine_SETTINGA_Unified_Height | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(355, 300, 230), HITS_B(259, 261, 230), .heightUnified = 284, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(259, 261, 230), HITS_B(258, 278, 393), .heightUnified = 284, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(258, 278, 393), HITS_B(125, 275, 391), .heightUnified = 284, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(0, 514, 471),   HITS_B(178, 502, 518), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(35, 514, 230),  HITS_B(104, 507, 164), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(29, 514, 316),  HITS_B(35, 514, 230),  .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(63, 509, 397),  HITS_B(29, 514, 316),  .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(146, 503, 410), HITS_B(63, 509, 397),  .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(146, 503, 410), HITS_B(63, 509, 397),  .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(174, 280, 546), HITS_B(640, 280, 497), .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(168, 275, 391), HITS_B(168, 264, 174), .heightA = 51, .heightB = 60, .settingsA = (Vehicle_Ignores_Line | 0x6), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
-            { HITS_A(172, 502, 523), HITS_B(146, 503, 410), .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | 0x6), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(355, 264, 174), HITS_B(355, 264, 230), .heightUnified = 284, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(166, 499, 523), HITS_B(146, 500, 391), .heightUnified = 64, .settingsA = (TrackLine_SETTINGA_Unified_Height | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(396, 280, 230), HITS_B(259, 280, 230), .heightA = 46, .heightB = 46, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
             { HITS_A(259, 280, 230), HITS_B(259, 280, 374), .heightA = 46, .heightB = 46, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
             { HITS_A(247, 280, 391), HITS_B(168, 280, 391), .heightA = 46, .heightB = 46, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
@@ -5534,6 +5539,9 @@ static void discovery_falls_hit_edits(void) {
             { HITS_A(168, 280, 174), HITS_B(247, 280, 174), .heightA = 46, .heightB = 46, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
             { HITS_A(254, 280, 174), HITS_B(396, 280, 174), .heightA = 46, .heightB = 46, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
             { HITS_A(215, 326, 240), HITS_B(215, 326, 332), .heightA = 53, .heightB = 0, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(164, 505, 391), HITS_B(110, 505, 391), .heightUnified = 12, .settingsA = (TrackLine_SETTINGA_Unified_Height | 0xE), .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(148, 516, 391), HITS_B(164, 516, 391), .heightA = 72, .heightB = 72, .settingsA = Vehicle_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(146, 503, 410), HITS_B(148, 503, 391), .heightA = 72, .heightB = 72, .settingsA = Vehicle_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
         };
 
         for (u32 i = 0; i < ARRAYCOUNT(block0329); i++) {
