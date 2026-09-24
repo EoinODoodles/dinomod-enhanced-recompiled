@@ -1,53 +1,27 @@
-#include "dll.h"
 #include "modding.h"
 #include "recomputils.h"
 
+#include "dll.h"
 #include "common.h"
+#include "game/objects/object_id.h"
 #include "sys/main.h"
+#include "sys/objects.h"
+
+#include "object_util.h"
+#include "objects/429_DFSH_Door1Special.h"
 
 #include "recomp/dlls/objects/429_DFSH_door1Special_recomp.h"
 
 //TEMPORARY DEFINES
 #define DFSH_Door1Special_obj_Setup DFSH_Door1Special_setup
+#define DFSH_Door1Special_obj_Control DFSH_Door1Special_control
 #define DFSH_Door1Special_animCallback DFSH_Door1Special_anim_callback
-//END OF TEMPORARY DEFINES
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s16 gamebitOpened;       //[Main Door Only] Opens the door
-/*1A*/ s16 gamebitDoorState;    //[Main Door Only] Restores the door's state during setup
-/*1C*/ s16 seqPreemptTime;      //[Main Door Only] ObjSeq time to jump to when restoring state
-/*1E*/ s8 seqIndex;             //[Main Door Only] ObjSeq to play
-/*1F*/ u8 yaw;
-/*20*/ u8 enabledActors;        //[Main Door Only] ObjSeq actor mask
-/*21*/ u8 scale;
-/*22*/ s16 gamebitLit;          //A point on the door's Krazoa symbol lights up when this gamebit is set (through pressing ancient switches around Discovery Falls)
-} DFSH_DoorSpecial_Setup;
-
-typedef struct {
-    u16 phase;      //Phase angle for the Krazoa symbol's glow effect
-    u8 state;       //[Main Door Only] SeqDoor state (`DFSH_DoorSpecial_States`)
-    u8 glowState;   //Glow effect state (`DFSH_DoorSpecial_GlowStates`)
-    u8 runControl;  //[Main Door Only] Boolean: starts off TRUE, set to FALSE at the end of obj_Control (so control only runs once)
-} DFSH_DoorSpecial_Data;
-
-typedef enum {
-    DFSH_Door1Special_STATE_0_Closed,
-    DFSH_Door1Special_STATE_1_Open,
-    DFSH_Door1Special_STATE_2_Opening,
-    DFSH_Door1Special_STATE_3_Closing
-} DFSH_DoorSpecial_States;
-
-typedef enum {
-    DFSH_DoorSpecial_GLOW_0_Unlit,
-    DFSH_DoorSpecial_GLOW_1_Fade_In,
-    DFSH_DoorSpecial_GLOW_2_Pulse
-} DFSH_DoorSpecial_GlowStates;
 
 typedef enum {
     SeqDoor_SEQCMD_1_Finished_Closing = 1,
     SeqDoor_SEQCMD_2_Finished_Opening = 2
 } SeqDoor_ObjSeqMessages;
+//END OF TEMPORARY DEFINES
 
 extern int DFSH_Door1Special_animCallback(Object* self, Object* overrideObj, AnimObj_Data* animData, s8 prevCallbackResult);
 
@@ -107,9 +81,49 @@ RECOMP_PATCH void DFSH_Door1Special_obj_Setup(Object* self, DFSH_DoorSpecial_Set
         if (mainGetBits(objSetup->gamebitOpened) == FALSE) {
             mainSetBits(objSetup->gamebitOpened, TRUE);
         }
+
+        //@recomp: unload after setup if the door is already open (avoids playing a sound)
+        objData->unload = TRUE;
+        self->opacity = 0;
     }
     
     objData->phase = 0;
+}
+
+RECOMP_PATCH void DFSH_Door1Special_obj_Control(Object* self) {
+    DFSH_DoorSpecial_Data* objData;
+    DFSH_DoorSpecial_Setup* objSetup;
+    s32 enabledActors;
+
+    objData = self->data;
+    objSetup = (DFSH_DoorSpecial_Setup*)self->setup;
+    
+    //@recomp: unload after setup if needed
+    //(The main door piece stays around at the end of the sequence though unlike the child pieces, 
+    // since we need to door opening sound to play out in full)
+    if (objData->unload) {
+        objFreeObject(self);
+        return;
+    }
+
+    if (objData->runControl == FALSE) {
+        return;
+    }
+    
+    //Skip to end of door-opening sequence if needed
+    if (objSetup->seqPreemptTime && objData->state) {
+        enabledActors = objSetup->enabledActors;
+        gDLL_3_Animation->vtbl->preempt_sequence_time(self, objSetup->seqPreemptTime);
+    } else {
+        enabledActors = -1;    
+    }
+
+    //Play door-opening sequence
+    if (objSetup->seqIndex != -1) {
+        gDLL_3_Animation->vtbl->start_obj_sequence(objSetup->seqIndex, self, enabledActors);
+    }
+    
+    objData->runControl = FALSE;
 }
 
 RECOMP_PATCH int DFSH_Door1Special_animCallback(Object* self, Object* overrideObj, AnimObj_Data* animData, s8 prevCallbackResult) {
