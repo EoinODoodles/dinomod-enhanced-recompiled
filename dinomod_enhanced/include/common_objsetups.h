@@ -106,11 +106,26 @@ typedef struct {
 
 typedef struct {
 /*00*/ ObjSetup base;
-/*18*/ s16 flagPlay;
-/*1A*/ s16 soundID; // Should use a SoundID enum value from dll 6
-/*1C*/ u8 mode;
-/*1D*/ u8 radius;
+/*18*/ s16 gamebit;   // LOOPING SOUNDS: start/stop when value changes, or use distance check if gamebit unspecified.
+                      // ONE-SHOT SOUNDS: play sound when value changes (if "Play At Random Inside Radius" mode isn't being used).
+/*1A*/ s16 soundID;
+/*1C*/ u8 flags;      //See `SfxPlayer_Flags`.
+/*1D*/ u8 halfRadius; //Stored halved, the sound plays when the player is inside this radius. Looping sounds stop when the player is outside of (radius + 10).
+/* RECOMP */
+/*1E*/ u8 volume;       //Optional volume adjustment (MAX_VOLUME used if 0)
+/*1F*/ s8 pitch;        //Optional pitch adjustment for looped sounds (ignored if 0) (useful for desyncing nearby sources using same sound)
+/*20*/ u8 fadeDuration; //Duration for fading looped sounds
 } SfxPlayer_Setup;
+
+typedef enum {
+    SfxPlayer_FLAG_1_Looping_Sound = 1,                //Use this if the sound loops (plays with a soundHandle, and stops it when sound finished) [Has priority over "play at random inside radius" mode]
+    SfxPlayer_FLAG_2_Play_if_Gamebit_Set = 2,
+    SfxPlayer_FLAG_4_Play_if_Gamebit_Unset = 4,
+    SfxPlayer_FLAG_8_Play_At_Random_Inside_Radius = 8, //Sound plays at random intervals when player is inside radius [Has priority over one-shot sound "play by gamebit" modes]
+    SfxPlayer_CUSTOMFLAG_10_Fade = 0x10,               //Fade looped sounds in/out, using a variable fadeDuration
+    SfxPlayer_CUSTOMFLAG_20_Double_Radius = 0x20,      //Double activation distance
+    SfxPlayer_CUSTOMFLAG_40_Play_if_Gamebit_Set_on_Setup = 0x40 //Start out playing a looping sound if its gamebit is already set during setup
+} SfxPlayer_Flags;
 
 typedef struct {
 /*00*/ ObjSetup base;
