@@ -34,11 +34,11 @@ typedef struct {
     u8 prevFlags;
     s8 nearbyBlockIndex;    //The loadedBlockIdx of the nearby Block that needs an LOD stand-in
     s8 ownBlockIndex;       //The loadedBlockIdx of the LODAnimator's local Block (which contains extra LOD shapes)
-    s8 prevGamebitValue;
 } LODAnimator_Data;
 
 typedef enum {
-    LODAnimator_FLAG_1_Nearby_Block_Found = 1
+    LODAnimator_FLAG_1_Nearby_Block_Found = 1,
+    LODAnimator_FLAG_2_Deactivated = 2
 } LODAnimator_Flags;
 
 static s32 LODAnimator_UpdateShapes(Object* self, s32 showLOD);
@@ -59,10 +59,10 @@ void LODAnimator_obj_Setup(Object* self, LODAnimator_Setup* objSetup, s32 reset)
 
     blockAddLODAnimator(self);
 
-    if (GAMEBIT_SPECIFIED(objSetup->gamebitDeactivate)) {
-        objData->prevGamebitValue = mainGetBits(objSetup->gamebitDeactivate);
-    } else {
-        objData->prevGamebitValue = -1;
+    if (GAMEBIT_SPECIFIED_AND_NOT_SET(objSetup->gamebitActivate)) {
+        objData->flags |= objData->flags |= LODAnimator_FLAG_2_Deactivated;
+    } else if (GAMEBIT_SPECIFIED_AND_SET(objSetup->gamebitDeactivate)) {
+        objData->flags |= objData->flags |= LODAnimator_FLAG_2_Deactivated;
     }
 }
 
@@ -112,17 +112,10 @@ void LODAnimator_obj_Control(Object* self) {
 
     //Optionally switch off the LOD when a gamebit is set
     if (GAMEBIT_SPECIFIED(objSetup->gamebitDeactivate)) {
-        s16 gamebitValue = mainGetBits(objSetup->gamebitDeactivate);
-        if (objData->prevGamebitValue != gamebitValue) {
-            objData->prevGamebitValue = gamebitValue;
-            if (gamebitValue) {
-                LODAnimator_UpdateShapes(self, FALSE);
-            } else if ((objData->flags & LODAnimator_FLAG_1_Nearby_Block_Found) == FALSE) {
-                LODAnimator_UpdateShapes(self, TRUE);
-            }
-        }
-        if (gamebitValue) {
-            return;
+        if (mainGetBits(objSetup->gamebitDeactivate)) {
+            objData->flags |= LODAnimator_FLAG_2_Deactivated;
+        } else {
+            objData->flags &= ~LODAnimator_FLAG_2_Deactivated;
         }
     }
 
@@ -151,6 +144,7 @@ void LODAnimator_obj_Print(Object* self, Gfx** gfx, Mtx** mtx, Vertex** vtx, Tri
 // export: 4
 void LODAnimator_obj_Free(Object* self, s32 onlySelf) {
     LODAnimator_Setup* objSetup = (LODAnimator_Setup*)self->setup;
+    LODAnimator_Data* objData = self->data;
     Object* player;
     Vec3f uDirection;
     s32 angleTargetToAnimator;
@@ -158,7 +152,9 @@ void LODAnimator_obj_Free(Object* self, s32 onlySelf) {
     Vec3f targetToPlayer;
     
     //Optionally show the LOD again on unload (only if the player is moving away from the target block)
-    if (objSetup->options & LODAnimator_OPTION_1_Show_LOD_on_Unload) {
+    if (objSetup->options & LODAnimator_OPTION_1_Show_LOD_on_Unload && 
+        (objData->flags & LODAnimator_FLAG_2_Deactivated) == FALSE //Make sure the animator isn't deactivated
+    ) {
         player = objGetPlayer();
         if (player) {
             //Get the angle from the target to the LODAnimator
@@ -230,9 +226,16 @@ static s32 LODAnimator_UpdateShapes(Object* self, s32 showLOD) {
     objData = self->data;
     objSetup = (LODAnimator_Setup*)self->setup;
 
-    //Optionally wait for a gamebit to be set before doing anything
+    //Check if the LOD has yet to be activated by gamebit, or is deactivated by gamebit
     if (GAMEBIT_SPECIFIED_AND_NOT_SET(objSetup->gamebitActivate)) {
-        return FALSE;
+        objData->flags |= LODAnimator_FLAG_2_Deactivated;
+    } else if (GAMEBIT_SPECIFIED_AND_SET(objSetup->gamebitDeactivate)) {
+        objData->flags |= LODAnimator_FLAG_2_Deactivated;
+    }
+
+    //Force shapes to be hidden when switched off
+    if (objData->flags & LODAnimator_FLAG_2_Deactivated) {
+        showLOD = FALSE;
     }
 
     block = objData->ownBlock;
