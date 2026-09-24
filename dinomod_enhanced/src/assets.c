@@ -5563,7 +5563,8 @@ static void discovery_falls_hit_edits(void) {
            - Don't let the log pass through the turbine - Rare had a HITS line here, but it didn't affect the log
            - Allow the player onto the little island in between the two waterfalls, just on the approach angles that have less steep terrain 
            - Allow the player step onto the turbine lever platform from below
-           - Don't let the player fall through the tiny gap between the turbine and the turbine lever platform (since falling directly down through here softlocks the player collision somehow!) */
+           - Don't let the player fall through the tiny gap between the turbine and the turbine lever platform (since falling directly down through here softlocks the player collision somehow!) 
+           - Let the player grab the rope point ledge if they don't quite land the jump from the cradle */
         TrackLine block0329[] = {
             { HITS_A(122, 280, 362), HITS_B(125, 280, 414), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(136, 280, 230), HITS_B(122, 280, 362), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
@@ -5630,6 +5631,9 @@ static void discovery_falls_hit_edits(void) {
             { HITS_A(164, 505, 391), HITS_B(110, 505, 391), .heightUnified = 12, .settingsA = (TrackLine_SETTINGA_Unified_Height | 0xE), .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
             { HITS_A(148, 516, 391), HITS_B(164, 516, 391), .heightA = 72, .heightB = 72, .settingsA = Vehicle_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
             { HITS_A(146, 503, 410), HITS_B(148, 503, 391), .heightA = 72, .heightB = 72, .settingsA = Vehicle_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(370, 465, 482), HITS_B(466, 465, 475), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Clamber_Up), .animatorID = NO_ANIMATOR },
+            { HITS_A(296, 465, 485), HITS_B(370, 465, 482), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Clamber_Up), .animatorID = NO_ANIMATOR },
+            { HITS_A(466, 465, 475), HITS_B(466, 465, 515), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Clamber_Up), .animatorID = NO_ANIMATOR },
         };
 
         for (u32 i = 0; i < ARRAYCOUNT(block0329); i++) {
