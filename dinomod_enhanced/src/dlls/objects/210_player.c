@@ -35,10 +35,13 @@
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/277_iceblast.h"
 
+#include "objects/793_BWlog.h"
+
 #include "recomp/dlls/objects/210_player_recomp.h"
 
 // #define DEBUG_MESSAGES
 // #define DEBUG_PRIORITISE_STATIC_CAMERA
+// #define DEBUG_BACKWARDS_LOG
 
 //TEMPORARY DEFINES
 #define PLAYER_ASTATE_Rope_Climb_End 46
@@ -1101,6 +1104,58 @@ RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2
     return 0;
 }
 
+/* Rotates the log 180 before mounting (if needed), so the player's direction is preserved. 
+   Also uses a seqJoint to apply a -180 visual counter-rotation, so the log appears not to have rotated!
+   The log had no seqJoints by default. */
+static void player_handleBackwardsLogMount(Object* player, Object* vehicle) {
+    BWlog_Data* logData;
+    s32 newYaw;
+
+    if (player == NULL || vehicle == NULL) {
+        return;
+    }
+
+    //Get the size of the angular difference between the player's yaw and the log's yaw 
+    s32 yawDiff = vehicle->srt.yaw - player->srt.yaw;
+    CIRCLE_WRAP(yawDiff);
+    if (yawDiff < 0) {
+        yawDiff = -yawDiff;
+    }
+
+#ifdef DEBUG_BACKWARDS_LOG
+    recomp_printf("yawDiff: %x\n", yawDiff);
+#endif
+
+    //No flip needed if the player and the log are already facing roughly the same way
+    if (yawDiff < DEGREES_TO_ANGLE16(110)) { //Not just 90, to prioritise log's "intended" direction (i.e. at dockpoints) if we're approaching from an ambiguous angle
+#ifdef DEBUG_BACKWARDS_LOG
+        recomp_printf("Didn't rotate log.\n");
+#endif
+        return;
+    }
+
+    //Otherwise, a flip is needed! Rotate the log's transform through 180
+    newYaw = vehicle->srt.yaw + M_180_DEGREES;
+    CIRCLE_WRAP(newYaw);
+#ifdef DEBUG_BACKWARDS_LOG
+    recomp_printf("Rotated log! yaw: %x -> %x\n", vehicle->srt.yaw, newYaw);
+#endif
+    vehicle->srt.yaw = newYaw;
+
+    //Then, counter-flip the log's seqJoint so it seems to still be facing the same way as before (only a visual effect)
+    logData = vehicle->data; 
+    if (logData == NULL) {
+        return;
+    }
+
+    //TODO: it'd be nicer to get/set the log's flipState with custom exports
+    if (logData->flipState) {
+        logData->flipState = FALSE;
+    } else {
+        logData->flipState = TRUE;
+    }
+}
+
 /** 
  * PLAYER_ASTATE_Vehicle_Getting_On
  *
@@ -1178,6 +1233,9 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 update
             objdata->unk76C = player->id == OBJ_Krystal ? recomp_betterBWLogAnims_Krystal : recomp_betterBWLogAnims_Sabre;
             objdata->unk770 = 3;
             gDLL_2_Camera->vtbl->change_mode(0, 41);
+
+            // @recomp: handle mounting the log in the direction the player's facing
+            player_handleBackwardsLogMount(player, vehicle);
             break;
         case OBJ_DR_EarthWarrior:
             objdata->unk76C = _data_170;

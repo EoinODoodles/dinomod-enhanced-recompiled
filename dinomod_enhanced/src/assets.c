@@ -162,6 +162,7 @@ INCBIN(amap_purple_mushroom,      "inc/amap_purple_mushroom_recreation.bin");
 INCBIN(objects_purple_mushroom,   "inc/objects_0571_SHrocketmushroo.bin");
 
 INCBIN(objects_vampirebat,        "inc/objects_0053_VampireBat.bin");
+INCBIN(objects_bwlog,             "inc/objects_0242_BWLog.bin");
 INCBIN(objects_wcseqobject,       "inc/objects_0252_WCSeqObject.bin");
 INCBIN(objects_wctemplebridge,    "inc/objects_0288_WCTempleBridge.bin");
 INCBIN(objects_shseqobject,       "inc/objects_0561_SHseqobject.bin");
@@ -3894,6 +3895,12 @@ static void vampire_bat_patch(void) {
     reasset_objects_set(objects_vampirebat_id, REASSET_BASE_NAMESPACE, objects_vampirebat, objects_vampirebat_end - objects_vampirebat);
 }
 
+//Add a seqJoint to BWLog, used for visually flipping it when mounting it "backwards"
+static void bwlog_patch(void) {
+    ReAssetID objects_bwlog_id = reasset_base_id(242); //OBJ_BWLog
+    reasset_objects_set(objects_bwlog_id, REASSET_BASE_NAMESPACE, objects_bwlog, objects_bwlog_end - objects_bwlog);
+}
+
 //Add extra objSeqs to WarpPoint
 static void warp_point_patch(void) {
     ReAssetID objects_warppoint_id = reasset_base_id(1124); //OBJ_WarpPoint
@@ -6235,6 +6242,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     purple_mushroom_patch();
     vampire_bat_patch();
     warp_point_patch();
+    bwlog_patch();
 
     warlock_mountain_platform_modifications();
     warlock_mountain_modifications();
