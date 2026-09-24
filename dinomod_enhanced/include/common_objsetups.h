@@ -299,13 +299,6 @@ typedef struct {
 
 typedef struct {
 /*00*/ ObjSetup base;
-/*18*/ s8 yaw;
-/*19*/ s8 spawnLogDisabled;
-/*1A*/ s16 range;
-} DFdockpoint_Setup;
-
-typedef struct {
-/*00*/ ObjSetup base;
 /*18*/ s16 unk18[8];
 /*28*/ s16 unk28[8];
 /*38*/ u8 unk38;

@@ -5,7 +5,6 @@
 #include "dlls/objects/common/vehicle.h"
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/418_DFriverflow.h"
-#include "dlls/objects/419_DFdockpoint.h"
 #include "dlls/engine/27.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
@@ -16,6 +15,7 @@
 #include "sys/print.h"
 #include "dll.h"
 
+#include "objects/419_DFdockpoint.h"
 #include "objects/793_BWlog.h"
 
 #include "recomp/dlls/objects/793_BWlog_recomp.h"
@@ -714,34 +714,59 @@ RECOMP_PATCH void BWlog_findRiverflows(Object* self, BWlog_Data* objdata) {
     }
 }
 
-/** Get off log in the direction of the dockpoint (helps avoid hopping off into deep water). */
-RECOMP_PATCH s32 BWlog_vehicle_GetDismountSide(Object *self) {
-    SRT sp88;
-    MtxF sp48;
-    f32 sp44;
-    f32 sp40;
-    f32 sp3C;
-    f32 temp;
-    f32 temp2;
+/** Get off log in the direction of the dockpoint (helps avoid hopping off into deep water). 
+  * Add an optional dismount direction position offset too, to help design specific dismount directions per DFdockpoint.
+  */
+RECOMP_PATCH VehicleMountSide BWlog_vehicle_GetDismountSide(Object *self) {
+    DFdockpoint_Setup* dockpointSetup;
+    Vec3f dismountTarget;
+    SRT logSideSRT;
+    MtxF logSideMtx;
+    Vec3f u;
+    f32 logProjected;
+    f32 dismountTargetProjected;
     BWlog_Data* objdata = self->data;
 
     if (objdata->dockpoint != NULL) {
-        sp88.yaw = self->srt.yaw + 0x4000;
-        sp88.pitch = self->srt.pitch;
-        sp88.roll = self->srt.roll;
-        sp88.transl.x = 0.0f;
-        sp88.transl.y = 0.0f;
-        sp88.transl.z = 0.0f;
-        sp88.scale = 1.0f;
-        mathYprXyzMtx(&sp48, &sp88);
-        mathMtxXFMF(&sp48, 0.0f, 0.0f, 1.0f, &sp44, &sp40, &sp3C);
-        temp2 = -((self->srt.transl.x * sp44) + (sp40 * self->srt.transl.y) + (sp3C * self->srt.transl.z));
-        temp = (objdata->dockpoint->srt.transl.x * sp44) + (sp40 * objdata->dockpoint->srt.transl.y) + (sp3C * objdata->dockpoint->srt.transl.z) + temp2;
-        if (temp < 0) {
-            return 1;
+        //Get the dockpoint's dismount point
+        dismountTarget.x = objdata->dockpoint->srt.transl.x;
+        dismountTarget.y = objdata->dockpoint->srt.transl.y;
+        dismountTarget.z = objdata->dockpoint->srt.transl.z;
+        dockpointSetup = (DFdockpoint_Setup*)objdata->dockpoint->setup;
+        if (dockpointSetup) {
+            //Add a position offset to dismount towards
+            dismountTarget.x += dockpointSetup->dismountOffsetX * 8;
+            dismountTarget.z += dockpointSetup->dismountOffsetZ * 8;
+        }
+
+        //Get the log's SRT, rotated in yaw by 90 degrees
+        logSideSRT.yaw = self->srt.yaw + M_90_DEGREES;
+        logSideSRT.pitch = self->srt.pitch;
+        logSideSRT.roll = self->srt.roll;
+        logSideSRT.transl.x = 0.0f;
+        logSideSRT.transl.y = 0.0f;
+        logSideSRT.transl.z = 0.0f;
+        logSideSRT.scale = 1.0f;
+
+        //Get a transformation matrix from the SRT
+        mathYprXyzMtx(&logSideMtx, &logSideSRT);
+
+        //Transform a unit vector (pointing forward in Z) by the matrix, to get the log's lateral objectSpace unit vector
+        mathMtxXFMF(&logSideMtx, 0.0f, 0.0f, 1.0f, &u.x, &u.y, &u.z);
+
+        //Project the log's position onto the axis
+        logProjected = (u.x * self->srt.transl.x) + (u.y * self->srt.transl.y) + (u.z * self->srt.transl.z);
+
+        //Project the dockpoint's dismount target position onto the axis 
+        dismountTargetProjected = (u.x * dismountTarget.x) + (u.y * dismountTarget.y) + (u.z * dismountTarget.z);
+        
+        //Compare with the log's projected position
+        if (dismountTargetProjected < logProjected) {
+            return VEHICLE_SIDE_Left;
         }
     }
-    return 2;
+
+    return VEHICLE_SIDE_Right;
 }
 
 /* Apply a visual flip to the log via a seqJoint, if the player mounted it backwards */

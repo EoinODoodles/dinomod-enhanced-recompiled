@@ -21,6 +21,7 @@
 #include "mod_common.h"
 #include "object_util.h"
 #include "objects/307_SeqDoor.h"
+#include "objects/419_DFdockpoint.h"
 #include "objects/427_DFLevelControl.h"
 #include "objects/511_SHboulder.h"
 #include "objects/779_WCLevelControl.h"
@@ -4278,6 +4279,52 @@ static void discovery_falls_modifications(void) {
 
             reasset_map_objects_set(discoveryFalls, 
                 reasset_auto_id(dinomodNs), &sfxPlayers[i], sizeof(SfxPlayer_Setup));
+        }
+    }
+
+    //Add dismount direction offsets to all the DFdockpoints
+    {
+        typedef struct {
+            u32 uID;
+            Vec2f dismountTarget; //In mapSpace
+            Vec3f newPosition; //Optional, ignored if all 0
+        } DFdockpoint_DismountAdjust;
+
+        #define SAME_POSITION VEC3F(0, 0, 0)
+
+        DFdockpoint_DismountAdjust dockpointAdjustments[] = {
+            //Lower Falls
+            { 0x00001f47, VEC2F(232.978, 1168.050), SAME_POSITION }, //First dockpoint, needed to get to HighTop
+            { 0x00001f4e, VEC2F(-579.010, 378.428), SAME_POSITION }, //Shore near HighTop, leading up to rockface climb
+            { 0x00001f4b, VEC2F(417.802, 1717.921), VEC3F(311.196, 0, 1739.530) }, //Near BWC (moved slightly too, since it was awkward to mount)
+            
+            //Middle Falls
+            { 0x00001fab, VEC2F(-512.373, -35.345), SAME_POSITION }, //Just in front of the climb up to the middle falls, near the foodbag cave
+            { 0x00001fac, VEC2F(302.188, -133.768), SAME_POSITION },  //Shore under Toxic Cave ladder
+            { 0x0000203c, VEC2F(-789.138, -452.946), SAME_POSITION }, //Shore in front of turbine jetty
+
+            //Upper Falls
+            { 0x00002046, VEC2F(-1371.635, -614.792), SAME_POSITION }, //Shore before rapids, near where Kyte drags over and secures a rope
+            { 0x00002047, VEC2F(-1479.705, -64.625), SAME_POSITION },  //Shore near turbine, between all the ledges and rocks
+            
+            //Shrine Exterior
+            { 0x0000204a, VEC2F(-1009.111, -1837.673), SAME_POSITION }, //Just in front of the shrine
+            { 0x000025f4, VEC2F(-1620.400, -1327.123), SAME_POSITION }, //Shore below the ladder up to the long exit climb
+            
+            //Tunnel to BWC
+            { 0x00001f4d, VEC2F(-1187.813, 771.222), SAME_POSITION }, //Just before the archway into MMP
+        };
+
+        for (u32 i = 0; i < ARRAYCOUNT(dockpointAdjustments); i++) {
+            DFdockpoint_DismountAdjust* adjust = &dockpointAdjustments[i];
+            DFdockpoint_Setup* dockpoint = GET_MAPS_OBJECT(discoveryFalls, adjust->uID);
+            if (adjust->newPosition.x || adjust->newPosition.y || adjust->newPosition.z) {
+                dockpoint->base.x = adjust->newPosition.x;
+                dockpoint->base.y = adjust->newPosition.y;
+                dockpoint->base.z = adjust->newPosition.z;
+            }
+            dockpoint->dismountOffsetX = (adjust->dismountTarget.x - dockpoint->base.x) / 8;
+            dockpoint->dismountOffsetZ = (adjust->dismountTarget.y - dockpoint->base.z) / 8;
         }
     }
 

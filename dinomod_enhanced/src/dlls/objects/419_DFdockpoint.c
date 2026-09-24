@@ -3,29 +3,25 @@
 #include "recomputils.h"
 
 #include "common.h"
+#include "dlls/objects/793_BWLog.h"
 #include "game/objects/object.h"
 #include "sys/camera.h"
 #include "sys/math.h"
 #include "sys/objects.h"
 #include "sys/objtype.h"
 #include "sys/print.h"
-#include "dlls/objects/793_BWLog.h"
+
+#include "objects/419_DFdockpoint.h"
 
 #include "recomp/dlls/objects/419_DFdockpoint_recomp.h"
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s8 yaw;
-/*19*/ s8 spawnLogDisabled;
-} DFdockpoint_Setup;
 
 #define LOG_LOAD_DISTANCE 50*8
 #define LOG_UNLOAD_DISTANCE (LOG_LOAD_DISTANCE + 40)
 
 // Fix a bug where the dockpoint could create a rapidly loading/unloading log
-RECOMP_PATCH void DFdockpoint_control(Object *self) {
-    DFdockpoint_Setup *setup;
-    BWLog_Setup *logsetup;
+RECOMP_PATCH void DFdockpoint_control(Object* self) {
+    DFdockpoint_Setup* setup;
+    BWLog_Setup* logsetup;
     s32 logCount;
     /* RECOMP */
     Object* player;
