@@ -1,4 +1,5 @@
 #include "configs.h"
+#include "custom_gamebits.h"
 #include "dll_util.h"
 #include "math_util.h"
 #include "modding.h"
@@ -1138,6 +1139,8 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 update
     s8 animIdx;
     s16 sp48;
     ModelInstance* modelInstance;
+    /* RECOMP */
+    u8 skipMountAnimation;
 
     objdata = player->data;
     vehicle = objdata->vehicle;
@@ -1238,7 +1241,17 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 update
     pos.x = ((goalZ - objdata->unk738.z) * player->animProgress) + objdata->unk738.z;
     gDLL_2_Camera->vtbl->reposition_player(pos.z, pos.y, pos.x);
 
-    if ((fsa->enteredAnimState == FALSE) && fsa->unk33A) {
+    //@recomp: skip past the mounting animState if a gamebit is set
+    //(Used to avoid a bug where the log mounting animation plays after Discovery Falls'
+    //initial HighTop cutscene, even though you're already on the log!)
+    skipMountAnimation = mainGetBits(DINOMOD_BIT_96F_Vehicle_Skip_Mount_Animation);
+    if (skipMountAnimation) {
+        mainSetBits(DINOMOD_BIT_96F_Vehicle_Skip_Mount_Animation, FALSE);
+    }
+
+    if (((fsa->enteredAnimState == FALSE) && fsa->unk33A) || 
+        skipMountAnimation //@recomp
+    ) {
         objAnimSet(player, objdata->unk76C[0], 0.0f, 1);
         ((DLL_IVehicle*)vehicle->dll)->vtbl->SetMountState(vehicle, VEHICLE_Mounted);
         if (vehicle->id == OBJ_BWLog) {
