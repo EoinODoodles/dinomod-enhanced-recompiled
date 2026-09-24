@@ -1,0 +1,193 @@
+# Discovery Falls - Whirlpool Cave Shrine Switch Activated
+# Edited to move the SharpClaw to ground height, instead of clipping down into it slightly.
+# Also edited to use stepped keys for the camera cut, instead of drifting awkwardly for a few frames of the crossfade.
+
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x0
+  objectID: 0xFFFF # Self (DFsequences)
+# Actor 1
+- uid: 0x0
+  settings: 0x9000
+  objectID: 0xFFFE # Camera
+# Actor 2
+- uid: 0x0
+  settings: 0xD000
+  objectID: 0x1F # Krystal
+# Actor 3
+- uid: 0x0
+  settings: 0xD000
+  objectID: 0x91 # DFpodiumswitch
+# Actor 4
+- uid: 0x0
+  settings: 0x9000
+  objectID: 0xBF # AnimSharpy
+
+curves:
+# Curve 0
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 650 } # SETDURATION @ 0
+  - { type: 3, delay: 1, params: 0x0 } # OVERRIDE @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 1
+  - { code_type: 6, val1: 0x1B, val2: 0xB } # 6 (ENABLE_OBJ_GROUP)
+  - { type: 0, delay: 0, params: 481 } # SETTIME @ 1
+  - { type: 6, delay: 0, params: 0xE76B } # SFX @ 481
+  - { type: 13, delay: 0, params: 0xB000 } # ENVFX @ 481 (SET_BIT, 0x0)
+  - { type: 127, delay: 168, params: 0x10 } # PARAM @ 481
+  - { type: 13, delay: 0, params: 0xB000 } # ENVFX @ 649 (SET_BIT, 0x0)
+  - { type: 127, delay: 1, params: 0x10 } # PARAM @ 649
+  - { type: 11, delay: 0, params: 1 } # CODE @ 650
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+# Curve 1
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 650 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 1, delay: 0, params: 0x0 } # MOVEMODE @ 0
+  - { type: 11, delay: 244, params: 1 } # CODE @ 0
+  - { code_type: 6, val1: 0xF, val2: 0x14 } # 6 (15)
+  - { type: 11, delay: 23, params: 1 } # CODE @ 244
+  - { code_type: 6, val1: 0xE, val2: 0x11 } # 6 (14)
+  - { type: 11, delay: 0, params: 1 } # CODE @ 267
+  - { code_type: 6, val1: 0xF, val2: 0x17 } # 6 (15)
+  - { type: 0, delay: 0, params: 553 } # SETTIME @ 267
+  - { type: 11, delay: 52, params: 1 } # CODE @ 553
+  - { code_type: 6, val1: 0x1A, val2: 0x0 } # 6 (NORMAL_CAMERA)
+  - { type: 11, delay: 45, params: 1 } # CODE @ 605
+  - { code_type: 6, val1: 0xE, val2: 0x28 } # 6 (14)
+  - { type: 11, delay: 0, params: 1 } # CODE @ 650
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ROTATE_Y
+  - { channel: 7, time: 56, value: 324.0746154785156, interp: 0, weight: 56 }
+  - { channel: 7, time: 268, value: 324.0690002441406, interp: 2, weight: 0 }  #@recomp: stepped
+  - { channel: 7, time: 274, value: 331.59466552734375, interp: 0, weight: 0 }
+  - { channel: 7, time: 558, value: 331.58929443359375, interp: 0, weight: 60 }
+    # ROTATE_X
+  - { channel: 8, time: 56, value: 14.617344856262207, interp: 0, weight: 8 }
+  - { channel: 8, time: 268, value: 14.617222785949707, interp: 2, weight: 0 }  #@recomp: stepped
+  - { channel: 8, time: 274, value: 19.050216674804688, interp: 0, weight: 0 }
+  - { channel: 8, time: 558, value: 19.050338745117188, interp: 0, weight: 4 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 56, value: 25.176498413085938, interp: 0, weight: 8 }
+  - { channel: 11, time: 268, value: 25.176376342773438, interp: 2, weight: 0 }  #@recomp: stepped
+  - { channel: 11, time: 274, value: -12.865570068359375, interp: 0, weight: 0 }
+  - { channel: 11, time: 558, value: 300.43121337890625, interp: 0, weight: 4 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 56, value: 5.784833908081055, interp: 0, weight: 8 }
+  - { channel: 12, time: 268, value: 5.784711837768555, interp: 2, weight: 0 }  #@recomp: stepped
+  - { channel: 12, time: 274, value: -234.2152862548828, interp: 0, weight: 0 }
+  - { channel: 12, time: 558, value: -234.2151641845703, interp: 0, weight: 4 }
+    # TRANSLATE_X
+  - { channel: 13, time: 56, value: -66.00138854980469, interp: 0, weight: 8 }
+  - { channel: 13, time: 268, value: -66.00151062011719, interp: 2, weight: 0 }  #@recomp: stepped
+  - { channel: 13, time: 274, value: 968.7434692382812, interp: 0, weight: 0 }
+  - { channel: 13, time: 558, value: 1041.4415283203125, interp: 0, weight: 4 }
+# Curve 2
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 649 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 7, delay: 0, params: 0x0 } # GROUND_MODE @ 0
+  - { type: 11, delay: 5, params: 1 } # CODE @ 0
+  - { code_type: 6, val1: 0x17, val2: 0x1 } # 6 (SET_MODEL)
+  - { type: 2, delay: 0, params: 0x317 } # ANIM @ 5
+  - { type: 0, delay: 0, params: 649 } # SETTIME @ 5
+  - { type: 11, delay: 0, params: 1 } # CODE @ 649
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # HEAD_ROTATE_X
+  - { channel: 1, time: 187, value: -1.0995941162109375, interp: 0, weight: 8 }
+  - { channel: 1, time: 241, value: 17.512001037597656, interp: 0, weight: 0 }
+  - { channel: 1, time: 285, value: 17.511993408203125, interp: 0, weight: 56 }
+  - { channel: 1, time: 295, value: 0.0, interp: 0, weight: 60 }
+    # ROTATE_Y
+  - { channel: 7, time: 35, value: 284.08428955078125, interp: 0, weight: 0 }
+    # ROTATE_X
+  - { channel: 8, time: 35, value: 0.0, interp: 0, weight: 0 }
+    # ANIM_SPEED
+  - { channel: 9, time: 0, value: 13.96500015258789, interp: 0, weight: 0 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 35, value: -16.631467819213867, interp: 0, weight: 0 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 35, value: -1.8000003099441528, interp: 0, weight: 0 }
+    # TRANSLATE_X
+  - { channel: 13, time: 35, value: -49.3734245300293, interp: 0, weight: 0 }
+# Curve 3
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 650 } # SETDURATION @ 0
+  - { type: 3, delay: 112, params: 0x0 } # OVERRIDE @ 0
+  - { type: 2, delay: 4, params: 0x0 } # ANIM @ 112
+  - { type: 15, delay: 1, params: 0xE4BE } # SFX_WITH_DURATION @ 116
+  - { type: 127, delay: 0, params: 0x91 } # PARAM @ 116
+  - { type: 0, delay: 0, params: 650 } # SETTIME @ 116
+  - { type: 11, delay: 0, params: 1 } # CODE @ 650
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ROTATE_Y
+  - { channel: 7, time: 119, value: 283.67779541015625, interp: 0, weight: 56 }
+  - { channel: 7, time: 151, value: 283.67230224609375, interp: 0, weight: 0 }
+  - { channel: 7, time: 266, value: 283.67230224609375, interp: 0, weight: 4 }
+    # ROTATE_X
+  - { channel: 8, time: 119, value: 0.0, interp: 0, weight: 8 }
+  - { channel: 8, time: 151, value: 0.0, interp: 0, weight: 8 }
+  - { channel: 8, time: 266, value: 0.0, interp: 0, weight: 4 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 119, value: -23.106781005859375, interp: 0, weight: 56 }
+  - { channel: 11, time: 151, value: -23.36138916015625, interp: 0, weight: 56 }
+  - { channel: 11, time: 266, value: -24.099552154541016, interp: 0, weight: 60 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 119, value: 16.127273559570312, interp: 0, weight: 8 }
+  - { channel: 12, time: 151, value: 16.127273559570312, interp: 0, weight: 8 }
+  - { channel: 12, time: 266, value: 16.127273559570312, interp: 0, weight: 4 }
+    # TRANSLATE_X
+  - { channel: 13, time: 119, value: -28.511402130126953, interp: 0, weight: 8 }
+  - { channel: 13, time: 151, value: -27.464813232421875, interp: 0, weight: 8 }
+  - { channel: 13, time: 266, value: -24.430538177490234, interp: 0, weight: 4 }
+# Curve 4
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 649 } # SETDURATION @ 0
+  - { type: 3, delay: 103, params: 0x0 } # OVERRIDE @ 0
+  - { type: 2, delay: 23, params: 0x1 } # ANIM @ 103
+  - { type: 1, delay: 0, params: 0x0 } # MOVEMODE @ 126
+  - { type: 0, delay: 0, params: 649 } # SETTIME @ 126
+  - { type: 11, delay: 0, params: 1 } # CODE @ 649
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ROTATE_Y
+  - { channel: 7, time: 126, value: -141.80636596679688, interp: 0, weight: 8 }
+  - { channel: 7, time: 646, value: -125.80474853515625, interp: 0, weight: 4 }
+    # ROTATE_X
+  - { channel: 8, time: 126, value: 0.0, interp: 0, weight: 8 }
+  - { channel: 8, time: 646, value: 0.0, interp: 0, weight: 4 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 126, value: -240.35145568847656, interp: 0, weight: 8 }
+  - { channel: 11, time: 646, value: -59.20210266113281, interp: 0, weight: 4 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 126, value: -218.638769785315, interp: 0, weight: 8 } #@recomp: fix SharpClaw clipping through ground
+  - { channel: 12, time: 646, value: -214.25836306152, interp: 0, weight: 4 } #@recomp: fix SharpClaw clipping through ground
+    # TRANSLATE_X
+  - { channel: 13, time: 126, value: 1022.3101196289062, interp: 0, weight: 8 }
+  - { channel: 13, time: 646, value: 1194.3271484375, interp: 0, weight: 4 }
+# Curve 5
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 649 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 0, delay: 0, params: 649 } # SETTIME @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 649
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ROTATE_Y
+  - { channel: 7, time: 11, value: -141.8086700439453, interp: 0, weight: 0 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 4, value: -14.389668464660645, interp: 0, weight: 0 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 6, value: -164.6766357421875, interp: 0, weight: 0 }
+    # TRANSLATE_X
+  - { channel: 13, time: 12, value: 1077.9541015625, interp: 0, weight: 0 }
