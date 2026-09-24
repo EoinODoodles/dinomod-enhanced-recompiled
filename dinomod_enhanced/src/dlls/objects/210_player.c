@@ -1101,11 +1101,13 @@ RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2
 }
 
 /** 
+ * PLAYER_ASTATE_Vehicle_Getting_On
+ *
  * Use a correctly sized mod anim array for BWLog. In the vanilla Dec 2000 build, this array is too short and causes
  * the anims for hopping on/off the log to read out of bounds and interpret other memory as mod anim indices. This build
  * doesn't seem to have actual anims for hopping on/off logs so this patch uses similar anims used for other vehicles.
  */
-RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) {
+RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
     static s16 recomp_betterBWLogAnims_Krystal[] = { 
         0x1b, 0x1d, // idle/rowing anims (same as vanilla)
         0x0453, 0x0454, // meant for rolling? (these are for logs)
@@ -1128,29 +1130,34 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     Object* vehicle;
     Vec3f sp74;
     Vec3f sp68;
-    f32 sp64;
-    f32 sp60;
-    f32 sp5C;
-    Vec3f sp50;
+    f32 goalZ;
+    f32 goalY;
+    f32 goalX;
+    Vec3f pos;
     Player_Data* objdata;
-    s8 v0;
+    s8 animIdx;
     s16 sp48;
-    ModelInstance* sp44;
+    ModelInstance* modelInstance;
 
     objdata = player->data;
     vehicle = objdata->vehicle;
+
     {
-        s32 temp_v0 = dll_210_func_EFB4(player, fsa, arg2);
-        if (temp_v0 != 0) { return temp_v0; }
+        s32 nextState = dll_210_func_EFB4(player, fsa, updateRate);
+        if (nextState != 0) { return nextState; }
     }
+
     // @fake
     //if (((!fsa) && (!fsa)) && (!fsa)) {}
-    if (fsa->enteredAnimState != 0) {
+
+    if (fsa->enteredAnimState) {
         fsa->unk270 = PLAYER_ASTATE_Vehicle_Getting_On;
     }
+
     func_800267A4(player);
-    player->velocity.f[1] = 0.0f;
-    if (fsa->enteredAnimState != 0) {
+    player->velocity.y = 0.0f;
+
+    if (fsa->enteredAnimState) {
         objdata->unk8A9 = 1;
         switch (vehicle->id) {
         case OBJ_IMSnowBike:
@@ -1167,70 +1174,80 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) 
             // @recomp: Use custom mod anim list
             objdata->unk76C = player->id == OBJ_Krystal ? recomp_betterBWLogAnims_Krystal : recomp_betterBWLogAnims_Sabre;
             objdata->unk770 = 3;
-            gDLL_2_Camera->vtbl->change_mode(0, 0x29);
+            gDLL_2_Camera->vtbl->change_mode(0, 41);
             break;
         case OBJ_DR_EarthWarrior:
             objdata->unk76C = _data_170;
             objdata->unk770 = 4;
-            gDLL_2_Camera->vtbl->change_mode(0, 0x69);
+            gDLL_2_Camera->vtbl->change_mode(0, 105);
             break;
         default:
             objdata->unk76C = _data_170;
             objdata->unk770 = 4;
-            gDLL_2_Camera->vtbl->change_mode(0, 0x1D);
+            gDLL_2_Camera->vtbl->change_mode(0, 29);
             break;
         }
+
         mountSide = ((DLL_IVehicle*)vehicle->dll)->vtbl->GetMountSide(vehicle);
         ((DLL_IVehicle*)vehicle->dll)->vtbl->SetMountState(vehicle, VEHICLE_Mounting);
         switch (mountSide) {
             case 1:
-                v0 = 6;
+                animIdx = 6;
                 break;
             case 2:
             default:
-                v0 = 7;
+                animIdx = 7;
                 break;
         }
+
         player->srt.yaw = vehicle->srt.yaw;
-        objAnimSet(player, objdata->unk76C[v0], 0.0f, 4U);
-        sp44 = player->modelInsts[player->modelInstIdx];
-        mod_func_8001A3FC(sp44, 0U, 0, 0.0f, player->srt.scale, &sp74, &sp48);
-        mod_func_8001A3FC(sp44, 0U, 0, 1.0f, player->srt.scale, &sp68, &sp48);
-        ((DLL_IVehicle*)vehicle->dll)->vtbl->GetRiderPosition(vehicle, &sp5C, &sp60, &sp64);
+        objAnimSet(player, objdata->unk76C[animIdx], 0.0f, 4);
+        modelInstance = player->modelInsts[player->modelInstIdx];
+        mod_func_8001A3FC(modelInstance, 0, 0, 0.0f, player->srt.scale, &sp74, &sp48);
+        mod_func_8001A3FC(modelInstance, 0, 0, 1.0f, player->srt.scale, &sp68, &sp48);
+        ((DLL_IVehicle*)vehicle->dll)->vtbl->GetRiderPosition(vehicle, &goalX, &goalY, &goalZ);
+        
         // @recomp: HACK: the mod anims used in this patch for hopping on the log plays too low, so
         //          artificially raise the point we lerp to a little bit (is there a better way to do this?).
         if (vehicle->id == OBJ_BWLog) {
-            sp60 += 8.0f;
+            goalY += 8.0f;
         }
-        sp5C -= player->srt.transl.f[0];
-        sp60 -= player->srt.transl.f[1];
-        sp64 -= player->srt.transl.f[2];
+
+        goalX -= player->srt.transl.f[0];
+        goalY -= player->srt.transl.f[1];
+        goalZ -= player->srt.transl.f[2];
         objdata->unk738.f[0] = player->srt.transl.f[0];
         objdata->unk738.f[1] = player->srt.transl.f[1];
         objdata->unk738.f[2] = player->srt.transl.f[2];
-        objdata->unk744.f[0] = sp5C;
-        objdata->unk744.f[1] = sp60 - sp68.f[1];
-        objdata->unk744.f[2] = sp64;
+        objdata->unk744.f[0] = goalX;
+        objdata->unk744.f[1] = goalY - sp68.f[1];
+        objdata->unk744.f[2] = goalZ;
         player->srt.flags |= OBJFLAG_MANUAL_PREV_POSITIONS;
         player->shadow->flags |= OBJ_SHADOW_FLAG_FADE_OUT;
         fsa->animTickDelta = 0.022f;
     }
+
     player->srt.transl.f[0] = objdata->unk738.f[0] + (player->animProgress * objdata->unk744.x);
     player->srt.transl.f[1] = objdata->unk738.f[1] + (player->animProgress * objdata->unk744.y);
     player->srt.transl.f[2] = objdata->unk738.f[2] + (player->animProgress * objdata->unk744.z);
-    ((DLL_IVehicle*)vehicle->dll)->vtbl->GetCameraPosition(vehicle, &sp5C, &sp60, &sp64);
-    sp50.z = ((sp5C - objdata->unk738.x) * player->animProgress) + objdata->unk738.x;
-    sp50.y = ((sp60 - objdata->unk738.y) * player->animProgress) + objdata->unk738.y;
-    sp50.x = ((sp64 - objdata->unk738.z) * player->animProgress) + objdata->unk738.z;
-    gDLL_2_Camera->vtbl->reposition_player(sp50.z, sp50.y, sp50.x);
-    if ((fsa->enteredAnimState == 0) && (fsa->unk33A != 0)) {
-        objAnimSet(player, *objdata->unk76C, 0.0f, 1);
+    ((DLL_IVehicle*)vehicle->dll)->vtbl->GetCameraPosition(vehicle, &goalX, &goalY, &goalZ);
+
+    //Linear interpolate the player's position onto the vehicle as the animation progresses
+    pos.z = ((goalX - objdata->unk738.x) * player->animProgress) + objdata->unk738.x;
+    pos.y = ((goalY - objdata->unk738.y) * player->animProgress) + objdata->unk738.y;
+    pos.x = ((goalZ - objdata->unk738.z) * player->animProgress) + objdata->unk738.z;
+    gDLL_2_Camera->vtbl->reposition_player(pos.z, pos.y, pos.x);
+
+    if ((fsa->enteredAnimState == FALSE) && fsa->unk33A) {
+        objAnimSet(player, objdata->unk76C[0], 0.0f, 1);
         ((DLL_IVehicle*)vehicle->dll)->vtbl->SetMountState(vehicle, VEHICLE_Mounted);
-        if (vehicle->id == 0x22) {
-            return 0x26;
+        if (vehicle->id == OBJ_BWLog) {
+            return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Log_Riding);
+        } else {
+            return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Vehicle_Riding);
         }
-        return 0x25;
     }
+
     return 0;
 }
 
