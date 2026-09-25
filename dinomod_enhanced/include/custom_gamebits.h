@@ -88,8 +88,8 @@ typedef enum {
     DINOMOD_BIT_96E_CamClimb_Skip_Ease = 0x96E,     // len:1 group:1 (Temporarily skip the camera ease entirely when climbing, helpful for ladders that are close to walls)
     DINOMOD_BIT_96F_Vehicle_Skip_Mount_Animation = 0x96F,  // len:1 group:1 (Skips the next vehicle mounting animation)
     DINOMOD_BIT_970_Log_Reset_Physics = 0x970,  // len:1 group:1 (Clears the log's paddle timer etc. - used so the player won't suddenly resume paddling after the HighTop cutscene in DF)
+    DINOMOD_BIT_971_AMSFX_Waterfalls_Reduce_Max_Volume = 0x971,  // len:1 group:1 (Temporarily reduces the max volume of `amSfx_WaterFallsControl`'s waterfall sounds, to avoid them drowning out the dialogue in Discovery Falls' HighTop cutscene)
     /* More placeholders */
-    DINOMOD_BIT_971_Placeholder = 0x971,  // len:1 group:1
     DINOMOD_BIT_972_Placeholder = 0x972,  // len:1 group:1
     DINOMOD_BIT_973_Placeholder = 0x973,  // len:1 group:1
     DINOMOD_BIT_974_Placeholder = 0x974,  // len:1 group:1

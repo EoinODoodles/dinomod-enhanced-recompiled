@@ -1,6 +1,8 @@
 #include "common_objsetups.h"
 #include "configs.h"
+#include "custom_gamebits.h"
 #include "modding.h"
+#include "object_util.h"
 #include "recomputils.h"
 #include "recompconfig.h"
 
@@ -242,6 +244,12 @@ RECOMP_PATCH u32 amSfx_Play(Object* obj, u16 soundID, u8 volume, u32* soundHandl
     return handle;
 }
 
+
+/**
+  * - Run even if there are no WaterFallSpray objects 
+  * - Handle fading out when no more sprays exist rather than abruptly stopping
+  * - Add option to temporarily reduce waterfalls' max volume via a gamebit (TODO: maybe rework to use the AMSFX waterfall flags?)
+  */
 RECOMP_PATCH void amSfx_WaterFallsControl(void) {
     Object* player;
     s32 i;
@@ -269,12 +277,14 @@ RECOMP_PATCH void amSfx_WaterFallsControl(void) {
     for (i = 0; i < sWaterFallSprayCount; i++) {
         distance = vec3Distance(camera + 1, &sWaterFallSprays[i].pos);
         if (distance < sWaterFallSprays[i].unkC) {
-            lowVolume += MAX_VOLUME - (u8)((u32)((distance / sWaterFallSprays[i].unkC) * MAX_VOLUME_F));
+            lowVolume += MAX_VOLUME - (u8)((distance / sWaterFallSprays[i].unkC) * MAX_VOLUME_F);
         }
         if (distance < sWaterFallSprays[i].unkE) {
-            highVolume += MAX_VOLUME - (u8)((u32)((distance / sWaterFallSprays[i].unkE) * MAX_VOLUME_F));
+            highVolume += MAX_VOLUME - (u8)((distance / sWaterFallSprays[i].unkE) * MAX_VOLUME_F);
         }
     }
+
+    //Reduce waterfalls' volume if flagged
     if (sWaterfallFlags & AMSFX_WATERFALLS_LOWER_HIGH) {
         highVolume >>= 1;
     }
@@ -287,12 +297,26 @@ RECOMP_PATCH void amSfx_WaterFallsControl(void) {
     if (sWaterfallFlags & AMSFX_WATERFALLS_LOWER_LOW2) {
         lowVolume >>= 1;
     }
+
+    // @recomp: reduce waterfalls' max volume via a gamebit if needed 
+    //(TODO: maybe rework as a custom ObjSeq command that calls `dll_amSfx->WaterFallsSetFlags`?)
+    if (mainGetBits(DINOMOD_BIT_971_AMSFX_Waterfalls_Reduce_Max_Volume)) {
+        if (highVolume > VOLUME_PERCENT(50)) {
+            highVolume = VOLUME_PERCENT(50);
+        }
+        if (lowVolume > VOLUME_PERCENT(50)) {
+            lowVolume = VOLUME_PERCENT(50);
+        }
+    }
+
+    //Clamp max volume
     if (highVolume > MAX_VOLUME) {
         highVolume = MAX_VOLUME;
     }
     if (lowVolume > MAX_VOLUME) {
         lowVolume = MAX_VOLUME;
     }
+
     // @recomp: Partially rewrite to handle fading out when no more sprays exist rather than abruptly stopping
     if (lowVolume == 0 && sWaterfallLowVolume == 0) {
         if (sWaterfallLowHandle != 0) {
