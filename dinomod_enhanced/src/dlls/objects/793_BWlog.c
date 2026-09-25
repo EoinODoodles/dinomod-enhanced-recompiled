@@ -800,17 +800,32 @@ RECOMP_PATCH void BWlog_obj_Print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** 
 /* Reset physics when a gamebit is set, used to make sure the player doesn't suddenly start paddling after Discovery Falls' HighTop cutscene. */
 static void BWlog_handlePhysicsReset(Object* self) {
     BWlog_Data* objData = self->data;
+    Object* player;
 
     if (mainGetBits(DINOMOD_BIT_970_Log_Reset_Physics)) {
         mainSetBits(DINOMOD_BIT_970_Log_Reset_Physics, FALSE);
 
+        self->srt.roll = 0;
+
         objData->paddleTimer = 0;
         objData->paddlePower = 0;
-        objData->rollTimer = 0;
+        objData->playerVehicleAnim = 0;
+        objData->rollAngle = 0;
+        objData->rollTimer = 0.0f;
+        objData->rollSpeed = 0;
+        objData->rollCurveProgress = 0.0f;
+        objData->tValueRoll = 1.0f;
         objData->velocity[0].x = objData->velocity[0].y = objData->velocity[0].z = 0;
         objData->velocity[1].x = objData->velocity[1].y = objData->velocity[1].z = 0;
+        objData->unk300[0] = 0;
+        objData->unk300[1] = 0;
         objData->powerX[0] = objData->powerZ[0] = 0;
         objData->powerX[1] = objData->powerZ[1] = 0;
         objData->state = BWLog_STATE_0_Main;
+
+        player = objGetPlayer();
+        if (player) {
+            player->animProgress = 1.0f;
+        }
     }
 }
