@@ -245,6 +245,59 @@ RECOMP_PATCH u32 amSfx_Play(Object* obj, u16 soundID, u8 volume, u32* soundHandl
     return handle;
 }
 
+/* Use regular 3D distance for sound emitters (TODO: experimental, investigate! Not fully sure it's a bug) */
+RECOMP_PATCH s32 amSfx_FindEmittersInRange(Object* listener, s32 distance, s32 minVolume, Object** foundObjs, s32 foundObjsMax) {
+    s32 outCount;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 listenerX;
+    f32 listenerY;
+    f32 listenerZ;
+    f32 sourceX;
+    f32 sourceY;
+    f32 sourceZ;
+    s32 i;
+    Object* soundSource;
+
+    if (distance != -1) {
+        distance *= distance;
+    }
+
+    outCount = 0;
+    for (i = 1; i < (sSndSlotsLen + 1); i++) {
+        if ((sSndSlots[i].sndpHandle == 0) || (sSndSlots[i].sndpHandle == (sndstate*)-1)) {
+            continue;
+        }
+        soundSource = sSndSlots[i].source;
+        if (soundSource == NULL) {
+            continue;
+        }
+        if ((minVolume != -1) && (sSndSlots[i].volume < minVolume)) {
+            continue;
+        }
+        if (distance != -1) {
+            camGetObjectChildPosition(listener, &listenerX, &listenerY, &listenerZ);
+            camGetObjectChildPosition(soundSource, &sourceX, &sourceY, &sourceZ);
+            dx = listenerX - sourceX;
+            dy = listenerY - sourceY;
+            dz = listenerZ - sourceZ;
+
+            // if (distance < (SQ(dx) + SQ(dy) + (dz * dy))) { //@bug? Shouldn't this be SQ(dz) at the end?
+
+            //@recomp: try using regular 3D distance (unsure if the dz*dy was a mistake or they had some reason for it!)
+            if (distance < (SQ(dx) + SQ(dy) + SQ(dz))) { 
+                continue;
+            }
+        }
+        foundObjs[outCount++] = sSndSlots[i].source;
+        if (outCount == foundObjsMax) {
+            break;
+        }
+    }
+
+    return outCount;
+}
 
 /**
   * - Run even if there are no WaterFallSpray objects 
