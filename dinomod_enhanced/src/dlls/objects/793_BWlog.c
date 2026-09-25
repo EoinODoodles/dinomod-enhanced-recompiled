@@ -1,4 +1,5 @@
 #include "configs.h"
+#include "custom_gamebits.h"
 #include "modding.h"
 #include "recompconfig.h"
 
@@ -34,9 +35,15 @@ extern void BWlog_findRiverflows(Object* self, BWlog_Data* objdata);
 extern void BWlog_handleSounds(Object* arg0, BWlog_Data* arg1);
 extern void BWlog_handleFx(Object* self, BWlog_Data* objdata);
 
+static void BWlog_handlePhysicsReset(Object* self);
+
 // @recomp: Copy of DFlog's anim callback
 static int recomp_BWlog_animcallback(Object *self, Object *a1, AnimObj_Data *a2, s8 a3) {
     func_800267A4(self);
+
+    // @recomp: handle resetting the log's motion via a gamebit
+    BWlog_handlePhysicsReset(self);
+
     return 0;
 }
 
@@ -336,6 +343,9 @@ RECOMP_PATCH void BWlog_obj_Control(Object* self) {
     
     BWlog_handleSounds(self, objdata);
     BWlog_handleFx(self, objdata);
+
+    // @recomp: handle resetting the log's motion via a gamebit
+    BWlog_handlePhysicsReset(self);
 }
 
 RECOMP_PATCH void BWlog_handleWater(Object* self, BWlog_Data* objdata, s32 side) {
@@ -784,5 +794,23 @@ RECOMP_PATCH void BWlog_obj_Print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** 
         }
 
         objprintDrawModel(self, gdl, mtxs, vtxs, pols, 1.0f);
+    }
+}
+
+/* Reset physics when a gamebit is set, used to make sure the player doesn't suddenly start paddling after Discovery Falls' HighTop cutscene. */
+static void BWlog_handlePhysicsReset(Object* self) {
+    BWlog_Data* objData = self->data;
+
+    if (mainGetBits(DINOMOD_BIT_970_Log_Reset_Physics)) {
+        mainSetBits(DINOMOD_BIT_970_Log_Reset_Physics, FALSE);
+
+        objData->paddleTimer = 0;
+        objData->paddlePower = 0;
+        objData->rollTimer = 0;
+        objData->velocity[0].x = objData->velocity[0].y = objData->velocity[0].z = 0;
+        objData->velocity[1].x = objData->velocity[1].y = objData->velocity[1].z = 0;
+        objData->powerX[0] = objData->powerZ[0] = 0;
+        objData->powerX[1] = objData->powerZ[1] = 0;
+        objData->state = BWLog_STATE_0_Main;
     }
 }

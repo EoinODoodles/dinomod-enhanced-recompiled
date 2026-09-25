@@ -87,8 +87,8 @@ typedef enum {
     DINOMOD_BIT_96D_CamClimb_Shorter_Ease = 0x96D,  // len:1 group:1 (Temporarily use only the second half of the usual camera ease, helpful for ladders that are close to walls)
     DINOMOD_BIT_96E_CamClimb_Skip_Ease = 0x96E,     // len:1 group:1 (Temporarily skip the camera ease entirely when climbing, helpful for ladders that are close to walls)
     DINOMOD_BIT_96F_Vehicle_Skip_Mount_Animation = 0x96F,  // len:1 group:1 (Skips the next vehicle mounting animation)
+    DINOMOD_BIT_970_Log_Reset_Physics = 0x970,  // len:1 group:1 (Clears the log's paddle timer etc. - used so the player won't suddenly resume paddling after the HighTop cutscene in DF)
     /* More placeholders */
-    DINOMOD_BIT_970_Placeholder = 0x970,  // len:1 group:1
     DINOMOD_BIT_971_Placeholder = 0x971,  // len:1 group:1
     DINOMOD_BIT_972_Placeholder = 0x972,  // len:1 group:1
     DINOMOD_BIT_973_Placeholder = 0x973,  // len:1 group:1

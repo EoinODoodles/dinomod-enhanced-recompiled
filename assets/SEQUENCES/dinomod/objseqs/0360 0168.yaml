@@ -1,6 +1,10 @@
 # Discovery Falls - Krystal Meets the HighTop Archaeologist
-# Edited to set "DINOMOD_BIT_96F_Vehicle_Skip_Mount_Animation", 
+# 
+# Previously edited by LaminGaming (Add L skip, adjust subtitle-related timing)
+#
+# Also edited by Banjeoin to set "DINOMOD_BIT_96F_Vehicle_Skip_Mount_Animation",
 # avoiding a bug where the player reenters the log mounting state after the cutscene ends.
+# Also sets "DINOMOD_BIT_970_Log_Reset_Physics" to clear any paddle/roll motion still queued from before the cutscene.
 
 actors:
 # Actor 0
@@ -48,6 +52,10 @@ curves:
   # Set "DINOMOD_BIT_96F_Vehicle_Skip_Mount_Animation"
   - { type: 13, delay: 0, params: 0xB000 } # ENVFX (SET_BIT)
   - { type: 127, delay: 168, params: 0x96F } # PARAM
+
+  # Set "DINOMOD_BIT_970_Log_Reset_Physics"
+  - { type: 13, delay: 0, params: 0xB000 } # ENVFX (SET_BIT)
+  - { type: 127, delay: 168, params: 0x970 } # PARAM
 
   - { type: 0, delay: 0, params: 371 } # SETTIME @ 1
   - { type: 2, delay: 172, params: 0x312 } # ANIM @ 371
