@@ -15,7 +15,10 @@
 #define DEGREES_TO_ANGLE8(degrees) ((u8)(degrees*((f32)0x100/360.0f) + 0.5f))
 
 //Convert degrees into the 16-bit angle format Dinosaur Planet commonly uses for calculations
-#define DEGREES_TO_ANGLE16(degrees) ((((s32)degrees * M_360_DEGREES * 2) + 1) / 720)
+#define DEGREES_TO_ANGLE16(degrees) ((u16)((s32)((((s32)degrees * M_360_DEGREES * 2) + 1) / 720)))
+
+#define UINT_SAFE_SUBTRACT(value, subtracted) ((value < subtracted) ? 0 : value - subtracted)
+#define UINT_SAFE_ADD(value, added, limit) ((limit < ((u32)((u32)value + added))) ? limit : value + added)
 
 extern f32 sqrtf(f32 num);
 extern f32 sinf(f32 angle);

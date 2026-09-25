@@ -1,6 +1,7 @@
 #include "common_objsetups.h"
 #include "configs.h"
 #include "custom_gamebits.h"
+#include "math_util.h"
 #include "modding.h"
 #include "object_util.h"
 #include "recomputils.h"
@@ -248,6 +249,7 @@ RECOMP_PATCH u32 amSfx_Play(Object* obj, u16 soundID, u8 volume, u32* soundHandl
 /**
   * - Run even if there are no WaterFallSpray objects 
   * - Handle fading out when no more sprays exist rather than abruptly stopping
+  * - Fix framerate dependencies on volume fades
   * - Add option to temporarily reduce waterfalls' max volume via a gamebit (TODO: maybe rework to use the AMSFX waterfall flags?)
   */
 RECOMP_PATCH void amSfx_WaterFallsControl(void) {
@@ -325,17 +327,22 @@ RECOMP_PATCH void amSfx_WaterFallsControl(void) {
         }
     } else {
         if (sWaterfallLowHandle == 0) {
-            sWaterfallLowVolume = 1;
-            amSfx_Play(NULL, SOUND_986_Waterfall_Low_Loop, sWaterfallLowVolume, &sWaterfallLowHandle, "game/amsfx.c", 1016, "");
+            sWaterfallLowVolume = 2; //@recomp: fix framerate dependency
+            amSfx_Play(NULL, SOUND_986_Waterfall_Low_Loop, sWaterfallLowVolume / 2, &sWaterfallLowHandle, "game/amsfx.c", 1016, "");
         }
+
         // @bug: framerate dependent
-        if (lowVolume < sWaterfallLowVolume) {
-            sWaterfallLowVolume -= 1;
+        if (lowVolume * 2 < sWaterfallLowVolume) {
+            // sWaterfallLowVolume -= 1;
+            sWaterfallLowVolume = UINT_SAFE_SUBTRACT(sWaterfallLowVolume, gUpdateRate); //@recomp: fix framerate dependency
         } else {
-            sWaterfallLowVolume += 1;
+            // sWaterfallLowVolume += 1;
+            sWaterfallLowVolume = UINT_SAFE_ADD(sWaterfallLowVolume, gUpdateRate, 0xFF); //@recomp: fix framerate dependency
         }
-        amSfx_SetVol(sWaterfallLowHandle, sWaterfallLowVolume);
+
+        amSfx_SetVol(sWaterfallLowHandle, sWaterfallLowVolume / 2); //@recomp: fix framerate dependency
     }
+
     if (highVolume == 0 && sWaterfallHighVolume == 0) {
         if (sWaterfallHighHandle != 0) {
             amSfx_Stop(sWaterfallHighHandle);
@@ -343,16 +350,20 @@ RECOMP_PATCH void amSfx_WaterFallsControl(void) {
         }
     } else {
         if (sWaterfallHighHandle == 0) {
-            sWaterfallHighVolume = 1;
-            amSfx_Play(NULL, SOUND_987_Waterfall_High_Loop, sWaterfallHighVolume, &sWaterfallHighHandle, "game/amsfx.c", 1036, "");
+            sWaterfallHighVolume = 2; //@recomp: fix framerate dependency
+            amSfx_Play(NULL, SOUND_987_Waterfall_High_Loop, sWaterfallHighVolume / 2, &sWaterfallHighHandle, "game/amsfx.c", 1036, "");
         }
+
         // @bug: framerate dependent
-        if (highVolume < sWaterfallHighVolume) {
-            sWaterfallHighVolume -= 1;
+        if (highVolume * 2 < sWaterfallHighVolume) {
+            // sWaterfallHighVolume -= 1;
+            sWaterfallHighVolume = UINT_SAFE_SUBTRACT(sWaterfallHighVolume, gUpdateRate); //@recomp: fix framerate dependency
         } else {
-            sWaterfallHighVolume += 1;
+            // sWaterfallHighVolume += 1;
+            sWaterfallHighVolume = UINT_SAFE_ADD(sWaterfallHighVolume, gUpdateRate, 0xFF); //@recomp: fix framerate dependency
         }
-        amSfx_SetVol(sWaterfallHighHandle, sWaterfallHighVolume);
+
+        amSfx_SetVol(sWaterfallHighHandle, sWaterfallHighVolume / 2); //@recomp: fix framerate dependency
     }
 }
 
