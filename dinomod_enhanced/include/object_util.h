@@ -9,7 +9,7 @@
 #define FSA_NEXTSTATE_SYNC(state) (state + 1)
 #define FSA_NEXTSTATE_ASYNC(state) (-state)
 
-#define VOLUME_PERCENT(percent) (((percent * MAX_VOLUME) + (MAX_VOLUME/2)) / 100)
+#define VOLUME_PERCENT(percent) ((u32)(((percent * MAX_VOLUME) + (MAX_VOLUME/2)) / 100))
 
 #define GAMEBIT_SPECIFIED(gamebit) (gamebit > NO_GAMEBIT + 1)
 #define GAMEBIT_SPECIFIED_AND_SET(gamebit) (GAMEBIT_SPECIFIED(gamebit) && mainGetBits(gamebit))

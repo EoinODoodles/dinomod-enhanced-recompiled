@@ -246,6 +246,11 @@ _Bool configs_GetMoleBurrowEffects(void) {
     return recomp_get_config_u32("dfmole_burrow_effects") != 0;
 }
 
+/* Checks whether to apply edits to RopeBaddies' battle behaviour */
+_Bool configs_GetRopeBaddieCombatEdits(void) {
+    return recomp_get_config_u32("rope_baddie_edits") != 0;
+}
+
 /* Checks what option to use for DIMCannon's custom sound design. */
 DIMCannonSounds configs_GetDIMCannonSoundMode(void) {
     return recomp_get_config_u32("dim_cannon_sounds");

@@ -635,6 +635,24 @@ options = [ "Off", "On" ]
 default = "On"
 
 [[manifest.config_options]]
+id = "rope_baddie_edits"
+name = "Rope Baddies: Combat Edits"
+description = '''
+While shimmying your way high over Discovery Falls you'll soon encounter Rope Baddies: funny serpentine dinosaurs with a very territorial attitute to the community jungle gym the HighTops had installed.
+
+This config option applies some small edits to their combat:
+
+- Their damaging hitbox only becomes active during the actual attack part of their combat animations.
+
+- Their attacks have a slightly slower wind-up, and they won't attack until you're fully on the rope.
+
+- After dropping down from a rope, they'll continue pursuing you for a moment instead of immediately losing interest. This gives a chance to see some of their extra battle animations! These aren't strictly unused, but they could be difficult to encounter otherwise.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
 id = "dfwhirlpool_assist"
 name = "Whirlpool Cave: Barrel Assist"
 description = '''

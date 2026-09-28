@@ -174,6 +174,7 @@ _Bool configs_GetPurpleMushrooms(void);
 VampireBat_BattleMode configs_GetVampireBatMode(void);
 _Bool configs_GetMoleDigFix(void);
 _Bool configs_GetMoleBurrowEffects(void);
+_Bool configs_GetRopeBaddieCombatEdits(void);
 DIMCannonSounds configs_GetDIMCannonSoundMode(void);
 DIMTentModes configs_GetDIMTentMode(void);
 _Bool configs_GetWCPressureSwitchIgnoreProjectiles(void);
