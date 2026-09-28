@@ -746,7 +746,13 @@ RECOMP_PATCH s32 RopeBaddie_logicState2Chase(Object* self, ObjFSA_Data* fsa, f32
         
         //Check if the player's behind the Baddie, or get their distance when they're in front
         if ((yawDiff > M_90_DEGREES) && (yawDiff < M_90_DEGREES * 3)) {
-            dx = -100.0f;
+            //@recomp: if the target is way behind the RopeBaddie, turn instead of backpedalling at silly speeds
+            if (fsa->targetDist > 50.0f) {
+                gDLL_18_objfsa->vtbl->set_anim_state(self, fsa, RopeBaddie_ASTATE_2_Turning);
+                return FSA_NEXTSTATE_SYNC(RopeBaddie_LSTATE_0_Top);
+            } else {
+                dx = -100.0f;
+            }
         } else {
             dx = sqrtf(SQ(dx) + SQ(dz)) - 45.0f;
         }
