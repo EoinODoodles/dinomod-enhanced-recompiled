@@ -5139,6 +5139,46 @@ static void discovery_falls_modifications(void) {
 
         //Shrine Waterfall Rapids
         {
+            //Block texture scrollers
+            {
+                //Add TexScroll2 for the top of the waterfall
+                //(the faces just inside the rapids' Block didn't have a local TexScroll2 of their own)
+                {
+                    TexScroll2_Setup scroll = {
+                        .base = {
+                            .objId = OBJ_texscroll2,
+                            .loadFlags = OBJSETUP_LOAD_CAMERA,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = FADE_DISTANCE(640 * 2),
+                            .fadeDistance = FADE_DISTANCE(640)
+                        },
+                        COORDS_SETUP(-984.608, 538.485, -1084.027),
+                        .textureIndex = 0x17,
+                        .blendTextureIndex = -1,
+                        .vSpeedA = -10
+                    };
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &scroll, sizeof(scroll));
+                }
+
+                //Adjust the rapids waterfall's TexScroll2 so it loads from further away
+                {
+                    TexScroll2_Setup* rapids = GET_MAPS_OBJECT(discoveryFalls, 0x0031e55);
+                    rapids->base.loadFlags = OBJSETUP_LOAD_CAMERA;
+                    rapids->base.loadDistance = FADE_DISTANCE(640 * 2);
+                    rapids->blendTextureIndex = -1; //Clear reference to old water texture (from earlier art pass maybe?)
+                }
+
+                //Adjust the rapids waterfall's TexScroll2 so it loads from further away
+                //(needs to be seen from as far as the Whirlpool Cave's "window")
+                {
+                    TexScroll2_Setup* rapidsWaterfall = GET_MAPS_OBJECT(discoveryFalls, 0x00031e50);
+                    rapidsWaterfall->base.loadFlags = OBJSETUP_LOAD_CAMERA;
+                    rapidsWaterfall->base.loadDistance = FADE_DISTANCE(640 * 2);
+                    rapidsWaterfall->blendTextureIndex = -1; //Clear reference to old water texture (from earlier art pass maybe?)
+                }
+            }
+
             //Add LOD for the distant shrine area
             {
                 LODAnimator_Setup lod = {
@@ -5183,12 +5223,18 @@ static void discovery_falls_modifications(void) {
 
     //Shrine Area
     {
-        //Move Whirlpool Cave waterfall's texscroll into the main shrine exterior objGroup
-        //(Rare gave it its own unique ObjGroup for some reason, but I'm not sure if it ever loads?)
-        // {
-        //     TexScroll2_Setup* texScroll = GET_MAPS_OBJECT(discoveryFalls, 0x00031e4f);
-        //     texScroll->base.mapObjGroup = DF_ObjGroup3_Shrine_Exterior;
-        // }
+        //Move Whirlpool Cave waterfall's texscroll into the Shrine exterior objGroup
+        {
+            TexScroll2_Setup* texScroll = GET_MAPS_OBJECT(discoveryFalls, 0x00031f07);
+            texScroll->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+            texScroll->base.mapObjGroup = DF_ObjGroup3_Shrine_Exterior;
+        }
+        
+        //Delete Rare's secondary Whirlpool Cave waterfall texscroll, 
+        //since there's already one targetting this textureID in this block
+        {
+            reasset_map_objects_delete(discoveryFalls, reasset_base_id(0x00031e4f));
+        }
 
         //Add HitAnimator for the reverse side of the Whirlpool Cave's destructible wall
         {
