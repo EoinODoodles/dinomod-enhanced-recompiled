@@ -5400,6 +5400,18 @@ static void discovery_falls_modifications(void) {
             plane->conditionBitFlagIDs[0] = BIT_DF_Shrine_Door_Opens; 
         }
 
+        //Don't let Kyte fly through the Shrine door until it's actually open
+        {
+            u32 kyteDoorwayUIDs[] = {
+                0x00042dfe,
+                0x00042dff
+            };
+            for (u32 i = 0; i < ARRAYCOUNT(kyteDoorwayUIDs); i++) {
+                CurveSetup* flyCurve = GET_MAPS_OBJECT(discoveryFalls, kyteDoorwayUIDs[i]);
+                flyCurve->type22.unk30 = BIT_DF_Shrine_Door_Opens;
+            }
+        }
+
         //Play Discovery Falls' music when leaving the shrine 
         //(so you don't trek back in silence after the Test!)
         {
