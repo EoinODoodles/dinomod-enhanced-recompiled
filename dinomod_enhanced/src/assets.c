@@ -4999,6 +4999,25 @@ static void discovery_falls_modifications(void) {
                 Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x00030daa);
                 plane->base.y = 544.235f;
             }
+
+            //Add LOD for the entrance, when viewed from Middle Falls or the very end of the rapids
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_CAMERA,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(640),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1733, 560, -401),
+                    .animatorID = 10,
+                    .gridOffsetX = -1,
+                    .options = LODAnimator_OPTION_1_Show_LOD_on_Unload
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
         }
 
         //Demolition Caves
@@ -5196,6 +5215,13 @@ static void discovery_falls_modifications(void) {
                 };
                 reasset_map_objects_set(discoveryFalls, 
                     reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Don't load/unload `DF_ObjGroup9_Whirlpool_Cave_HitAnimator` when passing over the top of the waterfall (no need)
+            {
+                Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x00030aa7);
+                EMPTY_TRIGGER_COMMAND(plane, 2); 
+                EMPTY_TRIGGER_COMMAND(plane, 3);
             }
         }
 
@@ -5579,6 +5605,13 @@ static void discovery_falls_modifications(void) {
                     reasset_map_objects_set(discoveryFalls, 
                         reasset_auto_id(dinomodNs), &plane, sizeof(plane));
                 }
+            }
+
+            //Don't load/unload `DF_ObjGroup9_Whirlpool_Cave_HitAnimator` halfway through the climb (no need)
+            {
+                Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x00030ee9);
+                EMPTY_TRIGGER_COMMAND(plane, 2); 
+                EMPTY_TRIGGER_COMMAND(plane, 3);
             }
         }
     }
