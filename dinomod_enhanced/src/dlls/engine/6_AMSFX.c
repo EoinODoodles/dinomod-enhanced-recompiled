@@ -355,7 +355,7 @@ RECOMP_PATCH void amSfx_WaterFallsControl(void) {
 
     // @recomp: reduce waterfalls' max volume via a gamebit if needed 
     //(TODO: maybe rework as a custom ObjSeq command that calls `dll_amSfx->WaterFallsSetFlags`?)
-    if (mainGetBits(DINOMOD_BIT_971_AMSFX_Waterfalls_Reduce_Max_Volume)) {
+    if (mainGetBits(DINOMOD_BIT_970_AMSFX_Waterfalls_Reduce_Max_Volume)) {
         if (highVolume > VOLUME_PERCENT(50)) {
             highVolume = VOLUME_PERCENT(50);
         }

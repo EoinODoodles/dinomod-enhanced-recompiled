@@ -1,5 +1,4 @@
 #include "configs.h"
-#include "custom_gamebits.h"
 #include "modding.h"
 #include "recompconfig.h"
 
@@ -37,12 +36,18 @@ extern void BWlog_handleFx(Object* self, BWlog_Data* objdata);
 
 static void BWlog_handlePhysicsReset(Object* self);
 
-// @recomp: Copy of DFlog's anim callback
-static int recomp_BWlog_animcallback(Object *self, Object *a1, AnimObj_Data *a2, s8 a3) {
+/* @recomp: Copy of DFlog's anim callback, edited to handle custom objSeq messages too */
+static int recomp_BWlog_animcallback(Object* self, Object* animObj, AnimObj_Data* animData, s8 prevCallbackValue) {
     func_800267A4(self);
 
-    // @recomp: handle resetting the log's motion via a gamebit
-    BWlog_handlePhysicsReset(self);
+    for (u8 i = 0; i < animData->messageCount; i++) {
+        switch (animData->messages[i]) {
+        case 1:
+            // @recomp: handle resetting the log's motion
+            BWlog_handlePhysicsReset(self);
+            break;
+        }
+    }
 
     return 0;
 }
@@ -343,9 +348,6 @@ RECOMP_PATCH void BWlog_obj_Control(Object* self) {
     
     BWlog_handleSounds(self, objdata);
     BWlog_handleFx(self, objdata);
-
-    // @recomp: handle resetting the log's motion via a gamebit
-    BWlog_handlePhysicsReset(self);
 }
 
 RECOMP_PATCH void BWlog_handleWater(Object* self, BWlog_Data* objdata, s32 side) {
@@ -797,35 +799,32 @@ RECOMP_PATCH void BWlog_obj_Print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** 
     }
 }
 
-/* Reset physics when a gamebit is set, used to make sure the player doesn't suddenly start paddling after Discovery Falls' HighTop cutscene. */
+/* Reset physics when an objSeq message is received, used to make sure the player 
+   doesn't suddenly start paddling after Discovery Falls' HighTop cutscene. */
 static void BWlog_handlePhysicsReset(Object* self) {
     BWlog_Data* objData = self->data;
     Object* player;
 
-    if (mainGetBits(DINOMOD_BIT_970_Log_Reset_Physics)) {
-        mainSetBits(DINOMOD_BIT_970_Log_Reset_Physics, FALSE);
+    self->srt.roll = 0;
 
-        self->srt.roll = 0;
+    objData->paddleTimer = 0;
+    objData->paddlePower = 0;
+    objData->playerVehicleAnim = 0;
+    objData->rollAngle = 0;
+    objData->rollTimer = 0.0f;
+    objData->rollSpeed = 0;
+    objData->rollCurveProgress = 0.0f;
+    objData->tValueRoll = 1.0f;
+    objData->velocity[0].x = objData->velocity[0].y = objData->velocity[0].z = 0;
+    objData->velocity[1].x = objData->velocity[1].y = objData->velocity[1].z = 0;
+    objData->unk300[0] = 0;
+    objData->unk300[1] = 0;
+    objData->powerX[0] = objData->powerZ[0] = 0;
+    objData->powerX[1] = objData->powerZ[1] = 0;
+    objData->state = BWLog_STATE_0_Main;
 
-        objData->paddleTimer = 0;
-        objData->paddlePower = 0;
-        objData->playerVehicleAnim = 0;
-        objData->rollAngle = 0;
-        objData->rollTimer = 0.0f;
-        objData->rollSpeed = 0;
-        objData->rollCurveProgress = 0.0f;
-        objData->tValueRoll = 1.0f;
-        objData->velocity[0].x = objData->velocity[0].y = objData->velocity[0].z = 0;
-        objData->velocity[1].x = objData->velocity[1].y = objData->velocity[1].z = 0;
-        objData->unk300[0] = 0;
-        objData->unk300[1] = 0;
-        objData->powerX[0] = objData->powerZ[0] = 0;
-        objData->powerX[1] = objData->powerZ[1] = 0;
-        objData->state = BWLog_STATE_0_Main;
-
-        player = objGetPlayer();
-        if (player) {
-            player->animProgress = 1.0f;
-        }
+    player = objGetPlayer();
+    if (player) {
+        player->animProgress = 1.0f;
     }
 }
