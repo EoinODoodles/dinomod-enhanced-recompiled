@@ -16,7 +16,10 @@
 
 #include "recomp/dlls/objects/433_DFSH_Shrine_recomp.h"
 
+// #define DEBUG_DF_MUSIC
+
 //TEMPORARY DEFINES
+#define DFShrine_obj_Setup DFShrine_setup
 #define DFShrine_obj_Control DFShrine_control
 #define DFShrine_obj_GetDataSize DFShrine_get_data_size
 #define DFShrine_animCallback DFShrine_anim_callback
@@ -69,11 +72,100 @@ typedef enum {
     DFShrine_STATE_8_Reset
 } DFShrine_States;
 
+extern int DFShrine_animCallback(Object* self, Object* animObj, AnimObj_Data* animData, s8 prevCallbackValue);
 extern void DFShrine_processObjMessages(Object* self);
 
 extern Texture* data_0;
 
-/* Fix SharpClaw respawning endlessly during the test and hanging around afterwards */
+static s8 rsDFMusicPlayerNo = -1;
+
+#define MUSICID_DISCOVERY_FALLS 64
+
+static void DFShrine_handleDFMusicInitial(void) {
+    //@recomp: fade out and stop Discovery Falls' music, just in case it's still playing
+    //(this could happen sometimes when visiting the Shrine, due to ending up on a different playerNo than 3)
+    for (u8 i = 0; i < 4; i++) {
+        //Check if the playerNo is playing Discovery Falls' theme
+        if (gDLL_5_AMSEQ->vtbl->get_no(i) == MUSICID_DISCOVERY_FALLS) { 
+            rsDFMusicPlayerNo = i; //Store the playerNo
+            gDLL_5_AMSEQ->vtbl->set_volume(rsDFMusicPlayerNo, 0); //Start fade out
+            break;
+        }
+    }
+}
+
+static void DFShrine_handleDFMusicStop(void) {
+    if (rsDFMusicPlayerNo < 0) {
+        return;
+    }
+
+    //Stop checking the player if it's no longer playing Discovery Falls' music
+    if (gDLL_5_AMSEQ->vtbl->get_no(rsDFMusicPlayerNo) != MUSICID_DISCOVERY_FALLS) {
+        rsDFMusicPlayerNo = -1;
+        return;
+    }
+
+#ifdef DEBUG_DF_MUSIC
+    recomp_printf("playerNo: %d, musicID: %d, vol: %d\n", 
+        rsDFMusicPlayerNo, 
+        gDLL_5_AMSEQ->vtbl->get_no(rsDFMusicPlayerNo),
+        gDLL_5_AMSEQ->vtbl->get_volume(rsDFMusicPlayerNo)
+    );
+#endif
+
+    //Clear Discovery Falls' music from the player once its volume is 0
+    if (gDLL_5_AMSEQ->vtbl->get_volume(rsDFMusicPlayerNo) == 0) {
+        gDLL_5_AMSEQ->vtbl->stop(rsDFMusicPlayerNo);
+        rsDFMusicPlayerNo = -1;
+    }
+}
+
+/* Start fading out Discovery Falls' music if it's still playing when entering the Shrine */
+RECOMP_PATCH void DFShrine_obj_Setup(Object* self, DFShrine_Setup* setup, s32 reset) {
+    DFShrine_Data* objdata = self->data;
+    DLL_IModgfx* modgfx;
+    
+    self->srt.yaw = 0;
+
+    objdata->testStartRange = 10;
+    if (setup->testStartRange > 0) {
+        objdata->testStartRange = setup->testStartRange >> 8;
+    }
+    objdata->state = DFShrine_STATE_0_Waiting;
+    objdata->seqValue = 0;
+    objdata->stateCooldown = 0;
+    objdata->numSharpClawDefeated = 0;
+
+    self->animCallback = DFShrine_animCallback;
+
+    objInitMesgQueue(self, 4);
+
+    mainSetBits(BIT_DB_Entered_Shrine_3, 1);
+    mainSetBits(BIT_125, 0);
+    mainSetBits(BIT_DB_Entered_Shrine_1, 1);
+    mainSetBits(BIT_DB_Entered_Shrine_2, 1);
+    mainSetBits(BIT_DF_Shrine_SharpClaw_Defeated, FALSE);
+
+    objdata->whisperVolume = 0xC;
+    objdata->bgmVolume = 0x1E;
+    objdata->stateCooldown = 200;
+    objdata->whisperVolumeRate = 0;
+    objdata->bgmVolumeRate = 0;
+    objdata->startedBgMusic = FALSE;
+    objdata->testTimer = 0;
+
+    modgfx = dllLoad(DLL_ID_122, 1);
+    objdata->modGfxRing = modgfx->vtbl->func0(self, 0, 0, 0x402, -1, 0);
+    dllFree(modgfx);
+
+    //@recomp: find and fade out Discovery Falls' music, if it's still playing
+    DFShrine_handleDFMusicInitial();
+}
+
+/**
+  * - Fix SharpClaw respawning endlessly during the test and hanging around afterwards.
+  * - Ensure Discovery Falls' music stops when it's playing on a different channelNo.
+  */
 RECOMP_PATCH void DFShrine_obj_Control(Object* self) {
     static u8 sFirstTick = TRUE;
     DFShrine_Data* objdata = self->data;
@@ -135,8 +227,14 @@ RECOMP_PATCH void DFShrine_obj_Control(Object* self) {
             objdata->bgmVolume = 70;
             objdata->bgmVolumeRate = 0;
         }
+
+        // NOTE: stops Discovery Falls' music if its playerNo is also 3, 
+        // but this isn't always reliable - so extra handling has been added!
         gDLL_5_AMSEQ->vtbl->set_volume(3, objdata->bgmVolume);
     }
+
+    //@recomp: handle stopping DF's music once its fadeout's finished
+    DFShrine_handleDFMusicStop();
 
     // Handle cooldown between states and return early
     if (objdata->stateCooldown > 0) {

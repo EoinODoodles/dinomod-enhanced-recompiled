@@ -5383,9 +5383,34 @@ static void discovery_falls_modifications(void) {
                 doorPiece->base.z = -1719.032;
                 doorPiece->yaw = DEGREES_TO_ANGLE8(315);
 
-                //Unload when open, too
-                doorPiece->options |= SeqDoor_OPTION_4_Unload_At_End_of_Sequence | SeqDoor_OPTION_2_Unload_If_Already_Open;
             }
+        }
+
+        //Play Discovery Falls' music when leaving the shrine 
+        //(so you don't trek back in silence after the Test!)
+        {
+            //Add a new TriggerPlane instead of reusing the post-shrine cutscene activation one,
+            //since the player might leave the shrine before collecting the spirit
+            Trigger_Setup plane = {
+                .base = {
+                    .objId = OBJ_TriggerPlane,
+                    .loadFlags = OBJSETUP_LOAD_MAIN,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = 50,
+                    .fadeDistance = 50,
+                },
+                COORDS_SETUP(-690, 218, -1766.848),
+                .rotationY = TRIGGER_YAW(90),
+                .rotationX = 0,
+                .sizeX = TRIGGER_SCALE(0.5625),
+                .sizeY = 0x10,
+                .sizeZ = 0x10,
+                .conditionBitFlagIDs[0] = NO_GAMEBIT
+            };
+            ENTER_PLAY_MUSIC(0xD, &plane, 0);
+
+            reasset_map_objects_set(discoveryFalls, 
+                reasset_auto_id(dinomodNs), &plane, sizeof(plane));
         }
 
         //Exit Climb
