@@ -5040,6 +5040,13 @@ static void discovery_falls_modifications(void) {
                 ObjSetup* bigCrate = GET_MAPS_OBJECT(discoveryFalls, 0x42e64);
                 bigCrate->y = 435;
             }
+
+            //Don't load `DF_ObjGroup11_Shrine_Door` on the way into the Whirlpool Cave (no need, due to LOD)
+            //Unload command can stay though, because the Shrine Switch cutscene activates the door objGroup
+            {
+                Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x0004234d);
+                EMPTY_TRIGGER_COMMAND(plane, 4); //Only remove load command, not unload
+            }
         }
         
         //Whirlpool Cave
