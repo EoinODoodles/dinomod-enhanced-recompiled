@@ -1,6 +1,8 @@
+#include "macros.h"
 #include "modding.h"
 #include "recomputils.h"
 
+#include "sys/gfx/texture.h"
 #include "sys/intersect.h"
 #include "sys/map.h"
 #include "sys/map_enums.h"
@@ -201,4 +203,127 @@ RECOMP_PATCH void blockFree(s32 blockIndex) {
         trackIntersectMarkBlocksDirty();
         mmFree(block);
     }
+}
+
+// BLOCK TEXTURE SCROLLERS
+
+extern BlockTextureScroller* sBlockTexScrollTable;
+
+/* A custom array storing the Texture* associated with each item in `sBlockTexScrollTable` */
+static Texture** rsBlockTexScrollerTextures; //TODO: clear Texture pointers from this array if `texFreeTexture` frees the texture?
+
+RECOMP_HOOK_RETURN("trackInit") void trackInitTexScrollerTexIDs(void) {
+    rsBlockTexScrollerTextures = mmAlloc(sizeof(Texture*) * MAX_TEXTURE_SCROLLERS, ALLOC_TAG_TRACK_COL, ALLOC_NAME("trk:texscroll"));
+    bzero(sBlockTexScrollTable, sizeof(BlockTextureScroller) * MAX_TEXTURE_SCROLLERS);
+}
+
+/** 
+  * Based on `blockTexscrollSet`, except the scroller's texture is stored too 
+  * (to avoid mismatches where a scroller ends up targetting the wrong texture, like how Discovery Falls'
+  * cradle rope texScroll2 objects can sometimes end up scrolling nearby waterfalls instead!)
+  */
+void blockTexscrollSetWithTexture(u32 scrollerID, s32 uSpeedA, s32 vSpeedA, s32 widthA, s32 heightA, s32 uSpeedB, s32 vSpeedB, s32 widthB, s32 heightB, Texture* texture) {
+    BlockTextureScroller* scroll;
+
+    scroll = &sBlockTexScrollTable[scrollerID];
+
+    //Primary material
+    scroll->uSpeedA = uSpeedA;
+    scroll->vSpeedA = vSpeedA;
+    scroll->widthA = widthA;
+    scroll->heightA = heightA; 
+
+    //Secondary blend material
+    scroll->uSpeedB = uSpeedB; 
+    scroll->vSpeedB = vSpeedB; 
+    scroll->widthB = widthB; 
+    scroll->heightB = heightB; 
+
+    //@recomp: store the scroller's textureID too (in a separate custom array)
+    rsBlockTexScrollerTextures[scrollerID] = texture;
+}
+
+/** 
+  * Based on `blockTexscrollAdd`, except the scroller's texture is checked/stored too 
+  * (to avoid mismatches where a scroller ends up targetting the wrong texture, like how Discovery Falls'
+  * cradle rope texScroll2 objects can sometimes end up scrolling nearby waterfalls instead!)
+  */
+s32 blockTexscrollAddWithTexture(s32 uSpeedA, s32 vSpeedA, s32 widthA, s32 heightA, s32 uSpeedB, s32 vSpeedB, s32 widthB, s32 heightB, Texture* texture) {
+    BlockTextureScroller* scroll;
+    s32 index;
+    s32 scrollHandlerID;
+    Texture* scrollTex; //@recomp
+
+    //Iterate through scroll handlers
+    scrollHandlerID = 0;
+    while (1) {
+        scroll = &sBlockTexScrollTable[scrollHandlerID];
+        scrollTex = rsBlockTexScrollerTextures[scrollHandlerID]; //@recomp
+
+        //Reuse an existing scroll handler if it has the same animation config as what's specified in args
+        if (
+            (uSpeedA == scroll->uSpeedA) &&
+            (vSpeedA == scroll->vSpeedA) &&
+            (widthA == scroll->widthA) &&
+            (heightA == scroll->heightA) &&
+            (uSpeedB == scroll->uSpeedB) &&
+            (vSpeedB == scroll->vSpeedB) &&
+            (widthB == scroll->widthB) &&
+            (heightB == scroll->heightB) &&
+            (texture == scrollTex) //@recomp
+        ) {
+            scroll->refCount++;
+            return scrollHandlerID;
+        }
+        scrollHandlerID++;
+
+        //If no reusable handler was found, search through the handlers again to find an unused slot
+        if (scrollHandlerID >= MAX_TEXTURE_SCROLLERS) {
+            index = -1;
+            for (scrollHandlerID = 0; scrollHandlerID < MAX_TEXTURE_SCROLLERS; scrollHandlerID++) {
+                if (sBlockTexScrollTable[scrollHandlerID].refCount == 0) {
+                    index = scrollHandlerID;
+                    break;
+                }
+            }
+            //Bail if no unreferenced scroller slot was found
+            if (index == -1) {
+                STUBBED_PRINTF("TEXSCROLL: table is full\n");
+                return -1;
+            }
+
+            //If an unused slot was found, store the scroll's anim params and return its ID
+            scroll = &sBlockTexScrollTable[index];
+            scroll->uSpeedA = uSpeedA;
+            scroll->vSpeedA = vSpeedA;
+            scroll->widthA = widthA;
+            scroll->heightA = heightA;
+            scroll->uOffsetA = 0;
+            scroll->vOffsetA = 0;
+            scroll->uRemainderA = 0;
+            scroll->vRemainderA = 0;
+            scroll->uSpeedB = uSpeedB;
+            scroll->vSpeedB = vSpeedB;
+            scroll->widthB = widthB;
+            scroll->heightB = heightB;
+            scroll->uOffsetB = 0;
+            scroll->vOffsetB = 0;
+            scroll->uRemainderB = 0;
+            scroll->vRemainderB = 0;
+            scroll->refCount++;
+            rsBlockTexScrollerTextures[index] = texture; //@recomp
+            return index;
+        }
+    }
+}
+
+/* Returns the texture associated with a scrollHandler */
+Texture* blockTexscrollGetTexture(u8 scrollHandlerID) {
+    Texture* scrollTex;
+
+    if (scrollHandlerID >= MAX_TEXTURE_SCROLLERS) {
+        return NULL;
+    }
+
+    return rsBlockTexScrollerTextures[scrollHandlerID];
 }
