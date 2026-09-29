@@ -5383,7 +5383,21 @@ static void discovery_falls_modifications(void) {
                 doorPiece->base.z = -1719.032;
                 doorPiece->yaw = DEGREES_TO_ANGLE8(315);
 
+                //Store gamebit on child pieces too, so they can unload if the door's open on setup
+                doorPiece->gamebitOpenA = BIT_DF_Shrine_Door_Opens;
+                doorPiece->gamebitRestoreState = BIT_DF_Shrine_Door_Opened;                
             }
+        }
+
+        //Fix midair save point at shrine entrance
+        {
+            Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x000022c9);
+            plane->base.y = 218;
+            plane->sizeX = TRIGGER_SCALE(0.916); //Scale up so it still fully covers the entrance after moving it down
+            
+            //Add a condition too, since this TriggerPlane is exactly at the door and I'm worried it could be activated 
+            //before actually opening the door under some circumstances, causing Kyte to fly through it!
+            plane->conditionBitFlagIDs[0] = BIT_DF_Shrine_Door_Opens; 
         }
 
         //Play Discovery Falls' music when leaving the shrine 
