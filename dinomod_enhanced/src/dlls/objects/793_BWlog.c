@@ -1,4 +1,6 @@
 #include "configs.h"
+#include "custom_gamebits.h"
+#include "math_util.h"
 #include "modding.h"
 #include "recompconfig.h"
 
@@ -6,8 +8,12 @@
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/418_DFriverflow.h"
 #include "dlls/engine/27.h"
+#include "game/objects/hitbox.h"
+#include "game/objects/object.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
+#include "sys/map.h"
+#include "sys/map_enums.h"
 #include "sys/math.h"
 #include "sys/objects.h"
 #include "sys/objprint.h"
@@ -35,6 +41,10 @@ extern void BWlog_handleSounds(Object* arg0, BWlog_Data* arg1);
 extern void BWlog_handleFx(Object* self, BWlog_Data* objdata);
 
 static void BWlog_handlePhysicsReset(Object* self);
+static _Bool BWlog_areBothEndsOverWater(Object* self, BWlog_Data* objData);
+static void BWlog_handleFade(Object* self, BWlog_Data* objData);
+static void BWlog_handleFxEndpointRipples(Object* self, BWlog_Data* objData);
+static void BWlog_checkMapFX(Object* self, BWlog_Data* objData);
 
 /* @recomp: Copy of DFlog's anim callback, edited to handle custom objSeq messages too */
 static int recomp_BWlog_animcallback(Object* self, Object* animObj, AnimObj_Data* animData, s8 prevCallbackValue) {
@@ -96,6 +106,9 @@ RECOMP_PATCH void BWlog_obj_Setup(Object *self, BWlog_Setup *setup, s32 arg2) {
 
     // @recomp: Support start yaw via setup
     self->srt.yaw = setup->startRotation << 8;
+
+    // @recomp: Check whether to use DFlog effects 
+    BWlog_checkMapFX(self, objdata);
 }
 
 // This is yoinked and modified from dll_27_func_1D60. Looks at the log collisions and rotates the log
@@ -348,6 +361,14 @@ RECOMP_PATCH void BWlog_obj_Control(Object* self) {
     
     BWlog_handleSounds(self, objdata);
     BWlog_handleFx(self, objdata);
+
+    //@recomp: optionally use DFlog-style effects
+    BWlog_checkMapFX(self, objdata);
+    BWlog_handleFade(self, objdata);
+    BWlog_handleFxEndpointRipples(self, objdata);
+
+    //@recomp: store previous yaw (to get turn speed)
+    objdata->prevYaw = self->srt.yaw;
 }
 
 RECOMP_PATCH void BWlog_handleWater(Object* self, BWlog_Data* objdata, s32 side) {
@@ -779,6 +800,189 @@ RECOMP_PATCH VehicleMountSide BWlog_vehicle_GetDismountSide(Object *self) {
     }
 
     return VEHICLE_SIDE_Right;
+}
+
+/** 
+  * Checks whether to use DFlog's unique water effects (BWlog didn't have them!)
+  *
+  * Per mapID for now, so no calm water ripples in BWC's rapids for example.
+  *
+  * TODO: maybe control this purely through TriggerPlane gamebit setups, so you could toggle the 
+  * calm water effects when entering/exiting places like BWC/DB's rapids. That way you could still
+  * have the calm water effects in the main bay part of Diamond Bay, or in the still waters around 
+  * BWC's Tree of Life for example.
+  */
+static void BWlog_checkMapFX(Object* self, BWlog_Data* objData) {
+    s16 mapID;
+    u8 useFX;
+
+    //Force off by gamebit
+    if (mainGetBits(DINOMOD_BIT_971_BWLog_In_Choppy_Waters)) {
+        objData->useDFLogFX = FALSE;
+        return;
+    }
+
+    //Stagger map checks
+    if (objData->mapCheckInterval > 0) {
+        objData->mapCheckInterval = UINT_SAFE_SUBTRACT(objData->mapCheckInterval, gUpdateRate);
+        return;
+    }
+    objData->mapCheckInterval = 120;
+    mapID = mapWorldXZToMapID(self->globalPosition.x, self->globalPosition.z);
+
+    switch (mapID) {
+    case MAP_BLACKWATER_CANYON:
+    case MAP_DIAMOND_BAY: 
+        //TODO: revise these with TriggerPlane gamebit setups, so the effect only switches off in the rapids
+        useFX = FALSE;
+        break;
+    case MAP_DISCOVERY_FALLS:
+    case MAP_CAPE_CLAW:
+    default:
+        useFX = TRUE;
+        break;
+    }
+
+    objData->useDFLogFX = useFX;
+}
+
+/* Brought in from DFlog, with minor tweaks */
+static void BWlog_handleFxEndpointRipples(Object* self, BWlog_Data* objData) {
+    SRT fxTransform;
+    s32 yawSpeed;
+    u8 cooldown;
+    u8 i;
+
+    if (configs_GetLogEndpointFX() == FALSE) {
+        return;
+    }
+
+    if (objData->useDFLogFX == FALSE) {
+        return;
+    }
+
+    //@recomp: no effects if the log isn't in still water (roughly) or is going over a waterfall
+    if (-DEGREES_TO_ANGLE16(10) > self->srt.pitch || self->srt.pitch > DEGREES_TO_ANGLE16(10)) {
+        return;
+    }
+
+    //@recomp: no effects if the water height couldn't be found at one of the sides (passing over waterfalls)
+    if (BWlog_areBothEndsOverWater(self, objData) == FALSE) {
+        return;
+    }
+
+    //@recomp: use a timer instead of random selection
+    if (objData->endPointFXCooldown) {
+        objData->endPointFXCooldown = UINT_SAFE_SUBTRACT(objData->endPointFXCooldown, gUpdateRate);
+        if (objData->endPointFXCooldown) {
+            return;
+        }
+    }
+
+    for (i = 0; i < 2; i++) {
+        if (objData->velocity[i].x ||  objData->velocity[i].y || objData->velocity[i].z) {
+            // if (mathRnd(0, 5) == 0) { //@recomp: don't use random selection
+                fxTransform.transl.x = objData->endPoints[i].x;
+                fxTransform.scale = sqrtf(SQ(objData->velocity[i].x) + SQ(objData->velocity[i].z));
+                if (fxTransform.scale > 0.1f) {
+                    fxTransform.transl.y = self->srt.transl.y;
+                    fxTransform.transl.z = objData->endPoints[i].z;
+                    fxTransform.yaw = (mathAtan2f(objData->velocity[i].x, objData->velocity[i].z) + M_180_DEGREES) & 0xFFFF & 0xFFFF;
+                    fxTransform.transl.x -= self->srt.transl.x;
+                    fxTransform.transl.y -= self->srt.transl.y;
+                    fxTransform.transl.z -= self->srt.transl.z;
+
+                    //@recomp: cap scale
+                    if (fxTransform.scale > 0.95f) {
+                        fxTransform.scale = 0.95f;
+                    }
+
+                    gDLL_17_partfx->vtbl->spawn(self, PARTICLE_3C4, &fxTransform, PARTFXFLAG_NONE, -1, NULL);
+
+                    //@recomp: use a cooldown for the particles
+                    //Get turn speed
+                    {
+                        yawSpeed = self->srt.yaw - objData->prevYaw;
+                        CIRCLE_WRAP(yawSpeed);
+                        if (yawSpeed < 0) {
+                            yawSpeed = -yawSpeed;
+                        }
+                        if (gUpdateRate) {
+                            yawSpeed /= gUpdateRate;
+                        }
+                    }
+
+                    //Shorter cooldown when turning rapidly
+                    if (yawSpeed > DEGREES_TO_ANGLE16(1)) {
+                        cooldown = 6;
+                    } else {
+                        cooldown = 8;
+                    }
+
+                    if (objData->endPointFXCooldown == 0 || cooldown < objData->endPointFXCooldown) {
+                        objData->endPointFXCooldown = cooldown;
+                    }
+                }
+            // }
+        }
+    }
+}
+
+/* Checks whether both ends of the log are at their average water height when in still water */
+static _Bool BWlog_areBothEndsOverWater(Object* self, BWlog_Data* objData) {
+    for (u8 i = 0; i < 2; i++) {
+        //Check if water couldn't be found
+        if (objData->unk300[i] == 0.0f) {
+            return FALSE;
+        }
+
+        //Check if side isn't roughly at surface level
+        if (4.0f > objData->unk300[i]) {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+/** 
+  * Fades the log in when it's spawned by a DFdockpoint,
+  * and fades the shadow out when passing over waterfalls 
+  */
+static void BWlog_handleFade(Object* self, BWlog_Data* objData) {
+    u8 inWater = TRUE;
+    u8 rate;
+    u32 opacity;
+
+    //Fade in (after DFdockpoint spawn)
+    if (self->opacity < OBJECT_OPACITY_MAX && self->opacity > 0) {
+        opacity = self->opacity + 8 * gUpdateRate;
+        if (opacity > OBJECT_OPACITY_MAX) {
+            opacity = OBJECT_OPACITY_MAX;
+        }
+        self->opacity = opacity;
+
+        //Fade in the shadow too
+        if (self->shadow) {
+            self->shadow->a = opacity / 2;
+        }
+    }
+
+    //Fade out shadow when in midair 
+    //TODO: this just hides the shadow when it's at 0 alpha (which is still helpful), 
+    // but the in-between fade itself isn't respected in newshadows
+    if (self->shadow) {
+        rate = objData->useDFLogFX ? 4 : 2; //Slower rate in choppy waters, since it can cause opacity to flicker
+        if (BWlog_areBothEndsOverWater(self, objData) == FALSE) {
+            if (self->shadow->a > 0) {
+                self->shadow->a = UINT_SAFE_SUBTRACT(self->shadow->a, rate * gUpdateRate);
+            }
+        } else {
+            if (self->shadow->a < 0x7F) {
+                self->shadow->a = UINT_SAFE_ADD(self->shadow->a, rate * gUpdateRate, 0x7F);
+            }
+        }
+    }
 }
 
 /* Apply a visual flip to the log via a seqJoint, if the player mounted it backwards */

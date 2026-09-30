@@ -165,6 +165,7 @@ _Bool configs_GetMenuTimerFractionConfig(void);
 /* GRAPHICS */
 _Bool configs_GetSixtyFPS(void);
 _Bool configs_GetHideDefaultFXEmits(void);
+_Bool configs_GetLogEndpointFX(void);
 
 /* MISC */
 _Bool configs_GetMagicGemReflectBounce(void);

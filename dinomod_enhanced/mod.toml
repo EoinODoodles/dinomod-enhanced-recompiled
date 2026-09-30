@@ -607,6 +607,20 @@ options = [ "Off (Ignore Player)", "Off (Follow Player)", "On" ]
 default = "On"
 
 [[manifest.config_options]]
+id = "log_end_fx"
+name = "Log: Ripple Effects"
+description = '''
+There are two versions of the log in the December 2000 Prototype: DFlog (created for Discovery Falls) and BWLog (created for BlackWater Canyon). BWLog is the more complete of the two so it's been used throughout the patched version of the game.
+
+While the logs are relatively similar - bugs aside - DFlog has some unique water effects that aren't found in BWLog! Ripples emanate from its ends as it drifts through the water. If you'd like to use these effects, this config can be enabled.
+
+Note that the effects are currently disabled while you're in levels featuring choppy waters (BlackWater Canyon and Diamond Bay), since the effects' omission in BWlog suggests Rare only intended for them to appear when in calm waters. This may be refined in future so the effect only switches off when passing through those levels' rapids, rather than the level as a whole.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
 id = "dfmole_dig_fix"
 name = "Mole: Dig Spot Fixes"
 description = '''

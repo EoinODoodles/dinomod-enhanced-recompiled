@@ -25,6 +25,7 @@ RECOMP_PATCH void DFdockpoint_control(Object* self) {
     s32 logCount;
     /* RECOMP */
     Object* player;
+    Object* log;
 
     setup = (DFdockpoint_Setup*)self->setup;
 
@@ -60,10 +61,16 @@ RECOMP_PATCH void DFdockpoint_control(Object* self) {
     logsetup->base.z = self->srt.transl.z;
     logsetup->yaw = setup->yaw;
 
-    objSetupObject((ObjSetup*)logsetup, 
+    //@recomp: store the log's pointer to a var
+    log = objSetupObject((ObjSetup*)logsetup, 
         OBJINIT_STANDALONE | OBJINIT_FLAG4, 
         self->mapID, 
         -1, 
         self->parent
     );
+
+    //@recomp: fade in the log
+    if (log) {
+        log->opacity = 1;
+    }
 }

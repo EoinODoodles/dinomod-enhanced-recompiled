@@ -208,6 +208,11 @@ _Bool configs_GetHideDefaultFXEmits(void) {
     return recomp_get_config_u32("fxemit_hide_default") != 0;
 }
 
+/* Checks whether to enable DFlog-style endpoint ripples on BWlog */
+_Bool configs_GetLogEndpointFX(void) {
+    return recomp_get_config_u32("log_end_fx") != 0;
+}
+
 
 /* MISC */
 

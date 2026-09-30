@@ -52,7 +52,12 @@ typedef struct {
 /*32C*/ u8 joyARecentTap; // a pressed (turns off automatically after a time or if a is pressed again)
 /*32D*/ u8 unk32D; // bitfield of which side of the log is touching terrain (0x1 = front, 0x2 = back, 0x3 = both)
 /*32E*/ u8 mountState; // see VehicleMountState
-/*32F*/ u8 _unk32F[0x338 - 0x32F];
+/*32F*/ u8 paddleFXCooldown;   //@recomp: repurpose pad - interval for DFlog-style weapon ripples
+/*330*/ u8 endPointFXCooldown; //@recomp: repurpose pad - interval for DFlog-style endpoint ripples
+/*331*/ u8 useDFLogFX;         //@recomp: repurpose pad - whether to use DFlog-style effects (not when in choppy waters)
+/*332*/ s16 prevYaw;           //@recomp: repurpose pad - for getting yaw turn speed
+/*334*/ u8 mapCheckInterval;   //@recomp: repurpose pad - interval for checking mapID and gamebit for DFlog-style effects
+/*335*/ u8 _unk335[0x338 - 0x335];
 /*338*/ Object *dockpoint;
 } BWlog_Data;
 
