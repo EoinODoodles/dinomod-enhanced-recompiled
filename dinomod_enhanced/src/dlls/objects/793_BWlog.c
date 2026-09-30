@@ -10,6 +10,7 @@
 #include "dlls/engine/27.h"
 #include "game/objects/hitbox.h"
 #include "game/objects/object.h"
+#include "macros.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
 #include "sys/map.h"
@@ -43,6 +44,7 @@ extern void BWlog_handleFx(Object* self, BWlog_Data* objdata);
 static void BWlog_handlePhysicsReset(Object* self);
 static _Bool BWlog_areBothEndsOverWater(Object* self, BWlog_Data* objData);
 static void BWlog_handleFade(Object* self, BWlog_Data* objData);
+static void BWlog_handleFxWeaponRipples(Object* self, BWlog_Data* objData);
 static void BWlog_handleFxEndpointRipples(Object* self, BWlog_Data* objData);
 static void BWlog_checkMapFX(Object* self, BWlog_Data* objData);
 
@@ -365,6 +367,7 @@ RECOMP_PATCH void BWlog_obj_Control(Object* self) {
     //@recomp: optionally use DFlog-style effects
     BWlog_checkMapFX(self, objdata);
     BWlog_handleFade(self, objdata);
+    // BWlog_handleFxWeaponRipples(self, objdata);
     BWlog_handleFxEndpointRipples(self, objdata);
 
     //@recomp: store previous yaw (to get turn speed)
@@ -846,6 +849,71 @@ static void BWlog_checkMapFX(Object* self, BWlog_Data* objData) {
     objData->useDFLogFX = useFX;
 }
 
+/** 
+  * Brought in from DFlog, with minor tweaks.
+  *
+  * TODO: Not used currently, since it looks a bit visually intense/chaotic.
+  * The intention might be for the ripple to appear during the paddle animation as well, 
+  * when the opposite end of the weapon is in the water? Revisit sometime!
+  */
+PRAGMA_IGNORE_PUSH("-Wunused")
+static void BWlog_handleFxWeaponRipples(Object* self, BWlog_Data* objData) {
+    f32 spDC;
+    f32 spD8;
+    f32 spD4;
+    f32 spD0;
+    f32 sp9C;
+    f32 scale;
+    Vec3f spAC;
+    Vec3f spA0;
+    SRT fxTransform;
+    s32 i = 0;
+
+    if (objData->useDFLogFX == FALSE) { //TODO: use separate/related config
+        return;
+    }
+
+    Object* weapon;
+    Object* player = objGetPlayer();
+    if (player == NULL) {
+        return;
+    }
+
+    weapon = player->linkedObject;
+    if (weapon == NULL) {
+        return;
+    }
+
+    //TODO: should be water height at weapon's point of contact with the water I think?
+    //Just using log's own Y for now
+    spD0 = self->srt.transl.y; 
+    
+    ((DLL_Unknown*)weapon->dll)->vtbl->func[17].withThreeArgs((s32)weapon, (s32)&spAC, (s32)&spA0);
+    sp9C = (spAC.y - spD0) / (spAC.y - spA0.y);
+    if ((sp9C >= 0.0f) && (sp9C <= 1.0f) && (objData->paddleFXCooldown == 0)) {
+        objData->paddleFXCooldown = 6;
+
+        fxTransform.transl.x = ((spA0.x - spAC.x) * sp9C) + spAC.x;
+        fxTransform.transl.y = spD0;
+        fxTransform.transl.z = ((spA0.z - spAC.z) * sp9C) + spAC.z;
+        scale = sqrtf(SQ(objData->velocity[i].x) + SQ(objData->velocity[i].z)) * 5.0f;
+        if (scale < 0.0f) {
+            fxTransform.scale = 0.0f;
+        } else {
+            fxTransform.scale = (scale > 1.0f) ? 1.0f : scale;
+        }
+        fxTransform.yaw = (mathAtan2f(objData->endPoints[0].x - objData->endPoints[1].x, objData->endPoints[0].z - objData->endPoints[1].z) + M_180_DEGREES) & 0xFFFF & 0xFFFF;
+        fxTransform.transl.x -= self->srt.transl.x;
+        fxTransform.transl.y -= self->srt.transl.y;
+        fxTransform.transl.z -= self->srt.transl.z;
+        gDLL_17_partfx->vtbl->spawn(self, PARTICLE_3C4, &fxTransform, PARTFXFLAG_NONE, -1, NULL);
+        gDLL_17_partfx->vtbl->spawn(self, PARTICLE_3C5, &fxTransform, PARTFXFLAG_NONE, -1, NULL);
+    } else if (objData->paddleFXCooldown) {
+        objData->paddleFXCooldown = UINT_SAFE_SUBTRACT(objData->paddleFXCooldown, gUpdateRate);
+    }
+}
+PRAGMA_IGNORE_POP()
+
 /* Brought in from DFlog, with minor tweaks */
 static void BWlog_handleFxEndpointRipples(Object* self, BWlog_Data* objData) {
     SRT fxTransform;
@@ -961,11 +1029,6 @@ static void BWlog_handleFade(Object* self, BWlog_Data* objData) {
             opacity = OBJECT_OPACITY_MAX;
         }
         self->opacity = opacity;
-
-        //Fade in the shadow too
-        if (self->shadow) {
-            self->shadow->a = opacity / 2;
-        }
     }
 
     //Fade out shadow when in midair 
