@@ -14,7 +14,8 @@ typedef struct {
 
 typedef enum {
     LODAnimator_OPTION_1_Show_LOD_on_Unload = 1, //Show the LOD when the LODAnimator unloads (only if the LODAnimator is closer to the target Block than the player is)
-    LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load = 2 //Update shapes when the LODAnimator's local Block loads (the one containing the LOD stand-in shapes)
+    LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load = 2, //Update shapes when the LODAnimator's local Block loads (the one containing the LOD stand-in shapes)
+    LODAnimator_OPTION_4_Hide_LOD_on_Unload = 4, //Hide the LOD when the LODAnimator unloads
 } LODAnimator_Options;
 
 void LODAnimator_ctor(void* dll);

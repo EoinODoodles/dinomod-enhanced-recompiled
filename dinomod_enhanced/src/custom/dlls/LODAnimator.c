@@ -60,9 +60,9 @@ void LODAnimator_obj_Setup(Object* self, LODAnimator_Setup* objSetup, s32 reset)
     blockAddLODAnimator(self);
 
     if (GAMEBIT_SPECIFIED_AND_NOT_SET(objSetup->gamebitActivate)) {
-        objData->flags |= objData->flags |= LODAnimator_FLAG_2_Deactivated;
+        objData->flags |= LODAnimator_FLAG_2_Deactivated;
     } else if (GAMEBIT_SPECIFIED_AND_SET(objSetup->gamebitDeactivate)) {
-        objData->flags |= objData->flags |= LODAnimator_FLAG_2_Deactivated;
+        objData->flags |= LODAnimator_FLAG_2_Deactivated;
     }
 }
 
@@ -196,6 +196,10 @@ void LODAnimator_obj_Free(Object* self, s32 onlySelf) {
                 LODAnimator_UpdateShapes(self, TRUE);
             }
         }
+    } else if (objSetup->options & LODAnimator_OPTION_4_Hide_LOD_on_Unload &&
+            (objData->flags & LODAnimator_FLAG_2_Deactivated) == FALSE //Make sure the animator isn't deactivated
+    ) {
+        LODAnimator_UpdateShapes(self, FALSE);
     }
 
     blockRemoveLODAnimator(self);

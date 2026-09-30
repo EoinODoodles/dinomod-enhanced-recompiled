@@ -4598,6 +4598,30 @@ static void discovery_falls_modifications(void) {
                 }
             }
         } 
+
+
+        //LODs
+        {
+            //Add LOD for the BWC's exit, when viewed from Middle Falls
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup14_Middle_and_Upper_Falls,
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-71, 127, 1281),
+                    .animatorID = 10,
+                    .gridOffsetX = +1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load | 
+                               LODAnimator_OPTION_4_Hide_LOD_on_Unload
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+        }
     }
 
     //Middle Falls
