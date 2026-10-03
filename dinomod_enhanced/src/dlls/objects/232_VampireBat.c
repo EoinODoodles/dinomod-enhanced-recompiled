@@ -11,20 +11,6 @@
 
 #include "recomp/dlls/objects/232_VampireBat_recomp.h"
 
-//TEMPORARY DEFINES
-#define dll_baddieControl (gDLL_33_BaddieControl->vtbl)
-
-#define VampireBat_obj_Setup dll_232_setup
-#define VampireBat_obj_Control dll_232_control
-#define VampireBat_handleMotion dll_232_func_AB8
-#define VampireBat_logicState2FlyRandom dll_232_func_CF0
-
-#define dHitAnimStateMap _data_0
-#define dHitDamageMap _data_70
-#define sAnimStateCallbacks _bss_0
-#define sLogicStateCallbacks _bss_8
-//END OF TEMPORARY DEFINES
-
 typedef struct {
     Vec3f home;
     Vec3f goal;
@@ -120,7 +106,7 @@ RECOMP_PATCH void VampireBat_obj_Setup(Object* self, Baddie_Setup* setup, s32 re
     if ((setup->unk2B & 0x20) == FALSE) {
         flags |= 8;
     }
-    dll_baddieControl->setup(self, setup, baddie, 2, 5, 0x108, flags, 20.0f);
+    dll_BaddieControl->setup(self, setup, baddie, 2, 5, 0x108, flags, 20.0f);
 
     self->animCallback = NULL;
 
@@ -244,16 +230,16 @@ RECOMP_PATCH void VampireBat_obj_Control(Object* self) {
     }
 
     if ((baddie->unk3B0 & 0x20) == FALSE) {
-        dll_baddieControl->func14(self, baddie, &baddie->unk3B2, -1, -1, baddie->unk3A6, baddie->unk3A4);
+        dll_BaddieControl->func14(self, baddie, &baddie->unk3B2, -1, -1, baddie->unk3A6, baddie->unk3A4);
     }
-    dll_baddieControl->func20(self, &baddie->fsa, &baddie->unk34C, baddie->unk39E, NULL, 0, 0, 0);
+    dll_BaddieControl->func20(self, &baddie->fsa, &baddie->unk34C, baddie->unk39E, NULL, 0, 0, 0);
 
     //Create particles when hit
     if (baddie->fsa.hitpoints > 0) {
         s32 damageType;
         s32 hit;
 
-        hit = dll_baddieControl->check_hit(self, &baddie->fsa, &baddie->unk34C, baddie->unk39E, dHitAnimStateMap, dHitDamageMap, 1, &baddie->unk3A8, &fxTransform);
+        hit = dll_BaddieControl->check_hit(self, &baddie->fsa, &baddie->unk34C, baddie->unk39E, dHitAnimStateMap, dHitDamageMap, 1, &baddie->unk3A8, &fxTransform);
         damageType = func_80025F40(self, NULL, NULL, NULL);
 
         if (hit || damageType) {
@@ -285,7 +271,7 @@ RECOMP_PATCH void VampireBat_obj_Control(Object* self) {
         }
     }
 
-    dll_baddieControl->func10(self, &baddie->fsa, 0.0f, -1);
+    dll_BaddieControl->func10(self, &baddie->fsa, 0.0f, -1);
     baddie->unk3AC = self->animObj;
     self->animObj = NULL;
     gDLL_18_objfsa->vtbl->tick(self, &baddie->fsa, gUpdateRateF, gUpdateRateF, sAnimStateCallbacks, sLogicStateCallbacks);

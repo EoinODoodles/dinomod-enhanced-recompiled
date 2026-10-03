@@ -17,7 +17,7 @@ static f32 dMagicDustY[] = {
 
 #define ATTACH_JOINT_ID 5
 
-RECOMP_PATCH void MagicPlant_print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** vtxs, Triangle** pols, s8 visibility) {
+RECOMP_PATCH void MagicPlant_obj_Print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** vtxs, Triangle** pols, s8 visibility) {
     MtxF* jointMtx;
     f32 x;
     f32 y;

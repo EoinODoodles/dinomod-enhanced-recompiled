@@ -9,38 +9,39 @@
 
 #include "recomp/dlls/objects/225_SabreBaddie_recomp.h"
 
-typedef struct {
-/*000*/ s8 unk0[0x33A - 0];
-/*33A*/ s8 unk33A;
-/*33B*/ s8 unk33B[0x348 - 0x33B];
-/*348*/ s8 unk348; //health?
-/*349*/ s8 unk349[0x3B6 - 0x349];
-/*3B6*/ s16 unk3B6;
-/*3B6*/ s8 unk3B8[0x3FC - 0x3B8];
-} SabreBaddie_Data;
+typedef enum {
+    SabreBaddie_LSTATE_0,
+    SabreBaddie_LSTATE_1,
+    SabreBaddie_LSTATE_2,
+    SabreBaddie_LSTATE_3,
+    SabreBaddie_LSTATE_4,
+    SabreBaddie_LSTATE_5,
+    SabreBaddie_LSTATE_6,
+    SabreBaddie_LSTATE_7
+} SabreBaddie_LogicStates;
 
 // Allows the Test of Character to be completed by changing the flag set when the phantom's health is low (originally by jeebs2kx)
-RECOMP_PATCH s32 dll_225_func_1F38(Object* self, SabreBaddie_Data* objdata, s32 arg2) {
-    SabreBaddie_Data* objdata2;
-
-    objdata2 = self->data;
+RECOMP_PATCH s32 SabreBaddie_logicState1(Object* self, ObjFSA_Data* fsa, f32 updateRate) {
+    Baddie* baddie = self->data;
     
-    if (objdata->unk348 <= 0) {
-        return 5;
+    if (fsa->hitpoints <= 0) {
+        return FSA_NEXTSTATE_SYNC(SabreBaddie_LSTATE_4);
     }
     
-    if (objdata->unk348 < 5) {
+    if (fsa->hitpoints < 5) {
         mainSetBits(0x5B2, 1); //@recomp: flagID changed
-        objdata->unk348 = 1;
-        return 3;
+        fsa->hitpoints = 1;
+        return FSA_NEXTSTATE_SYNC(SabreBaddie_LSTATE_2);
     }
     
-    if (objdata->unk33A) {
-        if (objdata->unk348 < mathRnd(2, 4)) {
-            return 4;
+    if (fsa->unk33A != 0) {
+        if (fsa->hitpoints < mathRnd(2, 4)) {
+            return FSA_NEXTSTATE_SYNC(SabreBaddie_LSTATE_3);
+        } else {
+            baddie->unk3B6 = 300;
+            return FSA_NEXTSTATE_SYNC(SabreBaddie_LSTATE_7);
         }
-        objdata2->unk3B6 = 0x12C;
-        return 8;
     }
+    
     return 0;
 }

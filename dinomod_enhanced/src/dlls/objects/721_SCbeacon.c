@@ -18,7 +18,6 @@
 #include "dlls/objects/227_tumbleweed.h"
 #include "dlls/objects/721_SCbeacon.h"
 
-#include "recomp/dlls/objects/227_tumbleweed_recomp.h"
 #include "recomp/dlls/objects/721_SC_beacon_recomp.h"
 
 #define DEBUG_BEACON FALSE
@@ -109,7 +108,7 @@ static void SCbeacon_handle_flame_sounds(Object* self, SCbeacon_Data_Extended* o
   *
   * Stop/restart flame sounds based on player distance.
   */
-RECOMP_PATCH void SCbeacon_control(Object* self) {
+RECOMP_PATCH void SCbeacon_obj_Control(Object* self) {
     SCbeacon_Data_Extended* objData;
     SCbeacon_Setup* objSetup;
     Object* sidekick;
@@ -163,7 +162,7 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
         sidekick = objGetSidekick();
         if (sidekick && (self->unkAF & ARROW_FLAG_4_Highlighted)) {
             //Show Flame command option
-            ((DLL_ISidekick*)sidekick->dll)->vtbl->enable_command(sidekick, Sidekick_Command_INDEX_4_Flame);
+            ((DLL_ISidekick*)sidekick->dll)->vtbl->EnableCommand(sidekick, Sidekick_Command_INDEX_4_Flame);
 
             //Check if Flame command was selected
             if (gDLL_1_cmdmenu->vtbl->was_this_item_used(Sidekick_Command_INDEX_4_Flame)) {
@@ -224,7 +223,7 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
         sidekick = objGetSidekick();
         if (sidekick && (self->unkAF & ARROW_FLAG_4_Highlighted)) {
             //Show Flame command option
-            ((DLL_ISidekick*)sidekick->dll)->vtbl->enable_command(sidekick, Sidekick_Command_INDEX_4_Flame);
+            ((DLL_ISidekick*)sidekick->dll)->vtbl->EnableCommand(sidekick, Sidekick_Command_INDEX_4_Flame);
 
             //Check if Flame command was selected
             if (gDLL_1_cmdmenu->vtbl->was_this_item_used(Sidekick_Command_INDEX_4_Flame)) {
@@ -273,8 +272,8 @@ RECOMP_PATCH void SCbeacon_control(Object* self) {
 }
 
 /** Stop sounds, free soundHandles */
-RECOMP_PATCH void SCbeacon_free(Object* self, s32 arg1) {
-    gDLL_14_Modgfx->vtbl->func5(self);
+RECOMP_PATCH void SCbeacon_obj_Free(Object* self, s32 arg1) {
+    gDLL_14_Modgfx->vtbl->Func5(self);
     gDLL_13_Expgfx->vtbl->func5(self);
     objFreeObjectType(self, OBJTYPE_KyteTarget);
 
@@ -283,7 +282,7 @@ RECOMP_PATCH void SCbeacon_free(Object* self, s32 arg1) {
 }
 
 /** Play success jingle when puzzle complete */
-RECOMP_PATCH int SCbeacon_handle_kyte_flame_seqs(Object* self, s32 finishLighting) {
+RECOMP_PATCH int SCbeacon_KyteTarget_Interact(Object* self, s32 finishLighting) {
     SCbeacon_Data_Extended* objData = self->data;
     s32 isBeingLit = FALSE;
     
@@ -345,9 +344,9 @@ RECOMP_PATCH void SCbeacon_attempt_to_light(Object* self) {
         // SCbeacon_flame_sounds_start(self);
         
         //Create fire model
-        gDLL_14_Modgfx->vtbl->func10(self);
+        gDLL_14_Modgfx->vtbl->Func10(self);
         modGfxDLL = dllLoad(0x100A, 1);
-        modGfxDLL->vtbl->func0(self, 2, 0, 0x10004, -1, 0);
+        modGfxDLL->vtbl->Spawn(self, 2, 0, 0x10004, -1, 0);
         dllFree(modGfxDLL);
         
         //Disable targetting and advance to lit state
@@ -419,6 +418,6 @@ RECOMP_PATCH int SCbeacon_anim_callback(Object* self, Object* override, AnimObj_
 }
 
 // Extend objData
-RECOMP_PATCH u32 SCbeacon_get_data_size(Object* self, s32 arg1) {
+RECOMP_PATCH u32 SCbeacon_obj_GetDataSize(Object* self, s32 arg1) {
     return sizeof(SCbeacon_Data_Extended);
 }

@@ -12,7 +12,7 @@ extern u8 sRecentlyCompleted[5];
 extern u8 sCompletionIdx;
 extern s8 sRecentlyCompletedNextIdx;
 
-RECOMP_PATCH void task_mark_task_completed(u8 task) {
+RECOMP_PATCH void task_MarkTaskCompleted(u8 task) {
     s16 i;
     s16 bs_entry;
     s16 bit_idx;
@@ -82,7 +82,7 @@ RECOMP_PATCH void task_mark_task_completed(u8 task) {
 
         } while ((bs_value >> bit_idx) & 1);
 
-        mainSetBits(BIT_Furthest_Completed_Task, sCompletionIdx);
+        mainSetBits(BIT_Next_Game_Task, sCompletionIdx);
     }
 
     // hmm
@@ -92,7 +92,7 @@ RECOMP_PATCH void task_mark_task_completed(u8 task) {
 }
 
 /** Allows the "Previously on Dinosaur Planet" screen to only retrieve the 3 most recent tasks in the history (instead of the oldest 3) */
-RECOMP_PATCH char *task_get_recently_completed_task_text(u8 idx) {
+RECOMP_PATCH char *task_GetRecentlyCompletedTaskText(u8 idx) {
     s32 startIndex = sRecentlyCompletedNextIdx - 2;
     if (startIndex < 0)
         startIndex = 0;
