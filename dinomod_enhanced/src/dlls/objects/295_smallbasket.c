@@ -14,7 +14,7 @@
 #include "dlls/objects/210_player.h"
 #include "recomp/dlls/objects/295_smallbasket_recomp.h"
 
-extern DLL_IModgfx* dModGfxDLL[];
+extern DLL_IModgfx* dModGfxDLL;
 
 typedef struct{
 /*00*/ s32 unk0;
@@ -43,9 +43,11 @@ RECOMP_PATCH void smallbasket_free(Object* self, s32 arg1) {
         }
     }
 
-    gDLL_14_Modgfx->vtbl->func5(self);
     objFreeObjectType(self, 0x12); //@recomp: remove self from type category 0x12
-    dllFree((void*)dModGfxDLL[0]);
+    
+    dll_modgfx->Func5(self);
+    dllFree(dModGfxDLL);
+
     if (objdata->soundHandle) {
         dll_amSfx->Stop(objdata->soundHandle);
         objdata->soundHandle = 0;

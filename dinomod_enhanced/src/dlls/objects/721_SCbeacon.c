@@ -273,7 +273,7 @@ RECOMP_PATCH void SCbeacon_obj_Control(Object* self) {
 
 /** Stop sounds, free soundHandles */
 RECOMP_PATCH void SCbeacon_obj_Free(Object* self, s32 arg1) {
-    gDLL_14_Modgfx->vtbl->func5(self);
+    gDLL_14_Modgfx->vtbl->Func5(self);
     gDLL_13_Expgfx->vtbl->func5(self);
     objFreeObjectType(self, OBJTYPE_KyteTarget);
 
@@ -344,9 +344,9 @@ RECOMP_PATCH void SCbeacon_attempt_to_light(Object* self) {
         // SCbeacon_flame_sounds_start(self);
         
         //Create fire model
-        gDLL_14_Modgfx->vtbl->func10(self);
+        gDLL_14_Modgfx->vtbl->Func10(self);
         modGfxDLL = dllLoad(0x100A, 1);
-        modGfxDLL->vtbl->func0(self, 2, 0, 0x10004, -1, 0);
+        modGfxDLL->vtbl->Spawn(self, 2, 0, 0x10004, -1, 0);
         dllFree(modGfxDLL);
         
         //Disable targetting and advance to lit state

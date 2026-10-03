@@ -49,7 +49,7 @@ typedef struct {
   * - Ensure Tricky's sidekick commands are unlocked if his tutorial cutscene is skipped 
   * - Add a null check for Tricky's Toy's GroundAnimator object.
   */
-RECOMP_PATCH void NWtricky_control(Object *self) {
+RECOMP_PATCH void NWtricky_obj_Control(Object *self) {
     NWtricky_Data *objdata;
     Object *tricky;
     Object *player;
@@ -144,7 +144,7 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
 }
 
 /** Allow more controller inputs during tutorial (for inventory's optional D-pad controls/new controls) */
-RECOMP_PATCH int NWtricky_anim_callback(Object *self, Object *animObj, AnimObj_Data *animObjData, s8 arg3) {
+RECOMP_PATCH int NWtricky_animCallback(Object *self, Object *animObj, AnimObj_Data *animObjData, s8 arg3) {
     NWtricky_Data *objdata;
     Object *tricky;
     s32 i;

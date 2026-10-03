@@ -470,21 +470,21 @@ RECOMP_PATCH void dll_711_func_1870(Object *self, IMSnowBike_Data *objdata, Gfx 
             sp6C.transl.x = objdata->unk32C[0].x - self->globalPosition.x;
             sp6C.transl.y = objdata->unk32C[0].y - self->globalPosition.y;
             sp6C.transl.z = objdata->unk32C[0].z - self->globalPosition.z;
-            _data_A8->vtbl->func0(self, 0, &sp6C, 1, -1, sp48);
+            _data_A8->vtbl->Spawn(self, 0, &sp6C, 1, -1, sp48);
             dll_amSfx->Play(self, SOUND_292_Impact, volume, &soundHandle, NULL, 0, NULL);
             dll_amSfx->SetPitch(soundHandle, (volume / 127.0f) + 0.5f);
         } else if ((objdata->unk3E1 & 2) && (objdata->unk3D8 <= 0)) {
             sp6C.transl.x = objdata->unk32C[1].x;
             sp6C.transl.y = objdata->unk32C[1].y;
             sp6C.transl.z = objdata->unk32C[1].z;
-            _data_A8->vtbl->func0(self, 0, &sp6C, 1, -1, sp48);
+            _data_A8->vtbl->Spawn(self, 0, &sp6C, 1, -1, sp48);
             dll_amSfx->Play(self, SOUND_292_Impact, volume, &soundHandle, NULL, 0, NULL);
             dll_amSfx->SetPitch(soundHandle, (volume / 127.0f) + 0.5f);
         } else if ((objdata->unk3E1 & 4) && (objdata->unk3D8 <= 0)) {
             sp6C.transl.x = objdata->unk32C[2].x;
             sp6C.transl.y = objdata->unk32C[2].y;
             sp6C.transl.z = objdata->unk32C[2].z;
-            _data_A8->vtbl->func0(self, 0, &sp6C, 1, -1, sp48);
+            _data_A8->vtbl->Spawn(self, 0, &sp6C, 1, -1, sp48);
             dll_amSfx->Play(self, SOUND_292_Impact, volume, &soundHandle, NULL, 0, NULL);
             dll_amSfx->SetPitch(soundHandle, (volume / 127.0f) + 0.5f);
         }
