@@ -27,6 +27,8 @@
 
 #include "recomp/dlls/objects/793_BWlog_recomp.h"
 
+extern s32 mapShouldObjUnload(Object* obj);
+
 extern Vec3f dLocalEndpointCoords[2];
 extern f32 dCollisionRadii[2];
 extern u8 dColliderParams[2];
@@ -41,6 +43,7 @@ extern void BWlog_findRiverflows(Object* self, BWlog_Data* objdata);
 extern void BWlog_handleSounds(Object* arg0, BWlog_Data* arg1);
 extern void BWlog_handleFx(Object* self, BWlog_Data* objdata);
 
+static void BWlog_handleUnloadWithoutMapID(Object* self, BWlog_Data* objData);
 static void BWlog_handlePhysicsReset(Object* self);
 static _Bool BWlog_areBothEndsOverWater(Object* self, BWlog_Data* objData);
 static void BWlog_handleFade(Object* self, BWlog_Data* objData);
@@ -363,6 +366,9 @@ RECOMP_PATCH void BWlog_obj_Control(Object* self) {
     
     BWlog_handleSounds(self, objdata);
     BWlog_handleFx(self, objdata);
+
+    //@recomp: handle unloading the log when it intentionally has no mapID
+    BWlog_handleUnloadWithoutMapID(self, objdata);
 
     //@recomp: optionally use DFlog-style effects
     BWlog_checkMapFX(self, objdata);
@@ -803,6 +809,59 @@ RECOMP_PATCH VehicleMountSide BWlog_vehicle_GetDismountSide(Object *self) {
     }
 
     return VEHICLE_SIDE_Right;
+}
+
+/* Optionally avoid setting a mapID when dismounting the log */
+RECOMP_PATCH void BWlog_vehicle_SetMountState(Object* self, s32 state) {
+    Object* player = objGetPlayer();
+    BWlog_Data* objdata = (BWlog_Data*)self->data;
+    /* RECOMP */
+    BWlog_Setup* objSetup;
+
+    if (state != VEHICLE_NoRider) {
+        objClearMapID(self);
+        ((DLL_210_Player*)player->dll)->vtbl->func28(player, 1);
+        gDLL_2_Camera->vtbl->change_mode(0, 0x2B);
+    } else {
+        objSetup = (BWlog_Setup*)self->setup;
+        //@recomp: check if mapID shouldn't be stored
+        if (objSetup && (objSetup->dockpointOptions & DFdockpoint_OPTION_1_Create_Log_Without_MapID) == FALSE) {
+            objInferMapID(self);
+        }
+        ((DLL_210_Player*)player->dll)->vtbl->func29(player, 1);
+        gDLL_2_Camera->vtbl->change_mode(0, 1);
+    }
+
+    objdata->mountState = state;
+}
+
+/** Handles unloading the log when its mapID is -1 (the usual OBJLOAD_MAIN unload only runs when the mapID is defined)
+  * 
+  * Needed when a dockpoint intentionally spawns a log without a mapID, because the dockpoint was on the boundary between
+  * two levels and the log shouldn't suddenly disappear when stepping into the opposite level - e.g. for the dockpoint
+  * between Discovery Falls and Moon Mountain Pass.) 
+  */
+static void BWlog_handleUnloadWithoutMapID(Object* self, BWlog_Data* objData) {
+    Object* player;
+
+    //Return if the log already handles its own unloading
+    if (self->mapID != -1 || (self->setup && self->setup->loadFlags == OBJSETUP_LOAD_MANUAL)) {
+        return;
+    }
+
+    //Return if the log is currently the player's vehicle
+    if (objData == NULL || objData->mountState != VEHICLE_NoRider) {
+        return;
+    }
+    player = objGetPlayer();
+    if (player && ((DLL_210_Player*)player->dll)->vtbl->get_vehicle(player) == self) {
+        return;
+    }
+
+    //Do the usual objUnload check
+    if (mapShouldObjUnload(self)) {
+        objFreeObject(self);
+    }
 }
 
 /** 

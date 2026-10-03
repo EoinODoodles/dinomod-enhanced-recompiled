@@ -64,5 +64,6 @@ typedef struct {
 // @recomp: Custom setup
 typedef struct {
     ObjSetup setup;
-    s8 startRotation;
+    s8 startRotation;    //Initial yaw
+    u8 dockpointOptions; //The custom options flags used by the DFdockpoint that spawned the log
 } BWlog_Setup;
