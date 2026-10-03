@@ -241,6 +241,11 @@ VampireBat_BattleMode configs_GetVampireBatMode(void) {
     return recomp_get_config_u32("vampirebat_config");
 }
 
+/* Checks whether to use DFmoondoor, and when it should open */
+DFMoonDoor_Mode configs_GetDFMoonDoorMode(void) {
+    return recomp_get_config_u32("dfmoondoor");
+}
+
 /* Checks whether to fix up DFMole's "GoToDigSpot" logic state */
 _Bool configs_GetMoleDigFix(void) {
     return recomp_get_config_u32("dfmole_dig_fix") != 0;

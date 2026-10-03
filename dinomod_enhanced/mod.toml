@@ -621,6 +621,34 @@ options = [ "Off", "On" ]
 default = "On"
 
 [[manifest.config_options]]
+id = "dfmoondoor"
+name = "Discovery Falls: MMP Door"
+description = '''
+Dinosaur Planet's prototype contains an unused "DFmoondoor" object meant for the cave exit at the end of the tunnel between Discovery Falls and Moon Mountain Pass. Its behaviour is complete and it functions correctly when placed in the game world!
+
+If you'd like to see the door, this config can be enabled. Since there's unfortunately no way to know exactly when Rare intended for it to open, a few possibilities have been covered:
+
+- Off
+The door remains unused.
+
+- Immediate
+The door opens as soon as you reach it.
+
+- Spirit 1 (Test of Combat)
+The door opens on approach after exploring Discovery Falls and obtaining the 1st Spirit.
+
+- Moon Mountain Pass Key
+The door opens on approach after obtaining the key to the SharpClaw outpost.
+
+The door doesn't really affect progression regardless of which you pick, since with or without it there's no way to venture into Moon Mountain Pass proper until you collect the SharpClaw outpost's key.
+
+NOTE: if you change this config's door opening condition while standing in front of the door, you'll need to back away and reapproach it before it'll open.
+'''
+type = "Enum"
+options = [ "Off", "Immediate", "Spirit 1", "MMP Key" ]
+default = "Spirit 1"
+
+[[manifest.config_options]]
 id = "dfmole_dig_fix"
 name = "Mole: Dig Spot Fixes"
 description = '''

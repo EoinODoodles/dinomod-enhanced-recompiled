@@ -163,6 +163,21 @@
     (triggerObject)->commands[cmdSlot].param2 = cameraActionIdx;
 
 
+/* COMMANDS: KYTE FLIGHT PATH */
+
+//A shortcut for setting Kyte's flight group when entering a Trigger Object
+#define ENTER_KYTE_FLIGHT_GROUP(flightGroupID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_KYTE_FLIGHT_GROUP;\
+    (triggerObject)->commands[cmdSlot].paramCombined = flightGroupID;
+
+//A shortcut for setting Kyte's flight group when exiting a Trigger Object
+#define EXIT_KYTE_FLIGHT_GROUP(flightGroupID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_KYTE_FLIGHT_GROUP;\
+    (triggerObject)->commands[cmdSlot].paramCombined = flightGroupID;
+
+
 /* COMMANDS: SAVE POINT */
 
 #define ROTATE_CHECKPOINT_YAW_180 0x8000

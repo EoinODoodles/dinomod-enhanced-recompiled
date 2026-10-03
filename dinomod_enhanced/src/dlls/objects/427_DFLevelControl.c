@@ -1,13 +1,17 @@
+#include "configs.h"
+#include "custom_gamebits.h"
 #include "modding.h"
 #include "recomputils.h"
 
 #include "objects/427_DFLevelControl.h"
 
-#include "dll.h"
 #include "common.h"
+#include "dll.h"
+#include "dlls/objects/210_player.h"
 #include "sys/main.h"
 #include "sys/map_enums.h"
 #include "sys/math.h"
+#include "sys/objects.h"
 #include "sys/print.h"
 
 #include "recomp/dlls/objects/427_DFlevelcontrol_recomp.h"
@@ -88,6 +92,74 @@ static void DFlevelcontrol_syncRopeObjGroups(DFlevelcontrol_Data* objData) {
     }
 }
 
+/* Handles the various config modes for DFmoondoor */
+static void DFlevelcontrol_handleMoonDoor(void) {
+    u8 mode;
+    
+    //Return early if the door's already open
+    if (mainGetBits(DINOMOD_BIT_972_DF_Open_Door_to_MMP) || 
+        mainGetBits(DINOMOD_BIT_973_DF_Opened_Door_to_MMP)
+    ) {
+        //Make sure Kyte can fly through the open door
+        if (mainGetBits(DINOMOD_BIT_975_DF_Kyte_Can_Fly_Through_Door_to_MMP) == FALSE) {
+            mainSetBits(DINOMOD_BIT_975_DF_Kyte_Can_Fly_Through_Door_to_MMP, TRUE);
+        }
+        return;
+    }
+
+    mode = configs_GetDFMoonDoorMode();
+
+    //Hide the door if the config has it switched off
+    if (mode == DFMOONDOOR_MODE_OFF) {
+        if (dll_gplay->get_obj_group_status(MAP_DISCOVERY_FALLS, DF_ObjGroup_MMP_Door)) {
+            dll_gplay->set_obj_group_status(MAP_DISCOVERY_FALLS, DF_ObjGroup_MMP_Door, FALSE); 
+        }
+
+        //Make sure Kyte can fly through where the door would be
+        if (mainGetBits(DINOMOD_BIT_975_DF_Kyte_Can_Fly_Through_Door_to_MMP) == FALSE) {
+            mainSetBits(DINOMOD_BIT_975_DF_Kyte_Can_Fly_Through_Door_to_MMP, TRUE);
+        }
+        return;
+    }
+
+    //Otherwise, show the door if the tunnel objGroup is loaded
+    if (dll_gplay->get_obj_group_status(MAP_DISCOVERY_FALLS, DF_ObjGroup_Tunnel_to_MMP)) {
+        dll_gplay->set_obj_group_status(MAP_DISCOVERY_FALLS, DF_ObjGroup_MMP_Door, TRUE); 
+    }
+
+    //Check if the player passed through the TriggerPlane in front of the door
+    if (mainGetBits(DINOMOD_BIT_974_DF_Query_Open_Door_to_MMP)) {
+        mainSetBits(DINOMOD_BIT_974_DF_Query_Open_Door_to_MMP, FALSE);
+
+        //Open the door if the config's conditions are met
+        switch (mode) {
+        case DFMOONDOOR_MODE_ON_IMMEDIATE:
+            mainSetBits(DINOMOD_BIT_972_DF_Open_Door_to_MMP, TRUE);
+            mainSetBits(DINOMOD_BIT_975_DF_Kyte_Can_Fly_Through_Door_to_MMP, TRUE);
+            break;
+        case DFMOONDOOR_MODE_ON_SPIRIT_1:
+            if (mainGetBits(BIT_DF_Played_Seq_003C_Krystal_Returns_From_The_Shrine)) {
+                mainSetBits(DINOMOD_BIT_972_DF_Open_Door_to_MMP, TRUE);
+                mainSetBits(DINOMOD_BIT_975_DF_Kyte_Can_Fly_Through_Door_to_MMP, TRUE);
+            }
+            break;
+        case DFMOONDOOR_MODE_ON_MMP_KEY:
+            if (mainGetBits(BIT_CRF_Prison_Key_2)) { //TODO: this is MMP's key, but it's mislabelled in the enum
+                mainSetBits(DINOMOD_BIT_972_DF_Open_Door_to_MMP, TRUE);
+                mainSetBits(DINOMOD_BIT_975_DF_Kyte_Can_Fly_Through_Door_to_MMP, TRUE);
+            }
+            break;
+        }
+    }
+
+    //If the door isn't open, make sure Kyte can't fly through it
+    if (!(mainGetBits(DINOMOD_BIT_972_DF_Open_Door_to_MMP) || mainGetBits(DINOMOD_BIT_973_DF_Opened_Door_to_MMP))) {
+        if (mainGetBits(DINOMOD_BIT_975_DF_Kyte_Can_Fly_Through_Door_to_MMP)) {
+            mainSetBits(DINOMOD_BIT_975_DF_Kyte_Can_Fly_Through_Door_to_MMP, FALSE);
+        }
+    }
+}
+
 RECOMP_PATCH void DFlevelcontrol_obj_Setup(Object* self, ObjSetup* setup, s32 reset) {
     DFlevelcontrol_Data* objdata = self->data;
 
@@ -119,6 +191,9 @@ RECOMP_PATCH void DFlevelcontrol_obj_Control(Object* self) {
 
     //@recomp: handle Kyte's ropes
     DFlevelcontrol_syncRopeObjGroups(objdata);
+
+    //@recomp: handle DFmoondoor
+    DFlevelcontrol_handleMoonDoor();
 
     //Run the level's initialisation function when the player enters the map
     if (objdata->mapID != MAP_DISCOVERY_FALLS) {

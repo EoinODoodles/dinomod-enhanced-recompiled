@@ -89,11 +89,11 @@ typedef enum {
     DINOMOD_BIT_96F_Vehicle_Skip_Mount_Animation = 0x96F,  // len:1 group:1 (Skips the next vehicle mounting animation)
     DINOMOD_BIT_970_AMSFX_Waterfalls_Reduce_Max_Volume = 0x970,  // len:1 group:1 (Temporarily reduces the max volume of `amSfx_WaterFallsControl`'s waterfall sounds, to avoid them drowning out the dialogue in Discovery Falls' HighTop cutscene)
     DINOMOD_BIT_971_BWLog_In_Choppy_Waters = 0x971,  // len:1 group:1 (Temporarily disables the DFlog-style effects intended for riding the log in calm waters)
+    DINOMOD_BIT_972_DF_Open_Door_to_MMP = 0x972,  // len:1 group:1 (For the unused door blocking the route to MMP)
+    DINOMOD_BIT_973_DF_Opened_Door_to_MMP = 0x973,  // len:1 group:1 (For the unused door blocking the route to MMP)
+    DINOMOD_BIT_974_DF_Query_Open_Door_to_MMP = 0x974,  // len:1 group:1 (Set when passing through a TriggerPlane in front of DFmoondoor - causes DFlevelcontrol to check whether the door should open)
+    DINOMOD_BIT_975_DF_Kyte_Can_Fly_Through_Door_to_MMP = 0x975,  // len:1 group:1
     /* More placeholders */
-    DINOMOD_BIT_972_Placeholder = 0x972,  // len:1 group:1
-    DINOMOD_BIT_973_Placeholder = 0x973,  // len:1 group:1
-    DINOMOD_BIT_974_Placeholder = 0x974,  // len:1 group:1
-    DINOMOD_BIT_975_Placeholder = 0x975,  // len:1 group:1
     DINOMOD_BIT_976_Placeholder = 0x976,  // len:1 group:1
     DINOMOD_BIT_977_Placeholder = 0x977,  // len:1 group:1
     DINOMOD_BIT_978_Placeholder = 0x978,  // len:1 group:1

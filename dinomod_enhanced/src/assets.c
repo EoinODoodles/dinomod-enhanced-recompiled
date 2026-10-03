@@ -4599,6 +4599,203 @@ static void discovery_falls_modifications(void) {
             }
         } 
 
+        //Tunnel to MMP
+        {
+            //Move most tunnel objects into a new objGroup of their own (so the Lower Falls group can unload)
+            {
+                u32 tunnelUIDs[] = {
+                    0x00041393, //TriggerPlane
+                    0x00040b88, //DFLantern
+                    0x00001f4d, //DFdockpoint
+                    0x00034c03, //SmallCrate
+                    0x00034c04, //SmallCrate
+                    0x00034c05, //SmallCrate
+                    0x00034017, //FXEmit (drips)
+                    0x00034018, //FXEmit (drips)
+                    0x00034019, //FXEmit (drips)
+                    0x0003401a, //FXEmit (drips)
+                    0x0003401c, //FXEmit (drips)
+                };
+                for (u32 i = 0; i < ARRAYCOUNT(tunnelUIDs); i++) {
+                    ObjSetup* obj = GET_MAPS_OBJECT(discoveryFalls, tunnelUIDs[i]);
+                    obj->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                    obj->mapObjGroup = DF_ObjGroup_Tunnel_to_MMP;
+                }
+            }
+
+            //Add a TriggerPlane at the entrance to the tunnel, loading/unloading the tunnel objGroup
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 50,
+                        .fadeDistance = 50,
+                    },
+                    COORDS_SETUP(-356.967, 0, 969.342),
+                    .rotationY = TRIGGER_YAW(98),
+                    .sizeX = TRIGGER_SCALE(1.38),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                };
+                //Bring the camera closer (avoiding getting stuck at entrance)
+                ENTER_CAMERAACTION(0, 0x3D, &plane, 0); //Use CameraAction (closer)
+                EXIT_CAMERAACTION(0, 1, &plane, 1); //Use default camera
+
+                //Load/unload tunnel objects
+                DIRECTIONAL_OBJGROUP_TOGGLE(DF_ObjGroup_Tunnel_to_MMP, &plane, 2, 3);
+                DIRECTIONAL_OBJGROUP_TOGGLE(DF_ObjGroup_MMP_Door, &plane, 4, 5);
+
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+
+            //Add a TriggerPlane, loading/unloading the main Lower Falls objGroup further in
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 50,
+                        .fadeDistance = 50,
+                    },
+                    COORDS_SETUP(-955.792, 0, 1013.321),
+                    .rotationY = TRIGGER_YAW(29),
+                    .sizeX = TRIGGER_SCALE(0.95),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(DF_ObjGroup2_Lower_Falls, &plane, 0, 1);
+
+                //Release the close camera once in the wider part of the cave
+                ENTER_CAMERAACTION(0, 1, &plane, 2); //Use default camera
+                EXIT_CAMERAACTION(0, 0x3D, &plane, 3); //Use CameraAction (closer)
+
+                //Use the remaining slots to clean up any objGroups that should already be off here, just in case
+                ENTER_OBJGROUP_OFF(DF_ObjGroup1_Entrance_Magic_Plant_Basin, &plane, 4);
+                ENTER_OBJGROUP_OFF(DF_ObjGroup3_Shrine_Exterior, &plane, 5);
+                ENTER_OBJGROUP_OFF(DF_ObjGroup4_Toxic_Cave, &plane, 6);
+                ENTER_OBJGROUP_OFF(DF_ObjGroup5_Mole_Cave, &plane, 7);
+
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+
+            //Fix the log disappearing as soon as you step into MMP
+            {
+                //Apply this to any dockpoints whose logs could be brought as far as the MMP entrance
+                u32 dockpointUIDs[] = {
+                    //Tunnel to BWC
+                    0x00001f4d, //Just before the archway into MMP
+
+                    //Lower Falls
+                    0x00001f47, //First dockpoint, needed to get to HighTop
+                    0x00001f4e, //Shore near HighTop, leading up to rockface climb
+                    0x00001f4b, //Near BWC (moved slightly too, since it was awkward to mount)
+                    
+                    //Middle Falls
+                    0x00001fab, //Just in front of the climb up to the middle falls, near the foodbag cave
+                    0x00001fac,  //Shore under Toxic Cave ladder
+                    0x0000203c, //Shore in front of turbine jetty
+
+                    //Upper Falls
+                    0x00002046, //Shore before rapids, near where Kyte drags over and secures a rope
+                    0x00002047, //Shore near turbine, between all the ledges and rocks
+
+                    //Shrine area's dockpoints can be ignored, since there should be no way to get the log out of that area
+                };
+                for (u32 i = 0; i < ARRAYCOUNT(dockpointUIDs); i++) {
+                    DFdockpoint_Setup* dockpoint = GET_MAPS_OBJECT(discoveryFalls, dockpointUIDs[i]);
+                    dockpoint->options = DFdockpoint_OPTION_1_Create_Log_Without_MapID;
+                }
+            }
+
+            //Fix duplicate TriggerPlane near the dockpoint, which's rotated strangely and stops music early
+            {
+                //Delete duplicate
+                reasset_map_objects_delete(discoveryFalls, reasset_base_id(0x00041394));
+                
+                //Add Kyte flight command to the nearby archway TriggerPlane (which had nearly all the same commands, except this one) 
+                Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x00041393);
+                ENTER_KYTE_FLIGHT_GROUP(0x9e, plane, 2);
+
+                //Move the archway TriggerPlane fully inside the MMP door, so DF's music doesn't stop when standing in front of the door
+                plane->base.x = -1262;
+                plane->base.y = 4;
+                plane->base.z = 964;
+            }
+
+            //Add the unused MMP door (optional)
+            {
+                //The door itself
+                {
+                    SeqDoor_Setup door = {
+                        .base = {
+                            .objId = OBJ_DFmoondoor,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = DF_ObjGroup_MMP_Door,
+                            .fadeDistance = FADE_DISTANCE(640*2),
+                        },
+                        COORDS_SETUP(-1263, 4, 964),
+                        .yaw = DEGREES_TO_ANGLE8(90),
+                        .scale = 0x41,
+                        .gamebitOpenA = NO_GAMEBIT,
+                        .gamebitOpenB = NO_GAMEBIT,
+                        .gamebitRestoreState = DINOMOD_BIT_972_DF_Open_Door_to_MMP,
+                        .options = SeqDoor_OPTION_1_Delay_Play_Until_Gamebit_Set | 
+                                            SeqDoor_OPTION_2_Unload_If_Already_Open | 
+                                            SeqDoor_OPTION_4_Unload_At_End_of_Sequence
+                    };
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &door, sizeof(door));
+                }
+
+                //Add a TriggerPlane, opening the door on approach (if its conditions for opening are met)
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-963.578, 0, 999.343),
+                        .rotationY = TRIGGER_YAW(29),
+                        .sizeX = TRIGGER_SCALE(0.95),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .bitFlagID = NO_GAMEBIT,
+                        .conditionBitFlagIDs[0] = BIT_ALWAYS_1
+                    };
+                    //Set a gamebit causing DFlevelcontrol to check if the door should open
+                    ENTER_GAMEBIT(DINOMOD_BIT_974_DF_Query_Open_Door_to_MMP, TRUE, &plane, 0);
+
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+
+                //Don't let Kyte fly through the door until it's open
+                {
+                    u32 kyteCurveUIDs[] = {
+                        0x00042c5e,
+                        0x00042c5f,
+                    };
+                    for (u32 i = 0; i < ARRAYCOUNT(kyteCurveUIDs); i++) {
+                        CurveSetup* curve = GET_MAPS_OBJECT(
+                            reasset_base_id(MAP_MOON_MOUNTAIN_PASS), 
+                            kyteCurveUIDs[i]
+                        );
+                        curve->type22.unk30 = DINOMOD_BIT_975_DF_Kyte_Can_Fly_Through_Door_to_MMP;
+                    }
+                }
+            }
+        }
 
         //LODs
         {
@@ -6050,6 +6247,10 @@ static void moon_mountain_pass_modifications(void) {
         };
         ENTER_SET_SAVEPOINT(TRUE, &plane, 0);
         EXIT_SET_SAVEPOINT(TRUE, &plane, 1);
+
+        //Load/unload Discovery Falls' cave objects here too
+        DIRECTIONAL_WORLD_OBJGROUP_TOGGLE_REVERSE(DF_ObjGroup_Tunnel_to_MMP, MAP_DISCOVERY_FALLS, &plane, 2, 3);
+
         reasset_map_objects_set(moonMountainPass, 
             reasset_auto_id(dinomodNs), &plane, sizeof(plane));
     }
@@ -6065,6 +6266,9 @@ static void moon_mountain_pass_modifications(void) {
         //Split bidirectional save onto separate commands, so they can face different ways on reload
         ENTER_SET_SAVEPOINT(TRUE, plane, 0);
         EXIT_SET_SAVEPOINT(TRUE, plane, 1);
+
+        //DF's cave objGroup should already be loaded by now, but add this as a fallback just in case!
+        EXIT_WORLD_OBJGROUP_ON(DF_ObjGroup_Tunnel_to_MMP, MAP_DISCOVERY_FALLS, plane, 2);
     }
 }
 

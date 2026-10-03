@@ -109,6 +109,14 @@ typedef enum {
     VAMPIREBAT_BATTLE_ON            //Bats can be battled
 } VampireBat_BattleMode;
 
+// Configs for DFmoondoor
+typedef enum {
+    DFMOONDOOR_MODE_OFF,            //DFmoondoor remains unused
+    DFMOONDOOR_MODE_ON_IMMEDIATE,   //Opens as soon as you reach it
+    DFMOONDOOR_MODE_ON_SPIRIT_1,    //Opens on approach after completing Discovery Falls
+    DFMOONDOOR_MODE_ON_MMP_KEY,     //Opens on approach when revisiting with the key to MMP
+} DFMoonDoor_Mode;
+
 typedef enum {
     PLAY_AS_SABRE_WITH_FOX_AS_ILLUSION,     //Play as Sabre, aside from Illusion Spell (which shows Fox as a little swapped homage to the prototype's behaviour)
     PLAY_AS_FOX_ALWAYS                      //Play as Fox regardless of Illusion Spell
