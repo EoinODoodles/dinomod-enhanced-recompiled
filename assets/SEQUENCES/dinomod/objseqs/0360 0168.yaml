@@ -1815,6 +1815,12 @@ curves:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 4341 } # SETDURATION @ 0
   - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+
+  #@recomp: Reset log physics via objSeq message
+  - { type: 0, delay: 0, params: 4340 } # SETTIME @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 100
+  - { code_type: 2, val1: 0x0, val2: 1 } # SET (MESSAGE)
+
   - { type: 0, delay: 0, params: 4341 } # SETTIME @ 0
   - { type: 11, delay: 0, params: 1 } # CODE @ 4341
   - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
