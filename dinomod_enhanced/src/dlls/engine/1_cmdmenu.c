@@ -537,6 +537,7 @@ RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits() {
     dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_23_SPELLSTONE_CRF_ACTIVATED].textureID = TEXTABLE_563; //using the activated SpellStone icon
     dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_24_SPELLSTONE_BWC_ACTIVATED].textureID = TEXTABLE_563; //using the activated SpellStone icon
     dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_25_SPELLSTONE_KP_ACTIVATED].textureID = TEXTABLE_563;  //using the activated SpellStone icon
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_31_PRISON_KEY_CRF].textureID = TEXTABLE_568;  //use the unused Moon Mountain Pass key icon
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_0_NW_GATE_KEY].textureID = TEXTABLE_563; //turns this unused item into an activated version of Dragon Rock's SpellStone
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_32_SPELLSTONE_WC_ACTIVATED].textureID = TEXTABLE_563; //using the activated SpellStone icon
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_33_SPELLSTONE_DR_ACTIVATED].textureID = TEXTABLE_562; //turns this into an inactive version of Dragon Rock's SpellStone
