@@ -122,13 +122,13 @@ RECOMP_PATCH void dll_488_control(Object *self) {
                 mainSetBits(BIT_DB_Entered_Shrine_3, 0);
                 gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
                 sp44 = dllLoad(DLL_ID_147, 1);
-                sp44->vtbl->func0(self, 1, 0, 1, -1, 0);
+                sp44->vtbl->Spawn(self, 1, 0, 1, -1, 0);
                 dllFree(sp44);
                 sp44 = dllLoad(DLL_ID_148, 1);
-                sp44->vtbl->func0(self, 0, 0, 1, -1, 0);
+                sp44->vtbl->Spawn(self, 0, 0, 1, -1, 0);
                 dllFree(sp44);
                 mainSetBits(BIT_DB_Entered_Shrine_1, 0);
-                gDLL_14_Modgfx->vtbl->func7(&objdata->unkC);
+                gDLL_14_Modgfx->vtbl->Func7(&objdata->unkC);
                 // @recomp: Shut door while test is active (normally the trigger planes will clear this bit but the
                 //          way they are positioned makes it possible to get the door stuck open.
                 //          Also for some reason, the door bit is also what decides whether the shrine grants a spirit,
@@ -208,7 +208,7 @@ RECOMP_PATCH void dll_488_control(Object *self) {
             mainSetBits(BIT_DB_Entered_Shrine_1, 1);
             mainSetBits(BIT_DB_Entered_Shrine_2, 1);
             sp44 = dllLoad(DLL_ID_122, 1);
-            objdata->unkC = sp44->vtbl->func0(self, 2, 0, 0x402, -1, 0);
+            objdata->unkC = sp44->vtbl->Spawn(self, 2, 0, 0x402, -1, 0);
             dllFree(sp44);
             mainSetBits(BIT_1D8, 0);
             objdata->unk12 = 0;

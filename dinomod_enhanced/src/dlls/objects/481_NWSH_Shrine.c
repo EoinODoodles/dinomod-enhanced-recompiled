@@ -77,7 +77,7 @@ RECOMP_PATCH void dll_481_setup(Object *self, NWSH_Shrine_Setup *setup, s32 arg2
     objdata->unkE = 0x12C;
     objdata->unk10 = 0x514;
     sp30 = dllLoad(DLL_ID_122, 1);
-    objdata->unkC = sp30->vtbl->func0(self, 3, 0, 0x402, -1, 0);
+    objdata->unkC = sp30->vtbl->Spawn(self, 3, 0, 0x402, -1, 0);
     dllFree(sp30);
 }
 
@@ -178,7 +178,7 @@ RECOMP_PATCH void dll_481_control(Object *self) {
                 objdata->unk12 = 1;
                 mainSetBits(BIT_DB_Entered_Shrine_3, 0);
                 objdata->unk13 = 1;
-                gDLL_14_Modgfx->vtbl->func7(&objdata->unkC);
+                gDLL_14_Modgfx->vtbl->Func7(&objdata->unkC);
             }
         default:
             return;

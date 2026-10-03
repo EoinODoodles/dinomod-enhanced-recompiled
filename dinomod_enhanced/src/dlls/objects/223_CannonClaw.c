@@ -285,7 +285,7 @@ static void CannonClaw_createHitEffects(Object* self, SRT* fxTransform, s32 useM
         fxTransform->roll = 0;
         fxTransform->scale = 1.0f;
 
-        modGfxDLL->vtbl->func0(self, 0, fxTransform, 1, -1, dModGfxParams);
+        modGfxDLL->vtbl->Spawn(self, 0, fxTransform, 1, -1, dModGfxParams);
         if (modGfxDLL != NULL) {
             dllFree(modGfxDLL);
         }
