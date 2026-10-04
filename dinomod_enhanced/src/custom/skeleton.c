@@ -626,6 +626,9 @@ static void skeletonScaleHead(ModelInstance* modelInst, Model* model, Object* ob
             modelJointIDs[0] = 6;
             scaleFactors[0] = lerp_float(2.0f, 1.0f, scaleFactors[0]);
             break;
+        case OBJ_DFlog:
+        case OBJ_BWLog:
+            return;
         default:
             modelJointIDs[0] = skeletonGetModelJointIDFromSeqJointID(obj, 0);
             break;
