@@ -466,5 +466,7 @@ typedef enum {
     DF_Lantern_FLAG_4_Show_PartFX_Glow = 4,     //Draw the partFX
     DF_Lantern_FLAG_8_Play_Sound = 8,           //Play a crackling sound loop when near the lantern
     DF_Lantern_FLAG_10_Always_Lit = 0x10,       //For indoor lanterns - always lit, instead of only at night-time
-    DF_Lantern_FLAG_20_Use_Fade_Distance = 0x20 //Use the objSetup fadeDistance as the camera range for the partFX glow
+    DF_Lantern_FLAG_20_Use_Fade_Distance = 0x20, //Use the objSetup fadeDistance as the camera range for the partFX glow
+    /* RECOMP */
+    DF_Lantern_FLAG_40_Quadruple_Fade_Distance = 0x40 //Allows longer camera ranges (> 0xFF) to be specified for the partFX glow
 } DF_Lantern_Flags;
