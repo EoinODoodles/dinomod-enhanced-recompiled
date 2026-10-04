@@ -64,7 +64,10 @@ INCBIN(block995, "inc/blocks_0995_DBriver_bend_1.bin");
 INCBIN(block994, "inc/blocks_0994_DBriver_waterfall_basin_2.bin");
 INCBIN(block336, "inc/blocks_0336_DF_entrance_1_waterfall.bin");
 INCBIN(block340, "inc/blocks_0340_DF_entrance_2_corner.bin");
+INCBIN(block339, "inc/blocks_0339_DF_lower_falls_entrance.bin");
 INCBIN(block338, "inc/blocks_0338_DF_lower_falls_cliff_face.bin");
+INCBIN(block335, "inc/blocks_0335_DF_lower_falls_west.bin");
+INCBIN(block334, "inc/blocks_0334_DF_lower_falls_foodbag_cave_entrance.bin");
 INCBIN(block333, "inc/blocks_0333_DF_foodbag_cave.bin");
 INCBIN(block331, "inc/blocks_0331_DF_middle_falls_cradle_station_1.bin");
 INCBIN(block325, "inc/blocks_0325_DF_middle_falls_cradle_station_2.bin");
@@ -82,6 +85,7 @@ INCBIN(block323, "inc/blocks_0323_DF_upper_falls_shrine_exit_climb.bin");
 INCBIN(block320, "inc/blocks_0320_DF_shrine_area_exit.bin");
 INCBIN(block321, "inc/blocks_0321_DF_shrine_exterior.bin");
 INCBIN(block343, "inc/blocks_0343_DF_shrine_interior.bin");
+INCBIN(block337, "inc/blocks_0337_DF_tunnel_to_MMP.bin");
 INCBIN(block341, "inc/blocks_0341_DF_BWC_exit_corner.bin");
 INCBIN(block342, "inc/blocks_0342_DF_BWC_exit.bin");
 INCBIN(block722, "inc/blocks_0722_DIM1_river_end.bin");
@@ -4132,7 +4136,9 @@ static void discovery_falls_modifications(void) {
     {
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 336, block336); //Entrance route - near SC: Fix UVs at base of cliff to the left of crawl point, fix gap in water, use clamped cliff textures and fix seams between them
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 340, block340); //Entrance route - corner: Fix missing 0 vertex alpha on water blend (at T-junction with WaterBaddie), minor UV cleanups, use clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 339, block339); //Lower Falls entrance: Fix hovering dockpoint, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 338, block338); //Lower Falls cliff-face: Fix broken decals on edges of climbable section and archway, clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 335, block335); //Lower Falls - west: fix up shore under toxic cave entrance, riverbed UV fixes, extend wooden poles, fix floating dockpoint, clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 333, block333); //Lower Falls - foodbag cave interior: fix z-fighting at the back of the ladder, align ladder with climb animation, minor UV fixes at the entrance
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 334, block334); //Lower Falls - foodbag cave entrance: minor UV fixes, use clamped cliff textures, colour discontinuity fix just inside cave
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 331, block331); //Middle Falls - cradle station 1: use clamped cliff textures, widescreen fix for turbine activation sequence
@@ -4153,6 +4159,7 @@ static void discovery_falls_modifications(void) {
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 323, block323); //Shrine area exit climb to Upper Falls: minor UV fixes, add decal to indicate rock climb, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 341, block341); //BWC exit (corner): reduce UV warping, use clamped cliff textures
         BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 342, block342); //BWC exit: clean up some UVs, extend dockpoint so it's not hovering in the water, clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 337, block337); //Tunnel to MMP: clean up UVs and improve detail, fix discontinuity with MMP's first block
     }
 
     //MODELS
@@ -4812,6 +4819,67 @@ static void discovery_falls_modifications(void) {
                     COORDS_SETUP(-71, 127, 1281),
                     .animatorID = 10,
                     .gridOffsetX = +1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load | 
+                               LODAnimator_OPTION_4_Hide_LOD_on_Unload
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Add LOD for the beginning of the tunnel to MMP, when viewed from near HighTop
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup2_Lower_Falls,
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-319.015, 38, 965),
+                    .animatorID = 10,
+                    .gridOffsetX = -1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load | 
+                               LODAnimator_OPTION_4_Hide_LOD_on_Unload
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Add LOD for the water near the HighTop, when viewed from the tunnel to MMP
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup2_Lower_Falls,
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-222.447, 52, 697),
+                    .animatorID = 11,
+                    .gridOffsetZ = +1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load | 
+                               LODAnimator_OPTION_4_Hide_LOD_on_Unload
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+
+            //Add LOD for Moon Mountain Pass, when viewed from the tunnel to MMP
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup_Tunnel_to_MMP,
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1243, 40, 964),
+                    .animatorID = 10,
+                    .gridOffsetX = -1,
                     .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load | 
                                LODAnimator_OPTION_4_Hide_LOD_on_Unload
                 };
