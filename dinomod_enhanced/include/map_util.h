@@ -11,7 +11,11 @@
 typedef struct {
     u32 uID;
     Vec3f coords;
-} ObjReposition;
+    u16 objGroup; //NOTE: use the OBJGROUP_TWEAK macro with this, so it's clear when objGroup0 needs to be applied
+    u16 fadeDistance;
+} ObjSetupTweak;
+
+#define OBJGROUP_TWEAK(objGroupID) (0x100 | objGroupID)
 
 // The same as the `HitsLine` / `ModLine` structs, but with `settingsA` / `settingsB` changed to unsigned variables 
 // as a modding convenience (avoiding implicit conversion warnings when combining flags).

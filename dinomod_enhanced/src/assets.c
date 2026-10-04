@@ -2288,42 +2288,37 @@ static void walled_city_modifications(void) {
             //Moon Temple Floor Tiles
             {
                 //Align tiles exactly
-                    {
-                    typedef struct {
-                        u32 uID;
-                        Vec3f coords;
-                    } WCFloorTileData;
+                {
+                    ObjSetupTweak tiles[] = {
+                        { .uID = 0x415ff, VEC3F(3019, -1232, -3403) },
+                        { .uID = 0x41600, VEC3F(3019, -1232, -3350) },
+                        { .uID = 0x41601, VEC3F(3019, -1232, -3297) },
+                        { .uID = 0x41602, VEC3F(3019, -1232, -3244) },
 
-                    WCFloorTileData tiles[] = {
-                        {.uID = 0x415ff, VEC3F(3019, -1232, -3403)},
-                        {.uID = 0x41600, VEC3F(3019, -1232, -3350)},
-                        {.uID = 0x41601, VEC3F(3019, -1232, -3297)},
-                        {.uID = 0x41602, VEC3F(3019, -1232, -3244)},
+                        {.uID = 0x415fb, VEC3F(2966, -1232, -3403) },
+                        {.uID = 0x415fc, VEC3F(2966, -1232, -3350) },
+                        {.uID = 0x415fd, VEC3F(2966, -1232, -3297) },
+                        {.uID = 0x415fe, VEC3F(2966, -1232, -3244) },
 
-                        {.uID = 0x415fb, VEC3F(2966, -1232, -3403)},
-                        {.uID = 0x415fc, VEC3F(2966, -1232, -3350)},
-                        {.uID = 0x415fd, VEC3F(2966, -1232, -3297)},
-                        {.uID = 0x415fe, VEC3F(2966, -1232, -3244)},
+                        { .uID = 0x415f7, VEC3F(2913, -1232, -3403) },
+                        { .uID = 0x415f8, VEC3F(2913, -1232, -3350) },
+                        { .uID = 0x415fa, VEC3F(2913, -1232, -3297) },
+                        { .uID = 0x415f9, VEC3F(2913, -1232, -3244) },
 
-                        {.uID = 0x415f7, VEC3F(2913, -1232, -3403)},
-                        {.uID = 0x415f8, VEC3F(2913, -1232, -3350)},
-                        {.uID = 0x415fa, VEC3F(2913, -1232, -3297)},
-                        {.uID = 0x415f9, VEC3F(2913, -1232, -3244)},
+                        { .uID = 0x415f3, VEC3F(2835, -1232, -3403) },
+                        { .uID = 0x415f4, VEC3F(2835, -1232, -3350) },
+                        { .uID = 0x415f5, VEC3F(2835, -1232, -3297) },
+                        { .uID = 0x415f6, VEC3F(2835, -1232, -3244) },
 
-                        {.uID = 0x415f3, VEC3F(2835, -1232, -3403)},
-                        {.uID = 0x415f4, VEC3F(2835, -1232, -3350)},
-                        {.uID = 0x415f5, VEC3F(2835, -1232, -3297)},
-                        {.uID = 0x415f6, VEC3F(2835, -1232, -3244)},
+                        { .uID = 0x415ee, VEC3F(2782, -1232, -3403) },
+                        { .uID = 0x415ef, VEC3F(2782, -1232, -3350) },
+                        { .uID = 0x415f0, VEC3F(2782, -1232, -3297) },
+                        { .uID = 0x415f1, VEC3F(2782, -1232, -3244) },
 
-                        {.uID = 0x415ee, VEC3F(2782, -1232, -3403)},
-                        {.uID = 0x415ef, VEC3F(2782, -1232, -3350)},
-                        {.uID = 0x415f0, VEC3F(2782, -1232, -3297)},
-                        {.uID = 0x415f1, VEC3F(2782, -1232, -3244)},
-
-                        {.uID = 0x415ea, VEC3F(2704, -1232, -3403)},
-                        {.uID = 0x415eb, VEC3F(2704, -1232, -3350)},
-                        {.uID = 0x415ec, VEC3F(2704, -1232, -3297)},
-                        {.uID = 0x415ed, VEC3F(2704, -1232, -3244)}
+                        { .uID = 0x415ea, VEC3F(2704, -1232, -3403) },
+                        { .uID = 0x415eb, VEC3F(2704, -1232, -3350) },
+                        { .uID = 0x415ec, VEC3F(2704, -1232, -3297) },
+                        { .uID = 0x415ed, VEC3F(2704, -1232, -3244) }
                     };
 
                     for (u32 i = 0; i < ARRAYCOUNT(tiles); i++) {
@@ -4805,6 +4800,16 @@ static void discovery_falls_modifications(void) {
             }
         }
 
+        //Climb to Middle Falls
+        {
+            Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x00040c31);
+            DIRECTIONAL_OBJGROUP_TOGGLE(DF_ObjGroup7, plane, 3, 4);
+
+            //Don't load objGroup7 when exiting foodbag cave (since it's an empty group being repurposed for Middle Falls)
+            plane = GET_MAPS_OBJECT(discoveryFalls, 0x00030a8e);
+            EMPTY_TRIGGER_COMMAND(plane, 2);
+        }
+
         //LODs
         {
             //Add LOD for the BWC's exit, when viewed from Middle Falls
@@ -5168,24 +5173,24 @@ static void discovery_falls_modifications(void) {
             //Tweak the crawl curves' positions so they're exactly at ground height (so the camera avoids clipping into the wall during the crawl)
             //And align them exactly along crawlspace (to reduce jumps in camera angle after settling into the crawl curve from the initial HITS line angle)
             {
-                ObjReposition crawlNodeUIDs[] = {
+                ObjSetupTweak crawlNodeUIDs[] = {
                     //First cave (the one the mole digs automatically)
-                    {0x00030bd3, VEC3F(1069.700, -14, -959.5)}, //Out (End)
-                    {0x00030bd2, VEC3F(1122.800, -14, -959.5)}, //Out (Start)
-                    {0x00030bd1, VEC3F(1135.585, -14, -959.5)}, //In (End)
-                    {0x00030bd0, VEC3F(1082.088, -14, -959.5)}, //In (Start)
+                    { .uID = 0x00030bd3, VEC3F(1069.700, -14, -959.5) }, //Out (End)
+                    { .uID = 0x00030bd2, VEC3F(1122.800, -14, -959.5) }, //Out (Start)
+                    { .uID = 0x00030bd1, VEC3F(1135.585, -14, -959.5) }, //In (End)
+                    { .uID = 0x00030bd0, VEC3F(1082.088, -14, -959.5) }, //In (Start)
 
                     //Second cave
-                    {0x00030bce, VEC3F(1012.670, -14, -878.809)}, //Out (End)
-                    {0x00030bcd, VEC3F(1029.050, -14, -834.200)}, //Out (Start)
-                    {0x00030bcc, VEC3F(1033.539, -14, -821.972)}, //In (End)
-                    {0x00030bcb, VEC3F(1014.892, -14, -872.755)}, //In (Start)
+                    { .uID = 0x00030bce, VEC3F(1012.670, -14, -878.809) }, //Out (End)
+                    { .uID = 0x00030bcd, VEC3F(1029.050, -14, -834.200) }, //Out (Start)
+                    { .uID = 0x00030bcc, VEC3F(1033.539, -14, -821.972) }, //In (End)
+                    { .uID = 0x00030bcb, VEC3F(1014.892, -14, -872.755) }, //In (Start)
 
                     //Third cave (with the Shrine podium switch)
-                    {0x00030b78, VEC3F(924.295, -14, -914.891)}, //Out (End)
-                    {0x00030b77, VEC3F(876.073, -14, -879.056)}, //Out (Start)
-                    {0x00030b73, VEC3F(861.364, -14, -868.126)}, //In (End) 
-                    {0x00030b72, VEC3F(911.424, -14, -905.327)}  //In (Start)
+                    { .uID = 0x00030b78, VEC3F(924.295, -14, -914.891) }, //Out (End)
+                    { .uID = 0x00030b77, VEC3F(876.073, -14, -879.056) }, //Out (Start)
+                    { .uID = 0x00030b73, VEC3F(861.364, -14, -868.126) }, //In (End) 
+                    { .uID = 0x00030b72, VEC3F(911.424, -14, -905.327) }  //In (Start)
                 };
 
                 for (u32 i = 0; i < ARRAYCOUNT(crawlNodeUIDs); i++) {
@@ -5526,13 +5531,13 @@ static void discovery_falls_modifications(void) {
         //Still a bit janky-looking because of the curve tangents, but at least she doesn't fly clean through the wall!
         //TODO: polish the curve tangents once they're better understood
         {
-            ObjReposition kyteCurvesOOB[] = {
-                {0x00032e7c, VEC3F(-985.725, 554.922, -1144.031)},
-                {0x00032e82, VEC3F(-978.070, 551.190, -1271.742)},
-                {0x00032e83, VEC3F(-922.070, 551.190, -1215.742)},
-                {0x00032e84, VEC3F(-866.070, 551.190, -1271.742)},
-                {0x00032e85, VEC3F(-922.070, 551.190, -1327.742)},
-                {0x00032e7d, VEC3F(-1043.291, 580.922, -1115.812)},
+            ObjSetupTweak kyteCurvesOOB[] = {
+                { .uID = 0x00032e7c, VEC3F(-985.725, 554.922, -1144.031) },
+                { .uID = 0x00032e82, VEC3F(-978.070, 551.190, -1271.742) },
+                { .uID = 0x00032e83, VEC3F(-922.070, 551.190, -1215.742) },
+                { .uID = 0x00032e84, VEC3F(-866.070, 551.190, -1271.742) },
+                { .uID = 0x00032e85, VEC3F(-922.070, 551.190, -1327.742) },
+                { .uID = 0x00032e7d, VEC3F(-1043.291, 580.922, -1115.812) },
             };
 
             for (u32 i = 0; i < ARRAYCOUNT(kyteCurvesOOB); i++) {
@@ -5915,54 +5920,88 @@ static void discovery_falls_modifications(void) {
 
     //DF_Lanterns 
     {
-        //Align more exactly with DFdockpoints and torches)
+        //Align more exactly with DFdockpoints and torches
         {
-            ObjReposition lanternUIDs[] = {
+            ObjSetupTweak lanternUIDs[] = {
                 //Dockpoints
-                {0x00040b8b, VEC3F(105, 60, 1120)},     //First dockpoint in Lower Falls
-                {0x00040b8e, VEC3F(-448, 59, 401)},     //Lower Falls, near where you meet the HighTop
-                {0x00040b81, VEC3F(235, 361, -248)},    //Middle Falls, below toxic cave entrance
-                {0x00040b8f, VEC3F(-339, 363, -86)},    //Middle Falls, just after climbing up near foodbag cave
-                {0x00040b90, VEC3F(-652, 361, -316)},   //Middle Falls, below turbine
-                {0x00040b91, VEC3F(-1575, 582, -105)},  //Upper Falls, near turbine
-                {0x00040b92, VEC3F(-1374, 582, -723)},  //Upper Falls, near rapids
-                {0x00040b94, VEC3F(-1189, 223, -1801)}, //Outside Shrine
-                {0x00040b93, VEC3F(-1483, 223, -1413)}, //Below Shrine area exit climb
-                {0x00040b88, VEC3F(-1045, 71, 826)},    //Tunnel to MMP
-                {0x00040b8c, VEC3F(288, 60, 1693)},    //Near BWC exit
+                { .uID = 0x00040b8b, VEC3F(105, 60, 1120),   .objGroup = OBJGROUP_TWEAK(DF_ObjGroup2_Lower_Falls),             .fadeDistance = 720 }, //First dockpoint in Lower Falls
+                { .uID = 0x00040b8e, VEC3F(-448, 59, 401),   .objGroup = OBJGROUP_TWEAK(DF_ObjGroup2_Lower_Falls),             .fadeDistance = 720 }, //Lower Falls, near where you meet the HighTop
+                { .uID = 0x00040b81, VEC3F(235, 361, -248),  .objGroup = OBJGROUP_TWEAK(DF_ObjGroup7),  .fadeDistance = 720 }, //Middle Falls, below toxic cave entrance
+                { .uID = 0x00040b8f, VEC3F(-339, 363, -86),  .objGroup = OBJGROUP_TWEAK(DF_ObjGroup7),  .fadeDistance = 720 }, //Middle Falls, just after climbing up near foodbag cave
+                { .uID = 0x00040b90, VEC3F(-652, 361, -316), .objGroup = OBJGROUP_TWEAK(DF_ObjGroup14_Middle_and_Upper_Falls),  .fadeDistance = 720 }, //Middle Falls, below turbine
+                { .uID = 0x00040b91, VEC3F(-1575, 582, -105), .objGroup = OBJGROUP_TWEAK(DF_ObjGroup14_Middle_and_Upper_Falls), .fadeDistance = 720 },  //Upper Falls, near turbine
+                { .uID = 0x00040b92, VEC3F(-1374, 582, -723), .objGroup = OBJGROUP_TWEAK(DF_ObjGroup14_Middle_and_Upper_Falls), .fadeDistance = 720 },  //Upper Falls, near rapids
+                { .uID = 0x00040b94, VEC3F(-1189, 223, -1801), .objGroup = OBJGROUP_TWEAK(DF_ObjGroup3_Shrine_Exterior), .fadeDistance = 720 }, //Outside Shrine
+                { .uID = 0x00040b93, VEC3F(-1483, 223, -1413), .objGroup = OBJGROUP_TWEAK(DF_ObjGroup3_Shrine_Exterior), .fadeDistance = 720 }, //Below Shrine area exit climb
+                { .uID = 0x00040b88, VEC3F(-1045, 71, 826), .fadeDistance = 320 },    //Tunnel to MMP
+                { .uID = 0x00040b8c, VEC3F(288, 60, 1693), .objGroup = OBJGROUP_TWEAK(DF_ObjGroup2_Lower_Falls), .fadeDistance = 320 },    //Near BWC exit
                 
                 //Torches
-                {0x00040b87, VEC3F(-818.746, 328.696, 87.383)},     //Foodbag caves (top)
-                {0x00040b86, VEC3F(-1259.118, 252.694, 229.900)},   //Foodbag caves (halfway down)
-                {0x00040b84, VEC3F(-1068.437, 176.716, 570.38)},    //Foodbag caves (near bottom)
-                {0x00040b98, VEC3F(987.016, 226.986, -855.341)},    //Mole caves (upper)
-                {0x00040b97, VEC3F(986.966, 225.046, -1062.795)},   //Mole caves (upper)
-                {0x00040b99, VEC3F(718.528, 252.600, -747.098)},    //Mole caves (SharpClaw hideaway)
-                {0x00040b9c, VEC3F(1067.628, 33.321, -708.101)},    //Mole caves (middle dig spot)
-                {0x00040b9d, VEC3F(1252.055, 33.299, -957.935)},    //Mole caves (first dig spot)
-                {0x00040ba2, VEC3F(1062.591, 22.345, -1014.798)},   //Mole caves (outside first dig spot)
-                {0x00040ba0, VEC3F(894.912, 22.568, -959.711)},     //Mole caves (behind ladder)
-                {0x00040b9b, VEC3F(772.841, 33.429, -805.894)},     //Mole caves (above Shrine switch)
-                {0x00040b9f, VEC3F(959.257, 22.402, -871.474)},     //Mole caves (between middle and Shrine switch dig spots)
-                {0x00042afa, VEC3F(-2073.483, 673.366, -97.014)},   //Stalactite cave
-                {0x00042afc, VEC3F(-2525.322, 675.686, -337.255)},  //Stalactite cave
-                {0x00042afd, VEC3F(-2186.947, 765.956, -365.047)},  //Stalactite cave
-                {0x00042aff, VEC3F(-2005.020, 533.803, -980.717)},  //Demolition caves
-                {0x00042b00, VEC3F(-2120.164, 548.387, -1205.157)}, //Demolition caves
-                {0x00042b01, VEC3F(-2231.783, 609.781, -1058.930)}, //Demolition caves
-                {0x00042b02, VEC3F(-2320.693, 604.596, -760.758)},  //Demolition caves
-                {0x00040b69, VEC3F(746.927, 335.763, -377.932)},    //Toxic cave
-                {0x00040b6b, VEC3F(1217.160, 200.317, -427.455)},   //Toxic cave
-                {0x00040b6d, VEC3F(758.211, 314.767, -118.277)},    //Toxic cave
-                {0x00040b6a, VEC3F(963.978, 268.028, -572.901)},    //Toxic cave
-                {0x00040b89, VEC3F(-843.840, 57.359, 1067.767)},    //Tunnel to MMP
+                { .uID = 0x00040b87, VEC3F(-818.746, 328.696, 87.383) },     //Foodbag caves (top)
+                { .uID = 0x00040b86, VEC3F(-1259.118, 252.694, 229.900) },   //Foodbag caves (halfway down)
+                { .uID = 0x00040b84, VEC3F(-1068.437, 176.716, 570.38) },    //Foodbag caves (near bottom)
+                { .uID = 0x00040b98, VEC3F(987.016, 226.986, -855.341) },    //Mole caves (upper)
+                { .uID = 0x00040b97, VEC3F(986.966, 225.046, -1062.795) },   //Mole caves (upper)
+                { .uID = 0x00040b99, VEC3F(718.528, 252.600, -747.098) },    //Mole caves (SharpClaw hideaway)
+                { .uID = 0x00040b9c, VEC3F(1067.628, 33.321, -708.101) },    //Mole caves (middle dig spot)
+                { .uID = 0x00040b9d, VEC3F(1252.055, 33.299, -957.935) },    //Mole caves (first dig spot)
+                { .uID = 0x00040ba2, VEC3F(1062.591, 22.345, -1014.798) },   //Mole caves (outside first dig spot)
+                { .uID = 0x00040ba0, VEC3F(894.912, 22.568, -959.711) },     //Mole caves (behind ladder)
+                { .uID = 0x00040b9b, VEC3F(772.841, 33.429, -805.894) },     //Mole caves (above Shrine switch)
+                { .uID = 0x00040b9f, VEC3F(959.257, 22.402, -871.474) },     //Mole caves (between middle and Shrine switch dig spots)
+                { .uID = 0x00042afa, VEC3F(-2073.483, 673.366, -97.014) },   //Stalactite cave
+                { .uID = 0x00042afc, VEC3F(-2525.322, 675.686, -337.255) },  //Stalactite cave
+                { .uID = 0x00042afd, VEC3F(-2186.947, 765.956, -365.047) },  //Stalactite cave
+                { .uID = 0x00042aff, VEC3F(-2005.020, 533.803, -980.717) },  //Demolition caves
+                { .uID = 0x00042b00, VEC3F(-2120.164, 548.387, -1205.157) }, //Demolition caves
+                { .uID = 0x00042b01, VEC3F(-2231.783, 609.781, -1058.930) }, //Demolition caves
+                { .uID = 0x00042b02, VEC3F(-2320.693, 604.596, -760.758) },  //Demolition caves
+                { .uID = 0x00040b69, VEC3F(746.927, 335.763, -377.932) },    //Toxic cave
+                { .uID = 0x00040b6b, VEC3F(1217.160, 200.317, -427.455) },   //Toxic cave
+                { .uID = 0x00040b6d, VEC3F(758.211, 314.767, -118.277) },    //Toxic cave
+                { .uID = 0x00040b6a, VEC3F(963.978, 268.028, -572.901) },    //Toxic cave
+                { .uID = 0x00040b89, VEC3F(-843.840, 57.359, 1067.767), .objGroup = OBJGROUP_TWEAK(DF_ObjGroup_Tunnel_to_MMP), .fadeDistance = 320 }, //Tunnel to MMP
+                { .uID = 0x00040b8a, .objGroup = OBJGROUP_TWEAK(DF_ObjGroup_Tunnel_to_MMP), .fadeDistance = 320 }, //Tunnel to MMP
             };
 
+            //(Switched off the distance boost, since I worry it's just distracting, 
+            //plus the occlusion is a little bit unreliable!)
+// #ifndef DINOMOD_ROM_PATCH
+//             #define INCREASE_LANTERN_DISTANCE 
+// #endif
+
             for (u32 i = 0; i < ARRAYCOUNT(lanternUIDs); i++) {
-                DF_Lantern_Setup* beacon = GET_MAPS_OBJECT(discoveryFalls, lanternUIDs[i].uID);
-                beacon->base.x = lanternUIDs[i].coords.x;
-                beacon->base.y = lanternUIDs[i].coords.y;
-                beacon->base.z = lanternUIDs[i].coords.z;
+                DF_Lantern_Setup* lantern = GET_MAPS_OBJECT(discoveryFalls, lanternUIDs[i].uID);
+                if (lanternUIDs[i].coords.x || lanternUIDs[i].coords.y || lanternUIDs[i].coords.z) {
+                    lantern->base.x = lanternUIDs[i].coords.x;
+                    lantern->base.y = lanternUIDs[i].coords.y;
+                    lantern->base.z = lanternUIDs[i].coords.z;
+                }
+
+                //Increase the draw distance of some lanterns (mostly on dockpoints)
+                /* 
+                    NOTE: recomp only for now, because the lantern occlusion checks are expensive!
+                    Staggering the occlusion checks (like the WCTrexStatue sparkle patches) may make it okay for N64,
+                    or taking an approach like switching off the "draw over everything" partFX flag and just nudging
+                    the partFX's draw origin slightly towards the current camera position (so it gets occluded 
+                    automatically but still draws "over" the base dockpoint/torch.)
+                */
+#ifdef INCREASE_LANTERN_DISTANCE
+                if (lanternUIDs[i].objGroup) {
+                    lantern->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                    lantern->base.mapObjGroup = lanternUIDs[i].objGroup & 0xFF;
+                }
+
+                if (lanternUIDs[i].fadeDistance) {
+                    lantern->flags |= DF_Lantern_FLAG_20_Use_Fade_Distance;
+                    if (lanternUIDs[i].fadeDistance > 0xFF) {
+                        lantern->flags |= DF_Lantern_FLAG_40_Quadruple_Fade_Distance;
+                        lantern->base.fadeDistance = lanternUIDs[i].fadeDistance / 4;
+                    } else {
+                        lantern->base.fadeDistance = lanternUIDs[i].fadeDistance;
+                    }
+                }
+#endif
             }
         }
 
