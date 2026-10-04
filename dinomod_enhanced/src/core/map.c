@@ -317,6 +317,77 @@ s32 blockTexscrollAddWithTexture(s32 uSpeedA, s32 vSpeedA, s32 widthA, s32 heigh
     }
 }
 
+/** 
+  * Like `blockTexscrollAddWithTexture`, except when checking for reusable scrollers the Texture pointer is exclusively used to find a match
+  * (this avoids creating two slightly desynced scrollers in situations where the scroll speed is changing, 
+  * like for Discovery Falls' cradle rope texScroll2. Sometimes the two blocks could use separate scrollers if they didn't load simultaneously.)
+  */
+s32 blockTexscrollAddByTexture(s32 uSpeedA, s32 vSpeedA, s32 widthA, s32 heightA, s32 uSpeedB, s32 vSpeedB, s32 widthB, s32 heightB, Texture* texture) {
+    BlockTextureScroller* scroll;
+    s32 index;
+    s32 scrollHandlerID;
+    Texture* scrollTex; //@recomp
+
+    //First, clean up any unreferenced blockTexScrollers' Texture pointers
+    for (scrollHandlerID = 0; scrollHandlerID < MAX_TEXTURE_SCROLLERS; scrollHandlerID++) {
+        if (sBlockTexScrollTable[scrollHandlerID].refCount == 0) {
+            rsBlockTexScrollerTextures[scrollHandlerID] = NULL;
+        }
+    }
+
+    //Iterate through scroll handlers
+    scrollHandlerID = 0;
+    while (1) {
+        scroll = &sBlockTexScrollTable[scrollHandlerID];
+        scrollTex = rsBlockTexScrollerTextures[scrollHandlerID]; //@recomp
+
+        //Reuse an existing scroll handler if it has the same Texture* as the one specified in args
+        if (texture == scrollTex) {
+            scroll->refCount++;
+            return scrollHandlerID;
+        }
+        scrollHandlerID++;
+
+        //If no reusable handler was found, search through the handlers again to find an unused slot
+        if (scrollHandlerID >= MAX_TEXTURE_SCROLLERS) {
+            index = -1;
+            for (scrollHandlerID = 0; scrollHandlerID < MAX_TEXTURE_SCROLLERS; scrollHandlerID++) {
+                if (sBlockTexScrollTable[scrollHandlerID].refCount == 0) {
+                    index = scrollHandlerID;
+                    break;
+                }
+            }
+            //Bail if no unreferenced scroller slot was found
+            if (index == -1) {
+                STUBBED_PRINTF("TEXSCROLL: table is full\n");
+                return -1;
+            }
+
+            //If an unused slot was found, store the scroll's anim params and return its ID
+            scroll = &sBlockTexScrollTable[index];
+            scroll->uSpeedA = uSpeedA;
+            scroll->vSpeedA = vSpeedA;
+            scroll->widthA = widthA;
+            scroll->heightA = heightA;
+            scroll->uOffsetA = 0;
+            scroll->vOffsetA = 0;
+            scroll->uRemainderA = 0;
+            scroll->vRemainderA = 0;
+            scroll->uSpeedB = uSpeedB;
+            scroll->vSpeedB = vSpeedB;
+            scroll->widthB = widthB;
+            scroll->heightB = heightB;
+            scroll->uOffsetB = 0;
+            scroll->vOffsetB = 0;
+            scroll->uRemainderB = 0;
+            scroll->vRemainderB = 0;
+            scroll->refCount++;
+            rsBlockTexScrollerTextures[index] = texture; //@recomp
+            return index;
+        }
+    }
+}
+
 /* Returns the texture associated with a scrollHandler */
 Texture* blockTexscrollGetTexture(u8 scrollHandlerID) {
     Texture* scrollTex;

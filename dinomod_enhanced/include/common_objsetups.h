@@ -93,16 +93,23 @@ typedef struct {
 } TexScroll_Setup;
 
 typedef struct {
-    ObjSetup base;
-    s16 textureIndex;       //Primary material: index in TABLES.bin subfile #14 ("scroll table")
-    s16 gamebitActivate;    //Unused, but instances of this object store a gamebitID here (e.g. 0x95)
-    s8 uSpeedB;             //U scroll speed for secondary blend material 
-    s8 vSpeedB;             //V scroll speed for secondary blend material 
-    s8 uSpeedA;             //U scroll speed for primary material              
-    s8 vSpeedA;             //V scroll speed for primary material              
-    s16 blendTextureIndex;  //Secondary blend material: index in TABLES.bin subfile #14 (optional, -1 if unused)
-                            //Blend material is used for multitextured scrolling water, etc.
+/*00*/ ObjSetup base;
+/*18*/ s16 textureIndex;       //Primary material: index in TABLES.bin subfile #14 ("scroll table")
+/*1A*/ s16 gamebitActivate;    //Unused, but instances of this object store a gamebitID here (e.g. 0x95)
+/*1C*/ s8 uSpeedB;             //U scroll speed for secondary blend material 
+/*1D*/ s8 vSpeedB;             //V scroll speed for secondary blend material 
+/*1E*/ s8 uSpeedA;             //U scroll speed for primary material              
+/*1F*/ s8 vSpeedA;             //V scroll speed for primary material              
+/*20*/ s16 blendTextureIndex;  //Secondary blend material: index in TABLES.bin subfile #14 (optional, -1 if unused)
+                               //Blend material is used for multitextured scrolling water, etc.
+/* RECOMP */
+/*22*/ u8 options;             //Repurposed padding (see `TexScroll2_Options`)
 } TexScroll2_Setup;
+
+/* Custom options */
+typedef enum {
+    TexScroll2_OPTION_1_Reuse_by_Texture = 1 //When looking for existing blockTexScrollers to reuse, match exclusively by Texture*
+} TexScroll2_Options;
 
 typedef struct {
 /*00*/ ObjSetup base;

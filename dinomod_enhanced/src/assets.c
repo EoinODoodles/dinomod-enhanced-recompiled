@@ -5066,6 +5066,21 @@ static void discovery_falls_modifications(void) {
             }
         }
 
+        //Adjust DFcradle's rope texScroll2s 
+        //(So they always share the same blockTexScroller and can't end up with separate desynced ones)
+        {
+            u32 ropeScrollUIDs[] = {
+                0x0003254b,
+                0x0003254f,
+                0x00032562,
+                0x00032563
+            };
+            for (u32 i = 0; i < ARRAYCOUNT(ropeScrollUIDs); i++) {
+                TexScroll2_Setup* ropeScroll = GET_MAPS_OBJECT(discoveryFalls, ropeScrollUIDs[i]);
+                ropeScroll->options |= TexScroll2_OPTION_1_Reuse_by_Texture;
+            }
+        }
+
         //Add LOD for the distant mole caves entrance
         {
             LODAnimator_Setup lod = {

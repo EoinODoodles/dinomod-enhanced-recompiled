@@ -112,14 +112,22 @@ RECOMP_PATCH void TexScroll2_setupTextureScrolling(Object* self, TexScroll2_Data
                     (blockTexscrollGetTexture(block->shapes[shapeIndex].texScrollerID) == texture) 
                 ) {
                     blockTexscrollSetWithTexture(block->shapes[shapeIndex].texScrollerID, 
-                        objData->uSpeedA, objData->vSpeedA, widthA, heightA, 
+                        objData->uSpeedA, objData->vSpeedA, widthA, heightA,
                         objData->uSpeedB, objData->vSpeedB, widthB, heightB,
                         texture); //@recomp: use a custom version of this function with a reference to the scroller's Texture
                 } else {
-                    block->shapes[shapeIndex].texScrollerID = blockTexscrollAddWithTexture(
-                        objData->uSpeedA, objData->vSpeedA, widthA, heightA,
-                        objData->uSpeedB, objData->vSpeedB, widthB, heightB, 
-                        texture); //@recomp: use a custom version of this function with a reference to the scroller's Texture
+                    //@recomp: add option to match exclusively by Texture, rather than checking for matching dimensions/scroll speeds
+                    if (objSetup->options & TexScroll2_OPTION_1_Reuse_by_Texture) {
+                        block->shapes[shapeIndex].texScrollerID = blockTexscrollAddByTexture(
+                            objData->uSpeedA, objData->vSpeedA, widthA, heightA,
+                            objData->uSpeedB, objData->vSpeedB, widthB, heightB, 
+                            texture);
+                    } else {
+                        block->shapes[shapeIndex].texScrollerID = blockTexscrollAddWithTexture(
+                            objData->uSpeedA, objData->vSpeedA, widthA, heightA,
+                            objData->uSpeedB, objData->vSpeedB, widthB, heightB, 
+                            texture); //@recomp: use a custom version of this function with a reference to the scroller's Texture
+                    }
                 }
             }
         }
