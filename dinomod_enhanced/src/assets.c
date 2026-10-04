@@ -157,6 +157,7 @@ INCBIN(tex0_kiosk_firefly,              "inc/tex0_kiosk_firefly_custom.bin");
 INCBIN(tex0_custom_energy_egg,          "inc/tex0_energy_egg_custom.bin");
 INCBIN(tex0_custom_energy_egg_moldy,    "inc/tex0_energy_egg_moldy_custom.bin");
 INCBIN(tex0_kiosk_fox,                  "inc/tex0_kiosk_fox_icon_custom.bin");
+INCBIN(tex0_0294_centred,               "inc/tex0_0294_centred.bin");
 
 INCBIN(models_dimtent_burnt,      "inc/models_0886_DIMtent_burnt_opacity.bin");
 INCBIN(objects_dimtent,           "inc/objects_0320_DIMTent.bin");
@@ -5909,6 +5910,66 @@ static void discovery_falls_modifications(void) {
                 EMPTY_TRIGGER_COMMAND(plane, 2); 
                 EMPTY_TRIGGER_COMMAND(plane, 3);
             }
+        }
+    }
+
+    //DF_Lanterns 
+    {
+        //Align more exactly with DFdockpoints and torches)
+        {
+            ObjReposition lanternUIDs[] = {
+                //Dockpoints
+                {0x00040b8b, VEC3F(105, 60, 1120)},     //First dockpoint in Lower Falls
+                {0x00040b8e, VEC3F(-448, 59, 401)},     //Lower Falls, near where you meet the HighTop
+                {0x00040b81, VEC3F(235, 361, -248)},    //Middle Falls, below toxic cave entrance
+                {0x00040b8f, VEC3F(-339, 363, -86)},    //Middle Falls, just after climbing up near foodbag cave
+                {0x00040b90, VEC3F(-652, 361, -316)},   //Middle Falls, below turbine
+                {0x00040b91, VEC3F(-1575, 582, -105)},  //Upper Falls, near turbine
+                {0x00040b92, VEC3F(-1374, 582, -723)},  //Upper Falls, near rapids
+                {0x00040b94, VEC3F(-1189, 223, -1801)}, //Outside Shrine
+                {0x00040b93, VEC3F(-1483, 223, -1413)}, //Below Shrine area exit climb
+                {0x00040b88, VEC3F(-1045, 71, 826)},    //Tunnel to MMP
+                {0x00040b8c, VEC3F(288, 60, 1693)},    //Near BWC exit
+                
+                //Torches
+                {0x00040b87, VEC3F(-818.746, 328.696, 87.383)},     //Foodbag caves (top)
+                {0x00040b86, VEC3F(-1259.118, 252.694, 229.900)},   //Foodbag caves (halfway down)
+                {0x00040b84, VEC3F(-1068.437, 176.716, 570.38)},    //Foodbag caves (near bottom)
+                {0x00040b98, VEC3F(987.016, 226.986, -855.341)},    //Mole caves (upper)
+                {0x00040b97, VEC3F(986.966, 225.046, -1062.795)},   //Mole caves (upper)
+                {0x00040b99, VEC3F(718.528, 252.600, -747.098)},    //Mole caves (SharpClaw hideaway)
+                {0x00040b9c, VEC3F(1067.628, 33.321, -708.101)},    //Mole caves (middle dig spot)
+                {0x00040b9d, VEC3F(1252.055, 33.299, -957.935)},    //Mole caves (first dig spot)
+                {0x00040ba2, VEC3F(1062.591, 22.345, -1014.798)},   //Mole caves (outside first dig spot)
+                {0x00040ba0, VEC3F(894.912, 22.568, -959.711)},     //Mole caves (behind ladder)
+                {0x00040b9b, VEC3F(772.841, 33.429, -805.894)},     //Mole caves (above Shrine switch)
+                {0x00040b9f, VEC3F(959.257, 22.402, -871.474)},     //Mole caves (between middle and Shrine switch dig spots)
+                {0x00042afa, VEC3F(-2073.483, 673.366, -97.014)},   //Stalactite cave
+                {0x00042afc, VEC3F(-2525.322, 675.686, -337.255)},  //Stalactite cave
+                {0x00042afd, VEC3F(-2186.947, 765.956, -365.047)},  //Stalactite cave
+                {0x00042aff, VEC3F(-2005.020, 533.803, -980.717)},  //Demolition caves
+                {0x00042b00, VEC3F(-2120.164, 548.387, -1205.157)}, //Demolition caves
+                {0x00042b01, VEC3F(-2231.783, 609.781, -1058.930)}, //Demolition caves
+                {0x00042b02, VEC3F(-2320.693, 604.596, -760.758)},  //Demolition caves
+                {0x00040b69, VEC3F(746.927, 335.763, -377.932)},    //Toxic cave
+                {0x00040b6b, VEC3F(1217.160, 200.317, -427.455)},   //Toxic cave
+                {0x00040b6d, VEC3F(758.211, 314.767, -118.277)},    //Toxic cave
+                {0x00040b6a, VEC3F(963.978, 268.028, -572.901)},    //Toxic cave
+                {0x00040b89, VEC3F(-843.840, 57.359, 1067.767)},    //Tunnel to MMP
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(lanternUIDs); i++) {
+                DF_Lantern_Setup* beacon = GET_MAPS_OBJECT(discoveryFalls, lanternUIDs[i].uID);
+                beacon->base.x = lanternUIDs[i].coords.x;
+                beacon->base.y = lanternUIDs[i].coords.y;
+                beacon->base.z = lanternUIDs[i].coords.z;
+            }
+        }
+
+        //Centre sprite
+        {
+            ReAssetID tex0_0294_centred_ID = reasset_base_id(294);
+            reasset_textures_set(TEX_BANK_0, tex0_0294_centred_ID, 1, tex0_0294_centred, tex0_0294_centred_end - tex0_0294_centred);
         }
     }
 }
