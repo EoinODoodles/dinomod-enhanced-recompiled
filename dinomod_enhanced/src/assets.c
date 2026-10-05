@@ -2248,6 +2248,7 @@ static void nwsh_modifications(void) {
 
 static void crf_modifications(void) {
     ReAssetID crf = reasset_base_id(MAP_CLOUDRUNNER_FORTRESS);
+    ReAssetID crfDungeon = reasset_base_id(MAP_CLOUDRUNNER_DUNGEON);
 
     // Remove part of the courtyard EWTrobotpatrol curve network that goes towards the entrance.
     // There's rubble blocking this path now, so if the robots are restored back into the game
@@ -2263,10 +2264,135 @@ static void crf_modifications(void) {
         curve->links[3] = -1; // unlink 0x8B2
     }
 
+    // Modify the EWTrobotpatrol curve network to make dead-ends less of an issue
+    {
+        CurveSetup* curve;
+
+        curve = reasset_map_objects_get(crf, reasset_base_id(0xB31), NULL);
+        // curve->links[2] = 0xB2E;
+        curve->links[2] = 0xB2D;
+
+        // curve = reasset_map_objects_get(crf, reasset_base_id(0xB2E), NULL);
+        // curve->links[2] = 0xB31;
+
+        curve = reasset_map_objects_get(crf, reasset_base_id(0xB2D), NULL);
+        curve->links[1] = 0xB31;
+    }
+
     // Increase number of courtyard robots from 3 to 4
     {
         EWTrobotpatrolB_Setup* base = reasset_map_objects_get(crf, reasset_base_id(0x2C5C), NULL);
         base->unk18 = 4;
+    }
+
+    // Add additional create points so we can move the guardian's objsetup to the correct location given their state.
+    // Normally, their saved position can desync with their state bit (and other bits for that matter), so sometimes
+    // we need to move them back to a previous location for everything to work correctly. See the cfguardian patches
+    // for more info.
+    {
+        // Note: create point curves must be exactly 0x38 in size
+        CurveSetup cellCreatePoint = {
+            .objId = OBJ_curve,
+            .pos = VEC3F(-296.28515625f, 1309.0f, 93.828125f), // exactly where CFGuardian starts
+            .unk18 = -1, // must not be zero so the guardian doesn't think it's part of the dungeon path
+            .curveType = 0x15, // create point
+            .links = {-1, -1, -1, -1},
+            .unk2C = 0x80, // yaw8
+            .type15 = {
+                .unk34 = 30 // curve ID
+            }
+        };
+        _Static_assert(sizeof(cellCreatePoint) >= 0x38, "Create point curve mem too small");
+
+        reasset_map_objects_set(crfDungeon, reasset_auto_id(dinomodNs), &cellCreatePoint, 0x38);
+
+        CurveSetup beforeWindliftCreatePoint = {
+            .objId = OBJ_curve,
+            .pos = VEC3F(542.8935f, 1390.0f, 88.0566f), // end of dungeon path
+            .unk18 = -1, // must not be zero so the guardian doesn't think it's part of the dungeon path
+            .curveType = 0x15, // create point
+            .links = {-1, -1, -1, -1},
+            .unk2C = 0x80, // yaw8
+            .type15 = {
+                .unk34 = 31 // curve ID
+            }
+        };
+        _Static_assert(sizeof(beforeWindliftCreatePoint) >= 0x38, "Create point curve mem too small");
+
+        reasset_map_objects_set(crfDungeon, reasset_auto_id(dinomodNs), &beforeWindliftCreatePoint, 0x38);
+
+        CurveSetup windliftCreatePoint = {
+            .objId = OBJ_curve,
+            // middle-ish of windlift (below player savepoint so they don't spawn inside of each other)
+            .pos = VEC3F(-1392.371, 1700.0f, 1193.804f),
+            .unk18 = -1, // must not be zero so the guardian doesn't think it's part of the dungeon path
+            .curveType = 0x15, // create point
+            .links = {-1, -1, -1, -1},
+            .unk2C = 0x0, // yaw8
+            .type15 = {
+                .unk34 = 32 // curve ID
+            }
+        };
+        _Static_assert(sizeof(windliftCreatePoint) >= 0x38, "Create point curve mem too small");
+
+        reasset_map_objects_set(crf, reasset_auto_id(dinomodNs), &windliftCreatePoint, 0x38);
+    }
+
+    // Add a magic plant to the dungeon so you don't get stuck if out of magic. Magic is needed for
+    // the illusion spell and not having any results in a softlock.
+    {
+        MagicPlant_Setup magicPlant = {
+            .base = {
+                .objId = OBJ_MagicPlant,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 64,
+                .fadeDistance = 64,
+                .x = -303.897f,
+                .y = 1309.0f,
+                .z = 494.089f
+            },
+            .regrowthTime = 3600 / 20, // 1 minute
+            // big magic because the illusion spell costs a lot. this is basically the spell's tutorial 
+            // so we should try to make magic less strict here.
+            .dustIdx = 3,
+            .modelInstIdx = 0,
+            .yaw = 0x68
+        };
+
+        reasset_map_objects_set(crfDungeon, reasset_auto_id(dinomodNs), &magicPlant, sizeof(magicPlant));
+    }
+
+    // The SeqObj for the wind lift power cutscene uses its position as a savepoint at the end of the seq.
+    // This savepoint starts the player high up in the windlift but the windlift doesn't know that the player entered
+    // it, leading to the player just falling all the way down.
+    // So, add a trigger plane below the savepoint to set the "player in windlift" bit before they get too far.
+    {
+        Trigger_Setup trigger = {
+            .base = {
+                .objId = OBJ_TriggerPlane,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 32,
+                .fadeDistance = 0,
+                .x = -1392.371f,
+                .y = 1839.185f - 1.0f,
+                .z = 1193.804f
+            },
+            .commands = {
+                {
+                    .condition = CMD_COND_OUT | CMD_COND_RE_EXIT,
+                    .id = TRG_CMD_BITS,
+                    .paramCombined = ((TriggerCommand_Bits_1_Set << 14) | BIT_CRF_WindLift1_PlayerInside)
+                }
+            },
+            .sizeX = 12,
+            .rotationX = (M_90_DEGREES >> 8),
+            .bitFlagID = -1,
+            .conditionBitFlagIDs = {-1, -1, -1, -1}
+        };
+
+        reasset_map_objects_set(crf, reasset_auto_id(dinomodNs), &trigger, sizeof(trigger));
     }
 }
 

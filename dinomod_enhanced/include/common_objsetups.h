@@ -240,3 +240,17 @@ typedef struct {
 /*1A*/ u8 roboFadeDistance;
 /*1B*/ u8 maxSearchTime; // maximum search time (after aggro) divided by 64
 } EWTrobotpatrolB_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ s8 yaw8;
+} CFGuardian_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ u16 regrowthTime;    //The amount of time to spend regrowing (in frames)
+/*1A*/ s8 unused1A;
+/*1B*/ u8 dustIdx;          //The index of the type of MagicDust to create (dMagicDustObjIDs)
+/*1C*/ u8 modelInstIdx;     //The model index to use for the plant (default vs. snowy)
+/*1D*/ u8 yaw;
+} MagicPlant_Setup;
