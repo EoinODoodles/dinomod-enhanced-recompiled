@@ -103,13 +103,8 @@ typedef struct {
 /*20*/ s16 blendTextureIndex;  //Secondary blend material: index in TABLES.bin subfile #14 (optional, -1 if unused)
                                //Blend material is used for multitextured scrolling water, etc.
 /* RECOMP */
-/*22*/ u8 options;             //Repurposed padding (see `TexScroll2_Options`)
+/*22*/ u16 options;             //Repurposed padding (see `BlockTexScrollAdd_RecycleOptions`)
 } TexScroll2_Setup;
-
-/* Custom options */
-typedef enum {
-    TexScroll2_OPTION_1_Reuse_by_Texture = 1 //When looking for existing blockTexScrollers to reuse, match exclusively by Texture*
-} TexScroll2_Options;
 
 typedef struct {
 /*00*/ ObjSetup base;

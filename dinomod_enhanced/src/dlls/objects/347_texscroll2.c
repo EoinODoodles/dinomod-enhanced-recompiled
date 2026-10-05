@@ -111,23 +111,17 @@ RECOMP_PATCH void TexScroll2_setupTextureScrolling(Object* self, TexScroll2_Data
                     //@recomp: make sure the texScrollerID is still valid, by checking it uses the same texture as this material does
                     (blockTexscrollGetTexture(block->shapes[shapeIndex].texScrollerID) == texture) 
                 ) {
+                    //@recomp: use a custom version of this function with a reference to the scroller's Texture*
                     blockTexscrollSetWithTexture(block->shapes[shapeIndex].texScrollerID, 
                         objData->uSpeedA, objData->vSpeedA, widthA, heightA,
                         objData->uSpeedB, objData->vSpeedB, widthB, heightB,
-                        texture); //@recomp: use a custom version of this function with a reference to the scroller's Texture
+                        texture); 
                 } else {
-                    //@recomp: add option to match exclusively by Texture, rather than checking for matching dimensions/scroll speeds
-                    if (objSetup->options & TexScroll2_OPTION_1_Reuse_by_Texture) {
-                        block->shapes[shapeIndex].texScrollerID = blockTexscrollAddByTexture(
-                            objData->uSpeedA, objData->vSpeedA, widthA, heightA,
-                            objData->uSpeedB, objData->vSpeedB, widthB, heightB, 
-                            texture);
-                    } else {
-                        block->shapes[shapeIndex].texScrollerID = blockTexscrollAddWithTexture(
-                            objData->uSpeedA, objData->vSpeedA, widthA, heightA,
-                            objData->uSpeedB, objData->vSpeedB, widthB, heightB, 
-                            texture); //@recomp: use a custom version of this function with a reference to the scroller's Texture
-                    }
+                    //@recomp: pass in Texture* reference, and add options to adjust how reusable blockTexScrollers are selected
+                    block->shapes[shapeIndex].texScrollerID = blockTexscrollAddWithTexture(
+                        objData->uSpeedA, objData->vSpeedA, widthA, heightA,
+                        objData->uSpeedB, objData->vSpeedB, widthB, heightB, 
+                        texture, objSetup->options);
                 }
             }
         }

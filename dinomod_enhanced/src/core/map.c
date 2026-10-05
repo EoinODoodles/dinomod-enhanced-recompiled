@@ -244,91 +244,24 @@ void blockTexscrollSetWithTexture(u32 scrollerID, s32 uSpeedA, s32 vSpeedA, s32 
 }
 
 /** 
-  * Based on `blockTexscrollAdd`, except the scroller's texture is checked/stored too 
+  * Based on `blockTexscrollAdd`, except the scroller's Texture* is checked/stored too 
   * (to avoid mismatches where a scroller ends up targetting the wrong texture, like how Discovery Falls'
   * cradle rope texScroll2 objects can sometimes end up scrolling nearby waterfalls instead!)
+  *
+  * recycleOptions (see `BlockTexScrollAdd_RecycleOptions`) are flags that can refine how block scrollers are reused. 
+  * If no flags are provided, all match criteria will be searched as usual.
+  *
+  * Matching exclusively by Texture* can help in situations where the scroll speeds are changing (like on DF's cradle rope
+  * texScroll2s), to make sure different Blocks don't sometimes end up using separate desynced scrollers for the same texture.
   */
-s32 blockTexscrollAddWithTexture(s32 uSpeedA, s32 vSpeedA, s32 widthA, s32 heightA, s32 uSpeedB, s32 vSpeedB, s32 widthB, s32 heightB, Texture* texture) {
+s32 blockTexscrollAddWithTexture(s32 uSpeedA, s32 vSpeedA, s32 widthA, s32 heightA, s32 uSpeedB, s32 vSpeedB, s32 widthB, s32 heightB, Texture* texture, u16 recycleOptions) {
     BlockTextureScroller* scroll;
     s32 index;
     s32 scrollHandlerID;
     Texture* scrollTex; //@recomp
 
-    //Iterate through scroll handlers
-    scrollHandlerID = 0;
-    while (1) {
-        scroll = &sBlockTexScrollTable[scrollHandlerID];
-        scrollTex = rsBlockTexScrollerTextures[scrollHandlerID]; //@recomp
-
-        //Reuse an existing scroll handler if it has the same animation config as what's specified in args
-        if (
-            (uSpeedA == scroll->uSpeedA) &&
-            (vSpeedA == scroll->vSpeedA) &&
-            (widthA == scroll->widthA) &&
-            (heightA == scroll->heightA) &&
-            (uSpeedB == scroll->uSpeedB) &&
-            (vSpeedB == scroll->vSpeedB) &&
-            (widthB == scroll->widthB) &&
-            (heightB == scroll->heightB) &&
-            (texture == scrollTex) //@recomp
-        ) {
-            scroll->refCount++;
-            return scrollHandlerID;
-        }
-        scrollHandlerID++;
-
-        //If no reusable handler was found, search through the handlers again to find an unused slot
-        if (scrollHandlerID >= MAX_TEXTURE_SCROLLERS) {
-            index = -1;
-            for (scrollHandlerID = 0; scrollHandlerID < MAX_TEXTURE_SCROLLERS; scrollHandlerID++) {
-                if (sBlockTexScrollTable[scrollHandlerID].refCount == 0) {
-                    index = scrollHandlerID;
-                    break;
-                }
-            }
-            //Bail if no unreferenced scroller slot was found
-            if (index == -1) {
-                STUBBED_PRINTF("TEXSCROLL: table is full\n");
-                return -1;
-            }
-
-            //If an unused slot was found, store the scroll's anim params and return its ID
-            scroll = &sBlockTexScrollTable[index];
-            scroll->uSpeedA = uSpeedA;
-            scroll->vSpeedA = vSpeedA;
-            scroll->widthA = widthA;
-            scroll->heightA = heightA;
-            scroll->uOffsetA = 0;
-            scroll->vOffsetA = 0;
-            scroll->uRemainderA = 0;
-            scroll->vRemainderA = 0;
-            scroll->uSpeedB = uSpeedB;
-            scroll->vSpeedB = vSpeedB;
-            scroll->widthB = widthB;
-            scroll->heightB = heightB;
-            scroll->uOffsetB = 0;
-            scroll->vOffsetB = 0;
-            scroll->uRemainderB = 0;
-            scroll->vRemainderB = 0;
-            scroll->refCount++;
-            rsBlockTexScrollerTextures[index] = texture; //@recomp
-            return index;
-        }
-    }
-}
-
-/** 
-  * Like `blockTexscrollAddWithTexture`, except when checking for reusable scrollers the Texture pointer is exclusively used to find a match
-  * (this avoids creating two slightly desynced scrollers in situations where the scroll speed is changing, 
-  * like for Discovery Falls' cradle rope texScroll2. Sometimes the two blocks could use separate scrollers if they didn't load simultaneously.)
-  */
-s32 blockTexscrollAddByTexture(s32 uSpeedA, s32 vSpeedA, s32 widthA, s32 heightA, s32 uSpeedB, s32 vSpeedB, s32 widthB, s32 heightB, Texture* texture) {
-    BlockTextureScroller* scroll;
-    s32 index;
-    s32 scrollHandlerID;
-    Texture* scrollTex; //@recomp
-
-    //First, clean up any unreferenced blockTexScrollers' Texture pointers
+    //@recomp: First, clean up any unreferenced blockTexScrollers' Texture pointers, just in case 
+    //(TODO: possibly not needed due to `blockTexscrollFree` patch? Need to test if that func's sufficient, Rare had an error message in it about a ref count mismatch!)
     for (scrollHandlerID = 0; scrollHandlerID < MAX_TEXTURE_SCROLLERS; scrollHandlerID++) {
         if (sBlockTexScrollTable[scrollHandlerID].refCount == 0) {
             rsBlockTexScrollerTextures[scrollHandlerID] = NULL;
@@ -341,10 +274,38 @@ s32 blockTexscrollAddByTexture(s32 uSpeedA, s32 vSpeedA, s32 widthA, s32 heightA
         scroll = &sBlockTexScrollTable[scrollHandlerID];
         scrollTex = rsBlockTexScrollerTextures[scrollHandlerID]; //@recomp
 
-        //Reuse an existing scroll handler if it has the same Texture* as the one specified in args
-        if (texture == scrollTex) {
-            scroll->refCount++;
-            return scrollHandlerID;
+        //Reuse an existing scroll handler if it has the same animation config as what's specified in args
+        if (recycleOptions == 0) {
+            if (
+                (uSpeedA == scroll->uSpeedA) &&
+                (vSpeedA == scroll->vSpeedA) &&
+                (widthA == scroll->widthA) &&
+                (heightA == scroll->heightA) &&
+                (uSpeedB == scroll->uSpeedB) &&
+                (vSpeedB == scroll->vSpeedB) &&
+                (widthB == scroll->widthB) &&
+                (heightB == scroll->heightB) &&
+                (texture == scrollTex) //@recomp
+            ) {
+                scroll->refCount++;
+                return scrollHandlerID;
+            }
+        } else {
+            //@recomp: add a way to customise the reuse conditions for a particular texscroll2
+            if (
+                ((recycleOptions & BlockTexScrollAdd_REUSE_Match_by_USpeedA) == FALSE || uSpeedA == scroll->uSpeedA) &&
+                ((recycleOptions & BlockTexScrollAdd_REUSE_Match_by_VSpeedA) == FALSE || vSpeedA == scroll->vSpeedA) &&
+                ((recycleOptions & BlockTexScrollAdd_REUSE_Match_by_WidthA) == FALSE || widthA == scroll->widthA) &&
+                ((recycleOptions & BlockTexScrollAdd_REUSE_Match_by_HeightA) == FALSE || heightA == scroll->heightA) &&
+                ((recycleOptions & BlockTexScrollAdd_REUSE_Match_by_USpeedB) == FALSE || uSpeedB == scroll->uSpeedB) &&
+                ((recycleOptions & BlockTexScrollAdd_REUSE_Match_by_VSpeedB) == FALSE || vSpeedB == scroll->vSpeedB) &&
+                ((recycleOptions & BlockTexScrollAdd_REUSE_Match_by_WidthB) == FALSE || widthB == scroll->widthB) &&
+                ((recycleOptions & BlockTexScrollAdd_REUSE_Match_by_HeightB) == FALSE || heightB == scroll->heightB) &&
+                ((recycleOptions & BlockTexScrollAdd_REUSE_Match_by_Texture) == FALSE || texture == scrollTex)
+            ) {
+                scroll->refCount++;
+                return scrollHandlerID;
+            }
         }
         scrollHandlerID++;
 
@@ -397,4 +358,17 @@ Texture* blockTexscrollGetTexture(u8 scrollHandlerID) {
     }
 
     return rsBlockTexScrollerTextures[scrollHandlerID];
+}
+
+RECOMP_PATCH void blockTexscrollFree(u32 id) {
+    if (sBlockTexScrollTable[id].refCount > 0) {
+        sBlockTexScrollTable[id].refCount--;
+
+        //@recomp: clear Texture reference
+        if (sBlockTexScrollTable[id].refCount == 0) {
+            rsBlockTexScrollerTextures[id] = NULL;
+        }
+    } else {
+        STUBBED_PRINTF("MISMATCH on global texscroll free\n");
+    }
 }

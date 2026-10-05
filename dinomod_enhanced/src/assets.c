@@ -4810,6 +4810,93 @@ static void discovery_falls_modifications(void) {
             EMPTY_TRIGGER_COMMAND(plane, 2);
         }
 
+        //Lower Falls' texscroll2s
+        /* The Lower Falls and Middle Falls' texscroll2s scroll the water at different speeds (Middle Falls is -4, Lower Falls is -3)
+           There's a slight problem with this: the two blocks that contain the Lower Falls' waterfalls scroll all of their water
+           at the Lower Falls' slower speed (even the small section at the top of the waterfalls), and this speed difference creates a
+           seam across all the water at the start of the Middle Falls. To fix this, the slower-moving water has been changed to use a
+           different textureID (Rare kept a duplicate of the water texture, seemingly for situations like this) and the Lower Falls'
+           texscroll2s are all updated to scroll that texture. A pair of texscroll2s have also been added at the top of the waterfalls,
+           so the section of water there still scrolls (but at the same speed as the rest of the Middle Falls' water, avoiding the seam!)
+        */
+        {
+            //Edit the Lower Falls' texscroll2s so they target tex1_399 (scrollTable36)
+            {
+                u32 waterScrollUIDs[] = {
+                    0x00002de3, //Entrance route 1
+                    0x00002de4, //Entrance route 2
+                    0x00002dee, //Lower Falls (under foodbag cave)
+                    0x00002def, //Lower Falls (under toxic cave)
+                    0x00002de8, //Lower Falls (entrance)
+                    0x00002dea, //Lower Falls (outside tunnel to MMP)
+                    0x00002deb, //BWC exit (corner)
+                    0x00002dec, //BWC exit
+                };
+                for (u32 i = 0; i < ARRAYCOUNT(waterScrollUIDs); i++) {
+                    TexScroll2_Setup* scroll = GET_MAPS_OBJECT(discoveryFalls, waterScrollUIDs[i]);
+                    scroll->textureIndex = 36; //Duplicate of water texture, for different scroll speed within a Block that already has scrolling water 
+                    scroll->options |= BlockTexScrollAdd_REUSE_Match_by_Texture | BlockTexScrollAdd_REUSE_Match_by_SpeedsA;
+                }
+            }
+
+            //Add texscroll2s for the top of the Lower Falls, using the Middle Falls' scroll speed
+            {
+                TexScroll2_Setup texScrollData[] = {
+                    { COORDS_SETUP(316, 296, 76) },
+                    { COORDS_SETUP(-309, 296, 38) },
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(texScrollData); i++) {
+                    TexScroll2_Setup* scroll = &texScrollData[i];
+                    scroll->base.objId = OBJ_texscroll2;
+                    scroll->base.loadFlags = OBJSETUP_LOAD_MAIN;
+                    scroll->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                    scroll->base.loadDistance = FADE_DISTANCE(720);
+                    scroll->base.fadeDistance = 32;
+                    scroll->textureIndex = 0;
+                    scroll->blendTextureIndex = 3;
+                    scroll->vSpeedA = -4;
+                    scroll->gamebitActivate = NO_GAMEBIT;
+                    scroll->options |= BlockTexScrollAdd_REUSE_Match_by_Texture | BlockTexScrollAdd_REUSE_Match_by_SpeedsA;
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll2_Setup)
+                    );
+                }
+            }
+
+            //Edit the rest of the water texscrolls to match by Texture and scroll speed, helping avoid desyncs
+            {
+                u32 waterScrollUIDs[] = {
+                    //Middle Falls
+                    0x00002df0, //Under toxic cave
+                    0x00002df1, //Corner with Scarab in basket
+                    0x00002df2, //Under mole cave entrance
+                    0x00002df3, //Under turbine
+
+                    //Upper Falls
+                    0x00002df4, //Outside stalactite cave
+                    0x00002df5, //Outside Shrine area exit climb
+                    0x00002df6, //Rapids
+
+                    //Outside Shrine
+                    0x00032f60, //Near shrine
+                    0x00032f61, //Near exit climb
+
+                    //Caves
+                    0x00031e53, //Stalactite cave
+                    0x00031e52, //Demolition cave
+                    0x00031b3f, //Whirlpool cave
+
+                    //Tunnel to MMP
+                    0x00002ded, //Dockpoint
+                };
+                for (u32 i = 0; i < ARRAYCOUNT(waterScrollUIDs); i++) {
+                    TexScroll2_Setup* scroll = GET_MAPS_OBJECT(discoveryFalls, waterScrollUIDs[i]);
+                    scroll->options |= BlockTexScrollAdd_REUSE_Match_by_Texture | BlockTexScrollAdd_REUSE_Match_by_SpeedsA;
+                }
+            }
+        }
+
         //LODs
         {
             //Add LOD for the BWC's exit, when viewed from Middle Falls
@@ -5077,7 +5164,7 @@ static void discovery_falls_modifications(void) {
             };
             for (u32 i = 0; i < ARRAYCOUNT(ropeScrollUIDs); i++) {
                 TexScroll2_Setup* ropeScroll = GET_MAPS_OBJECT(discoveryFalls, ropeScrollUIDs[i]);
-                ropeScroll->options |= TexScroll2_OPTION_1_Reuse_by_Texture;
+                ropeScroll->options |= BlockTexScrollAdd_REUSE_Match_by_Texture;
             }
         }
 
