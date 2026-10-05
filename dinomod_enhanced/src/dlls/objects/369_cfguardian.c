@@ -345,7 +345,10 @@ RECOMP_PATCH s32 CFGuardian_control(Object* self) {
                         var_fa0 = -(objdata->walkTarget.transl.y - self->srt.transl.y);
                     }
                     if (var_fa0 < 150.0f) {
-                        objAddObjectType(self, OBJTYPE_WindLiftable);
+                        // @recomp: Don't become liftable again once exited, otherwise the windlift will constantly
+                        //          try to lift the guardian while they attempt to walk away. This objtype isn't
+                        //          needed again after this point.
+                        //objAddObjectType(self, OBJTYPE_WindLiftable);
                         objdata->state = CFGUARDIAN_STATE_LeavingWindLift;
                         objAnimSet(self, CFGUARDIAN_MODANIM_Walk, 0, 0);
                     }
