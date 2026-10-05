@@ -1302,14 +1302,14 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 update
     //@recomp: skip past the mounting animState if a gamebit is set
     //(Used to avoid a bug where the log mounting animation plays after Discovery Falls'
     //initial HighTop cutscene, even though you're already on the log!)
-    skipMountAnimation = mainGetBits(DINOMOD_BIT_96F_Vehicle_Skip_Mount_Animation);
-    if (skipMountAnimation) {
-        mainSetBits(DINOMOD_BIT_96F_Vehicle_Skip_Mount_Animation, FALSE);
+    if (fsa->enteredAnimState == FALSE) { //Wait until after the first tick of this state, so the camera module changes
+        skipMountAnimation = mainGetBits(DINOMOD_BIT_96F_Vehicle_Skip_Mount_Animation);
+        if (skipMountAnimation) {
+            mainSetBits(DINOMOD_BIT_96F_Vehicle_Skip_Mount_Animation, FALSE);
+        }
     }
 
-    if (((fsa->enteredAnimState == FALSE) && fsa->unk33A) || 
-        skipMountAnimation //@recomp
-    ) {
+    if ((fsa->enteredAnimState == FALSE && fsa->unk33A) || skipMountAnimation) { //@recomp
         objAnimSet(player, objdata->unk76C[0], 0.0f, 1);
         ((DLL_IVehicle*)vehicle->dll)->vtbl->SetMountState(vehicle, VEHICLE_Mounted);
         if (vehicle->id == OBJ_BWLog) {
@@ -2049,7 +2049,7 @@ RECOMP_PATCH void dll_210_func_1AAD8(Object* player, ObjFSA_Data *fsa) {
 
     temp_s0 = player->data;
 
-    // @recomp: Don't uneqiup weapon if targetting (and target is still valid)
+    // @recomp: Don't unequip weapon if targetting (and target is still valid)
     if (fsa->target != NULL && fsa->unk33D == 1) {
         return;
     }
