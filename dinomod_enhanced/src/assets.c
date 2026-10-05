@@ -4117,7 +4117,7 @@ static void swapstone_circle_modifications(void) {
             scroll->base.fadeDistance = 32;
             scroll->gamebitActivate = NO_GAMEBIT;
             reasset_map_objects_set(swapStoneCircle, 
-                reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll_Setup)
+                reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll2_Setup)
             );
         }
     }
@@ -5038,7 +5038,7 @@ static void discovery_falls_modifications(void) {
                 scroll->vSpeedA = 2;
                 scroll->gamebitActivate = NO_GAMEBIT;
                 reasset_map_objects_set(discoveryFalls, 
-                    reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll_Setup)
+                    reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll2_Setup)
                 );
             }
         }
