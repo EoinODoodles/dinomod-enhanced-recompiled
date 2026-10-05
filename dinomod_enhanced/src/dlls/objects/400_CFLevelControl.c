@@ -26,6 +26,7 @@
 #define UID_CFGuardian_Dungeon 0x2A4F
 
 #define CREATE_POINT_ID_Guardian_Courtyard1 14
+// custom create points:
 #define CREATE_POINT_ID_Guardian_Cell 30
 #define CREATE_POINT_ID_Guardian_BeforeWindLift 31
 #define CREATE_POINT_ID_Guardian_WindLift 32
@@ -82,7 +83,7 @@ static void recomp_moveGuardian(CFGuardian_Setup* setup, s32 map, s32 uid, s32 c
         mapSaveObject(&setup->base, map, dst.transl.x, dst.transl.y, dst.transl.z);
 
         // HACK: if CFGuardian already spawned, don't let his control/update funcs run until he's reloaded.
-        //       this avoids his DLL 
+        //       this prevents the DLL from having any side effects while in the incorrect location.
         Object* obj = objGetObjectByUID(uid);
         if (obj != NULL) {
             objDisable(obj);
@@ -98,6 +99,12 @@ static void recomp_moveGuardian(CFGuardian_Setup* setup, s32 map, s32 uid, s32 c
     }
 }
 
+/** 
+  * Because CFGuardian saves their position to the savefile, and that positions saved that way are *always* persisted
+  * when the player saves the game, the position of their objsetup may not match where they should be given the current
+  * state of the game if the player were to return to a save point or restart point. This hook checks where they should
+  * actually be when the level first loads and moves them if necessary.
+ */
 RECOMP_HOOK_RETURN_DLL(CFLevelControl_obj_Setup) void recomp_CFLevelControl_resetGuardianPos(void) {
     SRT transform;
 
@@ -113,16 +120,16 @@ RECOMP_HOOK_RETURN_DLL(CFLevelControl_obj_Setup) void recomp_CFLevelControl_rese
     case CFGUARDIAN_STATE_InCell:
     case CFGUARDIAN_STATE_WaitingToBeFreed:
     case CFGUARDIAN_STATE_LeavingCell:
-        // Should start in cell
+        // Should start in the cell
         recomp_moveGuardian(setup, MAP_CLOUDRUNNER_DUNGEON, UID_CFGuardian_Dungeon, CREATE_POINT_ID_Guardian_Cell);
         break;
     case CFGUARDIAN_STATE_WaitingAtWindLift:
-        // Should be right before wind lift
+        // Should be right before the wind lift
         recomp_moveGuardian(setup, MAP_CLOUDRUNNER_DUNGEON, UID_CFGuardian_Dungeon, CREATE_POINT_ID_Guardian_BeforeWindLift);
         break;
     case CFGUARDIAN_STATE_WaitingForWindLiftPower:
         // If the WindLifts are already powered, we need to start the guardian *in* in the windlift since
-        // the cutscene that normally moves him into won't play.
+        // the cutscene that normally moves him into it won't play.
         if (mainGetBits(BIT_CRF_WindLifts_Powered) != 0) {
             recomp_moveGuardian(setup, MAP_CLOUDRUNNER_DUNGEON, UID_CFGuardian_Dungeon, CREATE_POINT_ID_Guardian_WindLift);
         } else {
@@ -143,7 +150,8 @@ RECOMP_HOOK_RETURN_DLL(CFLevelControl_obj_Setup) void recomp_CFLevelControl_rese
 }
 
 RECOMP_HOOK_RETURN_DLL(CFLevelControl_obj_Control) void recomp_CFLevelControl_guardianSeqObjGroupToggle(void) {
-    // Enable CFGuardian objgroup while the water draining seq plays, otherwise he will not show up
+    // Enable CFGuardian objgroup while the water draining seq plays, otherwise he will not show up.
+    // This must run after CFLevelControl_doDistBasedObjGroupToggling to work correctly.
     if (mainGetBits(BIT_CRF_Throne_Room_Quest_Complete) != 0 && mainGetBits(BIT_Played_Seq_02B2_CF_Courtyard_Water_Drains) == 0) {
         dll_gplay->set_obj_group_status(MAP_CLOUDRUNNER_DUNGEON, 3, 1);
     }

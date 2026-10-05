@@ -2269,11 +2269,7 @@ static void crf_modifications(void) {
         CurveSetup* curve;
 
         curve = reasset_map_objects_get(crf, reasset_base_id(0xB31), NULL);
-        // curve->links[2] = 0xB2E;
         curve->links[2] = 0xB2D;
-
-        // curve = reasset_map_objects_get(crf, reasset_base_id(0xB2E), NULL);
-        // curve->links[2] = 0xB31;
 
         curve = reasset_map_objects_get(crf, reasset_base_id(0xB2D), NULL);
         curve->links[1] = 0xB31;
@@ -2303,7 +2299,6 @@ static void crf_modifications(void) {
             }
         };
         _Static_assert(sizeof(cellCreatePoint) >= 0x38, "Create point curve mem too small");
-
         reasset_map_objects_set(crfDungeon, reasset_auto_id(dinomodNs), &cellCreatePoint, 0x38);
 
         CurveSetup beforeWindliftCreatePoint = {
@@ -2318,7 +2313,6 @@ static void crf_modifications(void) {
             }
         };
         _Static_assert(sizeof(beforeWindliftCreatePoint) >= 0x38, "Create point curve mem too small");
-
         reasset_map_objects_set(crfDungeon, reasset_auto_id(dinomodNs), &beforeWindliftCreatePoint, 0x38);
 
         CurveSetup windliftCreatePoint = {
@@ -2334,7 +2328,6 @@ static void crf_modifications(void) {
             }
         };
         _Static_assert(sizeof(windliftCreatePoint) >= 0x38, "Create point curve mem too small");
-
         reasset_map_objects_set(crf, reasset_auto_id(dinomodNs), &windliftCreatePoint, 0x38);
     }
 

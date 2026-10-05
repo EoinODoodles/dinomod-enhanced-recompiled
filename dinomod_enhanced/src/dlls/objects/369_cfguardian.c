@@ -196,7 +196,7 @@ RECOMP_PATCH void CFGuardian_obj_Setup(Object* self, CFGuardian_Setup* setup, s3
         objdata->movedata.unk4A9 |= 0x28;
         objdata->talkState = CFGUARDIAN_TALK_Enabled;
         objdata->talkSeqSelector = 0;
-        mainCreateTempDLL(DLL_ID_MOVELIB); // @recomp:
+        mainCreateTempDLL(DLL_ID_MOVELIB); // @recomp: Moved to here so the below code has access to movelib
         if (mainGetBits(BIT_CRF_WindLifts_Powered) != 0) {
             objdata->state = CFGUARDIAN_STATE_InWindLift;
         }
@@ -235,7 +235,7 @@ RECOMP_PATCH void CFGuardian_obj_Setup(Object* self, CFGuardian_Setup* setup, s3
             }
         }
         func_8002674C(self);
-        //mainCreateTempDLL(DLL_ID_MOVELIB); // @recomp
+        //mainCreateTempDLL(DLL_ID_MOVELIB); // @recomp: Moved to earlier in func
         ((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func2(self, &objdata->movedata, -0x1FFF, 0x2800, 3);
         ((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func5(&objdata->movedata, 0x12C, 0x78);
         ((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func6(&objdata->movedata, 0, sp3C, 3);
@@ -629,11 +629,13 @@ RECOMP_PATCH s32 CFGuardian_control(Object* self) {
     if (mainGetBits(BIT_CFGuardian_State) != objdata->state) {
         mainSetBits(BIT_CFGuardian_State, objdata->state);
         recomp_printf(" Set State %i \n"); // @recomp
-        // @recomp:
+        // @recomp: Only save position on state changes. This avoids a whole category of state desyncs where the position
+        //          of the guardian when spawned may not match what their state (and the rest of the game state) is.
+        //          See the CFLevelControl patches for more info.
         recomp_printf("Saving guardian pos  %f,%f,%f\n", self->srt.transl.x, self->srt.transl.y, self->srt.transl.z);
         mapSaveObject(self->setup, self->mapID, self->srt.transl.x, self->srt.transl.y, self->srt.transl.z);
     }
-    // @recomp
+    // @recomp: Moved
     //mapSaveObject(self->setup, self->mapID, self->srt.transl.x, self->srt.transl.y, self->srt.transl.z);
     return 0;
 }
