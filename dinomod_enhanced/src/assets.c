@@ -2346,18 +2346,25 @@ static void crf_modifications(void) {
                 .objId = OBJ_MagicPlant,
                 .loadFlags = OBJSETUP_LOAD_MAIN,
                 .fadeFlags = OBJSETUP_FADE_CAMERA,
-                .loadDistance = 64,
-                .fadeDistance = 64,
-                .x = -303.897f,
+                // .loadDistance = 64,
+                // .fadeDistance = 64,
+                .loadDistance = 30,
+                .fadeDistance = 30,
+                // old coords for the corner leading to the main dungeon room
+                // .x = -303.897f,
+                // .y = 1309.0f,
+                // .z = 494.089f
+                .x = -458.61f,
                 .y = 1309.0f,
-                .z = 494.089f
+                .z = 27.597f
             },
             .regrowthTime = 3600 / 20, // 1 minute
             // big magic because the illusion spell costs a lot. this is basically the spell's tutorial 
             // so we should try to make magic less strict here.
             .dustIdx = 3,
             .modelInstIdx = 0,
-            .yaw = 0x68
+            //.yaw = 0x68
+            .yaw = 0x1F
         };
 
         reasset_map_objects_set(crfDungeon, reasset_auto_id(dinomodNs), &magicPlant, sizeof(magicPlant));
