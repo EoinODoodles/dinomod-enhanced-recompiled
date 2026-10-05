@@ -204,6 +204,9 @@ RECOMP_PATCH void CFGuardian_obj_Setup(Object* self, CFGuardian_Setup* setup, s3
         if (mainGetBits(BIT_CRF_Prison_Guardian_Exited_WindLift) != 0) {
             if (mainGetBits(BIT_CF_Floor_Destroyed) != 0) {
                 objdata->state = CFGUARDIAN_STATE_Courtyard_WaitingForCloudBaby;
+                // @recomp: Due to other changes below, it's possible for this bit to still be set at this point. We only want
+                //          the forced talkseq to play for the Kyte hint so just clear it if Kyte was freed.
+                mainSetBits(BIT_Force_CFGuardian_TalkSeq, 0);
             } else {
                 objdata->state = CFGUARDIAN_STATE_Courtyard_WaitingForKyte;
             }
@@ -442,11 +445,13 @@ RECOMP_PATCH s32 CFGuardian_control(Object* self) {
         if (mainGetBits(BIT_CF_Floor_Destroyed) != 0) {
             objdata->state = CFGUARDIAN_STATE_Courtyard_WaitingForCloudBaby;
             objdata->talkSeqSelector = 0;
+            // @recomp: Clear for the same reasons as in obj_Setup
+            mainSetBits(BIT_Force_CFGuardian_TalkSeq, 0);
         }
         break;
     case CFGUARDIAN_STATE_Courtyard_WaitingForCloudBaby:
         nearbyBaddie = objGetNearestTypeTo(OBJTYPE_Baddie, self, &baddieDist);
-        if ((nearbyBaddie != NULL) && (baddieDist < 300.0f)) {
+        if ((nearbyBaddie != NULL) && (baddieDist < 200.0f)) {
             ((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func1(&objdata->movedata, nearbyBaddie);
             // @bug: if the target arrow was greyed out due to nearby baddies in the previous state,
             //       the arrow will remain greyed out even if the baddies move away as this state
@@ -583,7 +588,8 @@ RECOMP_PATCH s32 CFGuardian_control(Object* self) {
     }
     if (mainGetBits(BIT_Force_CFGuardian_TalkSeq) != 0) {
         seqno2 = CFGuardian_mapLookup(sTalkSeqStateMap, objdata->state, sTalkSeqStateMapLength, objdata->talkSeqSelector);
-        if (seqno2 != -1) {
+        // @recomp: Only play when the player is close by and not in a seq
+        if (seqno2 != -1 && !(player->stateFlags & OBJSTATE_IN_SEQ) && vec3Distance(&self->globalPosition, &player->globalPosition) < 80.0f) {
             objdata->talkState = CFGUARDIAN_TALK_SpokenTo;
             gDLL_3_Animation->vtbl->start_obj_sequence(seqno2, self, -1);
             mainSetBits(BIT_Force_CFGuardian_TalkSeq, 0);
