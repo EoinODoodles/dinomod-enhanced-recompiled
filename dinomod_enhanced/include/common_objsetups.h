@@ -472,3 +472,26 @@ typedef enum {
     /* RECOMP */
     DF_Lantern_FLAG_40_Quadruple_Fade_Distance = 0x40 //Allows longer camera ranges (> 0xFF) to be specified for the partFX glow
 } DF_Lantern_Flags;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ u8 findRange;
+/*19*/ u8 timerSeconds;
+/*1A*/ u16 kyteFlightCurve;
+/*1C*/ u8 kyteTalkSeq;
+/*1D*/ u8 unk1D;
+union {
+    struct {
+    /*1E*/ u8 flagsUpper : 7;
+    /*1E*/ u8 checkDistance2D : 1;
+    }; 
+    /*1E*/ u8 flags; //@recomp: use as a general flags field instead of just a Boolean
+};
+} FindKyteObject_Setup;
+
+typedef enum {
+    FindKyteObject_FLAG_1_2D_Distance_Check = 1,
+    /* RECOMP*/
+    FindKyteObject_FLAG_2_Set_Gamebit_After_Timeout = 2,      //Gamebit set automatically after `timerSeconds`, to avoid Kyte taking too long/failing to reach the Find target
+    FindKyteObject_FLAG_4_Start_Timeout_When_Kyte_is_Nearby = 4, //Timeout countdown doesn't start until Kyte's within 4x the Find command's range
+} FindKyteObject_Flags;

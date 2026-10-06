@@ -4367,30 +4367,56 @@ static void discovery_falls_modifications(void) {
 
     //Kyte's rope fastening sequences
     {
-        //Rope near BlackWater Canyon (ensure its position is correctly restored on revisiting)
+        //Rope near BlackWater Canyon 
         {
-            //DFSequences object
-            SeqObj_Setup* dfSeqObj = GET_MAPS_OBJECT(discoveryFalls, 0x1F63);
-            dfSeqObj->gamebitHasPlayed = BIT_DF_Played_Seq_0016_Kyte_Secures_Rope_Near_BWC;
-            dfSeqObj->replayStartTime = 0; //Don't replay (seq preempts nearly work as an approach for restoring the ropes' states,
-                                           //except it briefly makes the rope's spring dynamics go haywire on load, because of the 
-                                           //large position change.)
+            //Ensure its position is correctly restored on revisiting
+            {
+                //DFSequences object
+                SeqObj_Setup* dfSeqObj = GET_MAPS_OBJECT(discoveryFalls, 0x1F63);
+                dfSeqObj->gamebitHasPlayed = BIT_DF_Played_Seq_0016_Kyte_Secures_Rope_Near_BWC;
+                dfSeqObj->replayStartTime = 0; //Don't replay (seq preempts nearly work as an approach for restoring the ropes' states,
+                                            //except it briefly makes the rope's spring dynamics go haywire on load, because of the 
+                                            //large position change.)
 
-            //Rope grab TriggerPoint (switch the one near the loose rope end off if Kyte's sequence hasn't played yet)
-            Trigger_Setup* ropeGrabPoint = GET_MAPS_OBJECT(discoveryFalls, 0x421e2);
-            ropeGrabPoint->conditionBitFlagIDs[0] = dfSeqObj->gamebitHasPlayed;
+                //Rope grab TriggerPoint (switch the one near the loose rope end off if Kyte's sequence hasn't played yet)
+                Trigger_Setup* ropeGrabPoint = GET_MAPS_OBJECT(discoveryFalls, 0x421e2);
+                ropeGrabPoint->conditionBitFlagIDs[0] = dfSeqObj->gamebitHasPlayed;
+            }
+
+            //Play the sequence automatically if Kyte takes too long trying to reach her TriggerPlane
+            {
+                CurveSetup* findCurve = GET_MAPS_OBJECT(discoveryFalls, 0x40b58);
+                findCurve->type22.usedBit = BIT_DF_Play_Seq_0016_Kyte_Secures_Rope_Near_BWC;
+
+                FindKyteObject_Setup* kyteFind = GET_MAPS_OBJECT(discoveryFalls, 0x00032f04);
+                kyteFind->flags |= FindKyteObject_FLAG_2_Set_Gamebit_After_Timeout;
+                kyteFind->timerSeconds = 10;
+            }
         }
 
-        //Rope near upper falls (ensure its position is correctly restored on revisiting)
+        //Rope near upper falls 
         {
-            //DFSequences object
-            SeqObj_Setup* dfSeqObj = GET_MAPS_OBJECT(discoveryFalls, 0x2569);
-            dfSeqObj->gamebitHasPlayed = BIT_DF_Played_Seq_000F_Kyte_Secures_Rope_Upper_Falls;
-            dfSeqObj->replayStartTime = 0; //Don't replay
+            //Ensure its position is correctly restored on revisiting
+            {
+                //DFSequences object
+                SeqObj_Setup* dfSeqObj = GET_MAPS_OBJECT(discoveryFalls, 0x2569);
+                dfSeqObj->gamebitHasPlayed = BIT_DF_Played_Seq_000F_Kyte_Secures_Rope_Upper_Falls;
+                dfSeqObj->replayStartTime = 0; //Don't replay
 
-            //Rope grab TriggerPoint (switch the one near the loose rope end off if Kyte's sequence hasn't played yet)
-            Trigger_Setup* ropeGrabPoint = GET_MAPS_OBJECT(discoveryFalls, 0x421e0);
-            ropeGrabPoint->conditionBitFlagIDs[0] = dfSeqObj->gamebitHasPlayed;
+                //Rope grab TriggerPoint (switch the one near the loose rope end off if Kyte's sequence hasn't played yet)
+                Trigger_Setup* ropeGrabPoint = GET_MAPS_OBJECT(discoveryFalls, 0x421e0);
+                ropeGrabPoint->conditionBitFlagIDs[0] = dfSeqObj->gamebitHasPlayed;
+            }
+
+            //Play the sequence automatically if Kyte takes too long trying to reach her TriggerPlane
+            {
+                CurveSetup* findCurve = GET_MAPS_OBJECT(discoveryFalls, 0x2567);
+                findCurve->type22.usedBit = BIT_DF_Play_Seq_000F_Kyte_Secures_Rope_Upper_Falls;
+
+                FindKyteObject_Setup* kyteFind = GET_MAPS_OBJECT(discoveryFalls, 0x00032f20);
+                kyteFind->flags |= FindKyteObject_FLAG_2_Set_Gamebit_After_Timeout;
+                kyteFind->timerSeconds = 10;
+            }
         }
 
         //DFRopeNodes
@@ -5074,6 +5100,7 @@ static void discovery_falls_modifications(void) {
         {
             //Fix an issue where the lever was hovering in midair slightly away from its housing
             ObjSetup* lever = GET_MAPS_OBJECT(discoveryFalls, 0x0000250e);
+            lever->fadeDistance = FADE_DISTANCE(480); //Increase fade distance so it's not semi-transparent during Kyte's rope fastening sequence
             lever->x = -1082.4;
             lever->z = -247.5;
 
@@ -5082,6 +5109,16 @@ static void discovery_falls_modifications(void) {
             turbineSeq->replayStartTime = 980;
             turbineSeq->replayActorMask = 1 << 3;
             turbineSeq->playbackOptions |= SEQOBJ_OPTIONS_HasReplayActorMask;
+
+            //Play the turbine activation sequence automatically if Kyte takes too long trying to reach her TriggerPlane
+            {
+                CurveSetup* findCurve = GET_MAPS_OBJECT(discoveryFalls, 0x32f1d);
+                findCurve->type22.usedBit = BIT_DF_Play_Seq_002F_Kyte_Activates_Turbine;
+
+                FindKyteObject_Setup* kyteFind = GET_MAPS_OBJECT(discoveryFalls, 0x00032f1a);
+                kyteFind->flags |= FindKyteObject_FLAG_2_Set_Gamebit_After_Timeout | FindKyteObject_FLAG_4_Start_Timeout_When_Kyte_is_Nearby;
+                kyteFind->timerSeconds = 3;
+            }
         }
 
         //Add HitAnimators for Kyte's turbine sequence (enabling temporary widescreen fixes)
