@@ -2282,56 +2282,6 @@ static void crf_modifications(void) {
         base->unk18 = 4;
     }
 
-    // Add additional create points so we can move the guardian's objsetup to the correct location given their state.
-    // Normally, their saved position can desync with their state bit (and other bits for that matter), so sometimes
-    // we need to move them back to a previous location for everything to work correctly. See the cfguardian patches
-    // for more info.
-    {
-        // Note: create point curves must be exactly 0x38 in size
-        CurveSetup cellCreatePoint = {
-            .objId = OBJ_curve,
-            .pos = VEC3F(-296.28515625f, 1309.0f, 93.828125f), // exactly where CFGuardian starts
-            .unk18 = -1, // must not be zero so the guardian doesn't think it's part of the dungeon path
-            .curveType = 0x15, // create point
-            .links = {-1, -1, -1, -1},
-            .unk2C = 0x80, // yaw8
-            .type15 = {
-                .unk34 = 30 // curve ID
-            }
-        };
-        _Static_assert(sizeof(cellCreatePoint) >= 0x38, "Create point curve mem too small");
-        reasset_map_objects_set(crfDungeon, reasset_auto_id(dinomodNs), &cellCreatePoint, 0x38);
-
-        CurveSetup beforeWindliftCreatePoint = {
-            .objId = OBJ_curve,
-            .pos = VEC3F(542.8935f, 1390.0f, 88.0566f), // end of dungeon path
-            .unk18 = -1, // must not be zero so the guardian doesn't think it's part of the dungeon path
-            .curveType = 0x15, // create point
-            .links = {-1, -1, -1, -1},
-            .unk2C = 0x80, // yaw8
-            .type15 = {
-                .unk34 = 31 // curve ID
-            }
-        };
-        _Static_assert(sizeof(beforeWindliftCreatePoint) >= 0x38, "Create point curve mem too small");
-        reasset_map_objects_set(crfDungeon, reasset_auto_id(dinomodNs), &beforeWindliftCreatePoint, 0x38);
-
-        CurveSetup windliftCreatePoint = {
-            .objId = OBJ_curve,
-            // middle-ish of windlift (below player savepoint so they don't spawn inside of each other)
-            .pos = VEC3F(-1392.371, 1700.0f, 1193.804f),
-            .unk18 = -1, // must not be zero so the guardian doesn't think it's part of the dungeon path
-            .curveType = 0x15, // create point
-            .links = {-1, -1, -1, -1},
-            .unk2C = 0x0, // yaw8
-            .type15 = {
-                .unk34 = 32 // curve ID
-            }
-        };
-        _Static_assert(sizeof(windliftCreatePoint) >= 0x38, "Create point curve mem too small");
-        reasset_map_objects_set(crf, reasset_auto_id(dinomodNs), &windliftCreatePoint, 0x38);
-    }
-
     // Add a magic plant to the dungeon so you don't get stuck if out of magic. Magic is needed for
     // the illusion spell and not having any results in a softlock.
     {

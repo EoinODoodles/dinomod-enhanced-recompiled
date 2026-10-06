@@ -1,5 +1,6 @@
 #include "modding.h"
 #include "recomputils.h"
+#include "recompsavedata.h"
 
 #include "PR/ultratypes.h"
 #include "dll.h"
@@ -14,6 +15,8 @@
 extern u16 sMapObjGroupBitKeys[];
 
 extern GplayOptions *sGameOptions;
+extern s8 sSavegameIdx;
+extern GplaySaveFlash *sSavegame;
 
 /** Modifies the flagIDs used to track maps' objectGroup load states (originally by MusicalProgrammer) */
 RECOMP_HOOK_DLL(gplay_ctor) void gplay_patch_map_object_group_flags(void) {
@@ -84,4 +87,42 @@ RECOMP_PATCH u32 gplay_load_game_options(void) {
     }
 
     return ret;
+}
+
+/**
+ * Normally, timesaves and saved objects (moved objsetups) *always* have their latest state
+ * persisted to flash when the player saves the game, regardless of when the last savepoint
+ * was triggered. This causes many many issues with state being desync'd upon reloading the
+ * save often causing softlocks. The below hooks effectively change gplay_save_game to copy
+ * around those savefile fields before saving to flash (this patch is done indirectly in recomp
+ * as gplay_save_game is a base recomp patch and cannot be overwritten directly here).
+ *
+ * The result of these changes is that timesaves and saved objects are bound to savepoints
+ * (i.e. they work like savetype 1 bits now).
+ */
+static void* recomp_sBackedUpFileState = NULL;
+
+RECOMP_HOOK_DLL(gplay_save_game) void hook_backup_timesaves_and_setupmoves(void) {
+    if (sSavegameIdx != -1) {
+        if (recomp_sBackedUpFileState != NULL) {
+            recomp_free(recomp_sBackedUpFileState);
+            recomp_sBackedUpFileState = NULL;
+        }
+
+        s32 backupSize = OFFSETOF(Savefile, bitString) - OFFSETOF(Savefile, numSavedObjects);
+        recomp_sBackedUpFileState = recomp_alloc(backupSize);
+        bcopy(&sSavegame->asSave.file.numSavedObjects, recomp_sBackedUpFileState, backupSize);
+    }
+}
+
+RECOMP_SAVEDATA_ON_SAVE void restore_backup_timesaves_and_setupmoves(void) {
+    if (recomp_sBackedUpFileState != NULL) {
+        s32 backupSize = OFFSETOF(Savefile, bitString) - OFFSETOF(Savefile, numSavedObjects);
+        bcopy(recomp_sBackedUpFileState, &sSavegame->asSave.file.numSavedObjects, backupSize);
+
+        //recomp_printf("restoring gplay timesaves/objmoves\n");
+
+        recomp_free(recomp_sBackedUpFileState);
+        recomp_sBackedUpFileState = NULL;
+    }
 }
