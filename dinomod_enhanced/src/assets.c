@@ -2249,6 +2249,7 @@ static void nwsh_modifications(void) {
 static void crf_modifications(void) {
     ReAssetID crf = reasset_base_id(MAP_CLOUDRUNNER_FORTRESS);
     ReAssetID crfDungeon = reasset_base_id(MAP_CLOUDRUNNER_DUNGEON);
+    ReAssetID crfTrkblk = reasset_base_id(18);
 
     // Remove part of the courtyard EWTrobotpatrol curve network that goes towards the entrance.
     // There's rubble blocking this path now, so if the robots are restored back into the game
@@ -2393,6 +2394,74 @@ static void crf_modifications(void) {
         };
 
         reasset_map_objects_set(crf, reasset_auto_id(dinomodNs), &trigger, sizeof(trigger));
+    }
+
+    // Remove the door to the throne room from an objgroup so it doesn't unload as you walk by it
+    {
+        ObjSetup* mainSlideDoor = reasset_map_objects_get(crf, reasset_base_id(0x2C47), NULL);
+        mainSlideDoor->loadFlags = OBJSETUP_LOAD_MAIN;
+        mainSlideDoor->loadDistance = 70; // must at least be in range of the levers so the unlock seq plays
+    }
+
+    // Increase the load dist of the throne room SharpClaw, it's super small by default
+    {
+        ObjSetup* throneRoomSharpy = reasset_map_objects_get(crf, reasset_base_id(0x32536), NULL);
+        throneRoomSharpy->loadDistance = 68;
+        throneRoomSharpy->fadeDistance = 68;
+    }
+
+    // When the switches to the throne room door preempt their seq, don't include Krystal in the actor
+    // list otherwise Krystal will move foward slightly when these switches load back in.
+    {
+        UseObj_Setup* doubleSwitch;
+
+        doubleSwitch = reasset_map_objects_get(crf, reasset_base_id(0x29E4), NULL);
+        doubleSwitch->flags &= ~0x20; // don't include actor 2 in preempt
+
+        doubleSwitch = reasset_map_objects_get(crf, reasset_base_id(0x42850), NULL);
+        doubleSwitch->flags &= ~0x20;
+
+        doubleSwitch = reasset_map_objects_get(crf, reasset_base_id(0x4284E), NULL);
+        doubleSwitch->flags &= ~0x20;
+    }
+
+    // @recomp: Fix hitlines in the treasure wind lift (to make it next to impossible to clip barrels oob)
+    {
+        HitsLine* hit;
+
+        hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(0));
+        hit->Ax = 435;
+        hit->Az = 375;
+        hit->Bx = 460;
+        hit->Bz = 350;
+        hit->heightUnified = 80;
+        hit->settingsA = 0x96;
+
+        hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(1));
+        hit->Ax = 458;
+        hit->Az = 288;
+        hit->Bx = 435;
+        hit->Bz = 268;
+        hit->heightUnified = 80;
+        hit->settingsA = 0x96;
+
+        hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(1));
+        hit->Ax = 458;
+
+        hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(29));
+        hit->Ax = 602;
+        hit->Az = 273;
+
+        hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(33));
+        hit->Bx = 602;
+        hit->Bz = 273;
+    }
+
+    // @recomp: Center the "treasure" wind lift (to throne room)
+    {
+        ObjSetup* treasWindLift = reasset_map_objects_get(crf, reasset_base_id(0x428A7), NULL);
+        treasWindLift->x = -3310.0f;
+        treasWindLift->z = 320.0f;
     }
 }
 
