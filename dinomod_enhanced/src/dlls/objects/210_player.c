@@ -640,15 +640,15 @@ RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2
     } while (var_s2 != 0);
 }
 
-static void recomp_player_dropHeldItem(Object* player, Player_Data* objdata) {
-    Object* item = objdata->unk868;
-    if (item != NULL) {
+static void recomp_player_dropHeldObj(Object* player, Player_Data* objdata) {
+    Object* held = objdata->unk868;
+    if (held != NULL) {
         // Usual drop code
-        gDLL_54_pickup->vtbl->drop(item, item->data);
+        gDLL_54_pickup->vtbl->drop(held, held->data);
         playerUtil_use_walk_anims(player);
 
-        // Move item a little bit in front of the player (but not through walls). This prevents
-        // the item from being inside of the player if the item is dropped while they are moving.
+        // Move obj a little bit in front of the player (but not through walls). This prevents
+        // the obj from being inside of the player if the obj is dropped while they are moving.
         AABBs32 aabb;
         f32 radii;
         Vec3f moveFrom;
@@ -660,23 +660,23 @@ static void recomp_player_dropHeldItem(Object* player, Player_Data* objdata) {
         result.unk50[0] = -1;
         result.unk54[0] = 3;
         moveFrom.x = player->srt.transl.x;
-        moveFrom.y = item->srt.transl.y;
+        moveFrom.y = held->srt.transl.y;
         moveFrom.z = player->srt.transl.z;
         moveTo.x = player->srt.transl.x - (mathSinfInterp(player->srt.yaw) * 15.0f);
-        moveTo.y = item->srt.transl.y;
+        moveTo.y = held->srt.transl.y;
         moveTo.z = player->srt.transl.z - (mathCosfInterp(player->srt.yaw) * 15.0f);
         trackIntersectBuildAABB(&aabb, &moveFrom, &moveTo, &radii, 1);
-        trackIntersectBroadphase(item, &aabb, 8);
-        trackGetIntersect(item, (f32*)&moveFrom, (f32*)&moveTo, 1, &result, 0);
+        trackIntersectBroadphase(held, &aabb, 8);
+        trackGetIntersect(held, (f32*)&moveFrom, (f32*)&moveTo, 1, &result, 0);
 
-        item->srt.transl.x = moveTo.x;
-        item->srt.transl.y = moveTo.y;
-        item->srt.transl.z = moveTo.z;
+        held->srt.transl.x = moveTo.x;
+        held->srt.transl.y = moveTo.y;
+        held->srt.transl.z = moveTo.z;
 
         // Inherit velocity (helps with barrels in windlifts)
-        item->velocity.x = player->velocity.x;
-        item->velocity.y = player->velocity.y;
-        item->velocity.z = player->velocity.z;
+        held->velocity.x = player->velocity.x;
+        held->velocity.y = player->velocity.y;
+        held->velocity.z = player->velocity.z;
     }
 }
 
@@ -714,7 +714,7 @@ static s32 dll_210_func_A3FC_custom(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     } else {
         // @recomp: Enter windlift state even if carrying something
         if (sp4C->unk808 != 0.0f) {
-            recomp_player_dropHeldItem(player, sp4C);
+            recomp_player_dropHeldObj(player, sp4C);
             return 0x4A;
         }
     }
@@ -854,7 +854,7 @@ RECOMP_PATCH s32 dll_210_func_AE34(Object* player, ObjFSA_Data* fsa, f32 arg2) {
     } else {
         // @recomp: Enter windlift state even if carrying something
         if (objdata->unk808 != 0.0f) {
-            recomp_player_dropHeldItem(player, objdata);
+            recomp_player_dropHeldObj(player, objdata);
             return 0x4A;
         }
     }
@@ -3077,6 +3077,10 @@ RECOMP_PATCH s32 dll_210_func_CC24(Object* player, ObjFSA_Data* fsa, f32 arg2) {
             dll_amSfx->Play(player, sp38->unk3B8[0x16], MAX_VOLUME, NULL, NULL, 0, NULL);
         }
         if (fsa->animStateTime >= 0x51) {
+            // @recomp: Drop held object if entering an unsafe fall
+            if (sp38->unk868 != NULL) {
+                recomp_player_dropHeldObj(player, sp38);
+            }
             dll_amSfx->Play(player, sp38->unk3B8[9], MAX_VOLUME, NULL, NULL, 0, NULL);
             objAnimSet(player, 9, 0.0f, 0U);
         }
@@ -3168,4 +3172,21 @@ RECOMP_PATCH s32 dll_210_func_CC24(Object* player, ObjFSA_Data* fsa, f32 arg2) {
         return 0x20;
     }
     return 0;
+}
+
+/** If the held object unloads, remove our reference to it so we don't later reference freed memory. Otherwise, we crash. */
+RECOMP_HOOK_DLL(dll_210_control) void hook_player_validateHeldObj(Object* self) {
+    Player_Data* objdata = self->data;
+    if (objdata->unk868 != NULL && (objdata->unk868->stateFlags & OBJSTATE_DESTROYED)) {
+        objdata->unk868 = NULL;
+        playerUtil_use_walk_anims(self);
+    }
+}
+
+/** Drop held object if entering a ledge grab. */
+RECOMP_HOOK_DLL(dll_210_func_D788) void dll_210_func_D788_hook(Object* self, ObjFSA_Data* fsa, f32 arg2) {
+    Player_Data* objdata = self->data;
+    if (fsa->enteredAnimState != 0 && objdata->unk868 != NULL) {
+        recomp_player_dropHeldObj(self, objdata);
+    }
 }

@@ -2455,6 +2455,16 @@ static void crf_modifications(void) {
         hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(33));
         hit->Bx = 602;
         hit->Bz = 273;
+
+        hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(32));
+        hit->Ax = 462;
+        hit->Bx = 462;
+
+        // Increase height of "windlift exit" trigger hitline. In some very specific cases the barrel 
+        // can go over it with the shorter vanilla height
+        hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(36));
+        hit->heightA = 70;
+        hit->heightB = 70;
     }
 
     // @recomp: Center the "treasure" wind lift (to throne room)
