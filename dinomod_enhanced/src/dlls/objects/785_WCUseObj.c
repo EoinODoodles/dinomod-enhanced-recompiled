@@ -8,12 +8,18 @@
 #include "game/objects/object_id.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
+#include "sys/math.h"
 #include "sys/objects.h"
 
 #include "recomp/dlls/_asm/785_recomp.h"
 
+//#define DEBUG_IN_FRONT_OF_SWITCH
+
 //TEMPORARY DEFINES
+#define WCUseObj_obj_Setup dll_785_obj_Setup
 #define WCUseObj_obj_Control dll_785_obj_Control
+#define WCUseObj_obj_GetDataSize dll_785_obj_GetDataSize
+#define WCUseObj_animCallback dll_785_func_634
 
 #define BIT_WC_Placed_Gold_RedEye_Tooth 0x25A
 #define BIT_WC_Placed_Silver_RedEye_Tooth 0x25B
@@ -36,6 +42,10 @@ typedef struct {
 typedef struct {
     u8 state;
     u8 actID;
+    /* RECOMP */
+    f32 sinYaw;         //Used for telling whether the player is in front/behind of WCSunTempleSwitch
+    f32 cosYaw;         //Used for telling whether the player is in front/behind of WCSunTempleSwitch
+    f32 selfProjected;  //Used for telling whether the player is in front/behind of WCSunTempleSwitch
 } WCUseObj_Data;
 
 typedef enum {
@@ -58,6 +68,75 @@ typedef enum {
     WCUseObj_MODELIDX_Sun = 0,
     WCUseObj_MODELIDX_Moon = 1
 } WCUseObj_Models;
+
+int WCUseObj_animCallback(Object* self, Object* animObj, AnimObj_Data* animData, s8 prevCallbackValue);
+
+RECOMP_PATCH void WCUseObj_obj_Setup(Object* self, WCUseObj_Setup* objSetup, s32 reset) {
+    WCUseObj_Data* objData;
+    TextureAnimator* texAnim;
+
+    self->srt.yaw = objSetup->yaw << 8;
+    self->srt.pitch = objSetup->pitch << 8;
+    self->srt.roll = objSetup->roll << 8;
+    
+    self->animCallback = WCUseObj_animCallback;
+    
+    self->modelInstIdx = objSetup->modelno;
+    if (self->modelInstIdx >= self->def->numModels) {
+        STUBBED_PRINTF("USEOBJ.c: modelno out of range romdefno=%d\n", objSetup->modelno);
+        self->modelInstIdx = 0;
+    }
+    
+    objData = self->data;
+    objData->state = mainGetBits(objSetup->gamebitInteracted);
+    objData->actID = gDLL_29_Gplay->vtbl->get_act(self->mapID);
+    
+    if ((objSetup->flags & WCUseObj_FLAG_1_Hide_On_Revisit_When_Used) && (objData->state != WCUseObj_STATE_Unused)) {
+        self->opacity = 0;
+    }
+    
+    if (objData->state != WCUseObj_STATE_Unused) {
+        texAnim = objExprGetTexAnimator(self, 0, 0);
+        if (texAnim != NULL) {
+            texAnim->frame = 0x100;
+        }
+    }
+
+    //@recomp: store calcs for WCSunTempleSwitch, for determining whether player is in front/behind
+    if (self->id == OBJ_WCSunTempleSwit) {
+        objData->sinYaw = Sinf(self->srt.yaw);
+        objData->cosYaw = Cosf(self->srt.yaw);
+        objData->selfProjected = (objData->sinYaw * self->globalPosition.x) + (objData->cosYaw * self->globalPosition.z);
+    }
+}
+
+/* Checks whether the player is in front/behind the Object (used to ensure switches can only be pressed when standing ahead of them) */
+static _Bool WCUseObj_isPlayerInFront(Object* self, WCUseObj_Data* objData) {
+    Object* player = objGetPlayer();
+    f32 playerValue;
+
+    if (objData == NULL) {
+        return FALSE;
+    }
+
+    if (player) {
+        playerValue = (objData->sinYaw * player->globalPosition.x) + (objData->cosYaw * player->globalPosition.z);
+        
+#ifdef DEBUG_IN_FRONT_OF_SWITCH
+        if (vec3DistanceXZSquared(&self->globalPosition, &player->globalPosition) < SQ(50)) {
+            diPrintf("selfProjected: %f\n", &objData->selfProjected);
+            diPrintf("playerValue: %f\n", &playerValue);
+            diPrintf("isPlayerInFront?: %d\n", (playerValue > objData->selfProjected));
+        }
+#endif
+
+        if (playerValue > objData->selfProjected) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
 
 /* Allow inverting gamebitEnabled's value check (UseObj locked when gamebitEnabled set, rather than unlocked when gamebit set) */
 RECOMP_PATCH void WCUseObj_obj_Control(Object* self) {
@@ -91,25 +170,30 @@ RECOMP_PATCH void WCUseObj_obj_Control(Object* self) {
             return;
         }
 
-        self->unkAF &= ~ARROW_FLAG_8_No_Targetting;
-        if (objSetup->gamebitUnlocked != NO_GAMEBIT) {
-            //@recomp: handle custom flag, inverting gamebitUnlocked's behaviour (changing from unlocked when set to locked when set)
-            if (objSetup->flags & WCUseObj_CUSTOMFLAG_2_Invert_GamebitUnlocked) {
-                unlocked = !mainGetBits(objSetup->gamebitUnlocked);
-            } else {
-                unlocked = mainGetBits(objSetup->gamebitUnlocked);
-            }
-
-            if (unlocked) {
-                self->unkAF &= ~ARROW_FLAG_10_Greyed_Out;
-            } else {
-                self->unkAF |= ARROW_FLAG_10_Greyed_Out;
-                if (objSetup->flags & WCUseObj_FLAG_10_No_Targetting_When_Locked) {
-                    self->unkAF |= ARROW_FLAG_8_No_Targetting;
+        //@recomp: only show LockIcon when in front of WCSunTempleSwitches
+        if (self->id != OBJ_WCSunTempleSwit || WCUseObj_isPlayerInFront(self, objData)) {
+            self->unkAF &= ~ARROW_FLAG_8_No_Targetting;
+            if (objSetup->gamebitUnlocked != NO_GAMEBIT) {
+                //@recomp: handle custom flag, inverting gamebitUnlocked's behaviour (changing from unlocked when set to locked when set)
+                if (objSetup->flags & WCUseObj_CUSTOMFLAG_2_Invert_GamebitUnlocked) {
+                    unlocked = !mainGetBits(objSetup->gamebitUnlocked);
+                } else {
+                    unlocked = mainGetBits(objSetup->gamebitUnlocked);
                 }
+
+                if (unlocked) {
+                    self->unkAF &= ~ARROW_FLAG_10_Greyed_Out;
+                } else {
+                    self->unkAF |= ARROW_FLAG_10_Greyed_Out;
+                    if (objSetup->flags & WCUseObj_FLAG_10_No_Targetting_When_Locked) {
+                        self->unkAF |= ARROW_FLAG_8_No_Targetting;
+                    }
+                }
+            } else {
+                self->unkAF &= ~ARROW_FLAG_10_Greyed_Out;
             }
         } else {
-            self->unkAF &= ~ARROW_FLAG_10_Greyed_Out;
+            self->unkAF |= ARROW_FLAG_8_No_Targetting;
         }
         
         //Check if the button was pressed / an item was used
@@ -173,4 +257,9 @@ RECOMP_PATCH void WCUseObj_obj_Control(Object* self) {
     }
     
     self->unkDC = 1;
+}
+
+/* Extend objData */
+RECOMP_PATCH u32 WCUseObj_obj_GetDataSize(Object* self, u32 offsetAddr) {
+    return sizeof(WCUseObj_Data);
 }
