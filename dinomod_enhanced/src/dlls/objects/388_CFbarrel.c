@@ -10,6 +10,7 @@
 #include "dlls/objects/210_player.h"
 #include "sys/intersect.h"
 #include "sys/main.h"
+#include "sys/map_enums.h"
 #include "sys/math.h"
 #include "sys/objects.h"
 #include "sys/objtype.h"
@@ -41,6 +42,8 @@ typedef struct {
 /*3D*/ u8 flags;
 /*3E:0*/ u8 inWindLift : 1;
 /*3E:1*/ u8 unk3E_1 : 1;
+// @recomp: new fields
+/*3E:2*/ u8 isOutOfBounds : 1;
 } CFbarrel_Data;
 
 enum CFbarrelFlags {
@@ -70,7 +73,6 @@ RECOMP_PATCH void CFbarrel_obj_Control(Object* self) {
             objdata->explodedTime = 0;
             objdata->hits = 0;
             objdata->flags |= CFBARREL_Physics_Enabled;
-            obj_func_80023C6C(self); // @recomp: Reset lockdata on respawn since we modify it in another patch
         }
         return;
     }
@@ -134,9 +136,6 @@ RECOMP_PATCH void CFbarrel_obj_Control(Object* self) {
             objdata->flags |= CFBARREL_Physics_Enabled;
             objdata->isHeld = TRUE;
             objdata->unk3E_1 = TRUE;
-            // @recomp: Disable voxmap lock icon check after getting picked up for the first time. It's too easy
-            //          to place the barrel partway in a wall...
-            obj_func_80023BF8(self, 0, 0, 0, 0, 0x6);
         }
         CFbarrel_processMesgLoop(self);
         if (objdata->inWindLift) {
@@ -202,6 +201,12 @@ RECOMP_PATCH void CFbarrel_obj_Update(Object* self) {
                     STUBBED_PRINTF(" Hit Line ");
                 }
             }
+            // @recomp: Count as out of bounds if we fall too far even if there's a floor under us
+            if (self->mapID == MAP_CLOUDRUNNER_FORTRESS && self->globalPosition.y < 1660.0f) {
+                // Likely in the treasure room pit
+                objdata->explodedTime = 1;
+                objdata->isOutOfBounds = FALSE;
+            }
         }
         self->prevLocalPosition.x = self->srt.transl.x;
         self->prevLocalPosition.y = self->srt.transl.y;
@@ -211,6 +216,24 @@ RECOMP_PATCH void CFbarrel_obj_Update(Object* self) {
         self->prevGlobalPosition.y = self->globalPosition.y;
         self->prevGlobalPosition.z = self->globalPosition.z;
     }
+}
+
+RECOMP_HOOK_DLL(CFbarrel_obj_Free) void CFbarrel_obj_Free_hook(Object* self, s32 onlySelf) {
+    CFbarrel_Data* objdata = self->data;
+    // @recomp: If we're unloading out of bounds, move back to the create point to avoid being lost forever
+    if (objdata->isLevelObj && objdata->isOutOfBounds && !objdata->inWindLift) {
+        ((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func7(0x1A, &self->srt);
+        self->srt.transl.x += (f32) mathRnd(-30, 30) * 0.1f;
+        self->srt.transl.z += (f32) mathRnd(-30, 30) * 0.1f;
+        self->prevLocalPosition.x = self->srt.transl.x;
+        self->prevLocalPosition.y = self->srt.transl.y;
+        self->prevLocalPosition.z = self->srt.transl.z;
+        mapSaveObject(self->setup, self->mapID, self->srt.transl.x, self->srt.transl.y, self->srt.transl.z);
+    }
+}
+
+RECOMP_PATCH u32 CFbarrel_obj_GetDataSize(Object *self, u32 offsetAddr) {
+    return sizeof(CFbarrel_Data); // @recomp: custom size
 }
 
 RECOMP_PATCH void CFbarrel_doPhysics(Object* self) {
@@ -234,7 +257,9 @@ RECOMP_PATCH void CFbarrel_doPhysics(Object* self) {
     Object* obj;
     // @recomp: new vars
     s32 numCloseFloors = 0;
-    _Bool anyFloorsBelow = FALSE;
+
+    // @recomp: Reset flag
+    objdata->isOutOfBounds = TRUE;
 
     self->srt.yaw = 0;
     if (objdata->targVelocity.y > 0.01f) {
@@ -276,7 +301,7 @@ RECOMP_PATCH void CFbarrel_doPhysics(Object* self) {
                 }
                 // @recomp: Record whether there is anything below us at all
                 if (height >= 0.0f) {
-                    anyFloorsBelow = TRUE;
+                    objdata->isOutOfBounds = FALSE;
                 }
                 // @recomp: Also track floors that are below us but pretty close
                 if (height > 0.0f && height < 2.0f) {
@@ -301,6 +326,8 @@ RECOMP_PATCH void CFbarrel_doPhysics(Object* self) {
     if (numFloors != 0) {
         // zip up to floor
         self->velocity.y = -smallestHeight;
+        // @recomp: The void might be below but we're snapping to the floor we just passed so it's OK
+        objdata->isOutOfBounds = FALSE;
     }
     if (numFloors == 0) {
         //objdata->targVelocity.y -= 0.1f;
@@ -310,20 +337,6 @@ RECOMP_PATCH void CFbarrel_doPhysics(Object* self) {
         objdata->targVelocity.y -= 0.1f; // @recomp: moved to prevent falling when windlift unloads
         if (objdata->targVelocity.y < -0.2f) {
             CFbarrel_moveToAttractor(self, objdata->unk38, objdata->unk3A);
-        }
-        // @recomp: Check if we're in the void and if so just respawn
-        if (!anyFloorsBelow) {
-            if (objdata->inWindLift) {
-                // The treasure area probably unloaded, just freeze in place and wait for it to come back
-                self->velocity.x = 0.0f;
-                self->velocity.y = 0.0f;
-                self->velocity.z = 0.0f;
-                objdata->targVelocity.x = 0.0f;
-                objdata->targVelocity.y = 0.0f;
-                objdata->targVelocity.z = 0.0f;
-            } else {
-                objdata->explodedTime = 1;
-            }
         }
     }
     if (numFloors > 0) {
@@ -361,6 +374,8 @@ RECOMP_PATCH void CFbarrel_doPhysics(Object* self) {
 RECOMP_PATCH void CFbarrel_processMesgLoop(Object* self) {
     u32 mesgID = 0;
     void* mesgArg = NULL;
+    // @recomp: new vars
+    CFbarrel_Data* objdata = self->data;
     
     while (objRecvMesg(self, &mesgID, NULL, &mesgArg) != 0) {
         // @recomp: Don't allow barrels to be taken into the CRF courtyard
@@ -374,7 +389,6 @@ RECOMP_PATCH void CFbarrel_processMesgLoop(Object* self) {
                 if (((DLL_210_Player*)player->dll)->vtbl->func10(player, &held) && held == self) {
                     playerUtil_stop_carrying(player);
                 }
-                CFbarrel_Data* objdata = self->data;
                 objdata->explodedTime = 1;
             }
         }
@@ -383,7 +397,26 @@ RECOMP_PATCH void CFbarrel_processMesgLoop(Object* self) {
             CFbarrel_setWindLiftState(self, TRUE);
             break;
         case 16:
-            CFbarrel_setWindLiftState(self, FALSE);
+            // @recomp: Patched windlifts send an exit message when unloading. Stop moving if
+            //          this happens but don't leave the windlift state so we don't fall.
+            if (((s32)mesgArg) & (1 << 12)) {
+                self->velocity.x = 0.0f;
+                self->velocity.y = 0.0f;
+                self->velocity.z = 0.0f;
+                objdata->targVelocity.x = 0.0f;
+                objdata->targVelocity.y = 0.0f;
+                objdata->targVelocity.z = 0.0f;
+                self->prevLocalPosition.x = self->srt.transl.x;
+                self->prevLocalPosition.y = self->srt.transl.y;
+                self->prevLocalPosition.z = self->srt.transl.z;
+            } else {
+                // @recomp: Stop horizontal velocity when exiting a windlift. The lower part
+                //          of the windlift doesn't have the correct hitlines to keep the
+                //          barrel inbounds, so we have a chance to fly off through a wall otherwise.
+                objdata->targVelocity.x = 0.0f;
+                objdata->targVelocity.z = 0.0f;
+                CFbarrel_setWindLiftState(self, FALSE);
+            }
             break;
         }
     }

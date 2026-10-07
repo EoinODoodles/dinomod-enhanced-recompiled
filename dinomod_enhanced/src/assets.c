@@ -2250,6 +2250,7 @@ static void crf_modifications(void) {
     ReAssetID crf = reasset_base_id(MAP_CLOUDRUNNER_FORTRESS);
     ReAssetID crfDungeon = reasset_base_id(MAP_CLOUDRUNNER_DUNGEON);
     ReAssetID crfTrkblk = reasset_base_id(18);
+    ReAssetID crfTreasTrkblk = reasset_base_id(22);
 
     // Remove part of the courtyard EWTrobotpatrol curve network that goes towards the entrance.
     // There's rubble blocking this path now, so if the robots are restored back into the game
@@ -2444,6 +2445,27 @@ static void crf_modifications(void) {
         curve->type22.usedBit = 0x34F;
         curve = reasset_map_objects_get(crf, reasset_base_id(0x42D10), NULL);
         curve->type22.usedBit = 0x34F;
+    }
+
+    // @recomp: Remove collision on the invisible shape above the CRF treasure tunnel pit
+    {
+        ReAssetID blockID = reasset_base_id(660 - 656);
+        u32 blockDataSize;
+        u8 *blockData = reasset_blocks_get(crfTreasTrkblk, blockID, &blockDataSize);
+        blockData = dinomod_block_decompress(blockData, blockDataSize, &blockDataSize);
+        Block *block = (Block*)(blockData + 8);
+        BlockShape *shapes = (BlockShape*)((u8*)block + (u32)block->shapes);
+        shapes[0].flags |= RENDER_UNK800;
+        reasset_blocks_set(crfTreasTrkblk, blockID, REASSET_BASE_NAMESPACE, blockData, blockDataSize);
+        recomp_free(blockData);
+    }
+
+    // @recomp: Remove the voxmap line-of-sight check from CFbarrel's lockdata. There's a ton of ways to
+    //          get a barrel inside of the voxmap making it impossible to pickup.
+    {
+        ObjDef *cfBarrelObjDef = reasset_objects_get(reasset_base_id(126), NULL);
+        ObjDefLockData *cfBarrelLockdata = (ObjDefLockData*)((u8*)cfBarrelObjDef + (u32)cfBarrelObjDef->lockdata);
+        cfBarrelLockdata[0].flags &= ~0x20;
     }
 }
 

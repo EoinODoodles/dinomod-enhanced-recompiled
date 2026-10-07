@@ -566,6 +566,11 @@ RECOMP_PATCH s32 CFGuardian_control(Object* self) {
             break;
         case 16:
             // exit windlift
+            // @recomp: Patched windlifts send an exit message when they unload. For the guardian,
+            //          we don't want to consider this as a real exit.
+            if (((s32)mesgArg) & (1 << 12)) {
+                break;
+            }
             STUBBED_PRINTF("Guardian Out of WindLIft "); // guessed location
             objAnimSet(self, CFGUARDIAN_MODANIM_Idle, 0, 0);
             objAnim_func_80024D74(self, 0x32);

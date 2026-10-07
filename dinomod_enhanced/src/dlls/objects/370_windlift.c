@@ -18,6 +18,43 @@ typedef struct {
     s32 unk14;
 } WindLift_Data_1C;
 
+typedef struct {
+    s32 windLiftID;
+    s32 playerInsideBit;
+    s32 reverseBit;
+    u8 _unkC[0x10 - 0xC];
+    u32 unk10;
+    f32 unk14;
+    s32 unk18;
+    WindLift_Data_1C unk1C[14];
+    u8 _unk16C[0x170 - 0x16C];
+    u32 unk170_0 : 1;
+} WindLift_Data;
+
+RECOMP_HOOK_DLL(WindLift_obj_Free) void WindLift_obj_Free_hook(Object* self, s32 onlySelf)  {
+    WindLift_Data* objdata = self->data;
+
+    // @recomp: Announce to windliftable objects when we're unloading and let them decide whether
+    //          to treat this as a real exit message or not.
+    for (s32 i = 2; i < 14; i++) {
+        WindLift_Data_1C* slot = &objdata->unk1C[i];
+        if (slot->unk14 == -1) {
+            break;
+        }
+        if (slot->unk0 != NULL && (slot->unk10 & 0x40)) { // 0x40 == IsBeingLifted
+            Object* obj = slot->unk0;
+            // For saftey, zero out the object's velocity
+            obj->velocity.x = 0.0f;
+            obj->velocity.y = 0.0f;
+            obj->velocity.z = 0.0f;
+
+            // Set bit 12 to state that we're unloading
+            s32 mesgArg = (1 << 12) | (((slot->unk10 & 0xE0) >> 4) << 8) | objdata->windLiftID;
+            objSendMesg(obj, 0x10, self, (void* ) (mesgArg));
+        }
+    }
+}
+
 RECOMP_PATCH void WindLift_func_880(Object* self, Object* obj, WindLift_Data_1C* arg2, f32 arg3, s32 switchedOff, s32 isPlayer, s32 windLiftID) {
     Object* player;
     f32 objHeight;
