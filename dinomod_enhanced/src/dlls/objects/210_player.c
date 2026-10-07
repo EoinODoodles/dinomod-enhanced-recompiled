@@ -712,8 +712,8 @@ static s32 dll_210_func_A3FC_custom(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     } else if (sp4C->unk870 == 0) {
         return 7;
     } else {
-        // @recomp: Enter windlift state even if carrying something
-        if (sp4C->unk808 != 0.0f) {
+        // @recomp: Enter windlift state even if carrying something (unless windlift is reversed)
+        if (sp4C->unk808 > 0.0f) {
             recomp_player_dropHeldObj(player, sp4C);
             return 0x4A;
         }
@@ -852,8 +852,8 @@ RECOMP_PATCH s32 dll_210_func_AE34(Object* player, ObjFSA_Data* fsa, f32 arg2) {
             return -0x43;
         }
     } else {
-        // @recomp: Enter windlift state even if carrying something
-        if (objdata->unk808 != 0.0f) {
+        // @recomp: Enter windlift state even if carrying something (unless windlift is reversed)
+        if (objdata->unk808 > 0.0f) {
             recomp_player_dropHeldObj(player, objdata);
             return 0x4A;
         }
@@ -3174,13 +3174,25 @@ RECOMP_PATCH s32 dll_210_func_CC24(Object* player, ObjFSA_Data* fsa, f32 arg2) {
     return 0;
 }
 
-/** If the held object unloads, remove our reference to it so we don't later reference freed memory. Otherwise, we crash. */
-RECOMP_HOOK_DLL(dll_210_control) void hook_player_validateHeldObj(Object* self) {
+static void custom_player_validateHeldObj(Object* self) {
     Player_Data* objdata = self->data;
     if (objdata->unk868 != NULL && (objdata->unk868->stateFlags & OBJSTATE_DESTROYED)) {
+        // Do minimal steps here to avoid messing with a partially unloaded object
+        objdata->unk868->unkE0 = 0;
+        Pickup* pickup = objdata->unk868->data;
+        pickup->state = PICKUP_NotHeld;
         objdata->unk868 = NULL;
+        objdata->unk870 = 0;
         playerUtil_use_walk_anims(self);
     }
+}
+
+/** If the held object unloads, remove our reference to it so we don't later reference freed memory. Otherwise, we crash. */
+RECOMP_HOOK_DLL(dll_210_control) void hook_player_control_validateHeldObj(Object* self) {
+    custom_player_validateHeldObj(self);
+}
+RECOMP_HOOK_DLL(dll_210_func_4910) void hook_player_animCallback_validateHeldObj(Object* self) {
+    custom_player_validateHeldObj(self);
 }
 
 /** Drop held object if entering a ledge grab. */

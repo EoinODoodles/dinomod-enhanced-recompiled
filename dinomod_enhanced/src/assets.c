@@ -2382,13 +2382,13 @@ static void crf_modifications(void) {
         hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(0));
         hit->Ax = 435;
         hit->Az = 375;
-        hit->Bx = 460;
+        hit->Bx = 456;
         hit->Bz = 350;
         hit->heightUnified = 80;
         hit->settingsA = 0x96;
 
         hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(1));
-        hit->Ax = 458;
+        hit->Ax = 456;
         hit->Az = 288;
         hit->Bx = 435;
         hit->Bz = 268;
@@ -2422,6 +2422,53 @@ static void crf_modifications(void) {
         ObjSetup* treasWindLift = reasset_map_objects_get(crf, reasset_base_id(0x428A7), NULL);
         treasWindLift->x = -3310.0f;
         treasWindLift->z = 320.0f;
+    }
+
+    // @recomp: Disable Kyte's throne room forcefield curve network after her rescued seq plays. Otherwise,
+    //          she can get stuck in this network's flight group since it's isolated from the rest of the
+    //          level (she can't route from it to anything else). Normally the seq pulls her far enough away
+    //          that the closest flight group network isn't this, but the seq also sets a savepoint that
+    //          when loaded places Kyte closer to this network getting her stuck. 
+    {
+        CurveSetup* curve;
+
+        curve = reasset_map_objects_get(crf, reasset_base_id(0x31861), NULL);
+        curve->type22.usedBit = 0x34F;
+        curve = reasset_map_objects_get(crf, reasset_base_id(0x31862), NULL);
+        curve->type22.usedBit = 0x34F;
+        curve = reasset_map_objects_get(crf, reasset_base_id(0x31863), NULL);
+        curve->type22.usedBit = 0x34F;
+        curve = reasset_map_objects_get(crf, reasset_base_id(0x31864), NULL);
+        curve->type22.usedBit = 0x34F;
+        curve = reasset_map_objects_get(crf, reasset_base_id(0x318AC), NULL);
+        curve->type22.usedBit = 0x34F;
+        curve = reasset_map_objects_get(crf, reasset_base_id(0x42D10), NULL);
+        curve->type22.usedBit = 0x34F;
+    }
+}
+
+static void inside_galleon_modifications(void) {
+    ReAssetID crfGalleon = reasset_base_id(MAP_INSIDE_GALLEON);
+
+    // @recomp: A bunch of Kyte curves inside the Galleon require bit 0 to be set for them to 
+    //          be considered enabled. Use of this bit is pretty much always a mistake and never
+    //          ends up being set in practice. This prevents Kyte from switching flight groups
+    //          in the Galleon. Set the enable bit to -1 so each curve is always available.
+    {
+        CurveSetup* curve;
+
+        curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A3E), NULL);
+        curve->type22.unk30 = -1;
+        curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A3F), NULL);
+        curve->type22.unk30 = -1;
+        curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A40), NULL);
+        curve->type22.unk30 = -1;
+        curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A46), NULL);
+        curve->type22.unk30 = -1;
+        curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A4A), NULL);
+        curve->type22.unk30 = -1;
+        curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A4C), NULL);
+        curve->type22.unk30 = -1;
     }
 }
 
@@ -2522,6 +2569,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     wgsh_modifications();
     nwsh_modifications();
     crf_modifications();
+    inside_galleon_modifications();
 }
 
 REASSET_ON_RESOLVE void dinomod_reasset_on_resolve(void) {

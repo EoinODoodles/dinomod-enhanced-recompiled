@@ -313,7 +313,17 @@ RECOMP_PATCH void CFbarrel_doPhysics(Object* self) {
         }
         // @recomp: Check if we're in the void and if so just respawn
         if (!anyFloorsBelow) {
-            objdata->explodedTime = 1;
+            if (objdata->inWindLift) {
+                // The treasure area probably unloaded, just freeze in place and wait for it to come back
+                self->velocity.x = 0.0f;
+                self->velocity.y = 0.0f;
+                self->velocity.z = 0.0f;
+                objdata->targVelocity.x = 0.0f;
+                objdata->targVelocity.y = 0.0f;
+                objdata->targVelocity.z = 0.0f;
+            } else {
+                objdata->explodedTime = 1;
+            }
         }
     }
     if (numFloors > 0) {

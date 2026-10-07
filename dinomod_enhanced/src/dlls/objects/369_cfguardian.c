@@ -214,7 +214,7 @@ RECOMP_PATCH void CFGuardian_obj_Setup(Object* self, CFGuardian_Setup* setup, s3
         
         // @recomp: If the water draining seq starts playing but the player left the guardian in the wind lift,
         //          just move him into the courtyard anyway so the cutscene looks right.
-        if (mainGetBits(BIT_CRF_Throne_Room_Quest_Complete) != 0) {
+        if (self->mapID != MAP_CLOUDRUNNER_DUNGEON && mainGetBits(BIT_CRF_Throne_Room_Quest_Complete) != 0) {
             if (mainGetBits(BIT_CRF_Prison_Guardian_Exited_WindLift) == 0) {
                 SRT transform;
                 if (((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func7(14, &transform)) {
