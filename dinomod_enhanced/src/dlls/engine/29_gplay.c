@@ -2,6 +2,8 @@
 #include "recomputils.h"
 #include "recompsavedata.h"
 
+#include "engine/29_gplay_dinomod.h"
+
 #include "PR/ultratypes.h"
 #include "dll.h"
 #include "dlls/engine/6_amsfx.h"
@@ -10,6 +12,9 @@
 #include "sys/map_enums.h"
 #include "sys/main.h"
 
+static _Bool recomp_sSavepointGotoRequested = FALSE;
+static _Bool recomp_sRestartPointGotoRequested = FALSE;
+
 #include "recomp/dlls/engine/29_gplay_recomp.h"
 
 extern u16 sMapObjGroupBitKeys[];
@@ -17,6 +22,16 @@ extern u16 sMapObjGroupBitKeys[];
 extern GplayOptions *sGameOptions;
 extern s8 sSavegameIdx;
 extern GplaySaveFlash *sSavegame;
+extern Savegame *sRestartSave;
+extern GameState sState;
+
+extern void gplay_start_game(void);
+
+RECOMP_HOOK_DLL(gplay_ctor) void gplay_ctor_hook(void) {
+    // Reset custom static variables
+    recomp_sSavepointGotoRequested = FALSE;
+    recomp_sRestartPointGotoRequested = FALSE;
+}
 
 /** Modifies the flagIDs used to track maps' objectGroup load states (originally by MusicalProgrammer) */
 RECOMP_HOOK_DLL(gplay_ctor) void gplay_patch_map_object_group_flags(void) {
@@ -125,4 +140,45 @@ RECOMP_SAVEDATA_ON_SAVE void restore_backup_timesaves_and_setupmoves(void) {
         recomp_free(recomp_sBackedUpFileState);
         recomp_sBackedUpFileState = NULL;
     }
+}
+
+/** Defer savepoint loads */
+RECOMP_PATCH void gplay_start_loaded_game(void) {
+    recomp_sSavepointGotoRequested = TRUE;
+    recomp_sRestartPointGotoRequested = FALSE;
+}
+
+/** Defer restart point loads */
+RECOMP_PATCH void gplay_restart_goto(void) {
+    recomp_sSavepointGotoRequested = FALSE;
+    recomp_sRestartPointGotoRequested = TRUE;
+}
+
+/**
+ * Normally, when a savepoint or restart point is loaded the global gplay state is swapped *immediately*. Loading
+ * either of these does not, however, free objects or reload the map until the end of the game tick. The result is
+ * that objects that haven't ran their tick yet after a savepoint/restart point load will be reading/writing the
+ * loaded state before the game actually reloads everything. This can result in game state being messed up depending
+ * on how early in the tick the savepoint/restart point is loaded.
+ *
+ * This behavior is patched to instead queue up the load until the end of the tick (see main.c patches).
+ */
+void dinomod_gplay_handle_goto(void) {
+    if (recomp_sSavepointGotoRequested) {
+        // do real gplay_start_loaded_game
+        bcopy(&sSavegame->asSave, &sState.save, sizeof(Savegame));
+        gplay_start_game();
+    } else if (recomp_sRestartPointGotoRequested) {
+        // do real gplay_restart_goto
+        if (sRestartSave != NULL) {
+            bcopy(sRestartSave, &sState.save, sizeof(Savegame));
+            gplay_start_game();
+        } else {
+            // restore default.dol printf
+            recomp_eprintf("WARNING gplay : Restart Point Not Set \n");
+        }
+    }
+
+    recomp_sSavepointGotoRequested = FALSE;
+    recomp_sRestartPointGotoRequested = FALSE;
 }
