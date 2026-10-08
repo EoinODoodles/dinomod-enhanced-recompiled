@@ -16,7 +16,7 @@
 #include "recomp/dlls/objects/607_WL_LevelControl_recomp.h"
 
 /*0x14*/ extern u8 dInitSpirit4Visit;
-RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
+RECOMP_PATCH void WL_LevelControl_handleAct5(Object* self) {
     WL_LevelControl_Data* objData;
     f32 distance;
     Object* guardClaw;
@@ -43,7 +43,7 @@ RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
         ((DLL_210_Player*)player->dll)->vtbl->set_spirit_bits(player, PLAYER_SPIRIT_4, TRUE);
         ((DLL_210_Player*)player->dll)->vtbl->add_magic(player, 20);
 
-        mainSetBits(BIT_WM_Setup5_Sabre_Dock_Pushed_Crate_Onto_GuardClaw, 0);
+        mainSetBits(BIT_WM_Act5_Sabre_Dock_Pushed_Crate_Onto_GuardClaw, 0);
 
         dInitSpirit4Visit = FALSE;
     }
@@ -54,9 +54,9 @@ RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
     }
 
     //Delete the dock's GuardClaw after dropping a crate from above
-    if (mainGetBits(BIT_WM_Setup5_Sabre_Dock_Pushed_Crate_Onto_GuardClaw)) {
+    if (mainGetBits(BIT_WM_Act5_Sabre_Dock_Pushed_Crate_Onto_GuardClaw)) {
         mainSetBits(BIT_CFExplodeTunnel_Trigger_31B6F, 1);
-        mainSetBits(BIT_WM_Setup5_Sabre_Dock_Pushed_Crate_Onto_GuardClaw, 0);
+        mainSetBits(BIT_WM_Act5_Sabre_Dock_Pushed_Crate_Onto_GuardClaw, 0);
 
         guardClaw = objGetNearestTypeTo(OBJTYPE_Baddie, self, &distance);
         if (guardClaw != NULL) {
@@ -68,7 +68,7 @@ RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
     }
 
     //Search through the objects, and delete the hall's SharpClaw and GuardClaw
-    if (mainGetBits(BIT_WM_Setup5_Sabre_Hall_Delete_Claws)) {
+    if (mainGetBits(BIT_WM_Act5_Sabre_Hall_Delete_Claws)) {
         objects = objGetAllOfType(OBJTYPE_Baddie, &count);
         for (i = 0; i < count; i++) {
             someObjsetup = objects[i]->setup;
@@ -78,24 +78,24 @@ RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
                 objFreeObject(objects[i]);
             }
         }
-        mainSetBits(BIT_WM_Setup5_Sabre_Hall_Delete_Claws, 0);
+        mainSetBits(BIT_WM_Act5_Sabre_Hall_Delete_Claws, 0);
     }
 
     //Handle Sabre entering the hall with the GuardClaw
-    if (mainGetBits(BIT_WM_Setup5_Sabre_Entered_GuardClaw_Hall)) {
+    if (mainGetBits(BIT_WM_Act5_Sabre_Entered_GuardClaw_Hall)) {
         lastUsedSpell = ((DLL_210_Player*)player->dll)->vtbl->func50(player);
 
         //Warp the player away if they're not using the Illusion or Forcefield Spells
         if ((lastUsedSpell != BIT_Spell_Illusion) && 
             (lastUsedSpell != BIT_Spell_Forcefield) && 
-            (mainGetBits(BIT_WM_Setup5_Sabre_Hall_Disable_GuardClaw_Warp) == 0)) {
+            (mainGetBits(BIT_WM_Act5_Sabre_Hall_Disable_GuardClaw_Warp) == 0)) {
             // @recomp: Instead of warping, play a cutscene for the GuardClaw in Warlock Mountain, 
             //          to avoid crashing the game after you deposit the spirit. 
             //          The set bits plays the cutscene. (originally by MusicalProgrammer)
             //mapWarpPlayer(WARP_WM_SABRE_KRAZOA_CORRIDOR, /*fadeToBlack=*/FALSE);
             mainSetBits(0x1DE, 1);
         }
-        mainSetBits(BIT_WM_Setup5_Sabre_Entered_GuardClaw_Hall, 0);
+        mainSetBits(BIT_WM_Act5_Sabre_Entered_GuardClaw_Hall, 0);
     }
 
     /* Handle removing the GuardClaw hall's warp-away behaviour (and deleting the SharpClaw)
@@ -103,23 +103,23 @@ RECOMP_PATCH void WL_LevelControl_setup5_tick(Object* self) {
        NOTE: BIT_2FA intended to be set upon depositing Spirit 4?
              Doesn't seem to get set in practice.
     */
-    if (mainGetBits(BIT_WM_Setup5_Sabre_Hall_GuardClaw_Gone)) {
-        if (mainGetBits(BIT_WM_Setup5_Sabre_Hall_Delete_Claws) == 0) {
-            mainSetBits(BIT_WM_Setup5_Sabre_Hall_Delete_Claws, 1);
+    if (mainGetBits(BIT_WM_Act5_Sabre_Hall_GuardClaw_Gone)) {
+        if (mainGetBits(BIT_WM_Act5_Sabre_Hall_Delete_Claws) == 0) {
+            mainSetBits(BIT_WM_Act5_Sabre_Hall_Delete_Claws, 1);
         }
 
         objData->timer -= (s16)gUpdateRate;
         if (objData->timer <= 0) {
             objData->timer = 0;
-            mainSetBits(BIT_WM_Setup5_Sabre_Hall_GuardClaw_Gone, 0);
-            mainSetBits(BIT_WM_Setup5_Sabre_Hall_Disable_GuardClaw_Warp, 1);
+            mainSetBits(BIT_WM_Act5_Sabre_Hall_GuardClaw_Gone, 0);
+            mainSetBits(BIT_WM_Act5_Sabre_Hall_Disable_GuardClaw_Warp, 1);
             objData->timer = 30;
         }
     }
 }
 
 /*0x18*/ extern u8 dInitSpirit6Visit;
-RECOMP_PATCH void WL_LevelControl_setup6_tick(Object* self) {
+RECOMP_PATCH void WL_LevelControl_handleAct6(Object* self) {
     Object* player;
     Object* foodbag;
 
@@ -148,14 +148,14 @@ RECOMP_PATCH void WL_LevelControl_setup6_tick(Object* self) {
         mainSetBits(BIT_Spell_Forcefield, 1);
         // @recomp: Stop Warlock Mountain from giving you back one of the Spirits. 
         //          Possibly unwanted debug code? (originally by MusicalProgrammer)
-        //((DLL_210_Player*)player->dll)->vtbl->func39(player, SPIRIT_INDEX(6), TRUE);
+        //((DLL_210_Player*)player->dll)->vtbl->set_spirit_bits(player, PLAYER_SPIRIT_6, TRUE);
 
         dInitSpirit6Visit = FALSE;
     }
 }
 
 /*0x1C*/ extern u8 dInitSpirit7Visit;
-RECOMP_PATCH void WL_LevelControl_setup7_tick(Object* self) {
+RECOMP_PATCH void WL_LevelControl_handleAct7(Object* self) {
     WL_LevelControl_Data* objData;
     Object* player;
 
@@ -171,7 +171,7 @@ RECOMP_PATCH void WL_LevelControl_setup7_tick(Object* self) {
         player = objGetPlayer();
         // @recomp: Stop Warlock Mountain from giving you back one of the Spirits.
         //          Possibly unwanted debug code? (originally by MusicalProgrammer)
-        //((DLL_210_Player*)player->dll)->vtbl->func39(player, SPIRIT_INDEX(7), TRUE);
+        //((DLL_210_Player*)player->dll)->vtbl->set_spirit_bits(player, PLAYER_SPIRIT_7, TRUE);
         ((DLL_210_Player*)player->dll)->vtbl->add_magic(player, 20);
 
         dInitSpirit7Visit = FALSE;
@@ -185,7 +185,7 @@ RECOMP_PATCH void WL_LevelControl_setup7_tick(Object* self) {
         mainSetBits(BIT_221, 1);
     }
 
-    if (mainGetBits(BIT_WM_Setup5_Interval_Behaviour)) {
+    if (mainGetBits(BIT_WM_Act5_Interval_Behaviour)) {
         /* Over 11.666 seconds, set BIT_36D at rapid intervals:
            starting with period of 0.5s, and getting one frame more frequent each time.
 

@@ -9,17 +9,9 @@
 #include "sys/math.h"
 #include "sys/objects.h"
 
-#include "recomp/dlls/objects/307_recomp.h"
+#include "recomp/dlls/objects/307_SeqDoor_recomp.h"
 
 // #define DEBUG_SEQDOOR
-
-//TEMPORARY DEFINES
-#define SeqDoor_obj_Setup DLL307_obj_Setup
-#define SeqDoor_obj_Control DLL307_obj_Control
-#define SeqDoor_obj_GetDataSize DLL307_obj_GetDataSize
-#define SeqDoor_animCallback DLL307_animCallback
-#define SeqDoor_setCameraPositionGamebits DLL307_func_6E4
-//END OF TEMPORARY DEFINES
 
 typedef struct {
     ObjSetup base;

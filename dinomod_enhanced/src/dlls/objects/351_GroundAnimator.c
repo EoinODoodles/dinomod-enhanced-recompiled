@@ -47,7 +47,7 @@ extern u16 dDigJingles[2];
 #define OPACITY_MAX 0xFF
 #define TOTAL_JINGLES 2
 
-RECOMP_PATCH void GroundAnimator_store_shapeIDs_and_vertex_weights(Object* self, GroundAnimator_Data* objData, GroundAnimator_Setup* objSetup) {
+RECOMP_PATCH void GroundAnimator_storeShapeIDsAndVertexWeights(Object* self, GroundAnimator_Data* objData, GroundAnimator_Setup* objSetup) {
     BlockShape* shapes;
     s32 pad[6];
     f32 radiusSq;

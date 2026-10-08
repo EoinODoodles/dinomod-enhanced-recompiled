@@ -24,6 +24,10 @@ RECOMP_PATCH void Pollen_control(Object* self) {
 
     objData = self->data;
     
+    // @recomp: If the parent cannon is freed, remove our reference to it
+    if (self->unkC4 != NULL && (self->unkC4->stateFlags & OBJSTATE_DESTROYED)) {
+        self->unkC4 = NULL;
+    }
     //@recomp: NULL checks
     pollenCannon = self->unkC4;
     pollenCannonBaddie = (pollenCannon != NULL) ? pollenCannon->data : NULL;

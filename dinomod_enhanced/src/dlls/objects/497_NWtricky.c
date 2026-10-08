@@ -49,7 +49,7 @@ typedef struct {
   * - Ensure Tricky's sidekick commands are unlocked if his tutorial cutscene is skipped 
   * - Add a null check for Tricky's Toy's GroundAnimator object.
   */
-RECOMP_PATCH void NWtricky_control(Object *self) {
+RECOMP_PATCH void NWtricky_obj_Control(Object *self) {
     NWtricky_Data *objdata;
     Object *tricky;
     Object *player;
@@ -68,7 +68,7 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
             mainSetBits(BIT_8, 1);
             mainSetBits(BIT_Tricky_Unlocked_Sidekick_Commands, 1);
             objdata->state = STATE_2_Learning_Sidekick_Commands;
-        } else if (((DLL_ISidekick*)tricky->dll)->vtbl->func24(tricky) != 0) {
+        } else if (((DLL_ISidekick*)tricky->dll)->vtbl->Func24(tricky) != 0) {
             objdata->state = STATE_1_Chased_by_SharpClaw;
             objdata->timer = 0.0f;
         }
@@ -76,7 +76,7 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
 
     case STATE_1_Chased_by_SharpClaw:
         if (mainGetBits(BIT_SnowHorn_Tutorial_Defeated_SharpClaw)) {
-            ((DLL_ISidekick*)tricky->dll)->vtbl->func21(tricky, 0, 0);
+            ((DLL_ISidekick*)tricky->dll)->vtbl->Func21(tricky, 0, 0);
             dll_amSfx->StopObject(tricky);
             mainSetBits(BIT_4E3, 0);
             objdata->state = STATE_2_Learning_Sidekick_Commands;
@@ -144,7 +144,7 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
 }
 
 /** Allow more controller inputs during tutorial (for inventory's optional D-pad controls/new controls) */
-RECOMP_PATCH int NWtricky_anim_callback(Object *self, Object *animObj, AnimObj_Data *animObjData, s8 arg3) {
+RECOMP_PATCH int NWtricky_animCallback(Object *self, Object *animObj, AnimObj_Data *animObjData, s8 arg3) {
     NWtricky_Data *objdata;
     Object *tricky;
     s32 i;
@@ -157,12 +157,12 @@ RECOMP_PATCH int NWtricky_anim_callback(Object *self, Object *animObj, AnimObj_D
 
     if (!objdata->doneDemo) {
         tricky = objGetSidekick();
-        ((DLL_ISidekick*)tricky->dll)->vtbl->enable_command(tricky, Sidekick_Command_INDEX_1_Find);
-        ((DLL_ISidekick*)tricky->dll)->vtbl->enable_command(tricky, Sidekick_Command_INDEX_2_Distract);
-        ((DLL_ISidekick*)tricky->dll)->vtbl->enable_command(tricky, Sidekick_Command_INDEX_3_Guard);
-        ((DLL_ISidekick*)tricky->dll)->vtbl->enable_command(tricky, Sidekick_Command_INDEX_4_Flame);
-        ((DLL_ISidekick*)tricky->dll)->vtbl->enable_command(tricky, Sidekick_Command_INDEX_5_Play);
-        ((DLL_ISidekick*)tricky->dll)->vtbl->enable_command(tricky, Sidekick_Command_INDEX_0_Heel);
+        ((DLL_ISidekick*)tricky->dll)->vtbl->EnableCommand(tricky, Sidekick_Command_INDEX_1_Find);
+        ((DLL_ISidekick*)tricky->dll)->vtbl->EnableCommand(tricky, Sidekick_Command_INDEX_2_Distract);
+        ((DLL_ISidekick*)tricky->dll)->vtbl->EnableCommand(tricky, Sidekick_Command_INDEX_3_Guard);
+        ((DLL_ISidekick*)tricky->dll)->vtbl->EnableCommand(tricky, Sidekick_Command_INDEX_4_Flame);
+        ((DLL_ISidekick*)tricky->dll)->vtbl->EnableCommand(tricky, Sidekick_Command_INDEX_5_Play);
+        ((DLL_ISidekick*)tricky->dll)->vtbl->EnableCommand(tricky, Sidekick_Command_INDEX_0_Heel);
 
         switch (objdata->demoState) {
         case NWtricky_DEMO_STATE_Initial:

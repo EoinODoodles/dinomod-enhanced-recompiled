@@ -320,7 +320,7 @@ static void walled_city_modifications(void) {
         SeqDoor_Setup* cageDoor = (SeqDoor_Setup*)reasset_map_objects_get(walledCity, 
             reasset_base_id(0x411B0), NULL);
         cageDoor->gamebitOpenA = NO_GAMEBIT;
-        cageDoor->gamebitRestoreState = BIT_7F5;
+        cageDoor->gamebitRestoreState = BIT_WC_King_EarthWalker_Cage_Opened;
     }
 
     // WCSlabDoor
@@ -508,6 +508,19 @@ static void dragon_rock_upper_modifications(void) {
     callpad->gamebitEnabled = 0x656;
     callpad = reasset_map_objects_get(drTop, reasset_base_id(0x4059C), NULL);
     callpad->gamebitEnabled = 0x656;
+
+    // Change partfx ID of emitters on the pressure pad dig spots to something that actually exists
+    // TODO: the chosen partfx here is arbitrary, there's likely a better one to pick
+    {
+        FXEmit_Setup* fxemit;
+
+        fxemit = reasset_map_objects_get(drTop, reasset_base_id(0x353AC), NULL);
+        fxemit->unk1A = 0x6DC;
+        fxemit = reasset_map_objects_get(drTop, reasset_base_id(0x40497), NULL);
+        fxemit->unk1A = 0x6DC;
+        fxemit = reasset_map_objects_get(drTop, reasset_base_id(0x404B2), NULL);
+        fxemit->unk1A = 0x6DC;
+    }
 }
 
 static void dragon_rock_bottom_modifications(void) {
@@ -2246,6 +2259,318 @@ static void nwsh_modifications(void) {
     }
 }
 
+static void crf_modifications(void) {
+    ReAssetID crf = reasset_base_id(MAP_CLOUDRUNNER_FORTRESS);
+    ReAssetID crfDungeon = reasset_base_id(MAP_CLOUDRUNNER_DUNGEON);
+    ReAssetID crfTrkblk = reasset_base_id(18);
+    ReAssetID crfTreasTrkblk = reasset_base_id(22);
+
+    // Remove part of the courtyard EWTrobotpatrol curve network that goes towards the entrance.
+    // There's rubble blocking this path now, so if the robots are restored back into the game
+    // they clip through it. Also, the robots are loaded in by a trigger in the rubble so the
+    // robots can also spawn behind the player if these are left in. This is probably a leftover
+    // from an earlier version of CRF.
+    {
+        reasset_map_objects_delete(crf, reasset_base_id(0x8B0));
+        reasset_map_objects_delete(crf, reasset_base_id(0x8B1));
+        reasset_map_objects_delete(crf, reasset_base_id(0x8B2));
+
+        CurveSetup* curve = reasset_map_objects_get(crf, reasset_base_id(0x827), NULL);
+        curve->links[3] = -1; // unlink 0x8B2
+    }
+
+    // Modify the EWTrobotpatrol curve network to make dead-ends less of an issue
+    {
+        CurveSetup* curve;
+
+        curve = reasset_map_objects_get(crf, reasset_base_id(0xB31), NULL);
+        curve->links[2] = 0xB2D;
+
+        curve = reasset_map_objects_get(crf, reasset_base_id(0xB2D), NULL);
+        curve->links[1] = 0xB31;
+    }
+
+    // Increase number of courtyard robots from 3 to 4
+    {
+        EWTrobotpatrolB_Setup* base = reasset_map_objects_get(crf, reasset_base_id(0x2C5C), NULL);
+        base->unk18 = 4;
+    }
+
+    // Add a magic plant to the dungeon so you don't get stuck if out of magic. Magic is needed for
+    // the illusion spell and not having any results in a softlock.
+    {
+        MagicPlant_Setup magicPlant = {
+            .base = {
+                .objId = OBJ_MagicPlant,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                // .loadDistance = 64,
+                // .fadeDistance = 64,
+                .loadDistance = 30,
+                .fadeDistance = 30,
+                // old coords for the corner leading to the main dungeon room
+                // .x = -303.897f,
+                // .y = 1309.0f,
+                // .z = 494.089f
+                .x = -458.61f,
+                .y = 1309.0f,
+                .z = 27.597f
+            },
+            .regrowthTime = 3600 / 20, // 1 minute
+            // big magic because the illusion spell costs a lot. this is basically the spell's tutorial 
+            // so we should try to make magic less strict here.
+            .dustIdx = 3,
+            .modelInstIdx = 0,
+            //.yaw = 0x68
+            .yaw = 0x1F
+        };
+
+        reasset_map_objects_set(crfDungeon, reasset_auto_id(dinomodNs), &magicPlant, sizeof(magicPlant));
+    }
+
+    // The SeqObj for the wind lift power cutscene uses its position as a savepoint at the end of the seq.
+    // This savepoint starts the player high up in the windlift but the windlift doesn't know that the player entered
+    // it, leading to the player just falling all the way down.
+    // So, add a trigger plane below the savepoint to set the "player in windlift" bit before they get too far.
+    {
+        Trigger_Setup trigger = {
+            .base = {
+                .objId = OBJ_TriggerPlane,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 32,
+                .fadeDistance = 0,
+                .x = -1392.371f,
+                .y = 1839.185f - 1.0f,
+                .z = 1193.804f
+            },
+            .commands = {
+                {
+                    .condition = CMD_COND_OUT | CMD_COND_RE_EXIT,
+                    .id = TRG_CMD_BITS,
+                    .paramCombined = ((TriggerCommand_Bits_1_Set << 14) | BIT_CRF_WindLift1_PlayerInside)
+                }
+            },
+            .sizeX = 12,
+            .rotationX = (M_90_DEGREES >> 8),
+            .bitFlagID = -1,
+            .conditionBitFlagIDs = {-1, -1, -1, -1}
+        };
+
+        reasset_map_objects_set(crf, reasset_auto_id(dinomodNs), &trigger, sizeof(trigger));
+    }
+
+    // Remove the door to the throne room from an objgroup so it doesn't unload as you walk by it
+    {
+        ObjSetup* mainSlideDoor = reasset_map_objects_get(crf, reasset_base_id(0x2C47), NULL);
+        mainSlideDoor->loadFlags = OBJSETUP_LOAD_MAIN;
+        mainSlideDoor->loadDistance = 70; // must at least be in range of the levers so the unlock seq plays
+    }
+
+    // Increase the load dist of the throne room SharpClaw, it's super small by default
+    {
+        ObjSetup* throneRoomSharpy = reasset_map_objects_get(crf, reasset_base_id(0x32536), NULL);
+        throneRoomSharpy->loadDistance = 68;
+        throneRoomSharpy->fadeDistance = 68;
+    }
+
+    // When the switches to the throne room door preempt their seq, don't include Krystal in the actor
+    // list otherwise Krystal will move foward slightly when these switches load back in.
+    {
+        UseObj_Setup* doubleSwitch;
+
+        doubleSwitch = reasset_map_objects_get(crf, reasset_base_id(0x29E4), NULL);
+        doubleSwitch->flags &= ~0x20; // don't include actor 2 in preempt
+
+        doubleSwitch = reasset_map_objects_get(crf, reasset_base_id(0x42850), NULL);
+        doubleSwitch->flags &= ~0x20;
+
+        doubleSwitch = reasset_map_objects_get(crf, reasset_base_id(0x4284E), NULL);
+        doubleSwitch->flags &= ~0x20;
+    }
+
+    // Fix hitlines in the treasure wind lift (to make it next to impossible to clip barrels oob)
+    {
+        HitsLine* hit;
+
+        hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(0));
+        hit->Ax = 435;
+        hit->Az = 375;
+        hit->Bx = 456;
+        hit->Bz = 350;
+        hit->heightUnified = 80;
+        hit->settingsA = 0x96;
+
+        hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(1));
+        hit->Ax = 456;
+        hit->Az = 288;
+        hit->Bx = 435;
+        hit->Bz = 268;
+        hit->heightUnified = 80;
+        hit->settingsA = 0x96;
+
+        hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(1));
+        hit->Ax = 458;
+
+        hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(29));
+        hit->Ax = 602;
+        hit->Az = 273;
+
+        hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(33));
+        hit->Bx = 602;
+        hit->Bz = 273;
+
+        hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(32));
+        hit->Ax = 462;
+        hit->Bx = 462;
+
+        // Increase height of "windlift exit" trigger hitline. In some very specific cases the barrel 
+        // can go over it with the shorter vanilla height
+        hit = reasset_hits_get(crfTrkblk, reasset_base_id(560 - 550), reasset_base_id(36));
+        hit->heightA = 70;
+        hit->heightB = 70;
+    }
+
+    // Center the "treasure" wind lift (to throne room)
+    {
+        ObjSetup* treasWindLift = reasset_map_objects_get(crf, reasset_base_id(0x428A7), NULL);
+        treasWindLift->x = -3310.0f;
+        treasWindLift->z = 320.0f;
+    }
+
+    // Disable Kyte's throne room forcefield curve network after her rescued seq plays. Otherwise,
+    // she can get stuck in this network's flight group since it's isolated from the rest of the
+    // level (she can't route from it to anything else). Normally the seq pulls her far enough away
+    // that the closest flight group network isn't this, but the seq also sets a savepoint that
+    // when loaded places Kyte closer to this network getting her stuck. 
+    {
+        CurveSetup* curve;
+
+        curve = reasset_map_objects_get(crf, reasset_base_id(0x31861), NULL);
+        curve->type22.usedBit = 0x34F;
+        curve = reasset_map_objects_get(crf, reasset_base_id(0x31862), NULL);
+        curve->type22.usedBit = 0x34F;
+        curve = reasset_map_objects_get(crf, reasset_base_id(0x31863), NULL);
+        curve->type22.usedBit = 0x34F;
+        curve = reasset_map_objects_get(crf, reasset_base_id(0x31864), NULL);
+        curve->type22.usedBit = 0x34F;
+        curve = reasset_map_objects_get(crf, reasset_base_id(0x318AC), NULL);
+        curve->type22.usedBit = 0x34F;
+        curve = reasset_map_objects_get(crf, reasset_base_id(0x42D10), NULL);
+        curve->type22.usedBit = 0x34F;
+    }
+
+    // Remove collision on the invisible shape above the CRF treasure tunnel pit
+    {
+        ReAssetID blockID = reasset_base_id(660 - 656);
+        u32 blockDataSize;
+        u8 *blockData = reasset_blocks_get(crfTreasTrkblk, blockID, &blockDataSize);
+        blockData = dinomod_block_decompress(blockData, blockDataSize, &blockDataSize);
+        Block *block = (Block*)(blockData + 8);
+        BlockShape *shapes = (BlockShape*)((u8*)block + (u32)block->shapes);
+        shapes[0].flags |= RENDER_UNK800;
+        reasset_blocks_set(crfTreasTrkblk, blockID, REASSET_BASE_NAMESPACE, blockData, blockDataSize);
+        recomp_free(blockData);
+    }
+
+    // Remove the voxmap line-of-sight check from CFbarrel's lockdata. There's a ton of ways to
+    // get a barrel inside of the voxmap making it impossible to pickup.
+    {
+        ObjDef *cfBarrelObjDef = reasset_objects_get(reasset_base_id(126), NULL);
+        ObjDefLockData *cfBarrelLockdata = (ObjDefLockData*)((u8*)cfBarrelObjDef + (u32)cfBarrelObjDef->lockdata);
+        cfBarrelLockdata[0].flags &= ~0x20;
+    }
+
+    // Fix/adjust fx emitters under the destroyable throne floor
+    {
+        FXEmit_Setup* fxemit;
+
+        // Make emitters for all 3 damage stages play sfx and have each synchronize a burst of
+        // fx with each sound interval rather than playing a stream of fx. Normally the first
+        // damage stage doesn't show any visual fx due to being the only one that plays the sound.
+        // The first emitter now (correctly) turns off after the floor is damaged, so now all
+        // three have sound.
+        fxemit = reasset_map_objects_get(crf, reasset_base_id(0x2927), NULL); // stage 0
+        fxemit->unk1C = 3; // this is very opinionated, but having the first emitter spawn partfx is a nice visual indicator
+        fxemit->unk29 = 3;
+        fxemit = reasset_map_objects_get(crf, reasset_base_id(0x2928), NULL); // stage 1
+        fxemit->unk1C = 6;
+        fxemit->unk29 = 2;
+        fxemit->unk2A = 0xB8C;
+        fxemit = reasset_map_objects_get(crf, reasset_base_id(0x2929), NULL); // stage 2
+        fxemit->unk1C = 9;
+        fxemit->unk29 = 1;
+        fxemit->unk2A = 0xB8C;
+    }
+
+    // Move CFAnimBaby spawns closer to their perches to prevent the perch seqs from fighting over
+    // a baby when both perchs try to preempt their seq at the same time. Without this, the baby
+    // on the right-most perch won't appear.
+    {
+        ObjSetup* animBaby;
+
+        animBaby = reasset_map_objects_get(crf, reasset_base_id(0x29F7), NULL);
+        animBaby->x = -2880.0f;
+        animBaby = reasset_map_objects_get(crf, reasset_base_id(0x29F6), NULL);
+        animBaby->x = -3120.0f;
+        animBaby = reasset_map_objects_get(crf, reasset_base_id(0x2C66), NULL);
+        animBaby->z = 410.0f;
+        animBaby = reasset_map_objects_get(crf, reasset_base_id(0x29F5), NULL);
+        animBaby->x = -3120.0f;
+        animBaby->y = 2181.0f;
+        animBaby = reasset_map_objects_get(crf, reasset_base_id(0x29F4), NULL);
+        animBaby->x = -2880.0f;
+    }
+
+    // Increase size of trigger point in courtyard that toggles the cloud baby objgroup up top
+    {
+        Trigger_Setup* trigger = reasset_map_objects_get(crf, reasset_base_id(0x31BF3), NULL);
+        trigger->sizeX = 160;
+    }
+
+    // Add a throne room create point to mark a save point location for completion of the throne room quest
+    {
+        CurveSetup createPoint = {
+            .objId = OBJ_curve,
+            .pos = VEC3F(-3128.84f, 2196.0f, 324.128f),
+            .unk18 = -1,
+            .curveType = 0x15, // create point
+            .links = {-1, -1, -1, -1},
+            .unk2C = (-M_90_DEGREES) >> 8, // yaw8
+            .type15 = {
+                .unk34 = 27 // curve ID
+            }
+        };
+        _Static_assert(sizeof(createPoint) >= 0x38, "Create point curve mem too small");
+        reasset_map_objects_set(crf, reasset_auto_id(dinomodNs), &createPoint, 0x38);
+    }
+}
+
+static void inside_galleon_modifications(void) {
+    ReAssetID crfGalleon = reasset_base_id(MAP_INSIDE_GALLEON);
+
+    // A bunch of Kyte curves inside the Galleon require bit 0 to be set for them to 
+    // be considered enabled. Use of this bit is pretty much always a mistake and never
+    // ends up being set in practice. This prevents Kyte from switching flight groups
+    // in the Galleon. Set the enable bit to -1 so each curve is always available.
+    {
+        CurveSetup* curve;
+
+        curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A3E), NULL);
+        curve->type22.unk30 = -1;
+        curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A3F), NULL);
+        curve->type22.unk30 = -1;
+        curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A40), NULL);
+        curve->type22.unk30 = -1;
+        curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A46), NULL);
+        curve->type22.unk30 = -1;
+        curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A4A), NULL);
+        curve->type22.unk30 = -1;
+        curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A4C), NULL);
+        curve->type22.unk30 = -1;
+    }
+}
+
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     custom_objects();
     custom_dlls();
@@ -2342,6 +2667,8 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     ccsh_modifications();
     wgsh_modifications();
     nwsh_modifications();
+    crf_modifications();
+    inside_galleon_modifications();
 }
 
 REASSET_ON_RESOLVE void dinomod_reasset_on_resolve(void) {

@@ -17,8 +17,8 @@ curves:
   - { type: 0xFF, delay: 0, params: 0xF7 }
   - { type: 0x3, delay: 4, params: 0x0 }
   - { type: 0x2, delay: 11, params: 0x0 }
-  - { type: 0x6, delay: 232, params: 0xE1C4 }
   - { type: 0xD, delay: 0, params: 0xA2C0 }
+  - { type: 0x6, delay: 232, params: 0xE1C4 }
   - { type: 0xB, delay: 0, params: 0x1 }
   - { type: 0x0, delay: 0, params: 0x6 }
   keyframes:

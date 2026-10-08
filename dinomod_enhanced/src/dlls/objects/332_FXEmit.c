@@ -87,7 +87,11 @@ RECOMP_PATCH void FXEmit_control(Object* self) {
                 objdata->disabled = FALSE;
                 objdata->intervalTimer = setup->interval * 100;
                 if (setup->intervalSoundID) {
-                    dll_amSfx->Play(self, setup->intervalSoundID, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    // @recomp: Don't play interval sfx if not enabled
+                    if ((objdata->toggleGamebit == NO_GAMEBIT || mainGetBits(objdata->toggleGamebit))
+                            && (objdata->disableGamebit == NO_GAMEBIT || mainGetBits(objdata->disableGamebit) == FALSE)) {
+                        dll_amSfx->Play(self, setup->intervalSoundID, MAX_VOLUME, NULL, NULL, 0, NULL);
+                    }
                 }
             } else {
                 objdata->disabled = TRUE;

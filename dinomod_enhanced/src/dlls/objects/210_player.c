@@ -14,6 +14,7 @@
 #include "game/gamebits.h"
 #include "sys/joypad.h"
 #include "sys/map_enums.h"
+#include "sys/math.h"
 #include "sys/menu.h"
 #include "sys/newshadows.h"
 #include "sys/objanim.h"
@@ -27,7 +28,7 @@
 #include "sys/gfx/animseq.h"
 #include "dll.h"
 #include "dlls/objects/common/vehicle.h"
-#include "dlls/objects/common/group48.h"
+#include "dlls/objects/common/weapon.h"
 #include "dlls/objects/common/foodbag.h"
 #include "dlls/objects/common/dinocaller.h"
 #include "dlls/objects/210_player.h"
@@ -61,10 +62,12 @@ extern f32 _data_528;
 extern s8 _data_52C;
 extern u8 _data_530;
 extern f32 _data_6F8;
+extern f32 _data_6FC[];
 extern s16 _data_7C4[2];
 
 extern void dll_210_func_1BC0(Object* arg0, Player_Data* arg1);
 extern int dll_210_func_24FC(Object *player, ObjFSA_Data *fsa);
+extern void dll_210_func_4634(Object* player, s32 arg1, f32 effectIdx);
 extern void dll_210_func_60A8(Object* arg0, s32 arg1, s32 arg2);
 extern f32 dll_210_func_63F0(Player_Data* arg0, f32 updateRate);
 extern void dll_210_func_6DD8(Object* player, Player_Data* data, s32 arg2);
@@ -102,6 +105,13 @@ extern s16 _bss_200;
 extern Object *_bss_210[4];
 extern s16 _bss_220[2];
 extern ObjFSA_StateCallback _bss_224[1];
+
+static s32 dll_210_func_A3FC_custom(Object* player, ObjFSA_Data* fsa, f32 arg2);
+
+RECOMP_HOOK_RETURN_DLL(dll_210_ctor) void dll_210_ctor_ret_hook(void) {
+    // dll_210_func_A3FC is patched in the base recomp, so we need to hijack it instead
+    _bss_58[1] = dll_210_func_A3FC_custom;
+}
 
 /** Fix Ice Blast / Grenade Spell selection (originally by MusicalProgrammer) */
 RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Data* fsa) {
@@ -415,7 +425,7 @@ RECOMP_PATCH void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2)
                 arg1->unk8A8 = 2;
             }
             if ((temp_s2 != NULL) && (player->animProgressLayered > 0.7f) && (temp_s2->controlNo == OBJCONTROL_Weapon)) {
-                ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func7(temp_s2, 0.15f);
+                ((DLL_IWeapon*)temp_s2->dll)->vtbl->func7(temp_s2, 0.15f);
             }
             if (temp_s3 != 0) {
                 arg1->unk878 = 3;
@@ -424,7 +434,7 @@ RECOMP_PATCH void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2)
             break;
         case 13:
             if ((temp_s2 != NULL) && (temp_s2->controlNo == OBJCONTROL_Weapon)) {
-                ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func7(temp_s2, 1.0f);
+                ((DLL_IWeapon*)temp_s2->dll)->vtbl->func7(temp_s2, 1.0f);
             }
             arg1->unk8A8 = 2;
             arg1->unk878 = 0;
@@ -442,7 +452,7 @@ RECOMP_PATCH void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2)
                 arg1->unk8A8 = 0;
             }
             if ((temp_s2 != NULL) && (player->animProgressLayered < 0.7f) && (temp_s2->controlNo == OBJCONTROL_Weapon)) {
-                ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func8(temp_s2);
+                ((DLL_IWeapon*)temp_s2->dll)->vtbl->func8(temp_s2);
             }
             if (temp_s3 != 0) {
                 // @recomp: Don't disable forcefield or illusion when stowing weapon
@@ -455,7 +465,7 @@ RECOMP_PATCH void dll_210_func_64B4(Object* player, Player_Data* arg1, f32 arg2)
             break;
         case 14:
             if (temp_s2->controlNo == OBJCONTROL_Weapon) {
-                ((DLL_IGROUP_48*)temp_s2->dll)->vtbl->func8(temp_s2);
+                ((DLL_IWeapon*)temp_s2->dll)->vtbl->func8(temp_s2);
             }
             // arg1->unk87C = -1; //@recomp: don't unequip spells
             arg1->unk8A8 = 0;
@@ -630,6 +640,151 @@ RECOMP_PATCH void dll_210_func_692C(Object* self, Player_Data* objData, f32 arg2
     } while (var_s2 != 0);
 }
 
+static void recomp_player_dropHeldObj(Object* player, Player_Data* objdata) {
+    Object* held = objdata->unk868;
+    if (held != NULL) {
+        // Usual drop code
+        gDLL_54_pickup->vtbl->drop(held, held->data);
+        playerUtil_use_walk_anims(player);
+
+        // Move obj a little bit in front of the player (but not through walls). This prevents
+        // the obj from being inside of the player if the obj is dropped while they are moving.
+        AABBs32 aabb;
+        f32 radii;
+        Vec3f moveFrom;
+        Vec3f moveTo;
+        TrackIntersectResult result;
+
+        radii = 0.0f;
+        result.unk40[0] = 0.0f;
+        result.unk50[0] = -1;
+        result.unk54[0] = 3;
+        moveFrom.x = player->srt.transl.x;
+        moveFrom.y = held->srt.transl.y;
+        moveFrom.z = player->srt.transl.z;
+        moveTo.x = player->srt.transl.x - (mathSinfInterp(player->srt.yaw) * 15.0f);
+        moveTo.y = held->srt.transl.y;
+        moveTo.z = player->srt.transl.z - (mathCosfInterp(player->srt.yaw) * 15.0f);
+        trackIntersectBuildAABB(&aabb, &moveFrom, &moveTo, &radii, 1);
+        trackIntersectBroadphase(held, &aabb, 8);
+        trackGetIntersect(held, (f32*)&moveFrom, (f32*)&moveTo, 1, &result, 0);
+
+        held->srt.transl.x = moveTo.x;
+        held->srt.transl.y = moveTo.y;
+        held->srt.transl.z = moveTo.z;
+
+        // Inherit velocity (helps with barrels in windlifts)
+        held->velocity.x = player->velocity.x;
+        held->velocity.y = player->velocity.y;
+        held->velocity.z = player->velocity.z;
+    }
+}
+
+static s32 dll_210_func_A3FC_custom(Object* player, ObjFSA_Data* fsa, f32 arg2) {
+    Player_Data* sp4C;
+    s32 pad[3];
+    f32 var_fv0;
+    s32 temp_v0;
+    s32 temp;
+
+    sp4C = player->data;
+    sp4C->unk8BD &= ~1;
+    fsa->unk278 = 0.0f;
+    fsa->unk27C = 0.0f;
+    fsa->unk278 = _data_C[0];
+    fsa->unk27C = _data_C[1];
+    _data_C[0] = 0.0f;
+    _data_C[1] = 0.0f;
+    player->velocity.f[0] = 0.0f;
+    player->velocity.f[2] = 0.0f;
+    if (sp4C->unk868 == 0) {
+        temp_v0 = dll_210_func_BA38(player, fsa, arg2);
+        if (temp_v0 != 0) {
+            return temp_v0;
+        }
+        temp_v0 = dll_210_func_C1F4(player, fsa, arg2);
+        if (temp_v0 != 0) {
+            return temp_v0;
+        }
+        if ((fsa->unk4.underwaterDist > 25.0f) && (fsa->unk4.floorDist < 100.0f)) {
+            return 0x21;
+        }
+    } else if (sp4C->unk870 == 0) {
+        return 7;
+    } else {
+        // @recomp: Enter windlift state even if carrying something (unless windlift is reversed)
+        if (sp4C->unk808 > 0.0f) {
+            recomp_player_dropHeldObj(player, sp4C);
+            return 0x4A;
+        }
+    }
+
+    if (fsa->enteredAnimState != 0) {
+        fsa->speed = 0.0f;
+        sp4C->unk880 = mathRnd(0x1F4, 0x2BC);
+        sp4C->unk8A5 = 0;
+        sp4C->unk89C = sp4C->unk890;
+        fsa->unk2B0 = 8.0f;
+        fsa->animTickDelta = 0.005f;
+        if (fsa->prevAnimState == PLAYER_ASTATE_Walking) {
+            if (player->curModAnimId != sp4C->modAnims[0x12]) {
+                if (player->curModAnimId != sp4C->modAnims[0x13]) {
+                    if (player->animProgress <= 0.5f) {
+                        objAnimSet(player, sp4C->modAnims[0x12], 0.0f, 0U);
+                    } else {
+                        objAnimSet(player, sp4C->modAnims[0x13], 0.0f, 0U);
+                    }
+                }
+            }
+            fsa->animTickDelta = 0.025f;
+        } else {
+            if (player->curModAnimId != sp4C->modAnims[0]) {
+                objAnimSet(player, sp4C->modAnims[0], 0.0f, 0U);
+            }
+        }
+// #ifndef NON_MATCHING
+//         // Security dongle check
+//         temp = ACCESS_1 << 0x10;
+//         temp |= ACCESS_2;
+//         if ((temp != DONGLE_LSFS) && (temp != 0x4D504653)) {
+//             bzero(player, 0x100000);
+//         }
+// #endif
+    }
+    if (((player->curModAnimId == sp4C->modAnims[0x12]) || (player->curModAnimId == sp4C->modAnims[0x13])) && (fsa->unk33A != 0)) {
+        objAnimSet(player, sp4C->modAnims[0], 0.0f, 0U);
+        fsa->animTickDelta = 0.005f;
+    }
+    if (fsa->analogInputPower < 0.05f) {
+        fsa->unk328 = 0;
+        fsa->unk32A = 0;
+        fsa->analogInputPower = 0.0f;
+    }
+    if ((fsa->prevAnalogInputPower > 0.0f) && (fsa->prevAnalogInputPower < 0.38f)) {
+        if ((fsa->analogInputPower > 0.0f) && (fsa->analogInputPower < 0.38f) && (fsa->unk328 > 0)) {
+            return 4;
+        }
+    }
+    if ((sp4C->unk868 == 0) && (fsa->target != NULL)) {
+        if (fsa->unk33D == 1) {
+            return -0x35;
+        }
+        return -0x43;
+    }
+    var_fv0 = (fsa->analogInputPower - 0.4f) / 0.6f;
+    if (var_fv0 < 0.0f) {
+        var_fv0 = 0.0f;
+    }
+    if (var_fv0 > 1.0f) {
+        var_fv0 = 1.0f;
+    }
+    fsa->speed += (((var_fv0 * 1.6f) - fsa->speed) / fsa->unk2B0) * arg2;
+    if ((fsa->prevAnalogInputPower >= 0.42000002f) && (fsa->analogInputPower >= 0.42000002f) && (*_data_6FC <= fsa->speed)) {
+        return 5;
+    }
+    return 0;
+}
+
 /** 
  - Fix modanim offset underflow bug, where player rapidly switched animations (originally by Banjeoin)
  - Fix bug where player continued walking with their weapon arm raised after stowing weapon
@@ -695,6 +850,12 @@ RECOMP_PATCH s32 dll_210_func_AE34(Object* player, ObjFSA_Data* fsa, f32 arg2) {
                 return -0x35;
             }
             return -0x43;
+        }
+    } else {
+        // @recomp: Enter windlift state even if carrying something (unless windlift is reversed)
+        if (objdata->unk808 > 0.0f) {
+            recomp_player_dropHeldObj(player, objdata);
+            return 0x4A;
         }
     }
     
@@ -1422,7 +1583,7 @@ RECOMP_PATCH s32 dll_210_func_18630(Object* self, ObjFSA_Data* fsa, f32 arg2) {
         }
     } else {
         if (weapon->controlNo == OBJCONTROL_Weapon) {
-            ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func11(weapon);
+            ((DLL_IWeapon *)weapon->dll)->vtbl->func11(weapon);
         }
         sp47 = 1;
         objData->flags &= ~0x40;
@@ -1452,9 +1613,9 @@ RECOMP_PATCH s32 dll_210_func_18630(Object* self, ObjFSA_Data* fsa, f32 arg2) {
             self->objhitInfo->unk61 = 0;
         }
         if (weapon->controlNo == OBJCONTROL_Weapon) {
-            ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func12(weapon, 1);
-            ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func13(weapon, (&objData->unk3B4[objData->unk8A1])->unk30);
-            ((DLL_IGROUP_48 *)weapon->dll)->vtbl->func18(weapon, (&objData->unk3B4[objData->unk8A1])->unk1C, (&objData->unk3B4[objData->unk8A1])->unk20);
+            ((DLL_IWeapon *)weapon->dll)->vtbl->func12(weapon, 1);
+            ((DLL_IWeapon *)weapon->dll)->vtbl->func13(weapon, (&objData->unk3B4[objData->unk8A1])->unk30);
+            ((DLL_IWeapon *)weapon->dll)->vtbl->func18(weapon, (&objData->unk3B4[objData->unk8A1])->unk1C, (&objData->unk3B4[objData->unk8A1])->unk20);
         }
     }
     self->objhitInfo->unk5F = (&objData->unk3B4[objData->unk8A1])->unk4;
@@ -2877,4 +3038,167 @@ RECOMP_PATCH s32 dll_210_func_BA38(Object* player, ObjFSA_Data* fsa, f32 arg2) {
         }
     }
     return 0;
+}
+
+// note: this is based on a nonmatching (but equiv) decomp
+RECOMP_PATCH s32 dll_210_func_CC24(Object* player, ObjFSA_Data* fsa, f32 arg2) {
+    s32 pad;
+    Player_Data* sp38;
+
+    sp38 = player->data;
+    if (fsa->enteredAnimState != 0) {
+        fsa->unk270 = PLAYER_ASTATE_Falling;
+    }
+    // @recomp: If the player is in a windlift but falling, switch to the windlift state instead of falling to our death
+    if (sp38->unk808 != 0.0f) {
+        return 0x4A;
+    }
+    fsa->unk27C = 0.0f;
+    fsa->flags |= 0x200000;
+    sp38->unk8B8 = 2;
+    switch (player->curModAnimId) {
+    case 0x54:
+        fsa->animTickDelta = 0.01f;
+        if (fsa->unk4.unk25C & 0x10) {
+            if (fsa->unk4.unk68.unk50[0] == 8) {
+                dll_210_func_4634(player, 9, 0);
+                return 0x10;
+            }
+            if ((fsa->prevAnalogInputPower >= 0.42000002f) && (fsa->analogInputPower >= 0.42000002f) && (*_data_6FC <= fsa->speed)) {
+                objAnimSet(player, 0x418, 0.0f, 0U);
+                fsa->animTickDelta = 0.08f;
+            } else {
+                objAnimSet(player, 0x13, 0.0f, 0U);
+                fsa->unk278 = 0.0f;
+                fsa->unk27C = 0.0f;
+                fsa->animTickDelta = 0.035f;
+            }
+            dll_amSfx->Play(player, sp38->unk898[objAnim_func_80025CD4(fsa->unk4.unk68.unk50[0])], MAX_VOLUME, NULL, NULL, 0, NULL);
+            dll_amSfx->Play(player, sp38->unk3B8[0x16], MAX_VOLUME, NULL, NULL, 0, NULL);
+        }
+        if (fsa->animStateTime >= 0x51) {
+            // @recomp: Drop held object if entering an unsafe fall
+            if (sp38->unk868 != NULL) {
+                recomp_player_dropHeldObj(player, sp38);
+            }
+            dll_amSfx->Play(player, sp38->unk3B8[9], MAX_VOLUME, NULL, NULL, 0, NULL);
+            objAnimSet(player, 9, 0.0f, 0U);
+        }
+        player->velocity.f[1] -= 0.1f * arg2;
+        fsa->unk278 *= 0.98f;
+        break;
+    case 0x13:
+        gDLL_18_objfsa->vtbl->func7(player, fsa, 1.0f, 1);
+        player->velocity.f[1] = 0.0f;
+        if (player->animProgress > 0.99f) {
+            return 2;
+        }
+        sp38->unk8B8 = 3;
+        break;
+    case 0x418:
+        gDLL_18_objfsa->vtbl->func7(player, fsa, 1.0f, 1);
+        player->velocity.f[1] = 0.0f;
+        if (player->animProgress > 0.99f) {
+            if ((fsa->prevAnalogInputPower >= 0.42000002f) && (fsa->analogInputPower >= 0.42000002f) && (*_data_6FC <= fsa->speed)) {
+                return 5;
+            }
+            return 2;
+        }
+        sp38->unk8B8 = 3;
+        break;
+    case 9:
+        fsa->animTickDelta = 0.02f;
+        if (fsa->unk33A != 0) {
+            objAnimSet(player, 0xA, 0.0f, 0U);
+        }
+        if (fsa->unk4.floorDist == 0.0f) {
+            if (fsa->unk4.unk68.unk50[0] == 8) {
+                dll_210_func_4634(player, 9, 0);
+                return 0x10;
+            }
+            dll_amSfx->Play(player, SOUND_226_Fall_Impact, MAX_VOLUME, NULL, NULL, 0, NULL);
+            objAnimSet(player, 0xB, 0.0f, 0U);
+            dll_210_add_health(player, -4);
+        }
+        player->velocity.f[1] -= 0.1f * arg2;
+        fsa->unk278 *= 0.98f;
+        break;
+    case 10:
+        fsa->animTickDelta = 0.01f;
+        if (fsa->unk4.floorDist == 0.0f) {
+            if (fsa->unk4.unk68.unk50[0] == 8) {
+                dll_210_func_4634(player, 9, 0);
+                return 0x10;
+            }
+            dll_amSfx->Play(player, SOUND_226_Fall_Impact, MAX_VOLUME, NULL, NULL, 0, NULL);
+            objAnimSet(player, 0xB, 0.0f, 0U);
+            dll_210_add_health(player, -8);
+        }
+        if (fsa->animStateTime > 60) {
+            dll_210_func_4634(player, 9, 0);
+        }
+        player->velocity.f[1] -= 0.1f * arg2;
+        fsa->unk278 *= 0.98f;
+        break;
+    case 0xB:
+        fsa->animTickDelta = 0.015f;
+        fsa->unk278 = 0.0f;
+        if (fsa->unk33A != 0) {
+            if (sp38->stats->health > 0) {
+                objAnimSet(player, 0xC, 0.0f, 0U);
+                break;
+            }
+            dll_210_func_9F1C(player, 1);
+            return -0xE;
+        }
+        break;
+    case 0xC:
+        fsa->animTickDelta = 0.004f;
+        fsa->unk278 = 0.0f;
+        if (fsa->unk33A != 0) {
+            return -1;
+        }
+        break;
+    default:
+        objAnimSet(player, 0x54, 0.0f, 0U);
+        break;
+    }
+
+    if (gDLL_2_Camera->vtbl->get_dll_ID() == DLL_ID_CAMCLIMB) {
+        gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 2, 0, NULL, 0, Cam_Ease_All);
+    }
+
+    if ((player->velocity.f[1] < 0.0f) && (fsa->unk4.underwaterDist > 5.0f)) {
+        return 0x20;
+    }
+    return 0;
+}
+
+static void custom_player_validateHeldObj(Object* self) {
+    Player_Data* objdata = self->data;
+    if (objdata->unk868 != NULL && (objdata->unk868->stateFlags & OBJSTATE_DESTROYED)) {
+        // Do minimal steps here to avoid messing with a partially unloaded object
+        objdata->unk868->unkE0 = 0;
+        Pickup* pickup = objdata->unk868->data;
+        pickup->state = PICKUP_NotHeld;
+        objdata->unk868 = NULL;
+        objdata->unk870 = 0;
+        playerUtil_use_walk_anims(self);
+    }
+}
+
+/** If the held object unloads, remove our reference to it so we don't later reference freed memory. Otherwise, we crash. */
+RECOMP_HOOK_DLL(dll_210_control) void hook_player_control_validateHeldObj(Object* self) {
+    custom_player_validateHeldObj(self);
+}
+RECOMP_HOOK_DLL(dll_210_func_4910) void hook_player_animCallback_validateHeldObj(Object* self) {
+    custom_player_validateHeldObj(self);
+}
+
+/** Drop held object if entering a ledge grab. */
+RECOMP_HOOK_DLL(dll_210_func_D788) void dll_210_func_D788_hook(Object* self, ObjFSA_Data* fsa, f32 arg2) {
+    Player_Data* objdata = self->data;
+    if (fsa->enteredAnimState != 0 && objdata->unk868 != NULL) {
+        recomp_player_dropHeldObj(self, objdata);
+    }
 }

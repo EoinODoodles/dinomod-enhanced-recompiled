@@ -232,3 +232,39 @@ typedef struct {
 /*1B*/ u8 unk1B[0x20 - 0x1B];
 /*20*/ s16 gamebit;
 } Transporter_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ u8 unk18; // unused due to, presumably, missing code. likely the number of robos to spawn 
+/*19*/ u8 numNodes; // set but unused, the dll discovers this count on its own
+/*1A*/ u8 roboFadeDistance;
+/*1B*/ u8 maxSearchTime; // maximum search time (after aggro) divided by 64
+} EWTrobotpatrolB_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ s8 yaw8;
+} CFGuardian_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ u16 regrowthTime;    //The amount of time to spend regrowing (in frames)
+/*1A*/ s8 unused1A;
+/*1B*/ u8 dustIdx;          //The index of the type of MagicDust to create (dMagicDustObjIDs)
+/*1C*/ u8 modelInstIdx;     //The model index to use for the plant (default vs. snowy)
+/*1D*/ u8 yaw;
+} MagicPlant_Setup;
+
+typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ u8 yaw;
+/*19*/ u8 pitch;
+/*1A*/ u8 roll;
+/*1B*/ u8 flags;
+/*1C*/ s16 gamebitUsed; // gamebit that says whether this object was already used
+/*1E*/ s16 gamebitRequiredItem; // inventory item required to use this object
+/*20*/ s8 objectSeqIndex;
+/*21*/ s8 modelInstIdx;
+/*22*/ s16 gamebitEnabled; // gamebit that says whether this object is enabled (and can be used)
+/*24*/ s16 replayStartTime; // if not zero, the sequence will be replayed if the object was already used
+} UseObj_Setup;
