@@ -508,6 +508,19 @@ static void dragon_rock_upper_modifications(void) {
     callpad->gamebitEnabled = 0x656;
     callpad = reasset_map_objects_get(drTop, reasset_base_id(0x4059C), NULL);
     callpad->gamebitEnabled = 0x656;
+
+    // Change partfx ID of emitters on the pressure pad dig spots to something that actually exists
+    // TODO: the chosen partfx here is arbitrary, there's likely a better one to pick
+    {
+        FXEmit_Setup* fxemit;
+
+        fxemit = reasset_map_objects_get(drTop, reasset_base_id(0x353AC), NULL);
+        fxemit->unk1A = 0x6DC;
+        fxemit = reasset_map_objects_get(drTop, reasset_base_id(0x40497), NULL);
+        fxemit->unk1A = 0x6DC;
+        fxemit = reasset_map_objects_get(drTop, reasset_base_id(0x404B2), NULL);
+        fxemit->unk1A = 0x6DC;
+    }
 }
 
 static void dragon_rock_bottom_modifications(void) {
