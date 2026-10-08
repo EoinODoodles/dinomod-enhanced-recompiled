@@ -2389,7 +2389,7 @@ static void crf_modifications(void) {
         doubleSwitch->flags &= ~0x20;
     }
 
-    // @recomp: Fix hitlines in the treasure wind lift (to make it next to impossible to clip barrels oob)
+    // Fix hitlines in the treasure wind lift (to make it next to impossible to clip barrels oob)
     {
         HitsLine* hit;
 
@@ -2431,18 +2431,18 @@ static void crf_modifications(void) {
         hit->heightB = 70;
     }
 
-    // @recomp: Center the "treasure" wind lift (to throne room)
+    // Center the "treasure" wind lift (to throne room)
     {
         ObjSetup* treasWindLift = reasset_map_objects_get(crf, reasset_base_id(0x428A7), NULL);
         treasWindLift->x = -3310.0f;
         treasWindLift->z = 320.0f;
     }
 
-    // @recomp: Disable Kyte's throne room forcefield curve network after her rescued seq plays. Otherwise,
-    //          she can get stuck in this network's flight group since it's isolated from the rest of the
-    //          level (she can't route from it to anything else). Normally the seq pulls her far enough away
-    //          that the closest flight group network isn't this, but the seq also sets a savepoint that
-    //          when loaded places Kyte closer to this network getting her stuck. 
+    // Disable Kyte's throne room forcefield curve network after her rescued seq plays. Otherwise,
+    // she can get stuck in this network's flight group since it's isolated from the rest of the
+    // level (she can't route from it to anything else). Normally the seq pulls her far enough away
+    // that the closest flight group network isn't this, but the seq also sets a savepoint that
+    // when loaded places Kyte closer to this network getting her stuck. 
     {
         CurveSetup* curve;
 
@@ -2460,7 +2460,7 @@ static void crf_modifications(void) {
         curve->type22.usedBit = 0x34F;
     }
 
-    // @recomp: Remove collision on the invisible shape above the CRF treasure tunnel pit
+    // Remove collision on the invisible shape above the CRF treasure tunnel pit
     {
         ReAssetID blockID = reasset_base_id(660 - 656);
         u32 blockDataSize;
@@ -2473,22 +2473,69 @@ static void crf_modifications(void) {
         recomp_free(blockData);
     }
 
-    // @recomp: Remove the voxmap line-of-sight check from CFbarrel's lockdata. There's a ton of ways to
-    //          get a barrel inside of the voxmap making it impossible to pickup.
+    // Remove the voxmap line-of-sight check from CFbarrel's lockdata. There's a ton of ways to
+    // get a barrel inside of the voxmap making it impossible to pickup.
     {
         ObjDef *cfBarrelObjDef = reasset_objects_get(reasset_base_id(126), NULL);
         ObjDefLockData *cfBarrelLockdata = (ObjDefLockData*)((u8*)cfBarrelObjDef + (u32)cfBarrelObjDef->lockdata);
         cfBarrelLockdata[0].flags &= ~0x20;
+    }
+
+    // Fix/adjust fx emitters under the destroyable throne floor
+    {
+        FXEmit_Setup* fxemit;
+
+        // Make emitters for all 3 damage stages play sfx and have each synchronize a burst of
+        // fx with each sound interval rather than playing a stream of fx. Normally the first
+        // damage stage doesn't show any visual fx due to being the only one that plays the sound.
+        // The first emitter now (correctly) turns off after the floor is damaged, so now all
+        // three have sound.
+        fxemit = reasset_map_objects_get(crf, reasset_base_id(0x2927), NULL); // stage 0
+        fxemit->unk1C = 3; // this is very opinionated, but having the first emitter spawn partfx is a nice visual indicator
+        fxemit->unk29 = 3;
+        fxemit = reasset_map_objects_get(crf, reasset_base_id(0x2928), NULL); // stage 1
+        fxemit->unk1C = 6;
+        fxemit->unk29 = 2;
+        fxemit->unk2A = 0xB8C;
+        fxemit = reasset_map_objects_get(crf, reasset_base_id(0x2929), NULL); // stage 2
+        fxemit->unk1C = 9;
+        fxemit->unk29 = 1;
+        fxemit->unk2A = 0xB8C;
+    }
+
+    // Move CFAnimBaby spawns closer to their perches to prevent the perch seqs from fighting over
+    // a baby when both perchs try to preempt their seq at the same time. Without this, the baby
+    // on the right-most perch won't appear.
+    {
+        ObjSetup* animBaby;
+
+        animBaby = reasset_map_objects_get(crf, reasset_base_id(0x29F7), NULL);
+        animBaby->x = -2880.0f;
+        animBaby = reasset_map_objects_get(crf, reasset_base_id(0x29F6), NULL);
+        animBaby->x = -3120.0f;
+        animBaby = reasset_map_objects_get(crf, reasset_base_id(0x2C66), NULL);
+        animBaby->z = 410.0f;
+        animBaby = reasset_map_objects_get(crf, reasset_base_id(0x29F5), NULL);
+        animBaby->x = -3120.0f;
+        animBaby->y = 2181.0f;
+        animBaby = reasset_map_objects_get(crf, reasset_base_id(0x29F4), NULL);
+        animBaby->x = -2880.0f;
+    }
+
+    // Increase size of trigger point in courtyard that toggles the cloud baby objgroup up top
+    {
+        Trigger_Setup* trigger = reasset_map_objects_get(crf, reasset_base_id(0x31BF3), NULL);
+        trigger->sizeX = 160;
     }
 }
 
 static void inside_galleon_modifications(void) {
     ReAssetID crfGalleon = reasset_base_id(MAP_INSIDE_GALLEON);
 
-    // @recomp: A bunch of Kyte curves inside the Galleon require bit 0 to be set for them to 
-    //          be considered enabled. Use of this bit is pretty much always a mistake and never
-    //          ends up being set in practice. This prevents Kyte from switching flight groups
-    //          in the Galleon. Set the enable bit to -1 so each curve is always available.
+    // A bunch of Kyte curves inside the Galleon require bit 0 to be set for them to 
+    // be considered enabled. Use of this bit is pretty much always a mistake and never
+    // ends up being set in practice. This prevents Kyte from switching flight groups
+    // in the Galleon. Set the enable bit to -1 so each curve is always available.
     {
         CurveSetup* curve;
 

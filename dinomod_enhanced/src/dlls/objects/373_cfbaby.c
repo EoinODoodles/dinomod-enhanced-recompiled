@@ -92,7 +92,9 @@ enum CFCloudBabyStates {
 };
 
 enum CFCloudBabyFlags {
-    CFCLOUDBABY_RescueTimerActive = 0x1
+    CFCLOUDBABY_RescueTimerActive = 0x1,
+    // @recomp: Custom flags
+    CFCLOUDBABY_AlreadyPerched = 0x2
 };
 
 extern s16 data_0[4];
@@ -131,7 +133,9 @@ RECOMP_PATCH void CFCloudBaby_obj_Setup(Object* self, CFCloudBaby_Setup* setup, 
         func_800267A4(self);
         self->srt.flags |= OBJFLAG_INVISIBLE;
         objdata->flags &= ~CFCLOUDBABY_RescueTimerActive;
-        objDisable(self);
+        // @recomp: objDisable doesn't work in objsetup, set a flag to do it on the first tick instead
+        //objDisable(self);
+        objdata->flags |= CFCLOUDBABY_AlreadyPerched;
         objFreeObjectType(self, OBJTYPE_CFCloudBaby);
         objFreeObjectType(self, OBJTYPE_Baddie);
     } 
@@ -141,6 +145,8 @@ RECOMP_PATCH void CFCloudBaby_obj_Setup(Object* self, CFCloudBaby_Setup* setup, 
     else if (setup->rescuedGamebit != BIT_ALWAYS_1 && mainGetBits(setup->rescuedGamebit) != 0) {
         objdata->rescuedTimer = 1;
     }
+    // @recomp: Sync rescue dist with lock icon interact dist so the icon is grey until the player can actually interact
+    obj_func_80023BF8(self, setup->rescueMaxDist, 0, 0, 0, 0);
 }
 
 RECOMP_PATCH void CFCloudBaby_obj_Control(Object* self) {
@@ -157,6 +163,12 @@ RECOMP_PATCH void CFCloudBaby_obj_Control(Object* self) {
     objdata = self->data;
     player = objGetPlayer();
     sidekick = objGetSidekick();
+
+    // @recomp: Handle the case of disabling on spawn here instead of in setup since it doesn't work there
+    if (objdata->flags & CFCLOUDBABY_AlreadyPerched) {
+        objDisable(self);
+        return;
+    }
 
     if (objdata->rescuedTimer != 0) {
         // rescued, flying away

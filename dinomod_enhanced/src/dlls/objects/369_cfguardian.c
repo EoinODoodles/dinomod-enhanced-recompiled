@@ -351,6 +351,8 @@ RECOMP_PATCH s32 CFGuardian_control(Object* self) {
                         //objAddObjectType(self, OBJTYPE_WindLiftable);
                         objdata->state = CFGUARDIAN_STATE_LeavingWindLift;
                         objAnimSet(self, CFGUARDIAN_MODANIM_Walk, 0, 0);
+                        // @recomp: Also enable talkseqs, if the forced talkseq doesn't trigger this can get stuck disabled
+                        objdata->talkState = CFGUARDIAN_TALK_Enabled;
                     }
                 // @recomp: Don't gain speed when already on the floor, otherwise the guardian will clip through
                 //          the windlift grate if the lift is reversed and he falls. (This patch is from default.dol!)
