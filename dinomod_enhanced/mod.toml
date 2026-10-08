@@ -649,6 +649,20 @@ options = [ "Off", "Immediate", "Spirit 1", "MMP Key" ]
 default = "Spirit 1"
 
 [[manifest.config_options]]
+id = "df_foodbag_demo"
+name = "Foodbag Demo"
+description = '''
+While exploring Discovery Falls you'll gain an important item for your quest: the foodbag!
+
+The cutscene that introduces this item uses a lot of deliberately off-centre camera framing, leaving a margin of empty negative space at the left of screen. Krystal even glances directly at this space towards the end of the cutscene! This seems to suggest that Rare planned to show a demo of the inventory during this sequence, similar to Tricky's sidekick commands tutorial.
+
+No such demo exists in the prototype's data sadly, but enabling this config adds a custom-animated inventory demo to the sequence! Or you can leave it off if you'd prefer to see the sequence without any UI elements.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
 id = "dfmole_dig_fix"
 name = "Mole: Dig Spot Fixes"
 description = '''

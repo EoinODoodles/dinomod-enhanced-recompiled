@@ -246,6 +246,11 @@ DFMoonDoor_Mode configs_GetDFMoonDoorMode(void) {
     return recomp_get_config_u32("dfmoondoor");
 }
 
+/* Checks whether to add a custom inventory demo overlay to Discovery Falls' foodbag sequence */
+_Bool configs_GetFoodbagDemo(void) {
+    return recomp_get_config_u32("df_foodbag_demo") != 0;
+}
+
 /* Checks whether to fix up DFMole's "GoToDigSpot" logic state */
 _Bool configs_GetMoleDigFix(void) {
     return recomp_get_config_u32("dfmole_dig_fix") != 0;

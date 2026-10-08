@@ -1,3 +1,6 @@
+# Discovery Falls - Krystal Meets the Foodbag SharpClaw
+# Edited to add optional inventory demo (animator: Banjeoin)
+
 actors:
 # Actor 0
 - uid: 0x0
@@ -30,6 +33,12 @@ curves:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 3895 } # SETDURATION @ 0
   - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+
+  #DEBUG ONLY: jump ahead to demo
+  # - { type: 0, delay: 0, params: 1 } # SETTIME
+  # - { type: 11, delay: 30, params: 1 } # CODE
+  # - { code_type: 1, val1: 0x0, val2: 1499 } # JUMPTOTIME
+
   - { type: 0, delay: 0, params: 3733 } # SETTIME @ 0
   - { type: 13, delay: 0, params: 0xB000 } # ENVFX @ 3733 (SET_BIT, 0x0)
   - { type: 127, delay: 142, params: 0x165 } # PARAM @ 3733
@@ -615,12 +624,165 @@ curves:
   - { channel: 17, time: 2640, value: -12.477863311767578, interp: 0, weight: 0 }
   - { channel: 17, time: 2656, value: -11.477863311767578, interp: 0, weight: 4 }
   - { channel: 17, time: 2663, value: 0.0, interp: 0, weight: 0 }
-# Curve 4
+# Curve 4 (Foodbag)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 3895 } # SETDURATION @ 0
   - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
   - { type: 7, delay: 0, params: 0x0 } # GROUND_MODE @ 0
+
+  # Set BIT_Krystal_Foodbag_L (so it's already in the inventory instead of appearing at the end of the sequence)
+  - { type: 0, delay: 0, params: 1550 } # SETTIME
+  - { type: 13, delay: 0, params: 0xB000 } # ENVFX (SET_BIT)
+  - { type: 127, delay: 0, params: 0x165 } # PARAM
+
+
+  # START DEMO
+
+  - { type: 0, delay: 0, params: 1600 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 1 } # SET (MESSAGE)  #Start demo
+
+
+  # Eat Later explanation
+
+  - { type: 0, delay: 0, params: 1782 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 4 } # SET (MESSAGE)  #Open Foodbag
+
+  - { type: 0, delay: 0, params: 1812 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 6 } # SET (MESSAGE)  #Move down to Eat Now / Eat Later
+
+  - { type: 0, delay: 0, params: 1948 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 8 } # SET (MESSAGE)  #Change to Eat Later
+
+  - { type: 0, delay: 0, params: 1955 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 12 } # SET (MESSAGE)  #Show info
+
+  - { type: 0, delay: 0, params: 2104 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 10 } # SET (MESSAGE)  #Close inventory
+
+  - { type: 0, delay: 0, params: 2108 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 13 } # SET (MESSAGE)  #Close info
+
+
+  # Opening foodbag explanation
+
+  - { type: 0, delay: 0, params: 2324 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 2 } # SET (MESSAGE)  #Change to inventory
+
+  - { type: 0, delay: 0, params: 2330 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 16 } # SET (MESSAGE)  #Slightly narrower info scroll
+
+  - { type: 0, delay: 0, params: 2356 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 3 } # SET (MESSAGE)  #Move down to Foodbag
+
+  - { type: 0, delay: 0, params: 2360 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 12 } # SET (MESSAGE)  #Show info
+
+  - { type: 0, delay: 0, params: 2480 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 13 } # SET (MESSAGE)  #Close info
+
+  - { type: 0, delay: 0, params: 2490 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 15 } # SET (MESSAGE)  #Reset page position
+
+
+  # Eating from Foodbag explanation
+
+  - { type: 0, delay: 0, params: 2500 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 4 } # SET (MESSAGE)  #Open Foodbag
+
+  - { type: 0, delay: 0, params: 2510 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 17 } # SET (MESSAGE)  #Smaller info scroll (so Kyte doesn't get obscured)
+
+  - { type: 0, delay: 0, params: 2515 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 12 } # SET (MESSAGE)  #Show info
+
+  - { type: 0, delay: 0, params: 2540 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 14 } # SET (MESSAGE)  #Move down to Eat from Bag
+
+  - { type: 0, delay: 0, params: 2670 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 13 } # SET (MESSAGE)  #Close info
+
+
+  # Eat Now explanation
+
+  - { type: 0, delay: 0, params: 2710 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 18 } # SET (MESSAGE)  #Reset info scroll dimensions
+
+  - { type: 0, delay: 0, params: 2716 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 6 } # SET (MESSAGE)  #Move down to Eat Later
+
+  - { type: 0, delay: 0, params: 2830 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 9 } # SET (MESSAGE)  #Change to Eat Now
+
+  - { type: 0, delay: 0, params: 2840 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 12 } # SET (MESSAGE)  #Show info
+
+  - { type: 0, delay: 0, params: 3040 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 13 } # SET (MESSAGE)  #Close info
+
+
+  # Krystal testing switching between modes
+
+  - { type: 0, delay: 0, params: 3328 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 8 } # SET (MESSAGE)  #Change to Eat Later
+
+
+  # SWAPS VERSION A: 3 swaps (commented out since it was a bit busy-looking)
+
+  # - { type: 0, delay: 0, params: 3368 } # SETTIME
+  # - { type: 11, delay: 0, params: 1 } # CODE
+  # - { code_type: 2, val1: 0x0, val2: 9 } # SET (MESSAGE)  #Change to Eat Now
+
+  # - { type: 0, delay: 0, params: 3408 } # SETTIME
+  # - { type: 11, delay: 0, params: 1 } # CODE
+  # - { code_type: 2, val1: 0x0, val2: 8 } # SET (MESSAGE)  #Change to Eat Later
+
+  # - { type: 0, delay: 0, params: 3614 } # SETTIME
+  # - { type: 11, delay: 0, params: 1 } # CODE
+  # - { code_type: 2, val1: 0x0, val2: 10 } # SET (MESSAGE) #Close inventory
+
+
+  # SWAPS VERSION B: 2 swaps
+  - { type: 0, delay: 0, params: 3378 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 9 } # SET (MESSAGE)  #Change to Eat Now
+
+  - { type: 0, delay: 0, params: 3614 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 10 } # SET (MESSAGE) #Close inventory
+
+
+  # End
+
+  - { type: 0, delay: 0, params: 3890 } # SETTIME
+  - { type: 11, delay: 0, params: 1 } # CODE
+  - { code_type: 2, val1: 0x0, val2: 11 } # SET (MESSAGE) #Finish demo
+
+
   - { type: 0, delay: 0, params: 3895 } # SETTIME @ 0
   - { type: 11, delay: 0, params: 1 } # CODE @ 3895
   - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)

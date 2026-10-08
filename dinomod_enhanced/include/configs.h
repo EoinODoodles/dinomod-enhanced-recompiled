@@ -181,6 +181,8 @@ u32 configs_GetMushroomDanceChance(void);
 _Bool configs_GetRedMushroomsEnhanced(void);
 _Bool configs_GetPurpleMushrooms(void);
 VampireBat_BattleMode configs_GetVampireBatMode(void);
+DFMoonDoor_Mode configs_GetDFMoonDoorMode(void);
+_Bool configs_GetFoodbagDemo(void);
 _Bool configs_GetMoleDigFix(void);
 _Bool configs_GetMoleBurrowEffects(void);
 _Bool configs_GetRopeBaddieCombatEdits(void);

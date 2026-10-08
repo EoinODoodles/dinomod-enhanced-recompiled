@@ -1,29 +1,44 @@
+#include "configs.h"
+#include "custom_object_ids.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
-#include "custom_object_ids.h"
-#include "configs.h"
 
+#include "PR/os.h"
 #include "common.h"
-#include "game/gamebits.h"
-#include "game/objects/object_id.h"
-#include "game/objects/interaction_arrow.h"
-#include "sys/main.h"
-#include "sys/newshadows.h"
-#include "sys/objects.h"
-#include "sys/objmsg.h"
-#include "sys/objtype.h"
+#include "dll.h"
 #include "dlls/objects/common/collectable.h"
 #include "dlls/objects/common/foodbag.h"
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/272_collectable.h"
+#include "game/gamebits.h"
+#include "game/gametexts_ui.h"
+#include "game/objects/object_id.h"
+#include "game/objects/interaction_arrow.h"
+#include "macros.h"
+#include "sys/gfx/animseq.h"
+#include "sys/main.h"
+#include "sys/map_enums.h"
+#include "sys/newshadows.h"
+#include "sys/objects.h"
+#include "sys/objmsg.h"
+#include "sys/objtype.h"
 
+#include "engine/1_cmdmenu.h"
 #include "objects/314_foodbag.h"
 
 #include "recomp/dlls/objects/272_collectable_recomp.h"
 
 #define DEBUG_COLLECTABLE TRUE
+// #define DEBUG_FOODBAG_DEMO
+
 #define OBJ_EnergyEgg OBJ_meatPickup
+
+//TEMPORARY DEFINES
+#define collectable_obj_GetDataSize collectable_get_data_size
+#define collectable_animCallback collectable_anim_callback
+#define collectable_SetVelocity collectable_set_speed
+//END OF TEMPORARY DEFINES
 
 typedef struct {
     u32 soundHandle;            //Cleared on free, but not used for any sound calls
@@ -55,6 +70,10 @@ typedef struct {
     u8 unused3F;
     s16 rootTimer;              //Affects opacity of Alpine Root
     u16 gamebitInventory;       //@recomp: repurposed as inventory item gamebit
+    u8 demoState;               //@recomp: for Foodbag tutorial
+    u8 demoFlags;               //@recomp: for Foodbag tutorial
+    u8 demoAction;              //@recomp: for Foodbag tutorial
+    u8 demoTimer;               //@recomp: for Foodbag tutorial
 } Collectable_Data_Recomp;
 
 typedef enum {
@@ -65,6 +84,7 @@ extern int collectable_anim_callback(Object* self, Object* animObj, AnimObj_Data
 extern void collectable_handle_animation_and_fx(Object* self);
 extern void collectable_handle_motion(Object* self);
 extern void collectable_collect(Object* self);
+extern void collectable_SetVelocity(Object* self, f32 speedX, f32 speedY, f32 speedZ);
 
 /** Returns the player foodbag inventory gamebit associated with a particular food collectable */
 static s16 get_food_inventory_gamebit(Object* self) {
@@ -342,7 +362,7 @@ static void collectable_handle_popup(Object* self, Collectable_Setup* objSetup, 
   * Delete collectable if it's already been collected.
   * Fixes a bug where its collision would persist when revisiting an area with a collected collectable!
   */
-RECOMP_PATCH void collectable_setup(Object* self, Collectable_Setup* objSetup, s32 arg2) {
+RECOMP_PATCH void collectable_setup(Object* self, Collectable_Setup* objSetup, s32 reset) {
     s32 pad1;
     CollectableDef* collectableDef;
     LightAction lfxAction;
@@ -401,7 +421,7 @@ RECOMP_PATCH void collectable_setup(Object* self, Collectable_Setup* objSetup, s
     //Create particles for Magic collectables
     collectableDef = self->def->collectableDef;
     if (collectableDef && collectableDef->type == Collectable_Type_Magic) {
-        if (arg2 == 0) {
+        if (reset == FALSE) {
             dll_amSfx->Play(self, SOUND_8E_Magic_Chime, MAX_VOLUME, 0, 0, 0, 0);
         }
 
@@ -884,4 +904,306 @@ RECOMP_PATCH void collectable_collect(Object* self) {
         lfxAction.unk10 = self->unkD6;
         gDLL_11_Newlfx->vtbl->func0(self, self, &lfxAction, 0, 0, 0);
     }
+}
+
+RECOMP_PATCH u32 collectable_obj_GetDataSize(Object* self, u32 offsetAddr) {
+    return sizeof(Collectable_Data_Recomp);
+}
+
+typedef enum {
+    Foodbag_DEMO_ACTION_Start_Demo = 1,
+    Foodbag_DEMO_ACTION_Open_Inventory = 2,
+    Foodbag_DEMO_ACTION_Move_to_Foodbag = 3,
+    Foodbag_DEMO_ACTION_Open_Foodbag = 4,
+    Foodbag_DEMO_ACTION_Exit_Foodbag = 5,
+    Foodbag_DEMO_ACTION_Move_to_Eat_Config = 6,
+    Foodbag_DEMO_ACTION_Move_Down_Inventory = 7,
+    Foodbag_DEMO_ACTION_Change_to_Eat_Later = 8,
+    Foodbag_DEMO_ACTION_Change_to_Eat_First = 9,
+    Foodbag_DEMO_ACTION_Close_Inventory = 10,
+    Foodbag_DEMO_ACTION_End_Demo = 11,
+    Foodbag_DEMO_ACTION_Show_Info_Scroll = 12,
+    Foodbag_DEMO_ACTION_Close_Info_Scroll = 13,
+    Foodbag_DEMO_ACTION_Move_to_Eat_from_Bag = 14,
+    Foodbag_DEMO_ACTION_Reset_Page_Position = 15,
+    Foodbag_DEMO_ACTION_Info_Scroll_Narrow = 16,
+    Foodbag_DEMO_ACTION_Info_Scroll_Narrower_and_Shorter = 17,
+    Foodbag_DEMO_ACTION_Info_Scroll_Reset_Dimensions = 18
+} Foodbag_Demo_Actions;
+
+typedef enum {
+    Foodbag_DEMO_FLAG_Closed_Inventory_at_Start = 1,
+    Foodbag_DEMO_FLAG_Active = 2,
+    Foodbag_DEMO_FLAG_Show_Info = 4,
+    Foodbag_DEMO_FLAG_Smaller_Info_Scroll = 8
+} Foodbag_Demo_Flags;
+
+/* Ensure the inventory edits get reset after the sequence */
+static void collectable_foodbagAnimEndCallback(Object* self, Object* animObj, AnimObj_Data* animData) {
+    Collectable_Data_Recomp* objData = self->data;
+    if (objData) {
+        objData->demoFlags &= ~Foodbag_DEMO_FLAG_Active;
+    }
+    cmdmenu_InventoryResetOffset();
+    cmdmenu_InfoScrollResetWidth();
+    cmdmenu_InfoScrollResetHeight();
+    gDLL_1_cmdmenu->vtbl->set_buttons_override(CMDMENU_CLEAR_BUTTONS_OVERRIDE);
+}
+
+/* An animCallback just for FoodbagLarge, used during the Foodbag tutorial sequence in Discovery Falls.
+ * TODO: move this stuff into a new custom DLL & Object added to the seq, so it doesn't need to be loaded by all collectables. */
+static int collectable_foodbagAnimCallback(Object* self, Object* animObj, AnimObj_Data* animData) {
+    #define INFO_SCROLL_NARROW_WIDTH 150
+    #define INFO_SCROLL_NARROWER_WIDTH 120
+    #define INFO_SCROLL_SHORTER_HEIGHT 36
+    #define INVENTORY_MOVE_INTERVAL 30
+
+    Collectable_Data_Recomp* objData = self->data;
+    s32 buttonMask = 0;
+    Object* player;
+    s16 itemGamebit;
+    u8 i;
+    
+#ifdef DEBUG_FOODBAG_DEMO
+    static s32 prevAction = -1;
+
+    static char bagDemoActionNames[][64] = {
+        "Start_Demo",
+        "Open_Inventory",
+        "Move_to_Foodbag",
+        "Open_Foodbag",
+        "Exit_Foodbag",
+        "Move_to_Eat_Config",
+        "Move_Down_Inventory",
+        "Change_to_Eat_Later",
+        "Change_to_Eat_First",
+        "Close_Inventory",
+        "End_Demo",
+        "Show_Info_Scroll",
+        "Close_Info_Scroll",
+        "Move_to_Eat_from_Bag",
+        "Reset_Page_Position",
+        "Info_Scroll_Narrow",
+        "Info_Scroll_Narrower_and_Shorter",
+        "Info_Scroll_Reset_Dimensions"
+    };
+
+    diPrintf("Foodbag seq: %d\n", animData->time);
+#endif
+
+    //Set an end-of-sequence callback to help ensure the inventory left-align/offset always get reset
+    if (animData->unkF4 == NULL) {
+        animData->unkF4 = collectable_foodbagAnimEndCallback;
+    }
+
+    //Reset state if this is the beginning of the sequence
+    if ((animData->time < 60) && (objData->demoFlags & Foodbag_DEMO_FLAG_Active)) {
+        objData->demoFlags = 0;
+        objData->demoAction = 0;
+        objData->demoTimer = 0;
+    }
+
+    //Close the inventory if it's open at the beginning of the sequence (since this can mess up what the simulated presses do!)
+    if ((objData->demoFlags & Foodbag_DEMO_FLAG_Closed_Inventory_at_Start) == FALSE) {
+        objData->demoFlags |= Foodbag_DEMO_FLAG_Closed_Inventory_at_Start;
+
+        cmdmenu_InventoryCloseInstantly();
+    }
+
+    //Don't show the demo if the config's off
+    if (configs_GetFoodbagDemo() == FALSE) {
+        if (objData->demoFlags & Foodbag_DEMO_FLAG_Active) {
+            objData->demoFlags &= ~Foodbag_DEMO_FLAG_Active;
+            objData->demoAction = 0;
+            objData->demoTimer = 0;
+            cmdmenu_InventoryCloseInstantly();
+            cmdmenu_InventoryResetOffset();
+        }
+        return 0;
+    }
+
+    //Set current action using messages
+    for (i = 0; i < animData->messageCount; i++) {
+        objData->demoAction = animData->messages[i];
+
+        switch (objData->demoAction) {
+        case Foodbag_DEMO_ACTION_Move_to_Foodbag:
+        case Foodbag_DEMO_ACTION_Move_to_Eat_Config:
+        case Foodbag_DEMO_ACTION_Move_to_Eat_from_Bag:
+            objData->demoTimer = 0;
+            break;
+        }
+    }
+
+#ifdef DEBUG_FOODBAG_DEMO
+    if (objData->demoAction && prevAction != objData->demoAction) {
+        recomp_printf("FOOD DEMO: %2d (%s)\n", 
+            objData->demoAction, 
+            (objData->demoAction <= ARRAYCOUNT(bagDemoActionNames)) ? bagDemoActionNames[objData->demoAction - 1] : "?"
+        );
+        prevAction = objData->demoAction;
+    }
+#endif
+
+    //Process current action
+    switch (objData->demoAction) {
+    case Foodbag_DEMO_ACTION_Start_Demo:
+        objData->demoAction = 0;
+        objData->demoFlags |= Foodbag_DEMO_FLAG_Active;
+        cmdmenu_InventoryLeftAlign();
+        cmdmenu_InventorySetVerticalOffset(21);
+        break;
+    case Foodbag_DEMO_ACTION_Open_Inventory:
+        objData->demoAction = 0;
+        cmdmenu_InventoryOpenItems();
+        break;
+    case Foodbag_DEMO_ACTION_Move_to_Foodbag:
+        // TODO: if the inventory has tons of items this may not reach the bag in time! Maybe check how many items will be
+        // shown on the page (when opening it) and if it's more than say 4, start out near the foodbag (maybe two slots away)
+        if (objData->demoTimer == 0) {
+            itemGamebit = cmdmenu_GetSelectedItemGamebit();
+            player = objGetPlayer();
+            if (player) { 
+                if (player->id == OBJ_Krystal) {
+                    if (itemGamebit == BIT_Krystal_Foodbag_S || itemGamebit == BIT_Krystal_Foodbag_M || itemGamebit == BIT_Krystal_Foodbag_L) {
+                        objData->demoAction = 0;
+                        break;
+                    }
+                } else if (player->id == OBJ_Sabre) {
+                    if (itemGamebit == BIT_Sabre_Foodbag_S || itemGamebit == BIT_Sabre_Foodbag_M || itemGamebit == BIT_Sabre_Foodbag_L) {
+                        objData->demoAction = 0;
+                        break;
+                    }
+                }
+            }
+        }
+
+        objData->demoTimer += gUpdateRate;
+        if (objData->demoTimer > INVENTORY_MOVE_INTERVAL) {
+            objData->demoTimer = 0;
+            cmdmenu_InventoryMoveDown();
+        }
+        break;
+    case Foodbag_DEMO_ACTION_Move_to_Eat_Config:
+        if (objData->demoTimer == 0) {
+            itemGamebit = cmdmenu_GetSelectedItemGamebit();
+            if (itemGamebit == BIT_Foodbag_Setting_Eat_First || itemGamebit == BIT_Foodbag_Setting_Eat_Later) {
+                objData->demoAction = 0;
+                break;
+            }
+        }
+
+        objData->demoTimer += gUpdateRate;
+        if (objData->demoTimer > INVENTORY_MOVE_INTERVAL) {
+            objData->demoTimer = 0;
+            cmdmenu_InventoryMoveDown();
+        }
+        break;
+    case Foodbag_DEMO_ACTION_Move_to_Eat_from_Bag:
+        if (objData->demoTimer == 0) {
+            if (cmdmenu_GetSelectedItemGamebit() == BIT_Foodbag_Eat) {
+                objData->demoAction = 0;
+                break;
+            }
+        }
+
+        objData->demoTimer += gUpdateRate;
+        if (objData->demoTimer > INVENTORY_MOVE_INTERVAL) {
+            objData->demoTimer = 0;
+            cmdmenu_InventoryMoveDown();
+        }
+        break;
+    case Foodbag_DEMO_ACTION_Move_Down_Inventory:
+        objData->demoAction = 0;
+        cmdmenu_InventoryMoveDown();
+        break;
+    case Foodbag_DEMO_ACTION_Open_Foodbag:
+        objData->demoAction = 0;
+        cmdmenu_InventoryOpenFoodbagActions();
+        break;
+    case Foodbag_DEMO_ACTION_Change_to_Eat_Later:
+        objData->demoAction = 0;
+        if (cmdmenu_GetSelectedItemGamebit() == BIT_Foodbag_Setting_Eat_First) {
+            buttonMask = A_BUTTON;
+        }
+        break;
+    case Foodbag_DEMO_ACTION_Change_to_Eat_First:
+        objData->demoAction = 0;
+        if (cmdmenu_GetSelectedItemGamebit() == BIT_Foodbag_Setting_Eat_Later) {
+            buttonMask = A_BUTTON;
+        }
+        break;
+    case Foodbag_DEMO_ACTION_Close_Inventory:
+        objData->demoAction = 0;
+        cmdmenu_InventoryClose();
+        break;
+    case Foodbag_DEMO_ACTION_End_Demo:
+        objData->demoAction = 0;
+        objData->demoFlags &= ~Foodbag_DEMO_FLAG_Active;
+        cmdmenu_InventoryResetOffset();
+        gDLL_1_cmdmenu->vtbl->set_buttons_override(CMDMENU_CLEAR_BUTTONS_OVERRIDE);
+        break;
+    case Foodbag_DEMO_ACTION_Show_Info_Scroll:
+        objData->demoAction = 0;
+        objData->demoFlags |= Foodbag_DEMO_FLAG_Show_Info;
+        break;
+    case Foodbag_DEMO_ACTION_Close_Info_Scroll:
+        objData->demoAction = 0;
+        objData->demoFlags &= ~Foodbag_DEMO_FLAG_Show_Info;
+        break;
+    case Foodbag_DEMO_ACTION_Reset_Page_Position:
+        objData->demoAction = 0;
+        gDLL_1_cmdmenu->vtbl->pages_clear_last_selected_index();
+        break;
+    case Foodbag_DEMO_ACTION_Info_Scroll_Narrow:
+        objData->demoAction = 0;
+        cmdmenu_InfoScrollSetWidthOverride(INFO_SCROLL_NARROW_WIDTH);
+        break;
+    case Foodbag_DEMO_ACTION_Info_Scroll_Narrower_and_Shorter:
+        objData->demoAction = 0;
+        cmdmenu_InfoScrollSetWidthOverride(INFO_SCROLL_NARROWER_WIDTH);
+        cmdmenu_InfoScrollSetHeightOverride(INFO_SCROLL_SHORTER_HEIGHT);
+        objData->demoFlags |= Foodbag_DEMO_FLAG_Smaller_Info_Scroll;
+        break;
+    case Foodbag_DEMO_ACTION_Info_Scroll_Reset_Dimensions:
+        objData->demoAction = 0;
+        cmdmenu_InfoScrollResetWidth();
+        cmdmenu_InfoScrollResetHeight();
+        objData->demoFlags &= ~Foodbag_DEMO_FLAG_Smaller_Info_Scroll;
+        break;
+    }
+
+    //Show info scroll when needed
+    if (objData->demoFlags & Foodbag_DEMO_FLAG_Show_Info) {
+        gDLL_1_cmdmenu->vtbl->auto_show_info_scroll(cmdmenu_GetSelectedItemTextLineIdx(), 
+            160, 
+            (objData->demoFlags & Foodbag_DEMO_FLAG_Smaller_Info_Scroll ? 140 + (INFO_SCROLL_SHORTER_HEIGHT/3) : 140)
+        );
+    }
+
+    //Simulate inventory button presses when needed
+    gDLL_1_cmdmenu->vtbl->set_buttons_override(buttonMask);
+
+    return 0;
+}
+
+RECOMP_PATCH int collectable_animCallback(Object* self, Object* animObj, AnimObj_Data* animObjData) { //NOTE: no arg3?
+    f32 cos;
+    f32 sin;
+
+    animObjData->unk62 = 0;
+
+    if (animObjData->lastMessage == 1) {
+        sin = mathSinfInterp(0x6900);
+        cos = mathCosfInterp(0x6900);
+        collectable_SetVelocity(self, sin * 8.0f, 2, cos * 8.0f);
+        collectable_SetVelocity(self, 4.0f, 2, 0.0f);
+        animObjData->lastMessage = 0;
+    }
+
+    if (self->id == OBJ_foodbagLarge && self->mapID == MAP_DISCOVERY_FALLS) {
+        return collectable_foodbagAnimCallback(self, animObj, animObjData);
+    }
+
+    return 0;
 }

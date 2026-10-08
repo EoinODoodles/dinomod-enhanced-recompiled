@@ -61,7 +61,7 @@ FILE,3
 54 "RED BEAN| Restores your energy"
 55 "BROWN BEAN| Restores 1/4 a unit of energy"
 56 "BLUE BEAN| Restores your energy"
-57 "EAT LATER| Food only goes into your bag"
+57 "EAT LATER| Only eat food when there's no| room left in your food bag"
 58 "EAT NOW| Food only goes into your bag| when you have full energy"
 59 "PORTAL SPELL| Opens spatial walkways"
 60 "ICE BLAST SPELL| Fires a column of ice"
