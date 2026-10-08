@@ -5,6 +5,7 @@
 #include "PR/os.h"
 #include "common.h"
 #include "game/gametexts.h"
+#include "macros.h"
 #include "sys/main.h"
 #include "sys/print.h"
 #include "dlls/objects/common/sidekick.h"
@@ -143,6 +144,11 @@ RECOMP_PATCH void NWtricky_control(Object *self) {
     }
 }
 
+typedef enum {
+    NWtricky_DEMO_Flag_Finished = 1,
+    NWtricky_DEMO_Flag_Closed_Inventory_at_Start = 2
+} NWtricky_Demo_Flags;
+
 /** Allow more controller inputs during tutorial (for inventory's optional D-pad controls/new controls) */
 RECOMP_PATCH int NWtricky_anim_callback(Object *self, Object *animObj, AnimObj_Data *animObjData, s8 arg3) {
     NWtricky_Data *objdata;
@@ -154,8 +160,21 @@ RECOMP_PATCH int NWtricky_anim_callback(Object *self, Object *animObj, AnimObj_D
 
     objdata = self->data;
     buttonMask = 0;
+    
+    //@recomp: Reset flags if this is the beginning of the sequence
+    if ((animObjData->time < 60) && (objdata->doneDemo & NWtricky_DEMO_Flag_Finished)) {
+        objdata->doneDemo = 0;
+    }
 
-    if (!objdata->doneDemo) {
+    //@recomp: Close the inventory if it's open at the beginning of the sequence (since this can mess up what the simulated presses do!)
+    if ((objdata->doneDemo & NWtricky_DEMO_Flag_Closed_Inventory_at_Start) == FALSE) {
+        objdata->doneDemo &= ~NWtricky_DEMO_Flag_Finished;
+        objdata->doneDemo |= NWtricky_DEMO_Flag_Closed_Inventory_at_Start;
+
+        cmdmenu_InventoryCloseInstantly();
+    }
+
+    if ((objdata->doneDemo & NWtricky_DEMO_Flag_Finished) == FALSE) {//@recomp: use this as a flags field
         tricky = objGetSidekick();
         ((DLL_ISidekick*)tricky->dll)->vtbl->enable_command(tricky, Sidekick_Command_INDEX_1_Find);
         ((DLL_ISidekick*)tricky->dll)->vtbl->enable_command(tricky, Sidekick_Command_INDEX_2_Distract);
@@ -179,8 +198,9 @@ RECOMP_PATCH int NWtricky_anim_callback(Object *self, Object *animObj, AnimObj_D
                 if (animObjData->messages[i] == 4) {
                     objdata->demoState = NWtricky_DEMO_STATE_Close_Inventory;
                     break;
-                } else if (animObjData->messages[i] == 1)
+                } else if (animObjData->messages[i] == 1) {
                     buttonMask = D_CBUTTONS; // simulate C-Down press
+                }
             }
 
             //@recomp: allow up/down on C-button/D-pad
@@ -190,14 +210,15 @@ RECOMP_PATCH int NWtricky_anim_callback(Object *self, Object *animObj, AnimObj_D
         case NWtricky_DEMO_STATE_Close_Inventory:
             STUBBED_PRINTF("menu a button\n");
             for (i = 0; i < animObjData->messageCount; i++) {
-                if (animObjData->messages[i] == 2)
+                if (animObjData->messages[i] == 2) {
                     buttonMask = A_BUTTON; // simulate A press
+                }
             }
 
             buttonMask |= joyGetPressedRaw(0) & A_BUTTON;
 
             if (buttonMask & A_BUTTON) {
-                objdata->doneDemo = TRUE;
+                objdata->doneDemo |= NWtricky_DEMO_Flag_Finished; //@recomp: use this as a flags field
             }
             break;
         }
