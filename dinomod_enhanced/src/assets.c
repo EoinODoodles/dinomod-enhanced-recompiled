@@ -433,7 +433,8 @@ static void walled_city_modifications(void) {
                     .sizeX = TRIGGER_SCALE(0.841),
                     .sizeY = 0x10,
                     .sizeZ = 0x10,
-                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
                 };
                 DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Approach_Cave_Entrance, &plane, 0, 1); //Load/unload cave entrance objects
                 reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
@@ -456,7 +457,8 @@ static void walled_city_modifications(void) {
                     .sizeX = TRIGGER_SCALE(1.2),
                     .sizeY = 0x10,
                     .sizeZ = 0x10,
-                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
                 };
                 DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Approach_Cave_Exit, &plane, 0, 1); //Load/unload cave exit objects
                 reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
@@ -479,7 +481,8 @@ static void walled_city_modifications(void) {
                     .sizeX = TRIGGER_SCALE(1.42),
                     .sizeY = 0x10,
                     .sizeZ = 0x10,
-                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
                 };
                 DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Approach_Cave_Entrance, &plane, 0, 1); //Load/unload cave entrance objects
                 DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Jungle_Door_Area, &plane, 2, 3); //Load/unload Jungle Door area objects
@@ -504,7 +507,8 @@ static void walled_city_modifications(void) {
                     .sizeX = TRIGGER_SCALE(3.1),
                     .sizeY = 0x10,
                     .sizeZ = 0x10,
-                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
                 };
                 DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Approach_Cave_Exit, &plane, 0, 1); //Load/unload cave exit objects
                 DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Jungle_Door_Area, &plane, 2, 3); //Load/unload Jungle Door area objects
@@ -530,7 +534,8 @@ static void walled_city_modifications(void) {
                     .sizeX = TRIGGER_SCALE(0.97),
                     .sizeY = 0x10,
                     .sizeZ = 0x10,
-                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
                 };
                 DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Approach_Cave_Exit, &plane, 0, 1); //Load/unload cave exit objects
                 DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Jungle_Door_Area, &plane, 2, 3); //Load/unload Jungle Door area objects
@@ -556,7 +561,8 @@ static void walled_city_modifications(void) {
                     .sizeX = TRIGGER_SCALE(0.97),
                     .sizeY = 0x10,
                     .sizeZ = 0x10,
-                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
                 };
                 DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Approach_Cave_Exit, &plane, 0, 1); //Load/unload cave exit objects
                 DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Jungle_Door_Area, &plane, 2, 3); //Load/unload Jungle Door area objects
@@ -1183,7 +1189,8 @@ static void walled_city_modifications(void) {
                         .sizeX = TRIGGER_SCALE(0.812),
                         .sizeY = 0x10,
                         .sizeZ = 0x10,
-                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
                     };
                     reasset_map_objects_set(wcBossRoom, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
                 }
@@ -1360,7 +1367,8 @@ static void walled_city_modifications(void) {
                             .sizeX = TRIGGER_SCALE(0.500),
                             .sizeY = 0x10,
                             .sizeZ = 0x10,
-                            .conditionBitFlagIDs[0] = NO_GAMEBIT
+                            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                            .bitFlagID = NO_GAMEBIT
                         };
                         DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Moon_Passageway, &plane, 0, 1);
                         DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Sun_Passageway_Door, &plane, 2, 3);
@@ -1384,7 +1392,8 @@ static void walled_city_modifications(void) {
                             .sizeX = TRIGGER_SCALE(0.9375),
                             .sizeY = 0x10,
                             .sizeZ = 0x10,
-                            .conditionBitFlagIDs[0] = NO_GAMEBIT
+                            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                            .bitFlagID = NO_GAMEBIT
                         };
                         DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Moon_Passageway, &plane, 0, 1);
                         DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Moon_Passageway_Door, &plane, 2, 3);
@@ -1408,7 +1417,8 @@ static void walled_city_modifications(void) {
                             .sizeX = TRIGGER_SCALE(0.500),
                             .sizeY = 0x10,
                             .sizeZ = 0x10,
-                            .conditionBitFlagIDs[0] = NO_GAMEBIT
+                            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                            .bitFlagID = NO_GAMEBIT
                         };
                         DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Sun_Passageway, &plane, 0, 1);
                         DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Moon_Passageway_Door, &plane, 2, 3);
@@ -1432,7 +1442,8 @@ static void walled_city_modifications(void) {
                             .sizeX = TRIGGER_SCALE(0.9375),
                             .sizeY = 0x10,
                             .sizeZ = 0x10,
-                            .conditionBitFlagIDs[0] = NO_GAMEBIT
+                            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                            .bitFlagID = NO_GAMEBIT
                         };
                         DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Sun_Passageway, &plane, 0, 1);
                         DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Sun_Passageway_Door, &plane, 2, 3);
@@ -1595,7 +1606,8 @@ static void walled_city_modifications(void) {
                         .sizeX = 70,
                         .sizeY = 40,
                         .sizeZ = 200,
-                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
                     };
                     ENTER_OBJGROUP_ON(WC_OBJGROUP_Outskirts, &area, 0);
                     ENTER_OBJGROUP_OFF(WC_OBJGROUP_Sun_Passageway, &area, 1);
@@ -1617,7 +1629,8 @@ static void walled_city_modifications(void) {
                         .sizeX = 70,
                         .sizeY = 20,
                         .sizeZ = 160,
-                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
                     };
                     ENTER_OBJGROUP_OFF(WC_OBJGROUP_Outskirts, &area, 0);
                     ENTER_OBJGROUP_ON(WC_OBJGROUP_Sun_Passageway, &area, 1);
@@ -2928,7 +2941,8 @@ static void swapstone_hollow_additions(void) {
                     .paramCombined = TRG_GAMEBIT(BIT_SP_Exiting_Shop, FALSE)
                 },
             },
-            .timerDuration = 60
+            .timerDuration = 60,
+            .bitFlagID = NO_GAMEBIT
         };
 
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &tTime, sizeof(tTime));
@@ -3033,6 +3047,8 @@ static void swapstone_hollow_additions(void) {
 
                 plane->sizeY = 0x10;
                 plane->sizeZ = 0x10;
+                plane->conditionBitFlagIDs[0] = NO_GAMEBIT;
+                plane->bitFlagID = NO_GAMEBIT;
 
                 reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), plane, sizeof(Trigger_Setup));
             }
@@ -3771,7 +3787,8 @@ static void darkice_mines_modifications(void) {
             .sizeX = 30,
             .sizeY = 64 * 2,
             .sizeZ = 0x10,
-            .conditionBitFlagIDs[0] = NO_GAMEBIT
+            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+            .bitFlagID = NO_GAMEBIT
         };
         ENTER_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, TRUE, &cylinder, 0); //Use closer CamClimb
         EXIT_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, FALSE, &cylinder, 1); //Use regular CamClimb
@@ -3972,7 +3989,9 @@ static void diamond_bay_additions(void) {
             .sizeY = 16,
             .sizeZ = 170,
             .rotationY = 0,
-            .rotationX = 0
+            .rotationX = 0,
+            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+            .bitFlagID = NO_GAMEBIT
         };
 
         reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &drownArea, sizeof(drownArea));
@@ -4009,7 +4028,9 @@ static void diamond_bay_additions(void) {
             .sizeY = 16,
             .sizeZ = 255,
             .rotationY = (12680 >> 8),
-            .rotationX = 0
+            .rotationX = 0,
+            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+            .bitFlagID = NO_GAMEBIT
         };
 
         reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &drownArea, sizeof(drownArea));
@@ -4525,7 +4546,8 @@ static void discovery_falls_modifications(void) {
                 .sizeX = 143,
                 .sizeY = 64 * 2,
                 .sizeZ = 0x10,
-                .conditionBitFlagIDs[0] = NO_GAMEBIT
+                .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                .bitFlagID = NO_GAMEBIT
             };
             ENTER_CAMERAACTION(0, 0x7D, &cylinder, 0); //Use CameraAction (closer camera with higher FOV)
             EXIT_CAMERAACTION(0, 1, &cylinder, 1); //Use default camera
@@ -4594,7 +4616,8 @@ static void discovery_falls_modifications(void) {
                         .sizeX = TRIGGER_SCALE(0.375),
                         .sizeY = 0x10,
                         .sizeZ = 0x10,
-                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
                     };
                     ENTER_CAMERAACTION(1, CAM_ID_FOODBAG_CAVE_LOWER, &plane, 0); //Use lower StaticCamera
                     EXIT_CAMERAACTION(1, CAM_ID_FOODBAG_CAVE_UPPER, &plane, 1); //Use upper StaticCamera
@@ -4618,7 +4641,8 @@ static void discovery_falls_modifications(void) {
                         .sizeX = TRIGGER_SCALE(0.375),
                         .sizeY = 0x10,
                         .sizeZ = 0x10,
-                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
                     };
                     EXIT_CAMERAACTION(1, CAM_ID_FOODBAG_CAVE_LOWER, &plane, 0); //Use lower StaticCamera
                     ENTER_CAMERAACTION(0, 1, &plane, 1); //Use CamNormal
@@ -4667,7 +4691,8 @@ static void discovery_falls_modifications(void) {
                     .sizeX = TRIGGER_SCALE(1.38),
                     .sizeY = 0x10,
                     .sizeZ = 0x10,
-                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
                 };
                 //Bring the camera closer (avoiding getting stuck at entrance)
                 ENTER_CAMERAACTION(0, 0x3D, &plane, 0); //Use CameraAction (closer)
@@ -4696,7 +4721,8 @@ static void discovery_falls_modifications(void) {
                     .sizeX = TRIGGER_SCALE(0.95),
                     .sizeY = 0x10,
                     .sizeZ = 0x10,
-                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
                 };
                 DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(DF_ObjGroup2_Lower_Falls, &plane, 0, 1);
 
@@ -5063,7 +5089,8 @@ static void discovery_falls_modifications(void) {
                         .sizeX = TRIGGER_SCALE(0.375),
                         .sizeY = 0x10,
                         .sizeZ = 0x10,
-                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
                     };
                     EXIT_CAMERAACTION(1, CAM_ID_TOXIC_CAVE_UPPER, &plane, 0); //Use upper StaticCamera
                     ENTER_CAMERAACTION(1, CAM_ID_TOXIC_CAVE_LOWER, &plane, 1); //Use lower StaticCamera
@@ -5085,7 +5112,8 @@ static void discovery_falls_modifications(void) {
                         .sizeX = 30,
                         .sizeY = 64 * 2,
                         .sizeZ = 0x10,
-                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
                     };
                     ENTER_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, TRUE, &cylinder, 0); //Use closer CamClimb
                     EXIT_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, FALSE, &cylinder, 1); //Use regular CamClimb
@@ -5264,7 +5292,8 @@ static void discovery_falls_modifications(void) {
                     .sizeX = TRIGGER_SCALE(0.375),
                     .sizeY = 0x10,
                     .sizeZ = 0x10,
-                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
                 };
                 EXIT_CAMERAACTION(1, 103, &plane, 0); //Use bottom StaticCamera
                 ENTER_CAMERAACTION(0, 1, &plane, 1); //Use regular camera
@@ -5298,7 +5327,8 @@ static void discovery_falls_modifications(void) {
                     .sizeX = 24,
                     .sizeY = 29 * 2,
                     .sizeZ = 0x10,
-                    .conditionBitFlagIDs[0] = BIT_101 //Hatch must be open
+                    .conditionBitFlagIDs[0] = BIT_101, //Hatch must be open
+                    .bitFlagID = NO_GAMEBIT
                 };
                 ENTER_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, TRUE, &cylinder, 0); //Use closer CamClimb
                 EXIT_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, FALSE, &cylinder, 1); //Use regular CamClimb
@@ -5359,7 +5389,8 @@ static void discovery_falls_modifications(void) {
                 .sizeX = 22,
                 .sizeY = 28 * 2,
                 .sizeZ = 0x10,
-                .conditionBitFlagIDs[0] = NO_GAMEBIT
+                .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                .bitFlagID = NO_GAMEBIT
             };
             ENTER_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, TRUE, &cylinder, 0); //Use closer CamClimb
             EXIT_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, FALSE, &cylinder, 1); //Use regular CamClimb
@@ -5389,7 +5420,8 @@ static void discovery_falls_modifications(void) {
                         .sizeX = TRIGGER_SCALE(0.5),
                         .sizeY = 0x10,
                         .sizeZ = 0x10,
-                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
                     };
                     ENTER_CAMERAACTION(0, 0x7E, &plane, 0); //Use CameraAction (closer camera with higher FOV)
                     EXIT_CAMERAACTION(0, 1, &plane, 1); //Use default camera
@@ -5419,7 +5451,8 @@ static void discovery_falls_modifications(void) {
                         .sizeX = TRIGGER_SCALE(0.344),
                         .sizeY = 0x10,
                         .sizeZ = 0x10,
-                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
                     };
                     ENTER_CAMERAACTION(0, 1, &plane, 0); //Use default camera
                     EXIT_CAMERAACTION(0, 0x7E, &plane, 1); //Use CameraAction (closer camera with higher FOV)
@@ -5586,7 +5619,8 @@ static void discovery_falls_modifications(void) {
                     .sizeX = TRIGGER_SCALE(0.85),
                     .sizeY = 0x10,
                     .sizeZ = 0x10,
-                    .conditionBitFlagIDs[0] = NO_GAMEBIT
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
                 };
                 DIRECTIONAL_OBJGROUP_TOGGLE(DF_ObjGroup8_Whirlpool_Cave, &plane, 0, 1);
                 DIRECTIONAL_OBJGROUP_TOGGLE(DF_ObjGroup9_Whirlpool_Cave_HitAnimator, &plane, 2, 3);
@@ -5944,7 +5978,8 @@ static void discovery_falls_modifications(void) {
                 .sizeX = TRIGGER_SCALE(0.5625),
                 .sizeY = 0x10,
                 .sizeZ = 0x10,
-                .conditionBitFlagIDs[0] = NO_GAMEBIT
+                .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                .bitFlagID = NO_GAMEBIT
             };
             ENTER_PLAY_MUSIC(0xD, &plane, 0);
 
@@ -5991,7 +6026,8 @@ static void discovery_falls_modifications(void) {
                         .sizeX = TRIGGER_SCALE(0.795),
                         .sizeY = 0x10,
                         .sizeZ = 0x10,
-                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
                     };
                     ENTER_CAMERAACTION(1, 101, &plane, 0); //Use CameraStatic 101
                     EXIT_CAMERAACTION(0, 1, &plane, 1); //Use CameraNormal
@@ -6015,7 +6051,8 @@ static void discovery_falls_modifications(void) {
                         .sizeX = TRIGGER_SCALE(0.56),
                         .sizeY = 0x10,
                         .sizeZ = 0x10,
-                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
                     };
                     ENTER_CAMERAACTION(1, 102, &plane, 0); //Use CameraStatic 102
                     EXIT_CAMERAACTION(1, 101, &plane, 1); //Use CameraStatic 101
@@ -6039,7 +6076,8 @@ static void discovery_falls_modifications(void) {
                         .sizeX = TRIGGER_SCALE(0.85),
                         .sizeY = 0x10,
                         .sizeZ = 0x10,
-                        .conditionBitFlagIDs[0] = NO_GAMEBIT
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
                     };
                     ENTER_CAMERAACTION(1, 102, &plane, 0); //Use CameraStatic 102
                     EXIT_CAMERAACTION(0, 1, &plane, 1); //Use CameraNormal
@@ -6550,7 +6588,8 @@ static void moon_mountain_pass_modifications(void) {
             .sizeX = TRIGGER_SCALE(0.45),
             .sizeY = 0x10,
             .sizeZ = 0x10,
-            .conditionBitFlagIDs[0] = NO_GAMEBIT
+            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+            .bitFlagID = NO_GAMEBIT
         };
         ENTER_SET_SAVEPOINT(TRUE, &plane, 0);
         EXIT_SET_SAVEPOINT(TRUE, &plane, 1);
