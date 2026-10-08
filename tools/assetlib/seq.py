@@ -110,7 +110,7 @@ envfx_names = {
 }
 
 code_event_6_names = {
-    0: "0",
+    0: "END",
     2: "2",
     5: "5",
     6: "6",
@@ -120,12 +120,12 @@ code_event_6_names = {
     11: "COUNTDOWN_TIMER",
     12: "COUNTDOWN_TIMER_SFX",
     13: "SFX_STOP",
-    14: "14",
-    15: "15",
+    14: "FADE_OUT",
+    15: "FADE_IN",
     16: "16",
     18: "TOGGLE_LETTERBOX",
     19: "ENABLE_LETTERBOX",
-    20: "STATIC_CAMERA",
+    20: "PATH_CAMERA",
     23: "SET_MODEL",
     24: "24",
     25: "25",
@@ -138,8 +138,8 @@ code_event_6_names = {
     32: "RESTART_GOTO",
     33: "33",
     34: "34",
-    35: "CHECKPOINT",
-    36: "CHECKPOINT_NO_LOCATION",
+    35: "SAVEPOINT",
+    36: "SAVEPOINT_NO_LOCATION",
     37: "TOGGLE_PLAYER_CONTROL"
 }
 
