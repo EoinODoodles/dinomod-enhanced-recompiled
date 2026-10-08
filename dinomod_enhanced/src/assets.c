@@ -2527,6 +2527,23 @@ static void crf_modifications(void) {
         Trigger_Setup* trigger = reasset_map_objects_get(crf, reasset_base_id(0x31BF3), NULL);
         trigger->sizeX = 160;
     }
+
+    // Add a throne room create point to mark a save point location for completion of the throne room quest
+    {
+        CurveSetup createPoint = {
+            .objId = OBJ_curve,
+            .pos = VEC3F(-3128.84f, 2196.0f, 324.128f),
+            .unk18 = -1,
+            .curveType = 0x15, // create point
+            .links = {-1, -1, -1, -1},
+            .unk2C = (-M_90_DEGREES) >> 8, // yaw8
+            .type15 = {
+                .unk34 = 27 // curve ID
+            }
+        };
+        _Static_assert(sizeof(createPoint) >= 0x38, "Create point curve mem too small");
+        reasset_map_objects_set(crf, reasset_auto_id(dinomodNs), &createPoint, 0x38);
+    }
 }
 
 static void inside_galleon_modifications(void) {

@@ -145,7 +145,7 @@ RECOMP_PATCH void CFCloudBaby_obj_Setup(Object* self, CFCloudBaby_Setup* setup, 
     else if (setup->rescuedGamebit != BIT_ALWAYS_1 && mainGetBits(setup->rescuedGamebit) != 0) {
         objdata->rescuedTimer = 1;
     }
-    // @recomp: Sync rescue dist with lock icon interact dist so the icon is grey until the player can actually interact
+    // @recomp: Sync lock icon interact dist with rescue dist so the icon is grey until the player can actually interact
     obj_func_80023BF8(self, setup->rescueMaxDist, 0, 0, 0, 0);
 }
 

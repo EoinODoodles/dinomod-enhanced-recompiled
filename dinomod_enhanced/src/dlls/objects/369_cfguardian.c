@@ -214,7 +214,7 @@ RECOMP_PATCH void CFGuardian_obj_Setup(Object* self, CFGuardian_Setup* setup, s3
         
         // @recomp: If the water draining seq starts playing but the player left the guardian in the wind lift,
         //          just move him into the courtyard anyway so the cutscene looks right.
-        if (self->mapID != MAP_CLOUDRUNNER_DUNGEON && mainGetBits(BIT_CRF_Throne_Room_Quest_Complete) != 0) {
+        if (self->mapID == MAP_CLOUDRUNNER_DUNGEON && mainGetBits(BIT_CRF_Throne_Room_Quest_Complete) != 0) {
             if (mainGetBits(BIT_CRF_Prison_Guardian_Exited_WindLift) == 0) {
                 SRT transform;
                 if (((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func7(14, &transform)) {
@@ -351,8 +351,6 @@ RECOMP_PATCH s32 CFGuardian_control(Object* self) {
                         //objAddObjectType(self, OBJTYPE_WindLiftable);
                         objdata->state = CFGUARDIAN_STATE_LeavingWindLift;
                         objAnimSet(self, CFGUARDIAN_MODANIM_Walk, 0, 0);
-                        // @recomp: Also enable talkseqs, if the forced talkseq doesn't trigger this can get stuck disabled
-                        objdata->talkState = CFGUARDIAN_TALK_Enabled;
                     }
                 // @recomp: Don't gain speed when already on the floor, otherwise the guardian will clip through
                 //          the windlift grate if the lift is reversed and he falls. (This patch is from default.dol!)
@@ -412,6 +410,8 @@ RECOMP_PATCH s32 CFGuardian_control(Object* self) {
         if (CFGuardian_followCurvePath(self, &objdata->unk53C, 0.3f, 1, &objdata->animRate) != 0) {
             objdata->state = CFGUARDIAN_STATE_Courtyard_WaitingForKyte;
             objAnim_func_80024D74(self, 0x32);
+            // @recomp: Also enable talkseqs, if the forced talkseq doesn't trigger this can get stuck disabled
+            objdata->talkState = CFGUARDIAN_TALK_Enabled;
         }
         break;
     case CFGUARDIAN_STATE_Courtyard_WaitingForKyte:
