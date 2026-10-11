@@ -139,6 +139,7 @@ _Bool configs_GetSpellAimFireLock(void);
 _Bool configs_LogCanHoldA(void);
 RecompLogRollModes configs_LogRollMode(void);
 RecompLogRollCooldowns configs_LogRollCooldown(void);
+_Bool configs_LogFollowZ(void);
 _Bool configs_RopesTurnOnce(void);
 RopeMoveModes configs_RopeMoveMode(void);
 

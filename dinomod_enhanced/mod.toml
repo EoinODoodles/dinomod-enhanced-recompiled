@@ -388,6 +388,20 @@ options = [ "None", "Quick", "Full" ]
 default = "Quick"
 
 [[manifest.config_options]]
+id = "log_z_camera_follow"
+name = "Log: Z Camera Follow"
+description = '''
+The camera follows you in a relaxed way when riding the log, where if you steer sharply you'll end up pointing back towards the camera, eventually crossing over its focal axis and spinning forward in frame again.
+
+This is perfect for taking in the game's lovely environments at your leisure, but what if (as one does) you wanted to really lock in while steering around? Pressing Z recentres the camera behind you, but it only does it once. You'd have to keep tapping Z if you wanted the camera to stick close behind you.
+
+That's where this config comes in! With this enabled, the camera will stay behind you while holding Z, so you can concentrate on paddling to pole position! (There's currently no racing section involving the logs sadly, but it's nice to imagine anyway.)
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
 id = "ropes_camera_relative"
 name = "Ropes: Camera Relative Controls"
 description = '''

@@ -78,6 +78,11 @@ RecompLogRollCooldowns configs_LogRollCooldown(void) {
     return recomp_get_config_u32("log_rolling_cooldown");
 }
 
+/* Checks whether the camera should stay behind the log when holding Z. */
+_Bool configs_LogFollowZ(void) {
+    return recomp_get_config_u32("log_z_camera_follow") != 0;
+}
+
 /* Checks whether to prevent the player from going into a direction-changing loop when clinging to a rope and holding back on the stick. */
 _Bool configs_RopesTurnOnce(void) {
     return recomp_get_config_u32("ropes_turn_once") != 0;
