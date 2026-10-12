@@ -13,6 +13,7 @@
 #include "game/objects/object_id.h"
 #include "game/gamebits.h"
 #include "sys/joypad.h"
+#include "sys/main.h"
 #include "sys/map_enums.h"
 #include "sys/math.h"
 #include "sys/menu.h"
@@ -1772,16 +1773,36 @@ RECOMP_PATCH int dll_210_func_4910(Object* arg0, Object* arg1, AnimObj_Data* arg
             sp6C[0] = temp_s0->x;
             sp6C[1] = temp_s0->y;
             sp6C[2] = temp_s0->z;
-            if (arg0->curModAnimId != 0) {
-                objAnimSet(arg0, 0, 0.0f, 0U);
+            // @recomp: Rather than jumping to the idle anim (0, which has no blend(?)), use the transition anim (30)
+            //          that is meant to end with a switch to idle. Provides a nice blend from whatever the current anim
+            //          is into the idle anim while the talkseq is getting into place, rather than snapping to idle.
+            if (arg0->curModAnimId != 0 && arg0->curModAnimId != 30) {
+                objAnimSet(arg0, 30, 0.0f, 0);
             }
+            // @recomp: Call objAnimAdvance to avoid an issue where the animation can get stuck (not sure why this happens,
+            //          this is a problem even without the other patches)
+            objAnimAdvance(arg0, 0.0f, gUpdateRateF, NULL);
             return 1;
         } else if (arg2->unk62 == 5) {
+            // @recomp: Advance anim while in talkseq transition (instead of being frozen)
+            if (objAnimAdvance(arg0, arg0->curModAnimId == 0 ? 0.01f : 0.05f, gUpdateRateF, NULL)) {
+                // Switch to idle anim after transitioning into it (talkseqs are supposed to be in the idle anim)
+                if (arg0->curModAnimId != 0) {
+                    objAnimSet(arg0, 0, 0.0f, 0);
+                }
+            }
             arg2->unk7A &= ~0x4;
             func_8002674C(arg0);
             seqJoint = objExpr_func_80034804(arg0, 0);
             if (_bss_0 == 3) {
                 if ((arg2->unk58 >= 1.0f) && (gDLL_2_Camera->vtbl->has_interpolation_finished() == FALSE)) {
+                    // @recomp: Since the above patches might start us in a non-idle anim, ensure that we are
+                    //          in the idle anim when leaving the talkseq transition since that's the intended
+                    //          anim for the actual talkseq.
+                    if (arg0->curModAnimId != 0) {
+                        objAnimSet(arg0, 0, 0.0f, 0);
+                        objAnimAdvance(arg0, 0.0f, gUpdateRateF, NULL);
+                    }
                     if (arg3 == 0) {
                         arg2->unk62 = 0;
                     } else {
