@@ -1,3 +1,6 @@
+# Discovery Falls - Demolition Cave SharpClaw Antics
+# Edited so that one of the SharpClaw doesn't appear to suddenly change position at the end of the sequence
+
 actors:
 # Actor 0
 - uid: 0x0
@@ -45,7 +48,7 @@ actors:
   objectID: 0x11 # ClubSharpClaw
 
 curves:
-# Curve 0
+# Curve 0 (DFsequences)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 1865 } # SETDURATION @ 0
@@ -56,7 +59,7 @@ curves:
   - { type: 11, delay: 0, params: 1 } # CODE @ 1865
   - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
   keyframes:
-# Curve 1
+# Curve 1 (Camera)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 1760 } # SETDURATION @ 0
@@ -177,7 +180,7 @@ curves:
   - { channel: 14, time: 398, value: 45.0, interp: 0, weight: 56 }
   - { channel: 14, time: 1014, value: 45.681983947753906, interp: 0, weight: 1 }
   - { channel: 14, time: 1760, value: 61.0, interp: 0, weight: 0 }
-# Curve 2
+# Curve 2 (Krystal)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 1760 } # SETDURATION @ 0
@@ -229,7 +232,7 @@ curves:
     # TRANSLATE_X
   - { channel: 13, time: 1324, value: -122.1994857788086, interp: 2, weight: 8 }
   - { channel: 13, time: 1726, value: -155.86282348632812, interp: 0, weight: 4 }
-# Curve 3
+# Curve 3 (AnimSharpy)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 1865 } # SETDURATION @ 0
@@ -288,7 +291,7 @@ curves:
   - { channel: 13, time: 564, value: -74.83006286621094, interp: 1, weight: 0 }
   - { channel: 13, time: 598, value: -21.962554931640625, interp: 0, weight: 8 }
   - { channel: 13, time: 629, value: 15.634185791015625, interp: 0, weight: 0 }
-# Curve 4
+# Curve 4 (DFbarrelanim)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 917 } # SETDURATION @ 0
@@ -351,7 +354,7 @@ curves:
   - { channel: 13, time: 512, value: -87.55464935302734, interp: 0, weight: 0 }
   - { channel: 13, time: 526, value: -87.55464935302734, interp: 0, weight: 0 }
   - { channel: 13, time: 560, value: -89.29076385498047, interp: 0, weight: 60 }
-# Curve 5
+# Curve 5 (AnimSharpy)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 1865 } # SETDURATION @ 0
@@ -521,7 +524,7 @@ curves:
   - { channel: 17, time: 1514, value: 19.173751831054688, interp: 0, weight: 8 }
   - { channel: 17, time: 1677, value: 19.757080078125, interp: 0, weight: 0 }
   - { channel: 17, time: 1713, value: 0.0, interp: 0, weight: 0 }
-# Curve 6
+# Curve 6 (AnimSharpy)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 1865 } # SETDURATION @ 0
@@ -690,7 +693,7 @@ curves:
   - { channel: 17, time: 1341, value: -21.0, interp: 0, weight: 55 }
   - { channel: 17, time: 1362, value: -22.0, interp: 0, weight: 10 }
   - { channel: 17, time: 1366, value: 0.0, interp: 0, weight: 0 }
-# Curve 7
+# Curve 7 (DFbarrel)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 1849 } # SETDURATION @ 0
@@ -758,7 +761,7 @@ curves:
   - { channel: 13, time: 1800, value: -59.24553298950195, interp: 1, weight: 56 }
   - { channel: 13, time: 1818, value: -59.862457275390625, interp: 0, weight: 56 }
   - { channel: 13, time: 1838, value: -68.43936920166016, interp: 0, weight: 0 }
-# Curve 8
+# Curve 8 (Kyte)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 1692 } # SETDURATION @ 0
@@ -775,7 +778,7 @@ curves:
   - { channel: 11, time: 519, value: 313.8843078613281, interp: 0, weight: 0 }
     # TRANSLATE_X
   - { channel: 13, time: 544, value: -150.40611267089844, interp: 0, weight: 0 }
-# Curve 9
+# Curve 9 (ClubSharpClaw)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 1819 } # SETDURATION @ 0
@@ -798,7 +801,7 @@ curves:
   - { channel: 11, time: 1811, value: 165.8982391357422, interp: 0, weight: 0 }
     # TRANSLATE_X
   - { channel: 13, time: 1817, value: 114.30521392822266, interp: 0, weight: 0 }
-# Curve 10
+# Curve 10 (ClubSharpClaw)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 1865 } # SETDURATION @ 0
@@ -813,7 +816,10 @@ curves:
   - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
   keyframes:
     # OPACITY
-  - { channel: 3, time: 1728, value: 0.0, interp: 2, weight: 8 }
+  - { channel: 3, time: 1728, value: 0.0, interp: 2, weight: 0 }
+
+    #@recomp: don't show up until after the letterbox ends, to avoid an issue where the SharpClaw seems to suddenly warp
+  - { channel: 3, time: 1759, value: 0.0, interp: 2, weight: 8 } 
   - { channel: 3, time: 1814, value: 255.0, interp: 0, weight: 4 }
     # ROTATE_Y
   - { channel: 7, time: 1766, value: 89.39823150634766, interp: 0, weight: 0 }
