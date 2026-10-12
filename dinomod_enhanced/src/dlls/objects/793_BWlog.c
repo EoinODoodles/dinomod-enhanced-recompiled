@@ -979,11 +979,17 @@ static void BWlog_handleFxEndpointRipples(Object* self, BWlog_Data* objData) {
     s32 yawSpeed;
     u8 cooldown;
     u8 i;
+    /* RECOMP */
+    f32 tValueTurn;
+    f32 maxScale;
+    u8 rippleMode = configs_GetLogEndpointFXMode();
 
-    if (configs_GetLogEndpointFX() == FALSE) {
+    //@recomp: Check if the config is switched off
+    if (rippleMode == RECOMP_LOG_RIPPLES_NONE) {
         return;
     }
 
+    //@recomp: Check if the ripples are temporarily switched off (e.g. in a level with choppy waters, which wouldn't suit the effect)
     if (objData->useDFLogFX == FALSE) {
         return;
     }
@@ -1005,6 +1011,32 @@ static void BWlog_handleFxEndpointRipples(Object* self, BWlog_Data* objData) {
             return;
         }
     }
+    
+    //@recomp: get turn speed
+    {
+        yawSpeed = self->srt.yaw - objData->prevYaw;
+        CIRCLE_WRAP(yawSpeed);
+        if (yawSpeed < 0) {
+            yawSpeed = -yawSpeed;
+        }
+        if (gUpdateRate) {
+            yawSpeed /= gUpdateRate;
+        }
+
+        tValueTurn = (f32)yawSpeed/200.0f;
+        if (tValueTurn > 1.0f) {
+            tValueTurn = 1.0f;
+        } else if (tValueTurn < 0.0f) {
+            tValueTurn = 0.0f;
+        }
+    }
+
+    //@recomp: mode-specific params
+    if (rippleMode == RECOMP_LOG_RIPPLES_REDUCED) {
+        maxScale = 0.6f; //reduce max scale so the effect isn't as "busy"
+    } else {
+        maxScale = 0.95f;
+    }
 
     for (i = 0; i < 2; i++) {
         if (objData->velocity[i].x ||  objData->velocity[i].y || objData->velocity[i].z) {
@@ -1019,31 +1051,26 @@ static void BWlog_handleFxEndpointRipples(Object* self, BWlog_Data* objData) {
                     fxTransform.transl.y -= self->srt.transl.y;
                     fxTransform.transl.z -= self->srt.transl.z;
 
+                    //@recomp: Reduce particle size when barely turning (so there aren't very large ripples at the front/back when paddling dead ahead)
+                    if (rippleMode == RECOMP_LOG_RIPPLES_REDUCED) {
+                        fxTransform.scale = lerp_float(tValueTurn, 0.1f, fxTransform.scale);
+                    }
+
                     //@recomp: cap scale
-                    if (fxTransform.scale > 0.95f) {
-                        fxTransform.scale = 0.95f;
+                    if (fxTransform.scale > maxScale) {
+                        fxTransform.scale = maxScale;
+                    } else if (fxTransform.scale < 0.1f) {
+                        //Don't create a particle if it's going to be below the original minimum scale
+                        continue;
                     }
 
                     gDLL_17_partfx->vtbl->spawn(self, PARTICLE_3C4, &fxTransform, PARTFXFLAG_NONE, -1, NULL);
 
-                    //@recomp: use a cooldown for the particles
-                    //Get turn speed
-                    {
-                        yawSpeed = self->srt.yaw - objData->prevYaw;
-                        CIRCLE_WRAP(yawSpeed);
-                        if (yawSpeed < 0) {
-                            yawSpeed = -yawSpeed;
-                        }
-                        if (gUpdateRate) {
-                            yawSpeed /= gUpdateRate;
-                        }
-                    }
-
-                    //Shorter cooldown when turning rapidly
+                    //@recomp: use a cooldown for the particles, with a shorter cooldown when turning rapidly
                     if (yawSpeed > DEGREES_TO_ANGLE16(1)) {
                         cooldown = 6;
                     } else {
-                        cooldown = 8;
+                        cooldown = lerp_float(tValueTurn, 15, 6);
                     }
 
                     if (objData->endPointFXCooldown == 0 || cooldown < objData->endPointFXCooldown) {

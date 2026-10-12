@@ -71,6 +71,12 @@ typedef enum {
     RECOMP_LOG_COOLDOWN_FULL                //You can roll again once the roll animation has fully finished.
 } RecompLogRollCooldowns;
 
+typedef enum { 
+    RECOMP_LOG_RIPPLES_NONE,               //BWlog doesn't create ripples
+    RECOMP_LOG_RIPPLES_REDUCED,            //DFlog's ripple effects are added to BWlog (and their intensity is slightly reduced)
+    RECOMP_LOG_RIPPLES_INTENSE             //DFlog's ripple effects are added to BWlog (and they can be quite intense!)
+} RecompLogRippleModes;
+
 typedef enum {
     ROPE_MOVE_DEFAULT,                      //The original tank-style rope controls.
     ROPE_MOVE_CAMERA_RELATIVE_INITIAL,      //Camera-relative rope controls, based around the moment you first tilt the stick to move. Moving the stick to a significantly different position will update the camera-based direction.
@@ -174,7 +180,7 @@ _Bool configs_GetMenuTimerFractionConfig(void);
 /* GRAPHICS */
 _Bool configs_GetSixtyFPS(void);
 _Bool configs_GetHideDefaultFXEmits(void);
-_Bool configs_GetLogEndpointFX(void);
+RecompLogRippleModes configs_GetLogEndpointFXMode(void);
 
 /* MISC */
 _Bool configs_GetMagicGemReflectBounce(void);
