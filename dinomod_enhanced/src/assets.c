@@ -2261,6 +2261,7 @@ static void nwsh_modifications(void) {
 
 static void crf_modifications(void) {
     ReAssetID crf = reasset_base_id(MAP_CLOUDRUNNER_FORTRESS);
+    ReAssetID crfTreasure = reasset_base_id(MAP_CLOUDRUNNER_TREASURE);
     ReAssetID crfDungeon = reasset_base_id(MAP_CLOUDRUNNER_DUNGEON);
     ReAssetID crfTrkblk = reasset_base_id(18);
     ReAssetID crfTreasTrkblk = reasset_base_id(22);
@@ -2544,6 +2545,255 @@ static void crf_modifications(void) {
         _Static_assert(sizeof(createPoint) >= 0x38, "Create point curve mem too small");
         reasset_map_objects_set(crf, reasset_auto_id(dinomodNs), &createPoint, 0x38);
     }
+
+    // Adjust triggers in courtyard -> race tunnel/ladder area. These changes are to both fix issues where
+    // the map layer won't be changed correctly in some cases and to also ensure the duster at the top of
+    // the ladder is accessible.
+    {
+        Trigger_Setup* trigger;
+
+        trigger = reasset_map_objects_get(crf, reasset_base_id(0x32F09), NULL);
+        trigger->base.z = 320.216f; // scoot over
+        // Make trigger right before the ladder to the race area bigger so the player can't walk around it
+        trigger->sizeX = 16;
+        // Remove map layer dec command
+        bzero(&trigger->commands[0], sizeof(trigger->commands[0]));
+        // Move commands from removed trigger 0x32F10 (excluding the layer command)
+        trigger->commands[2].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;
+        trigger->commands[2].id = TRG_CMD_BITS;
+        trigger->commands[2].paramCombined = ((TriggerCommand_Bits_1_Set << 14) | BIT_4BF);
+
+        trigger = reasset_map_objects_get(crfTreasure, reasset_base_id(0x32F14), NULL);
+        // Re-enable partially removed layer inc command
+        trigger->commands[0].condition = CMD_COND_IN | CMD_COND_RE_ENTER;
+        // Add a layer dec command
+        trigger->commands[1].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;
+        trigger->commands[1].id = TRG_CMD_MAP_LAYER;
+        trigger->commands[1].param1 = -1;
+        trigger->commands[1].param2 = 0;
+        // Move obj group 3 toggle to a trigger in courtyard -> race tunnel
+        trigger->commands[2].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;
+        trigger->commands[2].id = TRG_CMD_WORLD_ENABLE_OBJ_GROUP;
+        trigger->commands[2].param1 = 3;
+        trigger->commands[2].param2 = MAP_CLOUDRUNNER_RACETRACK;
+        trigger->commands[3].condition = CMD_COND_IN | CMD_COND_RE_ENTER;
+        trigger->commands[3].id = TRG_CMD_WORLD_DISABLE_OBJ_GROUP;
+        trigger->commands[3].param1 = 3;
+        trigger->commands[3].param2 = MAP_CLOUDRUNNER_RACETRACK;
+
+        trigger = reasset_map_objects_get(crfTreasure, reasset_base_id(0x32F17), NULL);
+        // Add layer inc command
+        trigger->commands[3].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;
+        trigger->commands[3].id = TRG_CMD_MAP_LAYER;
+        trigger->commands[3].param1 = 0;
+        trigger->commands[3].param2 = 0;
+    }
+}
+
+static void crf_race_modifications(void) {
+    ReAssetID crfRace = reasset_base_id(MAP_CLOUDRUNNER_RACETRACK);
+
+    // Let CRSharpClaw seqs replay so that if the race area unloads, when the player returns the
+    // SharpClaw will actually mount the bikes and re-enter the race. Otherwise, the race will
+    // not be able to be completed. The player *should* be prevented from leaving the area and
+    // unloading it, but this is a good failsafe just in case. 
+    {
+        SeqObj_Setup* seqObj;
+
+        seqObj = reasset_map_objects_get(crfRace, reasset_base_id(0x30C9C), NULL);
+        seqObj->replayStartTime = 280;
+        seqObj->replayActorMask = 0xFF;
+        seqObj->playbackOptions |= SEQOBJ_OPTIONS_HasReplayActorMask | SEQOBJ_OPTIONS_AutoHasPlayed_Set_After_Sequence;
+
+        seqObj = reasset_map_objects_get(crfRace, reasset_base_id(0x30C1F), NULL);
+        seqObj->replayStartTime = 2350;
+        seqObj->replayActorMask = 0x1D1;
+        seqObj->playbackOptions |= SEQOBJ_OPTIONS_HasReplayActorMask;
+    }
+
+    // Add two trigger planes to fail the race if the player tries to leave the area after the race starts
+    {
+        Trigger_Setup rtrigger = {
+            .base = {
+                .objId = OBJ_TriggerPlane,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 14,
+                .fadeDistance = 0,
+                .x = -35.721f,
+                .y = 1304.837f,
+                .z = 221.671f
+            },
+            .commands = {
+                {
+                    .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
+                    .id = TRG_CMD_BITS,
+                    .paramCombined = ((TriggerCommand_Bits_1_Set << 14) | BIT_Play_Seq_02AA_CF_Lose_Race)
+                }
+            },
+            .sizeX = 7,
+            .sizeY = 16,
+            .sizeZ = 16,
+            .rotationX = 0,
+            .rotationY = 0,
+            .bitFlagID = -1,
+            .conditionBitFlagIDs = {BIT_CF_Race_Started, -1, -1, -1}
+        };
+
+        reasset_map_objects_set(crfRace, reasset_auto_id(dinomodNs), &rtrigger, sizeof(rtrigger));
+
+        Trigger_Setup ltrigger = {
+            .base = {
+                .objId = OBJ_TriggerPlane,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 14,
+                .fadeDistance = 0,
+                .x = -32.991f,
+                .y = 1280.0f,
+                .z = 420.347f
+            },
+            .commands = {
+                {
+                    .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
+                    .id = TRG_CMD_BITS,
+                    .paramCombined = ((TriggerCommand_Bits_1_Set << 14) | BIT_Play_Seq_02AA_CF_Lose_Race)
+                }
+            },
+            .sizeX = 12,
+            .sizeY = 16,
+            .sizeZ = 16,
+            .rotationX = 0,
+            .rotationY = 96,
+            .bitFlagID = -1,
+            .conditionBitFlagIDs = {BIT_CF_Race_Started, -1, -1, -1}
+        };
+
+        reasset_map_objects_set(crfRace, reasset_auto_id(dinomodNs), &ltrigger, sizeof(ltrigger));
+    }
+
+    // Split guardian reminder trigger into two triggers so the talkseq is started when the player is
+    // closer to the guardian. Otherwise, the player might be so far away that the camera clips out
+    // of bounds and the dialog is super quiet.
+    {
+        Trigger_Setup trigger = {
+            .base = {
+                .objId = OBJ_TriggerPlane,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 21,
+                .fadeDistance = 0,
+                .x = -89.569f,
+                .y = 1285.7f,
+                .z = 322.625f
+            },
+            .commands = {
+                {
+                    .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
+                    .id = TRG_CMD_BITS,
+                    .paramCombined = ((TriggerCommand_Bits_1_Set << 14) | BIT_CRF_Race_Guardian_Reminder)
+                }
+            },
+            .sizeX = 17,
+            .sizeY = 16,
+            .sizeZ = 16,
+            .rotationX = 0,
+            .rotationY = 48,
+            .bitFlagID = -1,
+            .conditionBitFlagIDs = {BIT_CF_Race_Started, -1, -1, -1}
+        };
+
+        reasset_map_objects_set(crfRace, reasset_auto_id(dinomodNs), &trigger, sizeof(trigger));
+
+        Trigger_Setup* existingTrigger = reasset_map_objects_get(crfRace, reasset_base_id(0x30C36), NULL);
+        existingTrigger->conditionBitFlagIDs[0] = BIT_Play_Seq_02A9_CF_Race_End;
+    }
+
+    // Split obj group triggers so that we can exclude the SharpClaw group after the race has ended but before the
+    // SpellStone has been activated (which disables the other obj group triggers)
+    {
+        Trigger_Setup newLeftTrigger = {
+            .base = {
+                .objId = OBJ_TriggerPlane,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 14,
+                .fadeDistance = 0,
+                .x = -19.582f,
+                .y = 1292.57f,
+                .z = 440.082f
+            },
+            .commands = {
+                {
+                    .condition = CMD_COND_OUT | CMD_COND_RE_EXIT,
+                    .id = TRG_CMD_ENABLE_OBJ_GROUP,
+                    .param2 = 2
+                }
+            },
+            .sizeX = 14,
+            .sizeY = 16,
+            .sizeZ = 16,
+            .rotationX = 0,
+            .rotationY = 32,
+            .bitFlagID = -1,
+            .conditionBitFlagIDs = {0x4000 | BIT_Play_Seq_02A9_CF_Race_End, -1, -1, -1} // if race hasn't ended
+        };
+
+        reasset_map_objects_set(crfRace, reasset_auto_id(dinomodNs), &newLeftTrigger, sizeof(newLeftTrigger));
+
+        Trigger_Setup* existingLeftTrigger = reasset_map_objects_get(crfRace, reasset_base_id(0x30D16), NULL);
+        existingLeftTrigger->commands[1].id = 0;
+        existingLeftTrigger->commands[1].condition = 0;
+        existingLeftTrigger->commands[1].paramCombined = 0;
+
+        Trigger_Setup newRightTrigger = {
+            .base = {
+                .objId = OBJ_TriggerPlane,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 14,
+                .fadeDistance = 0,
+                .x = -35.721f,
+                .y = 1304.837f,
+                .z = 201.671f
+            },
+            .commands = {
+                {
+                    .condition = CMD_COND_OUT | CMD_COND_RE_EXIT,
+                    .id = TRG_CMD_ENABLE_OBJ_GROUP,
+                    .param2 = 2
+                }
+            },
+            .sizeX = 7,
+            .sizeY = 16,
+            .sizeZ = 16,
+            .rotationX = 0,
+            .rotationY = 0,
+            .bitFlagID = -1,
+            .conditionBitFlagIDs = {0x4000 | BIT_Play_Seq_02A9_CF_Race_End, -1, -1, -1} // if race hasn't ended
+        };
+
+        reasset_map_objects_set(crfRace, reasset_auto_id(dinomodNs), &newRightTrigger, sizeof(newRightTrigger));
+
+        Trigger_Setup* existingRightTrigger = reasset_map_objects_get(crfRace, reasset_base_id(0x30C93), NULL);
+        bzero(&existingRightTrigger->commands[3], sizeof(existingRightTrigger->commands[3]));
+        // Also remove the incorrect obj group 3 enable
+        bzero(&existingRightTrigger->commands[1], sizeof(existingRightTrigger->commands[1]));
+    }
+
+    // Don't touch obj group 3 on the way up the ladder. The toggle for this was moved to the tunnel to the courtyard
+    // so that the duster at the top of the ladder is actually accessible.
+    {
+        Trigger_Setup* trigger = reasset_map_objects_get(crfRace, reasset_base_id(0x30E8C), NULL);
+        bzero(&trigger->commands[4], sizeof(trigger->commands[4]));
+        bzero(&trigger->commands[5], sizeof(trigger->commands[5]));
+    }
+
+    // Remove problematic triggers in the courtyard -> race tunnel. The race map can unload before these triggers are
+    // hit due to them being so far away from the main map and the way block vis is setup around that area. The commands
+    // from these trigger have been moved to other nearby triggers.
+    reasset_map_objects_delete(crfRace, reasset_base_id(0x32F0F));
+    reasset_map_objects_delete(crfRace, reasset_base_id(0x32F10));
 }
 
 static void inside_galleon_modifications(void) {
@@ -2668,6 +2918,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     wgsh_modifications();
     nwsh_modifications();
     crf_modifications();
+    crf_race_modifications();
     inside_galleon_modifications();
 }
 

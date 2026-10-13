@@ -229,6 +229,7 @@ RECOMP_PATCH void CFGuardian_obj_Setup(Object* self, CFGuardian_Setup* setup, s3
         if (mainGetBits(BIT_Played_Seq_02B2_CF_Courtyard_Water_Drains) != 0) {
             // @recomp: Don't use race map states for the dungeon copy of the guardian
             if (self->mapID == MAP_CLOUDRUNNER_DUNGEON) {
+                self->opacity = 0;
                 objdata->state = CFGUARDIAN_STATE_Vanish;
             } else {
                 objdata->state = CFGUARDIAN_STATE_WaitingForRaceCompletion;
