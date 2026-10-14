@@ -1,3 +1,4 @@
+#include "configs.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
@@ -36,10 +37,10 @@ extern void MagicDust_collect(Object* self, Object* player, MagicDust_Data* objD
   * - Stop stationary Magic Gems from rapidly playing sounds when touched (unloads them instead)
   */
 RECOMP_PATCH void MagicDust_obj_Control(Object* self) {
-    Object *player;
-    MagicDust_Data *objData;
+    Object* player;
+    MagicDust_Data* objData;
     f32 playerDistance;
-    DLL27_Data *collision;
+    DLL27_Data* collision;
     Vec3f negativeS;
     Vec3f vReflect;
     Vec3f nSurface;
@@ -207,7 +208,7 @@ RECOMP_PATCH void MagicDust_obj_Control(Object* self) {
                 }
                 
                 //Reflect speed vector off surface normal (@recomp: make use of unused reflect calculation!)
-				if (recomp_get_config_u32("magic_dust_reflect_bounce")) {
+				if (configs_GetMagicGemReflectBounce()) {
 					//FANCY REFLECTED BOUNCE
 
                     //R = V - 2*(V ⋅ N)*N
@@ -308,6 +309,10 @@ RECOMP_PATCH void MagicDust_obj_Control(Object* self) {
                 objSendMesg(player, 0x7000A, self, NULL);
                 mainSetBits(BIT_Tutorial_Magic_Crystal, 1);
                 objData->flags |= MagicDust_FLAG_Tutorial_Sequence;
+
+                //@recomp: open queue so the player's reply is received 
+                //(fixes a bug where magic didn't increase after the tutorial sequence)
+                objInitMesgQueue(self, 1);
             } else {
                 MagicDust_collect(self, player, objData);
             }
@@ -327,12 +332,12 @@ RECOMP_PATCH void MagicDust_obj_Control(Object* self) {
   * @recomp: Fix a potential crash in the MagicPlant object's print function,
   * by clearing its references to this MagicDust object when freed.
   */
-RECOMP_PATCH void MagicDust_obj_Free(Object *self, s32 a1) {
+RECOMP_PATCH void MagicDust_obj_Free(Object* self, s32 onlySelf) {
 	Object* parent;
 	MagicPlant_Data* magicPlantData;
 
 	//Check if the MagicDust is parented
-	if (!self || !self->unkC4){
+	if (self == NULL || self->unkC4  == NULL){
 		return;
 	}
 	parent = self->unkC4;

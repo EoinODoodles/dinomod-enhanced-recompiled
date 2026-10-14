@@ -1,0 +1,95 @@
+# Walled City: WCBeacon Rises (Activated Pressure Switch)
+
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x0
+  objectID: 0xFFFF # Self (WCBeacon)
+# Actor 1
+- uid: 0x0
+  settings: 0x9000
+  objectID: 0xFFFE # Camera
+# Actor 2
+- uid: 0x0
+  settings: 0xD700
+  objectID: 0x509 # WCLevelControl
+# Actor 3
+- uid: 0x0
+  settings: 0xD700
+  objectID: 0x0 # Sabre
+# Actor 4
+- uid: 0x80000000          #@recomp: Specify that Tricky is an optional actor in this sequence (custom actor setting)
+  settings: 0xD700
+  objectID: 0x24 # Tricky
+
+curves:
+# Curve 0
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 120 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 2, delay: 5, params: 0x0 } # ANIM @ 0
+  - { type: 15, delay: 1, params: 0xE89D } # SFX_WITH_DURATION @ 5
+  - { type: 127, delay: 95, params: 0x5D } # PARAM @ 5
+  - { type: 6, delay: 20, params: 0xE89E } # SFX @ 100
+  - { type: 11, delay: 0, params: 1 } # CODE @ 120
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # TRANSLATE_Y
+  - { channel: 12, time: 0, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 12, time: 100, value: 42.0, interp: 0, weight: 0 }
+# Curve 1
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 120 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 1, delay: 78, params: 0x0 } # MOVEMODE @ 0
+  - { type: 11, delay: 42, params: 1 } # CODE @ 78
+  - { code_type: 6, val1: 0x1A, val2: 0x0 } # 6 (NORMAL_CAMERA)
+  - { type: 11, delay: 0, params: 1 } # CODE @ 120
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ROTATE_Y
+  - { channel: 7, time: 0, value: 226.9113006591797, interp: 1, weight: 56 }
+  - { channel: 7, time: 120, value: 223.31875610351562, interp: 0, weight: 0 }
+    # ROTATE_X
+  - { channel: 8, time: 0, value: -26.960514068603516, interp: 1, weight: 8 }
+  - { channel: 8, time: 120, value: -23.02739906311035, interp: 1, weight: 0 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 120, value: -197.8862762451172, interp: 0, weight: 0 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 120, value: 142.0, interp: 0, weight: 0 }
+    # TRANSLATE_X
+  - { channel: 13, time: 0, value: -66.24990844726562, interp: 0, weight: 8 }
+# Curve 2
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 120 } # SETDURATION @ 0
+  - { type: 3, delay: 120, params: 0x0 } # OVERRIDE @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 120
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+# Curve 3
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 120 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 2, delay: 120, params: 0x0 } # ANIM @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 120
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ANIM_SPEED
+  - { channel: 9, time: 0, value: 13.476737976074219, interp: 0, weight: 0 }
+    # ANIM_BLEND_SPEED
+  - { channel: 10, time: 28, value: 0.0, interp: 0, weight: 0 }
+# Curve 4
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 120 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 2, delay: 120, params: 0x0 } # ANIM @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 120
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ANIM_SPEED
+  - { channel: 9, time: 0, value: 13.965112686157227, interp: 0, weight: 0 }

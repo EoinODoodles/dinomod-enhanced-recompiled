@@ -94,7 +94,7 @@ static s8 rsPushDirection = 0;
 RECOMP_PATCH int SCTotemStrength_anim_callback(Object* self, Object* overrideObj, AnimObj_Data* animData, s8 arg3) {
     static s32 sPrevYaw;
     /* RECOMP */
-    u8 rButtonTapMode = recomp_get_config_u32("button_tap_modes");
+    u8 rButtonTapMode = configs_GetButtonTapMode();
     u8 doAssistedTaps = 0;
     f32 prevPushDirection;
 

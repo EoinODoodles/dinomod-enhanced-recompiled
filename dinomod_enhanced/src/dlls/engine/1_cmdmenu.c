@@ -1,3 +1,4 @@
+#include "cheats.h"
 #include "configs.h"
 #include "custom_textable_ids.h"
 #include "dll_util.h"
@@ -25,9 +26,10 @@
 #include "sys/objmsg.h"
 #include "sys/print.h"
 #include "dll.h"
-#include "dlls/engine/29_gplay.h"
-#include "dlls/engine/6_amsfx.h"
 #include "dlls/engine/1_cmdmenu.h"
+#include "dlls/engine/6_amsfx.h"
+#include "dlls/engine/21_gametext.h"
+#include "dlls/engine/29_gplay.h"
 #include "dlls/objects/common/sidekick.h"
 #include "dlls/objects/210_player.h"
 
@@ -35,6 +37,7 @@
 #include "recomp/dlls/engine/2_camcontrol_recomp.h"
 
 #include "core/joypad.h"
+#include "core/main.h"
 #include "engine/1_cmdmenu.h"
 #include "engine/59_minimap.h"
 
@@ -506,13 +509,15 @@ RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_fix_game_start_framebuffer_smear() {
 
 #define INVENTORY_TEXT(bankID, lineID) ((bankID << 8) + (lineID & 0xFF))
 
+#define DINOMOD_DEFAULT_INFO_SCROLL_WIDTH 160
+
 /** Inventory item changes (originally by jeebs2kx, LaminGaming, MusicalProgrammer)
   * These data edits change the flags associated with certain inventory items, allowing them to appear/disappear from the inventory at appropriate times.
   * The icons for certain items were also changed, for example making the SpellStones use their activated icon when in that form
   * Items without description strings (or with mismapped ones) were also assigned appropriate text, which already existed in the game but was left unused
   */
 RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits() {
-    dInfoScrollWidthHalf = 80; //Increase info scroll width to 160
+    dInfoScrollWidthHalf = (DINOMOD_DEFAULT_INFO_SCROLL_WIDTH >> 1); //Increase info scroll width to 160
 
     //Gamebit edits (obtaining items)
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_0_NW_GATE_KEY].gamebitObtained = BIT_7CC; //turns this into an activated version of Dragon Rock's SpellStone 
@@ -534,11 +539,12 @@ RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits() {
     dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_23_SPELLSTONE_CRF_ACTIVATED].textureID = TEXTABLE_563; //using the activated SpellStone icon
     dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_24_SPELLSTONE_BWC_ACTIVATED].textureID = TEXTABLE_563; //using the activated SpellStone icon
     dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_25_SPELLSTONE_KP_ACTIVATED].textureID = TEXTABLE_563;  //using the activated SpellStone icon
+    dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_31_PRISON_KEY_CRF].textureID = TEXTABLE_568;  //use the unused Moon Mountain Pass key icon
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_0_NW_GATE_KEY].textureID = TEXTABLE_563; //turns this unused item into an activated version of Dragon Rock's SpellStone
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_32_SPELLSTONE_WC_ACTIVATED].textureID = TEXTABLE_563; //using the activated SpellStone icon
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_33_SPELLSTONE_DR_ACTIVATED].textureID = TEXTABLE_562; //turns this into an inactive version of Dragon Rock's SpellStone
-    dPage11FoodItemsKyte[3].textureID = TEXTABLE_1A5;   //use Blue Mushroom icon instead of Old Apple icon (TODO: update index with enum)
-    dPage12FoodItemsTricky[3].textureID = TEXTABLE_1A5; //use Blue Mushroom icon instead of Old Apple icon (TODO: update index with enum)
+    dPage11FoodItemsKyte[INVENTORY_DINO_FOOD_3_Blue_Mushrooms].textureID = TEXTABLE_1A5;   //use Blue Mushroom icon instead of Old Apple icon
+    dPage12FoodItemsTricky[INVENTORY_DINO_FOOD_3_Blue_Mushrooms].textureID = TEXTABLE_1A5; //use Blue Mushroom icon instead of Old Apple icon
     
     //Description text edits
     dPage0ItemsKrystal[INVENTORY_ITEM_KRYSTAL_19_GOLD_NUGGET_1_GP].textID = INVENTORY_TEXT(1, GAMETEXT_UI_B_03_Shiney_Nugget);
@@ -552,6 +558,15 @@ RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits() {
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_25_WC_SILVER_TOOTH].textID = GAMETEXT_UI_5C_Silver_Trex_Tooth;
     dPage1ItemsSabre[INVENTORY_ITEM_SABRE_26_WC_GOLD_TOOTH].textID = GAMETEXT_UI_5D_Gold_Trex_Tooth;
 
+    //Swap "Eat Now" / "Eat Later" descriptions, so that they depict the mode currently in use (instead of the mode that will be changed to)
+    {
+        dPage2FoodActionsKrystal[INVENTORY_FOOD_ACTION_Setting_Eat_First].textID = GAMETEXT_UI_3A_Eat_First;
+        dPage2FoodActionsKrystal[INVENTORY_FOOD_ACTION_Setting_Eat_Later].textID = GAMETEXT_UI_39_Take_All_Food;
+
+        dPage3FoodActionsSabre[INVENTORY_FOOD_ACTION_Setting_Eat_First].textID = GAMETEXT_UI_3A_Eat_First;
+        dPage3FoodActionsSabre[INVENTORY_FOOD_ACTION_Setting_Eat_Later].textID = GAMETEXT_UI_39_Take_All_Food;
+    }
+
     //Icon patches
     cmdmenu_kiosk_icons_update();
 }
@@ -561,7 +576,7 @@ RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits() {
   */
 static void kiosk_icons_gold_silver_keys() {
     static s8 rsKioskIconsStateKeys = -1;
-    u8 enabled = recomp_get_config_u32("cmdmenu_icons_gold_silver_keys");
+    u8 enabled = configs_GetIconGoldSilverKeys();
 
     //Check if the setting changed
     if (rsKioskIconsStateKeys != enabled) {
@@ -585,7 +600,7 @@ static void kiosk_icons_gold_silver_keys() {
   */
 static void kiosk_icons_firefly() {
     static s8 rsKioskIconsStateFirefly = -1;
-    u8 enabled = recomp_get_config_u32("cmdmenu_icons_firefly");
+    u8 enabled = configs_GetIconFirefly();
 
     //Check if the setting changed
     if (rsKioskIconsStateFirefly != enabled) {
@@ -609,7 +624,7 @@ static void kiosk_icons_firefly() {
   */
 static void custom_icons_energy_eggs() {
     static s8 rsKioskIconsStateEnergyEggs = -1;
-    u8 enabled = recomp_get_config_u32("cmdmenu_icons_energy_eggs");
+    u8 enabled = configs_GetIconEnergyEggs();
 
     //Check if the setting changed
     if (rsKioskIconsStateEnergyEggs != enabled) {
@@ -703,7 +718,7 @@ static void remove_extra_descriptions() {
 RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits_extra_text() {
     dPage6MagicSpells[INVENTORY_SPELL_2_GRENADE].textID = GAMETEXT_UI_15_Fire_Spell; //Change from "Randorn" to "Fire Spell" (unused text that was overwritten with "Grenade") (TODO: restore "Fire Spell" string and append a new string for "Grenade Spell"?)
 
-    useExtraDescriptions = recomp_get_config_u32("lamingaming_extra_description_text");
+    useExtraDescriptions = configs_GetGametextUseExtraDescriptions();
     if (!useExtraDescriptions)
         return;
 
@@ -712,7 +727,7 @@ RECOMP_HOOK_DLL(cmdmenu_ctor) void cmdmenu_ctor_hook_item_edits_extra_text() {
 
 /** Check if extra text user config has changed */
 RECOMP_CALLBACK("*", recomp_on_game_tick_start) void update_extra_text_inventory() {
-    u32 setting = recomp_get_config_u32("lamingaming_extra_description_text");
+    u32 setting = configs_GetGametextUseExtraDescriptions();
     if (useExtraDescriptions == setting){
         return;
     }
@@ -752,7 +767,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
     u8 texIdx;
     static char playerScarabCountText[4] = "   ";
     /* RECOMP */
-    u8 rConfigActiveIconOverlapFix = recomp_get_config_u32("cmdmenu_active_icon_overlap");
+    u8 rConfigActiveIconOverlapFix = configs_GetUIActiveIconOverlapMode();
 
     dl = *gdl;
     temp = viGetCurrentSize();
@@ -905,7 +920,7 @@ static void cmdmenu_draw_player_stats_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtx
 
     //Draw character icon
     {
-        _Bool rConfigFoxIcon = recomp_get_config_u32("cmdmenu_icons_fox");
+        _Bool rConfigFoxIcon = configs_GetIconFox();
         static s16 rsIllusionOpacity;
         static u8 rsIllusionIcon = 0;
         ModelInstance* modelInst;
@@ -1325,7 +1340,7 @@ static int sidekick_meter_handle_full(int isBlueEnergy, s8 energyAdded) {
     #endif
 
     //Only showing Blue energy (ignoring Red energy)
-    if (recomp_get_config_u32("cmdmenu_sidekick_meter_hide_red")) {
+    if (configs_GetSidekickMeterHideRedFood()) {
         if (*statToIncrease >= SIDEKICK_FOOD_MAX) {
             *statToIncrease = SIDEKICK_FOOD_MAX;
 
@@ -1518,8 +1533,8 @@ s8 cmdmenu_new_get_next_category_right(Object* player, Object* sidekick, s8* rMo
 
 /** Map the blocked C-buttons onto the D-pad when using optional D-pad controls */
 static u16 cmdmenu_get_extended_disabled_buttons() {
-    u8 rNewControls = recomp_get_config_u32("cmdmenu_new_controls");  //whether to use new controls
-    u8 rDControls = recomp_get_config_u32("cmdmenu_d_controls") > DPAD_OFF; //whether D-pad can navigate
+    u8 rNewControls = configs_GetInventoryNewControls();  //whether to use new controls
+    u8 rDControls = configs_GetInventoryDPadMode() > DPAD_OFF; //whether D-pad can navigate
     u16 joyButtonMaskExtended = sJoyDisabledButtons;
 
     //@recomp: handle optional new controls
@@ -1566,9 +1581,9 @@ RECOMP_PATCH void cmdmenu_update2(void) {
     s8 autoShowInfoScroll;
     s8 newPageIndex;
     /* RECOMP */
-    u8 rNewControls = recomp_get_config_u32("cmdmenu_new_controls"); //whether to use new controls
-    u8 rDControls = recomp_get_config_u32("cmdmenu_d_controls") > DPAD_OFF; //whether D-pad can navigate
-    u8 rCControls = recomp_get_config_u32("cmdmenu_d_controls") < DPAD_ON_CBUTTONS_OFF; //whether C-buttons can navigate
+    u8 rNewControls = configs_GetInventoryNewControls(); //whether to use new controls
+    u8 rDControls = configs_GetInventoryDPadMode() > DPAD_OFF; //whether D-pad can navigate
+    u8 rCControls = configs_GetInventoryDPadMode() < DPAD_ON_CBUTTONS_OFF; //whether C-buttons can navigate
     u16 rAllMenuOpenButtons = (rCControls * ALL_MENUOPEN_C_BUTTONS) | (rDControls * ALL_MENUOPEN_D_PAD);
     u16 rMenuLeft = (rCControls * L_CBUTTONS) | (rDControls * L_JPAD);
     u16 rMenuDown = (rCControls * D_CBUTTONS) | (rDControls * D_JPAD);
@@ -1843,9 +1858,9 @@ RECOMP_PATCH void cmdmenu_tick_inventory_page(void) {
     s32 usedGamebit;
     s8 isSidekickMenu;
     /* RECOMP */
-    u8 rNewControls = recomp_get_config_u32("cmdmenu_new_controls"); //whether to use new controls
-    u8 rDControls = recomp_get_config_u32("cmdmenu_d_controls") > DPAD_OFF; //whether D-pad can navigate
-    u8 rCControls = recomp_get_config_u32("cmdmenu_d_controls") < DPAD_ON_CBUTTONS_OFF; //whether C-buttons can navigate
+    u8 rNewControls = configs_GetInventoryNewControls(); //whether to use new controls
+    u8 rDControls = configs_GetInventoryDPadMode() > DPAD_OFF; //whether D-pad can navigate
+    u8 rCControls = configs_GetInventoryDPadMode() < DPAD_ON_CBUTTONS_OFF; //whether C-buttons can navigate
     u16 rAllMenuOpenButtons = (rCControls * ALL_MENUOPEN_C_BUTTONS) | (rDControls * ALL_MENUOPEN_D_PAD);
     u16 rMenuLeft = (rCControls * L_CBUTTONS) | (rDControls * L_JPAD);
     u16 rMenuDown = (rCControls * D_CBUTTONS) | (rDControls * D_JPAD);
@@ -2180,9 +2195,9 @@ RECOMP_PATCH void cmdmenu_set_buttons_override(s32 buttonsOverride) {
         sJoyPressedButtonsOverride = 0;
         sShouldOverrideJoypadButtons = FALSE;
     } else {
-        // rNewControls = recomp_get_config_u32("cmdmenu_new_controls");
-        rDControls = recomp_get_config_u32("cmdmenu_d_controls") > DPAD_OFF;
-        rCControls = recomp_get_config_u32("cmdmenu_d_controls") < DPAD_ON_CBUTTONS_OFF;
+        // rNewControls = configs_GetInventoryNewControls();
+        rDControls = configs_GetInventoryDPadMode() > DPAD_OFF;
+        rCControls = configs_GetInventoryDPadMode() < DPAD_ON_CBUTTONS_OFF;
 
         //@recomp: handle optional D-pad and/or C-button controls
         if (rDControls && rCControls) {
@@ -2244,8 +2259,8 @@ RECOMP_PATCH void cmdmenu_set_buttons_override(s32 buttonsOverride) {
 RECOMP_PATCH void cmdmenu_inventory_animate(void) {
     /* RECOMP */
     u8 rMoveActiveIcons; 
-    u8 rConfigActiveIconOverlapFix = recomp_get_config_u32("cmdmenu_active_icon_overlap");
-    u8 rConfigActiveIconFade = recomp_get_config_u32("cmdmenu_active_icon_fade");
+    u8 rConfigActiveIconOverlapFix = configs_GetUIActiveIconOverlapMode();
+    u8 rConfigActiveIconFade = configs_GetUIActiveIconFade();
 
     //Animate moving to the next inventory item (@recomp: down or up, instead of just down)
     if (sInventoryScrollOffset > 0) {
@@ -2782,6 +2797,18 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     #ifndef DINOMOD_ROM_PATCH
     gEXSetScissorAlign((*gdl)++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     #endif
+
+    // @recomp: print cheat
+    cheatMessagePrint(gdl, mtxs, vtxs);
+}
+
+/* Update cheat message too */
+RECOMP_PATCH s32 cmdmenu_update1(void) {
+    cmdmenu_tick_inventory_page();
+    cmdmenu_tick_tutorial_textbox();
+    cheatMessageTick();
+
+    return 0;
 }
 
 /**
@@ -2808,6 +2835,10 @@ static _Bool cmdmenu_is_important_sequence_playing() {
     return FALSE;
 }
 
+static u8 rsInventoryAlignLeft = FALSE;
+static s16 rsInventoryOffsetX = 0;
+static s16 rsInventoryOffsetY = 0;
+
 /** 
   * - Fix sidekick icon appearing half-way through fading out from exiting Items/Spells page.
   * - Optionally move/fade the Active Spell/Sidekick Command icons to avoid clashing with the inventory.
@@ -2833,8 +2864,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     s32 rNumSlotsPaddedAtTop = 0;
     s32 rTotalOccupiedSlots = 0;
     s32 rActiveIconCoord = 0;
-    u8 rConfigActiveIconOverlapFix = recomp_get_config_u32("cmdmenu_active_icon_overlap");
-    u8 rConfigActiveIconFade = recomp_get_config_u32("cmdmenu_active_icon_fade");
+    u8 rConfigActiveIconOverlapFix = configs_GetUIActiveIconOverlapMode();
+    u8 rConfigActiveIconFade = configs_GetUIActiveIconFade();
 
     player = objGetPlayer();
     offsetX = 0;
@@ -3002,14 +3033,19 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
 
     // @recomp: Align command menu to right
     #ifndef DINOMOD_ROM_PATCH
-    gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
-    gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0, -SCREEN_WIDTH * 4, 0);
+    if (rsInventoryAlignLeft) {
+        gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_LEFT, 0, 0);
+        gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_LEFT, 0, 0, 0, 0);
+    } else {
+        gEXSetViewportAlign((*gdl)++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
+        gEXSetRectAlign((*gdl)++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0, -SCREEN_WIDTH * 4, 0);
+    }
     #endif
 
     //@recomp: draw top of the scroll here instead (so icons draw on top of it)
     #ifdef FIX_ICON_STRIP_PIXEL_ROW_ONE
     if (dInventoryOpacity != 0) {
-        rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
+        rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top], rsInventoryOffsetX + MENU_SCROLL_X, rsInventoryOffsetY + MENU_SCROLL_TOP_Y, 255, 255, 255, dInventoryOpacity);
     }
     #endif
 
@@ -3129,8 +3165,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                             rcpTileWrite(
                                 gdl, 
                                 sTempIcon, 
-                                MENU_ITEM_X - 1, 
-                                stripY + ((i - rNumSlotsPaddedAtTop) * MENU_ITEM_HEIGHT) + sInventoryScrollOffset, 
+                                rsInventoryOffsetX + MENU_ITEM_X - 1, 
+                                rsInventoryOffsetY + stripY + ((i - rNumSlotsPaddedAtTop) * MENU_ITEM_HEIGHT) + sInventoryScrollOffset, 
                                 0xFF, 0xFF, 0xFF, iconOpacity
                             );
                         } else {
@@ -3138,8 +3174,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                             rcpTileWrite(
                                 gdl, 
                                 sTempIcon, 
-                                MENU_ITEM_X, 
-                                stripY + ((i - rNumSlotsPaddedAtTop) * MENU_ITEM_HEIGHT) + sInventoryScrollOffset, 
+                                rsInventoryOffsetX + MENU_ITEM_X, 
+                                rsInventoryOffsetY + stripY + ((i - rNumSlotsPaddedAtTop) * MENU_ITEM_HEIGHT) + sInventoryScrollOffset, 
                                 0xFF, 0xFF, 0xFF, iconOpacity
                             );
                         }
@@ -3151,8 +3187,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                             rcpTileWrite(
                                 gdl, 
                                 sTempIcon, 
-                                MENU_ITEM_QUANTITY_X, 
-                                stripY + ((i - rNumSlotsPaddedAtTop) * MENU_ITEM_HEIGHT) + sInventoryScrollOffset + MENU_ITEM_QUANTITY_OFFSET_Y, 
+                                rsInventoryOffsetX + MENU_ITEM_QUANTITY_X, 
+                                rsInventoryOffsetY + stripY + ((i - rNumSlotsPaddedAtTop) * MENU_ITEM_HEIGHT) + sInventoryScrollOffset + MENU_ITEM_QUANTITY_OFFSET_Y, 
                                 0xFF, 0xFF, 0xFF, iconOpacity //@recomp: use opacity
                             );
                         }
@@ -3164,8 +3200,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                         rcpTileWrite(
                             gdl, 
                             sTextureTiles[CMDMENU_TEX_00_Scroll_BG], 
-                            MENU_ITEM_X - 1, 
-                            stripY + ((i - rNumSlotsPaddedAtTop) * MENU_ITEM_HEIGHT) + sInventoryScrollOffset, 
+                            rsInventoryOffsetX + MENU_ITEM_X - 1, 
+                            rsInventoryOffsetY + stripY + ((i - rNumSlotsPaddedAtTop) * MENU_ITEM_HEIGHT) + sInventoryScrollOffset, 
                             0xFF, 0xFF, 0xFF, dInventoryOpacity //@recomp: use opacity
                         );
                     } else {
@@ -3173,8 +3209,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
                         rcpTileWrite(
                             gdl, 
                             sTextureTiles[CMDMENU_TEX_00_Scroll_BG], 
-                            MENU_ITEM_X, 
-                            stripY + ((i - rNumSlotsPaddedAtTop) * MENU_ITEM_HEIGHT) + sInventoryScrollOffset, 
+                            rsInventoryOffsetX + MENU_ITEM_X, 
+                            rsInventoryOffsetY + stripY + ((i - rNumSlotsPaddedAtTop) * MENU_ITEM_HEIGHT) + sInventoryScrollOffset, 
                             0xFF, 0xFF, 0xFF, dInventoryOpacity //@recomp: use opacity
                         );
                     }
@@ -3188,10 +3224,10 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             }
 
             //Draw a selection square around the currently highlighted item
-            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_31_Highlight_Corner_Top_Left],     ITEM_HL_X1, (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y1, 255, 255, 255, dInventoryOpacity);
-            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_32_Highlight_Corner_Top_Right],    ITEM_HL_X2, (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y1, 255, 255, 255, dInventoryOpacity);
-            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_33_Highlight_Corner_Bottom_Left],  ITEM_HL_X1, (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y2, 255, 255, 255, dInventoryOpacity);
-            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_34_Highlight_Corner_Bottom_Right], ITEM_HL_X2, (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y2, 255, 255, 255, dInventoryOpacity);
+            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_31_Highlight_Corner_Top_Left],     rsInventoryOffsetX + ITEM_HL_X1, rsInventoryOffsetY + (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y1, 255, 255, 255, dInventoryOpacity);
+            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_32_Highlight_Corner_Top_Right],    rsInventoryOffsetX + ITEM_HL_X2, rsInventoryOffsetY + (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y1, 255, 255, 255, dInventoryOpacity);
+            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_33_Highlight_Corner_Bottom_Left],  rsInventoryOffsetX + ITEM_HL_X1, rsInventoryOffsetY + (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y2, 255, 255, 255, dInventoryOpacity);
+            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_34_Highlight_Corner_Bottom_Right], rsInventoryOffsetX + ITEM_HL_X2, rsInventoryOffsetY + (sInventoryUnrollY - dInventoryUnrollMax) + ITEM_HL_Y2, 255, 255, 255, dInventoryOpacity);
             
             //Restore full-screen scissor
             cmdmenu_gfx_set_screen_scissor(gdl);
@@ -3201,15 +3237,15 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
         //@recomp: draw bottom of the scroll here instead
         if (dInventoryOpacity != 0) {
             rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], 
-                MENU_SCROLL_X, 
-                MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY - 1, //@recomp: 1px higher
+                rsInventoryOffsetX + MENU_SCROLL_X, 
+                rsInventoryOffsetY + MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY - 1, //@recomp: 1px higher
                 255, 255, 255, dInventoryOpacity);
         }
         #else
         //@recomp: Draw top & bottom of the scroll here instead
         if (dInventoryOpacity != 0) {
-            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    MENU_SCROLL_X, MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
-            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], MENU_SCROLL_X, MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY, 255, 255, 255, dInventoryOpacity);
+            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_02_Scroll_Top],    rsInventoryOffsetX + MENU_SCROLL_X, rsInventoryOffsetY + MENU_SCROLL_TOP_Y,                        255, 255, 255, dInventoryOpacity);
+            rcpTileWrite(gdl, sTextureTiles[CMDMENU_TEX_01_Scroll_Bottom], rsInventoryOffsetX + MENU_SCROLL_X, rsInventoryOffsetY + MENU_SCROLL_BOTTOM_Y + sInventoryUnrollY, 255, 255, 255, dInventoryOpacity);
         }
         #endif
 
@@ -3272,8 +3308,8 @@ static void cmdmenu_draw_main_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
             rcpScreenFullWrite(
                 gdl, 
                 dInventoryPageIcon, 
-                PAGE_ICON_X + offsetX,
-                PAGE_ICON_Y + offsetY,
+                rsInventoryOffsetX + PAGE_ICON_X + offsetX,
+                rsInventoryOffsetY + PAGE_ICON_Y + offsetY,
                 0, 
                 0, 
                 iconOpacity, 
@@ -3312,10 +3348,10 @@ RECOMP_PATCH void cmdmenu_gfx_set_scroll_scissor(Gfx **gdl) {
     } else {
         //Standard aspect
         gDPSetScissor((*gdl)++, G_SC_NON_INTERLACE, 
-            MENU_ITEM_X, 
-            MENU_ITEM_Y - 1, //@recomp: move up by 1 pixel, to fix 1px row at top of strip where icons disappear
-            MENU_ITEM_X + MENU_ITEM_WIDTH, 
-            sInventoryUnrollY + MENU_ITEM_Y + 1 //@recomp: move up by 1 pixel
+            rsInventoryOffsetX + MENU_ITEM_X, 
+            rsInventoryOffsetY + MENU_ITEM_Y - 1, //@recomp: move up by 1 pixel, to fix 1px row at top of strip where icons disappear
+            rsInventoryOffsetX + MENU_ITEM_X + MENU_ITEM_WIDTH, 
+            rsInventoryOffsetY + sInventoryUnrollY + MENU_ITEM_Y + 1 //@recomp: move up by 1 pixel
         );
     }
 }
@@ -3420,7 +3456,7 @@ static int cmdmenu_should_sidekick_meter_appear_over_food_items(Object* sidekick
         return FALSE;
     }
     
-    if (recomp_get_config_u32("cmdmenu_sidekick_meter_show_over_food") == FALSE) {
+    if (configs_GetSidekickMeterShowOverFood() == FALSE) {
         return FALSE;
     }
         
@@ -3617,7 +3653,7 @@ RECOMP_PATCH void cmdmenu_draw_c_buttons_and_sidekick_meter(Gfx** gdl, Mtx** mtx
             dinoStats = gDLL_29_Gplay->vtbl->get_sidekick_stats();
             if (dinoStats) {
                 //Option to hide red food for now (since there's no way to increase it through the inventory)
-                if (recomp_get_config_u32("cmdmenu_sidekick_meter_hide_red")) {
+                if (configs_GetSidekickMeterHideRedFood()) {
                     sStats.sidekickRedFood = 0;
                 } else {
                     sStats.sidekickRedFood = dinoStats->redFood;
@@ -3715,7 +3751,7 @@ RECOMP_PATCH void cmdmenu_info_show(s16 itemGamebit, s32 displayDuration, s32 it
     }
 
     //@recomp: if the texture is the same as the one the pop-up is already showing, just keep it visible
-    if (recomp_get_config_u32("cmdmenu_info_popup_fix") &&
+    if (configs_GetItemInfoPopupFixVisuals() &&
         (sInfoPopup.texture == tex) && (sInfoPopup.timer > 0)
     ) {
         sInfoPopup.timer = displayDuration;
@@ -3880,7 +3916,7 @@ void cmdmenu_info_draw_custom(Gfx** gdl, CmdmenuInfoPopup* box) {
   */
 RECOMP_PATCH void cmdmenu_info_draw(Gfx** gdl, CmdmenuInfoPopup* box) {
     //@recomp: use the fixed-up info pop-up instead, if wanted
-    if (recomp_get_config_u32("cmdmenu_info_popup_fix")) {
+    if (configs_GetItemInfoPopupFixVisuals()) {
         return cmdmenu_info_draw_custom(gdl, box);
     }
 
@@ -4007,4 +4043,132 @@ RECOMP_PATCH void cmdmenu_energy_bar_free(void) {
     texFreeTexture(enbar->emptybarTex[0].tex);
     mmFree(sEnergyBar);
     sEnergyBar = NULL;
+}
+
+/*  Various new functions for the foodbag demo sequence 
+    TODO: turn these into extra DLL exports eventually, if possible! */
+
+void cmdmenu_InventoryOpen(void) {
+    switch (dNextPageCategory) {
+    case CMDMENU_CATEGORY_3_Items:
+        dll_amSfx->Play(NULL, SOUND_5EC_Cmdmenu_OpenBag, MAX_VOLUME, NULL, NULL, 0, NULL);
+        break;
+    case CMDMENU_CATEGORY_2_Sidekick:
+        dll_amSfx->Play(NULL, SOUND_5F0_Cmdmenu_OpenSidekickMenu, MAX_VOLUME, NULL, NULL, 0, NULL);
+        break;
+    case CMDMENU_CATEGORY_4_Spells:
+        dll_amSfx->Play(NULL, SOUND_5ED_Cmdmenu_OpenSpellBook, MAX_VOLUME, NULL, NULL, 0, NULL);
+        break;
+    default:
+        dll_amSfx->Play(NULL, SOUND_28D_Cmdmenu_OpenBag_HighPitch, MAX_VOLUME, NULL, NULL, 0, NULL);
+        break;
+    }
+    cmdmenu_open_inventory();
+}
+
+void cmdmenu_InventoryOpenItems(void) {
+    Object* player = objGetPlayer();
+    u32 pageID;
+    if (player == NULL) {
+        return;
+    }
+    pageID = player->id == OBJ_Krystal ? CMDMENU_PAGE_0_Items_Krystal : CMDMENU_PAGE_1_Items_Sabre;
+    if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageID].items, FALSE)) {
+        dNextPageCategory = CMDMENU_CATEGORY_3_Items;
+        sInventoryPageID = pageID;
+    }
+}
+
+void cmdmenu_InventoryOpenFoodbagActions(void) {
+    Object* player = objGetPlayer();
+    u32 pageID;
+    if (player == NULL) {
+        return;
+    }
+    pageID = player->id == OBJ_Krystal ? CMDMENU_PAGE_2_Food_Actions_Krystal : CMDMENU_PAGE_3_Food_Actions_Sabre;
+    if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageID].items, FALSE)) {
+        dNextPageCategory = CMDMENU_CATEGORY_3_Items;
+        sInventoryPageID = pageID;
+    }
+}
+
+void cmdmenu_InventoryOpenFoodbag(void) {
+    Object* player = objGetPlayer();
+    u32 pageID;
+    if (player == NULL) {
+        return;
+    }
+    pageID = player->id == OBJ_Krystal ? CMDMENU_PAGE_4_Food_Krystal: CMDMENU_PAGE_5_Food_Sabre;
+    if (cmdmenu_page_count_shown_items(dCmdmenuPages[pageID].items, FALSE)) {
+        dNextPageCategory = CMDMENU_CATEGORY_3_Items;
+        sInventoryPageID = pageID;
+    }
+}
+
+void cmdmenu_InventoryClose(void) {
+    dll_amSfx->Play(NULL, SOUND_28C_Cmdmenu_Close, MAX_VOLUME, NULL, NULL, 0, NULL);
+    cmdmenu_close_inventory();
+}
+
+void cmdmenu_InventoryCloseInstantly(void) {
+    cmdmenu_close_inventory();
+    dInventoryOpacity = 0;
+}
+
+void cmdmenu_InventoryHideSidekickMeterInstantly(void) {
+    dOpacitySidekickMeter = 0;
+}
+
+void cmdmenu_InventoryLeftAlign(void) {
+    rsInventoryAlignLeft = TRUE;
+    rsInventoryOffsetX = -236;
+}
+
+void cmdmenu_InventorySetVerticalOffset(s16 offset) {
+    rsInventoryOffsetY = offset;
+}
+
+void cmdmenu_InventoryResetOffset(void) {
+    rsInventoryAlignLeft = FALSE;
+    rsInventoryOffsetX = 0;
+    rsInventoryOffsetY = 0;
+}
+
+void cmdmenu_InventoryMoveDown(void) {
+    if (cmdmenu_is_inventory_open() && (sInventoryScrollOffset < 8) && (dInventoryIsScrolling == FALSE)) {
+        dll_amSfx->Play(NULL, SOUND_28A_Cmdmenu_MoveSelection, MAX_VOLUME, NULL, NULL, 0, NULL);
+        dInventoryMovesQueued++;
+        
+        if (sInventoryScrollOffset != 0) {
+            dInventoryIsScrolling = TRUE;
+        }
+    }
+}
+
+s32 cmdmenu_GetSelectedItemGamebit(void) {
+    return sMenuItemGamebits[sMenuSelectedItemIdx];
+}
+
+s16 cmdmenu_GetSelectedItemTextLineIdx(void) {
+    return dSelectedItemTextID;
+}
+
+_Bool cmdmenu_GetInventoryOpen(void) {
+    return (dInventoryShow != 0) && (dInventoryOpacity != 0);
+}
+
+void cmdmenu_InfoScrollSetWidthOverride(s16 width) {
+    dInfoScrollWidthHalf = width >> 1;
+}
+
+void cmdmenu_InfoScrollResetWidth(void) {
+    dInfoScrollWidthHalf = DINOMOD_DEFAULT_INFO_SCROLL_WIDTH >> 1;
+}
+
+void cmdmenu_InfoScrollSetHeightOverride(s16 height) {
+    dInfoScrollUnrollMax = height;
+}
+
+void cmdmenu_InfoScrollResetHeight(void) {
+    dInfoScrollUnrollMax = INFO_SCROLL_HEIGHT;
 }

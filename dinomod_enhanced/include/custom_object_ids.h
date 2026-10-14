@@ -24,3 +24,5 @@ enum CustomObjID {
 
 extern s32 OBJ_SHbarrel;
 extern s32 OBJ_SHbarrelcreator;
+extern s32 OBJ_WCDialProjectileSwitch;
+extern s32 OBJ_LODAnimator;

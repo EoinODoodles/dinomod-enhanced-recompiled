@@ -2,6 +2,7 @@
 #include "player_util.h"
 
 #include "game/objects/object_id.h"
+#include "sys/map_enums.h"
 #include "sys/objects.h"
 #include "dll.h"
 #include "dlls/engine/18_objfsa.h"
@@ -9,6 +10,8 @@
 #include "dlls/objects/210_player.h"
 
 #include "recomp/dlls/objects/210_player_recomp.h"
+
+#define DEBUG_PRIORITISE_STATIC_CAMERA
 
 extern s16 _data_98[];
 extern f32 _data_6F8;
@@ -89,4 +92,52 @@ void playerUtil_clear_collected_object(Object* player, Object* collected) {
         objData->unk708 = NULL;
         objData->unk8A9 = FALSE;
     }
+}
+
+/** 
+  * Checks whether an important cutscene is currently playing (one that takes over player control). 
+  * Returns TRUE if: 
+  * - The player isn't in a sequence but their control is locked.
+  * - The player is in a sequence.
+  */
+_Bool playerUtil_isImportantSequencePlaying(void) {
+    Object* player = objGetPlayer();
+    if (!player) {
+        return FALSE;
+    }
+
+    //Check if the player Object isn't involved in a sequence
+    if ((player->stateFlags & OBJSTATE_IN_SEQ) == FALSE) {
+
+        //If the player control is unlocked, assume there isn't an important sequence playing
+        Player_Data* playerData = player->data;
+        if (playerData && !(playerData->flags & 0x200000)) {
+            return FALSE;
+        }
+    }
+    
+    //Otherwise, assume an important sequence is playing
+    return TRUE;
+}
+
+/**
+  * Checks if CamStatic is currently active, for giving it priority over CamClimb and CamNormal.
+  *
+  * TODO: Only applied in Discovery Falls for now until further testing is done.
+  */
+_Bool playerUtil_doesStaticCameraHavePriority(Object* player) {
+    s32 currentCameraDLLID = gDLL_2_Camera->vtbl->get_dll_ID();
+    s16 currentMapID = mapWorldXZToMapID(player->globalPosition.x, player->globalPosition.z);
+
+    //If the active camera DLL isn't CamStatic, continue on with the camera change
+    if (gDLL_2_Camera->vtbl->get_dll_ID() != DLL_ID_CAMSTATIC) {
+        return FALSE;
+    }
+
+    //If the current mapID isn't Discovery Falls, continue on with the camera change (TODO: check if this is safe to use elsewhere!)
+    if (player && mapWorldXZToMapID(player->globalPosition.x, player->globalPosition.z) != MAP_DISCOVERY_FALLS) {
+        return FALSE;
+    }
+
+    return TRUE;
 }

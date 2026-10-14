@@ -9,26 +9,23 @@
 #include "sys/objects.h"
 #include "sys/objtype.h"
 #include "sys/print.h"
-#include "dlls/objects/793_BWLog.h"
+
+#include "objects/419_DFdockpoint.h"
+#include "objects/793_BWLog.h"
 
 #include "recomp/dlls/objects/419_DFdockpoint_recomp.h"
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s8 yaw;
-/*19*/ s8 spawnLogDisabled;
-} DFdockpoint_Setup;
 
 #define LOG_LOAD_DISTANCE 50*8
 #define LOG_UNLOAD_DISTANCE (LOG_LOAD_DISTANCE + 40)
 
 // Fix a bug where the dockpoint could create a rapidly loading/unloading log
-RECOMP_PATCH void DFdockpoint_control(Object *self) {
-    DFdockpoint_Setup *setup;
-    BWLog_Setup *logsetup;
+RECOMP_PATCH void DFdockpoint_control(Object* self) {
+    DFdockpoint_Setup* setup;
+    BWlog_Setup* logsetup;
     s32 logCount;
     /* RECOMP */
     Object* player;
+    Object* log;
 
     setup = (DFdockpoint_Setup*)self->setup;
 
@@ -53,21 +50,31 @@ RECOMP_PATCH void DFdockpoint_control(Object *self) {
         return;
     }
 
-    logsetup = objAllocSetup(sizeof(BWLog_Setup), OBJ_BWLog);
-    logsetup->base.quarterSize = sizeof(BWLog_Setup)/4;
-    logsetup->base.loadFlags = OBJSETUP_LOAD_MAIN;
-    logsetup->base.loadDistance = LOG_LOAD_DISTANCE/8;
-    logsetup->base.fadeFlags = OBJSETUP_FADE_MAIN;
-    logsetup->base.fadeDistance = 45;
-    logsetup->base.x = self->srt.transl.x;
-    logsetup->base.y = self->srt.transl.y;
-    logsetup->base.z = self->srt.transl.z;
-    logsetup->yaw = setup->yaw;
+    logsetup = objAllocSetup(sizeof(BWlog_Setup), OBJ_BWLog);
+    logsetup->setup.quarterSize = sizeof(BWlog_Setup)/4;
+    logsetup->setup.loadFlags = OBJSETUP_LOAD_MAIN;
+    logsetup->setup.loadDistance = LOG_LOAD_DISTANCE/8;
+    logsetup->setup.fadeFlags = OBJSETUP_FADE_MAIN;
+    logsetup->setup.fadeDistance = 45;
+    logsetup->setup.x = self->srt.transl.x;
+    logsetup->setup.y = self->srt.transl.y;
+    logsetup->setup.z = self->srt.transl.z;
+    logsetup->startRotation = setup->yaw;
 
-    objSetupObject((ObjSetup*)logsetup, 
+    //@recomp: store the dockpoint's options on the log's Setup struct, for reference
+    logsetup->dockpointOptions = setup->options;
+
+    //@recomp: store the log's pointer to a var
+    log = objSetupObject((ObjSetup*)logsetup, 
         OBJINIT_STANDALONE | OBJINIT_FLAG4, 
-        self->mapID, 
+        //@recomp: add an option for the log not to inherit the dockpoint's mapID
+        (setup->options & DFdockpoint_OPTION_1_Create_Log_Without_MapID) ? -1 : self->mapID, 
         -1, 
         self->parent
     );
+
+    //@recomp: fade in the log
+    if (log) {
+        log->opacity = 1;
+    }
 }

@@ -6,4 +6,6 @@
 #include "recomputils.h"
 #include "sys/objanim.h"
 
+#define GET_SEQID(sequenceIdBitfield) ((sequenceIdBitfield >> 4) & 0x7FF)
+
 int object_modanim_debugger(Object* obj);

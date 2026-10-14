@@ -83,8 +83,14 @@ enum CustomSoundID {
     SOUND_AF1_WG_Shabunga_Chat_3 = 0xAF1,  //Shabunga: "WHERE IS... THE SPELLSTONE?"
     SOUND_AF2_WG_Shabunga_Chat_4 = 0xAF2,  //Shabunga: "Hurry! Take this to the volcano..."
     
+    SOUND_B5A_Wooden_Pulley_LOOP = 0xB5B,       //Same as 0x776, but zero min volume
+    SOUND_B5B_Mechanism_Unlocking_Low = 0xB5B,  //Same sample as 0x1CB, but pitched way down
+
     SOUND_BC0_DIM_Tent_Burn_LOOP = 0xBC0,        //Same as 0x50B, but with falloff increased
     SOUND_BC1_DIM_Cannon_Rotate_LOOP = 0xBC1,    //Same as 0x1D4, but with falloff increased
     SOUND_BC2_SharpClaw_Laugh = 0xBC2,      //Same as 0x8D2, but with falloff increased
-    SOUND_BC3_SharpClaw_Nyeh = 0xBC3        //Same as 0xB26, but with falloff increased
+    SOUND_BC3_SharpClaw_Nyeh = 0xBC3,       //Same as 0xB26, but with falloff increased
+    SOUND_BC4_Waterfall_Small = 0xBC4,      //Same as 0x4, but with falloff
+    SOUND_BC5_Waterfall_Medium = 0xBC5,     //Same as 0x987, but with smaller falloff
+    SOUND_BC6_Waterfall_Large = 0xBC6       //Same as 0xBC5, but with doubled falloff
 };

@@ -9,6 +9,12 @@
 #define FSA_NEXTSTATE_SYNC(state) (state + 1)
 #define FSA_NEXTSTATE_ASYNC(state) (-state)
 
+#define VOLUME_PERCENT(percent) ((u32)(((percent * MAX_VOLUME) + (MAX_VOLUME/2)) / 100))
+
+#define GAMEBIT_SPECIFIED(gamebit) (gamebit > NO_GAMEBIT + 1)
+#define GAMEBIT_SPECIFIED_AND_SET(gamebit) (GAMEBIT_SPECIFIED(gamebit) && mainGetBits(gamebit))
+#define GAMEBIT_SPECIFIED_AND_NOT_SET(gamebit) (GAMEBIT_SPECIFIED(gamebit) && mainGetBits(gamebit) == FALSE)
+
 f32 dp_angle_to_degrees(s16 dpAngle);
 s32 objindex_to_object_id(s32 objIndex);
 ObjSetup *maps_find_generic_group_endpoint(MapHeader *header, ObjSetup *mapsObjSetups);
@@ -22,7 +28,7 @@ typedef struct {
     u8 animatorID;
     u8 removeWhenSet;
     u8 isBlocksAnimator;
-    u8 blocksFade;
+    u8 affectVisibility;
 } HitAnimator_Config;
 
-u8 hitanimator_configure_mode_flags(_Bool removeWhenSet, _Bool isBlocksAnimator, _Bool fadeBlocks);
+u8 hitAnimator_configureModeFlags(_Bool removeWhenSet, _Bool isBlocksAnimator, _Bool affectShapeVisibility);

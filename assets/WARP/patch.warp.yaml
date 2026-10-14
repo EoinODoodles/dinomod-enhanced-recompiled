@@ -58,11 +58,21 @@
   y: -101.94973754882812
   z: 17352.728515625
   layer: 0
+
+# Walled City: Inside Boss Room
 - index: 90
-  x: -13100.4013671875
+  x: -12698.0
   y: 0.0
-  z: -10152.5234375
+  z: -9689.614
   layer: 0
+
+# Walled City: Outside Boss Room
+- index: 91
+  x: -8000.0
+  y: -1197.79
+  z: -7193.2
+  layer: 0
+
 - index: 93
   x: 4481.59130859375
   y: 973.0

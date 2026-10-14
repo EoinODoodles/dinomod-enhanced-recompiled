@@ -1,3 +1,4 @@
+#include "configs.h"
 #include "modding.h"
 #include "recomputils.h"
 #include "recompconfig.h"
@@ -58,7 +59,7 @@ RECOMP_PATCH void FXEmit_control(Object* self) {
     s32 _pad;
     FXEmit_Setup* setup;
     Object* player;
-    int hideFlashes = recomp_get_config_u32("fxemit_hide_default");
+    int hideFlashes = configs_GetHideDefaultFXEmits();
 
     objdata = (FXEmit_Data*)self->data;
     setup = (FXEmit_Setup*)self->setup;

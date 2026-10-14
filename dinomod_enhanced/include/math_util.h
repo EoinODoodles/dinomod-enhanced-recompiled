@@ -14,6 +14,13 @@
 //Convert degrees into the 8-bit angle format Dinosaur Planet commonly uses for its objSetups
 #define DEGREES_TO_ANGLE8(degrees) ((u8)(degrees*((f32)0x100/360.0f) + 0.5f))
 
+//Convert degrees into the 16-bit angle format Dinosaur Planet commonly uses for calculations
+#define DEGREES_TO_ANGLE16(degrees) ((u16)((s32)((((s32)degrees * M_360_DEGREES * 2) + 1) / 720)))
+
+#define UINT_SAFE_ADD(value, added, ceiling) (MIN((u32)(value) + (added), (ceiling)))
+#define UINT_SAFE_SUBTRACT(value, subtracted) (((value) < (subtracted)) ? 0 : ((value) - (subtracted)))
+#define UINT_SAFE_SUBTRACT_WITH_FLOOR(value, subtracted, floor) (MAX(UINT_SAFE_SUBTRACT(value, subtracted), (floor)))
+
 extern f32 sqrtf(f32 num);
 extern f32 sinf(f32 angle);
 f32 cosf(f32 angle);
@@ -32,6 +39,9 @@ f32 ease_in_out_quad(f32 tValue);
 f32 ease_in_out_cubic(f32 tValue);
 f32 ease_in_out_quart(f32 tValue);
 
+f32 dampedSmoothToFrom(f32 from, f32 to, f32* vel, f32 smoothTime);
+s16 dampedSmoothAngleToFrom(s16 from, s16 to, s16* vel, f32 smoothTime);
+
 void rotate_point_by_angle_2D(f32 x, f32 y, f32* ox, f32* oy, s16 theta);
 
 void vec3_cross(Vec3f* vA, Vec3f* vB, Vec3f* vO);
@@ -49,3 +59,6 @@ void matrix_multiply(MtxF* mA, MtxF* mB, MtxF* mO);
 void matrix_diPrintf(MtxF* mtx);
 void matrix_recomp_printf(MtxF* mtx);
 void rotation_from_matrix(MtxF* mtx, s16* yaw, s16* pitch, s16* roll, f32 normalisingScale);
+
+void lerpColoursRGB(f32 tValue, u8* colourA, u8* colourB, u8* oColour);
+void colourHSVtoRGB(f32 h, f32 s, f32 v, u8* oR, u8* oG, u8* oB);

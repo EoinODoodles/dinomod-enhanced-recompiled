@@ -1,5 +1,4 @@
-#include "dbgui.h"
-
+#include "configs.h"
 #include "math_util.h"
 #include "modding.h"
 #include "player_util.h"
@@ -72,7 +71,7 @@ typedef enum {
 } SidekickToyStates;
 
 static void handle_config_change(Object* self) {
-    u8 zoomies_fix_enabled = recomp_get_config_u32("sidekick_toy_zoomies");
+    u8 zoomies_fix_enabled = configs_GetSidekickToyPreventZoomies();
     SidekickToy_Data_Extended* objData = self->data;
 
     if (!objData) {

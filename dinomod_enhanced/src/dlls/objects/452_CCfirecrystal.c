@@ -1,7 +1,7 @@
-#include "recompconfig.h"
-#include "recomputils.h"
 #include "configs.h"
 #include "modding.h"
+#include "recompconfig.h"
+#include "recomputils.h"
 
 #include "game/objects/interaction_arrow.h"
 #include "game/objects/object.h"
@@ -72,7 +72,7 @@ static void fire_crystal_handle_popup(Object* self, CCfirecrystal_Setup* objSetu
     #endif
 
     //Do nothing if the mod config isn't enabled
-    if (recomp_get_config_u32("cmdmenu_info_popup_expand") == FALSE) {
+    if (configs_GetItemInfoPopupMode() == POPUP_CONFIG_DEFAULT) {
         return;
     }
 

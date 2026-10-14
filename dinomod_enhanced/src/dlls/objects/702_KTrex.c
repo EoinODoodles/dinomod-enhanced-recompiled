@@ -1,14 +1,20 @@
+#include "configs.h"
 #include "modding.h"
 #include "recompconfig.h"
+
+#include "objects/779_WCLevelControl.h"
 
 #include "dlls/engine/18_objfsa.h"
 #include "dlls/engine/28_screen_fade.h"
 #include "dlls/engine/33_BaddieControl.h"
+#include "dlls/objects/779_WCLevelControl.h"
 #include "game/gamebits.h"
+#include "macros.h"
 #include "sys/generic_stack.h"
 #include "sys/gfx/animseq.h"
 #include "sys/gfx/model.h"
 #include "sys/gfx/modgfx.h"
+#include "sys/joypad.h"
 #include "sys/main.h"
 #include "sys/map_enums.h"
 #include "sys/objanim.h"
@@ -42,15 +48,6 @@
  * - Switch to unused "intense" fight music while boss is charging (or preparing a charge).
  * - Don't let boss do a 180 if the player is in view.
  */
-
-enum KTRecompMode {
-    KT_RECOMP_VANILLA,
-    KT_RECOMP_ENHANCED
-};
-
-static int dinomod_kt_enhanced(void) {
-    return recomp_get_config_u32("kt_mode") != KT_RECOMP_VANILLA;
-}
 
 #include "recomp/dlls/objects/702_KTrex_recomp.h"
 
@@ -253,7 +250,7 @@ static int dinomod_kt_can_see_player(void) {
 RECOMP_HOOK_DLL(dll_702_setup) void dll_702_setup_hook(Object* self, KTrex_ObjSetup* setup, s32 arg2) {
     dinomodInitHack = FALSE;
 
-    if (dinomod_kt_enhanced()) {
+    if (configs_GetKTEnhanced()) {
         // @recomp: (enhanced) Difficulty adjustments
         setup->speeds[2] = 4.5f; // speed up full charge a little (4 -> 4.5)
         setup->vulnerableTime[1] = 500; // 6 -> 5 swipes
@@ -371,7 +368,7 @@ RECOMP_PATCH s32 dll_702_anim_state_2(Object* self, ObjFSA_Data* fsa, f32 update
 
 RECOMP_PATCH s32 dll_702_anim_state_5(Object* self, ObjFSA_Data* fsa, f32 updateRate) {
     if (fsa->enteredAnimState) {
-        if (!dinomod_kt_enhanced()) {
+        if (!configs_GetKTEnhanced()) {
             objAnimSet(self, sChargeEndModAnims[sKTData->anger], 0.0f, 0);
         } else {
             // @recomp: (enhanced) Use unused roar that actually has a speak event
@@ -405,8 +402,8 @@ RECOMP_PATCH s32 dll_702_logic_state_1(Object* self, ObjFSA_Data* fsa, f32 updat
 
         if (sKTData->timer <= 0.0f) {
             mainSetBits(BIT_564, 1);
-            gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, 4, 1);
-            gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, 5, 1);
+            gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, WC_ObjGroup4_Boss_Lobby, TRUE);
+            gDLL_29_Gplay->vtbl->set_obj_group_status(MAP_WALLED_CITY, WC_ObjGroup5_Central_Temple, TRUE);
         }
     }
     
@@ -425,7 +422,7 @@ RECOMP_PATCH s32 dll_702_logic_state_2(Object* self, ObjFSA_Data* fsa, f32 updat
         sKTData->flags &= ~KTFLAG_ROLLED_CHANCE;
         fsa->speed = objsetup->speeds[sKTData->anger] / 1000.0f;
         // @recomp: (enhanced) Reset music when returning to normal walk
-        if (dinomod_kt_enhanced() && dinomodInitHack) {
+        if (configs_GetKTEnhanced() && dinomodInitHack) {
             gDLL_5_AMSEQ2->vtbl->set(self, 0xD8, 0, 0, 0);
         }
     }
@@ -451,7 +448,7 @@ RECOMP_PATCH s32 dll_702_logic_state_2(Object* self, ObjFSA_Data* fsa, f32 updat
                 sKTData->chargeCounter = 2;
                 dll_702_push_state(KT_LSTATE_5_CHARGE);
                 sKTData->roarType = 1;
-                if (dinomod_kt_enhanced()) {
+                if (configs_GetKTEnhanced()) {
                     // @recomp: (enhanced) Kick in more intense version of music for charge
                     gDLL_5_AMSEQ2->vtbl->set(self, 0xD9, 0, 0, 0);
                 }
@@ -459,7 +456,7 @@ RECOMP_PATCH s32 dll_702_logic_state_2(Object* self, ObjFSA_Data* fsa, f32 updat
             }
             if (mathRnd(0, 100) <= objsetup->reverseChance[chanceIdx]) {
                 // @recomp: (enhanced) Don't turn around in front of the player!
-                if (!dinomod_kt_enhanced() || !dinomod_kt_can_see_player()) {
+                if (!configs_GetKTEnhanced() || !dinomod_kt_can_see_player()) {
                     sKTData->roarType = 0;
                     dll_702_push_state(KT_LSTATE_11_REVERSE);
                     return KT_LSTATE_4_ROAR + 1;
@@ -478,7 +475,7 @@ RECOMP_PATCH s32 dll_702_logic_state_2(Object* self, ObjFSA_Data* fsa, f32 updat
         sKTData->chargeCounter = 1;
         dll_702_push_state(KT_LSTATE_5_CHARGE);
         sKTData->roarType = 1;
-        if (dinomod_kt_enhanced()) {
+        if (configs_GetKTEnhanced()) {
             // @recomp: (enhanced) Kick in more intense version of music for charge
             gDLL_5_AMSEQ2->vtbl->set(self, 0xD9, 0, 0, 0);
         }
@@ -513,7 +510,7 @@ RECOMP_PATCH s32 dll_702_logic_state_5(Object* self, ObjFSA_Data* fsa, f32 updat
         } else {
             dll_702_push_state(KT_LSTATE_2_WALK);
             // @recomp: (enhanced) Skip charge end state for normal charges. Makes the fight flow better (SFA has this change)
-            if (!dinomod_kt_enhanced()) {
+            if (!configs_GetKTEnhanced()) {
                 dll_702_push_state(KT_LSTATE_6_CHARGE_END);
             }
         }
@@ -528,7 +525,7 @@ RECOMP_PATCH s32 dll_702_logic_state_5(Object* self, ObjFSA_Data* fsa, f32 updat
 RECOMP_PATCH s32 dll_702_logic_state_6(Object* self, ObjFSA_Data* fsa, f32 updateRate) {
     if (fsa->enteredLogicState) {
         gDLL_18_objfsa->vtbl->set_anim_state(self, fsa, KT_ASTATE_5_CHARGE_END);
-        if (dinomod_kt_enhanced()) {
+        if (configs_GetKTEnhanced()) {
             // @recomp: (enhanced) Reset music after charge
             gDLL_5_AMSEQ2->vtbl->set(self, 0xD8, 0, 0, 0);
         }
@@ -577,13 +574,13 @@ RECOMP_PATCH s32 dll_702_logic_state_8(Object* self, ObjFSA_Data* fsa, f32 updat
                 sKTData->health -= 1;
             }
             if (sKTData->health <= 0) {
-                if (dinomod_kt_enhanced()) {
+                if (configs_GetKTEnhanced()) {
                     // @recomp: (enhanced) Reset music to start music for defeat cutscene
                     gDLL_5_AMSEQ2->vtbl->set(self, 0xD5, 0, 0, 0);
                 }
                 return KT_LSTATE_1_DEFEATED + 1;
             }
-            if (dinomod_kt_enhanced()) {
+            if (configs_GetKTEnhanced()) {
                 // @recomp: (enhanced) Reset music after taking damage (as he calmly stands up)
                 gDLL_5_AMSEQ2->vtbl->set(self, 0xD8, 0, 0, 0);
             }
@@ -610,7 +607,7 @@ RECOMP_PATCH s32 dll_702_logic_state_9(Object* self, ObjFSA_Data* fsa, f32 updat
         sKTData->standingUpSegment = KTFLAG_GET_SEGMENT(ktflags);
         sKTData->timer = 300.0f;
         gDLL_2_Camera->vtbl->change_mode(2, 0);
-        if (dinomod_kt_enhanced()) {
+        if (configs_GetKTEnhanced()) {
             // @recomp: (enhanced) Kick in more intense version of music for charge
             gDLL_5_AMSEQ2->vtbl->set(self, 0xD9, 0, 0, 0);
         }
@@ -644,7 +641,7 @@ RECOMP_PATCH s32 dll_702_logic_state_10(Object* self, ObjFSA_Data* fsa, f32 upda
             ((!reversed && sKTData->segmentPos >= 0.75f) || (reversed && sKTData->segmentPos <= 0.25f))) {
         if (sKTData->flags & KTFLAG_DAMAGED) {
             sKTData->fightProgress += 1;
-            if (dinomod_kt_enhanced() && dinomod_kt_can_see_player()) {
+            if (configs_GetKTEnhanced() && dinomod_kt_can_see_player()) {
                 // @recomp: (enhanced) If player is in view, don't turn around
                 dll_702_push_state(KT_LSTATE_2_WALK);
             } else {
@@ -663,3 +660,15 @@ RECOMP_PATCH s32 dll_702_logic_state_10(Object* self, ObjFSA_Data* fsa, f32 upda
     }
     return 0;
 }
+
+// #define SKIP_BOSS_WITH_L
+
+#ifdef SKIP_BOSS_WITH_L
+RECOMP_HOOK_DLL(dll_702_control) void skipTRex(Object* self) {
+    ObjFSA_Data* fsa = self->data;
+    
+    if (joyGetButtons(0) & L_TRIG) {
+        fsa->logicState = KT_LSTATE_1_DEFEATED;
+    }
+}
+#endif

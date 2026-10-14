@@ -1,95 +1,33 @@
+#include "configs.h"
+#include "custom_gamebits.h"
+#include "math_util.h"
 #include "modding.h"
 #include "recompconfig.h"
 
 #include "dlls/objects/common/vehicle.h"
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/418_DFriverflow.h"
-#include "dlls/objects/419_DFdockpoint.h"
 #include "dlls/engine/27.h"
+#include "game/objects/hitbox.h"
+#include "game/objects/object.h"
+#include "macros.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
+#include "sys/map.h"
+#include "sys/map_enums.h"
 #include "sys/math.h"
 #include "sys/objects.h"
+#include "sys/objprint.h"
 #include "sys/objtype.h"
 #include "sys/print.h"
 #include "dll.h"
 
-enum RecompLogAButtonMode {
-    RECOMP_LOG_ROWING_TAP,
-    RECOMP_LOG_ROWING_HOLD
-};
-
-enum RecompLogCanRoll {
-    RECOMP_LOG_ROLL_DISABLED,
-    RECOMP_LOG_ROLL_ENABLED
-};
-
-static int dinomod_log_can_hold_a(void) {
-    return recomp_get_config_u32("log_a_button") == RECOMP_LOG_ROWING_HOLD;
-}
-
-static int dinomod_log_can_roll(void) {
-    return recomp_get_config_u32("log_rolling") == RECOMP_LOG_ROLL_ENABLED;
-}
+#include "objects/419_DFdockpoint.h"
+#include "objects/793_BWlog.h"
 
 #include "recomp/dlls/objects/793_BWlog_recomp.h"
 
-typedef enum {
-    BWLog_STATE_0_Main,
-    BWLog_STATE_1_Roll_Left,
-    BWLog_STATE_2_Roll_Right,
-    BWLog_STATE_3_Placeholder1,
-    BWLog_STATE_4_Placeholder2
-} BWlog_States;
-
-
-typedef struct {
-/*000*/ DLL27_Data collider;
-/*260*/ Vec3f endPoints[2];
-/*278*/ Vec3f velocity[2];
-/*290*/ f32 powerZ[2]; // forward/backward
-/*298*/ f32 powerX[2]; // lateral
-/*2A0*/ Vec4f rollCurve; //Roll speed spline
-/*2B0*/ f32 rollSpeed; // wobble (smoothed)
-/*2B4*/ f32 targetWaterYOffset;
-/*2B8*/ f32 paddleTimer; // move timer (when > 0, move forward)
-/*2BC*/ f32 rollTimer;
-/*2C0*/ f32 rollAcceleration; // wobble
-/*2C4*/ s32 _unk2C4;
-/*2C8*/ f32 rollCurveProgress;
-/*2CC*/ f32 tValueRoll;
-/*2D0*/ f32 flowX[2]; //DFriverflow objects' combined push strength in X (values for both ends of log)
-/*2D8*/ f32 flowY[2]; //DFriverflow objects' combined push strength in Y (values for both ends of log)
-/*2E0*/ f32 flowZ[2]; //DFriverflow objects' combined push strength in Z (values for both ends of log)
-/*2E8*/ u8 _unk2E8[0x2F8 - 0x2E8];
-/*2F8*/ f32 joyATimer;
-/*2FC*/ f32 paddlePower;
-/*300*/ f32 unk300[2];
-/*308*/ f32 soundPitch;
-/*30C*/ f32 soundVolume;
-/*310*/ f32 riverflowMagnitude;
-/*314*/ u32 soundHandle; //Controls rushing water sound loop
-/*318*/ s32 rollAngle; // when rolling, the current roll rotation
-/*31C*/ u16 wiggleYOffsets[2]; // y offset for each end point to pitch the log up/down to simulate small waves
-/*320*/ u16 joyPressed; // controller buttons pressed
-/*322*/ s16 joyStickX; // joystick x
-/*324*/ s16 joyStickY; // joystick y
-/*326*/ s16 soundPitchPhase;
-/*328*/ s16 soundVolumePhase;
-/*32A*/ u8 state; // roll state (0 = not rolling, 1 = left, 2 = right)
-/*32B*/ u8 playerVehicleAnim;
-/*32C*/ u8 joyARecentTap; // a pressed (turns off automatically after a time or if a is pressed again)
-/*32D*/ u8 unk32D; // bitfield of which side of the log is touching terrain (0x1 = front, 0x2 = back, 0x3 = both)
-/*32E*/ u8 mountState; // see VehicleMountState
-/*32F*/ u8 _unk32F[0x338 - 0x32F];
-/*338*/ Object *dockpoint;
-} BWlog_Data;
-
-// @recomp: Custom setup
-typedef struct {
-    ObjSetup setup;
-    s8 startRotation;
-} BWlog_Setup;
+extern s32 mapShouldObjUnload(Object* obj);
 
 extern Vec3f dLocalEndpointCoords[2];
 extern f32 dCollisionRadii[2];
@@ -105,9 +43,27 @@ extern void BWlog_findRiverflows(Object* self, BWlog_Data* objdata);
 extern void BWlog_handleSounds(Object* arg0, BWlog_Data* arg1);
 extern void BWlog_handleFx(Object* self, BWlog_Data* objdata);
 
-// @recomp: Copy of DFlog's anim callback
-static int recomp_BWlog_animcallback(Object *self, Object *a1, AnimObj_Data *a2, s8 a3) {
+static void BWlog_handleUnloadWithoutMapID(Object* self, BWlog_Data* objData);
+static void BWlog_handlePhysicsReset(Object* self);
+static _Bool BWlog_areBothEndsOverWater(Object* self, BWlog_Data* objData);
+static void BWlog_handleFade(Object* self, BWlog_Data* objData);
+static void BWlog_handleFxWeaponRipples(Object* self, BWlog_Data* objData);
+static void BWlog_handleFxEndpointRipples(Object* self, BWlog_Data* objData);
+static void BWlog_checkMapFX(Object* self, BWlog_Data* objData);
+
+/* @recomp: Copy of DFlog's anim callback, edited to handle custom objSeq messages too */
+static int recomp_BWlog_animcallback(Object* self, Object* animObj, AnimObj_Data* animData, s8 prevCallbackValue) {
     func_800267A4(self);
+
+    for (u8 i = 0; i < animData->messageCount; i++) {
+        switch (animData->messages[i]) {
+        case 1:
+            // @recomp: handle resetting the log's motion
+            BWlog_handlePhysicsReset(self);
+            break;
+        }
+    }
+
     return 0;
 }
 
@@ -155,6 +111,9 @@ RECOMP_PATCH void BWlog_obj_Setup(Object *self, BWlog_Setup *setup, s32 arg2) {
 
     // @recomp: Support start yaw via setup
     self->srt.yaw = setup->startRotation << 8;
+
+    // @recomp: Check whether to use DFlog effects 
+    BWlog_checkMapFX(self, objdata);
 }
 
 // This is yoinked and modified from dll_27_func_1D60. Looks at the log collisions and rotates the log
@@ -407,6 +366,18 @@ RECOMP_PATCH void BWlog_obj_Control(Object* self) {
     
     BWlog_handleSounds(self, objdata);
     BWlog_handleFx(self, objdata);
+
+    //@recomp: handle unloading the log when it intentionally has no mapID
+    BWlog_handleUnloadWithoutMapID(self, objdata);
+
+    //@recomp: optionally use DFlog-style effects
+    BWlog_checkMapFX(self, objdata);
+    BWlog_handleFade(self, objdata);
+    // BWlog_handleFxWeaponRipples(self, objdata);
+    BWlog_handleFxEndpointRipples(self, objdata);
+
+    //@recomp: store previous yaw (to get turn speed)
+    objdata->prevYaw = self->srt.yaw;
 }
 
 RECOMP_PATCH void BWlog_handleWater(Object* self, BWlog_Data* objdata, s32 side) {
@@ -527,6 +498,50 @@ RECOMP_PATCH void BWlog_handleWater(Object* self, BWlog_Data* objdata, s32 side)
     }
 }
 
+/* For the roll control mode config: checks whether the current control mode currently allows rolling. */
+static _Bool BWlog_checkRollControlCondition(Object* self, BWlog_Data* objdata) {
+    u8 logRollMode = configs_LogRollMode();
+
+    switch (logRollMode) {
+    case RECOMP_LOG_ROLL_ENABLED:
+        return TRUE;
+    case RECOMP_LOG_ROLL_DISABLED:
+        return FALSE;
+    case RECOMP_LOG_ROLL_WHEN_TILTING_BACK:
+        if (objdata->joyStickY <= -35) { //-70 when fully down
+            return TRUE;
+        }
+        break;
+    }
+
+    return FALSE;
+}
+
+/* For the roll cooldown config: checks whether the cooldown has finished (or returns TRUE if there's no cooldown). */
+static _Bool BWlog_checkRollCooldownCondition(Object* self, BWlog_Data* objdata) {
+    u8 logRollCooldown = configs_LogRollCooldown();
+
+    switch (logRollCooldown) {
+    case RECOMP_LOG_COOLDOWN_NONE:
+        return TRUE;
+    case RECOMP_LOG_COOLDOWN_QUICK:
+        if (objdata->state == BWLog_STATE_0_Main) {
+            return TRUE;
+        } else if (objdata->state == BWLog_STATE_1_Roll_Left || objdata->state == BWLog_STATE_2_Roll_Right) {
+            if (objdata->rollTimer > 28.0f) { //48 when complete
+                return TRUE;
+            }
+        }
+        break;
+    case RECOMP_LOG_COOLDOWN_FULL:
+        if (objdata->state == BWLog_STATE_0_Main) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
 RECOMP_PATCH void BWlog_handleControlsAButton(Object* self, BWlog_Data* objdata) {
     s32 doubleTappedA;
 
@@ -557,7 +572,10 @@ RECOMP_PATCH void BWlog_handleControlsAButton(Object* self, BWlog_Data* objdata)
     }
 
     // @recomp: Disable rolling (unless renabled via an option)
-    if (doubleTappedA && dinomod_log_can_roll()) {
+    if (doubleTappedA && 
+        BWlog_checkRollControlCondition(self, objdata) && //Check whether current roll control mode currently allows rolling
+        BWlog_checkRollCooldownCondition(self, objdata)   //Check whether the rolling cooldown has finished (or there's no cooldown)
+    ) {
         //Roll when double-tapping A
         if (objdata->joyStickX > 20) {
             BWlog_startRoll(self, objdata, FALSE);
@@ -569,7 +587,7 @@ RECOMP_PATCH void BWlog_handleControlsAButton(Object* self, BWlog_Data* objdata)
             objdata->state = BWLog_STATE_1_Roll_Left;
         }
       // @recomp: If enabled, allow the A button to be held instead of requiring repeated tapping
-    } else if ((objdata->joyPressed & A_BUTTON) || (dinomod_log_can_hold_a() && joyGetButtons(0) & A_BUTTON)) {
+    } else if ((objdata->joyPressed & A_BUTTON) || (configs_LogCanHoldA() && joyGetButtons(0) & A_BUTTON)) {
         //Paddle with single A-press
         objdata->paddleTimer = 30.0f;
     }
@@ -738,32 +756,428 @@ RECOMP_PATCH void BWlog_findRiverflows(Object* self, BWlog_Data* objdata) {
     }
 }
 
-/** Get off log in the direction of the dockpoint (helps avoid hopping off into deep water). */
-RECOMP_PATCH s32 BWlog_vehicle_GetDismountSide(Object *self) {
-    SRT sp88;
-    MtxF sp48;
-    f32 sp44;
-    f32 sp40;
-    f32 sp3C;
-    f32 temp;
-    f32 temp2;
+/** Get off log in the direction of the dockpoint (helps avoid hopping off into deep water). 
+  * Add an optional dismount direction position offset too, to help design specific dismount directions per DFdockpoint.
+  */
+RECOMP_PATCH VehicleMountSide BWlog_vehicle_GetDismountSide(Object *self) {
+    DFdockpoint_Setup* dockpointSetup;
+    Vec3f dismountTarget;
+    SRT logSideSRT;
+    MtxF logSideMtx;
+    Vec3f u;
+    f32 logProjected;
+    f32 dismountTargetProjected;
     BWlog_Data* objdata = self->data;
 
     if (objdata->dockpoint != NULL) {
-        sp88.yaw = self->srt.yaw + 0x4000;
-        sp88.pitch = self->srt.pitch;
-        sp88.roll = self->srt.roll;
-        sp88.transl.x = 0.0f;
-        sp88.transl.y = 0.0f;
-        sp88.transl.z = 0.0f;
-        sp88.scale = 1.0f;
-        mathYprXyzMtx(&sp48, &sp88);
-        mathMtxXFMF(&sp48, 0.0f, 0.0f, 1.0f, &sp44, &sp40, &sp3C);
-        temp2 = -((self->srt.transl.x * sp44) + (sp40 * self->srt.transl.y) + (sp3C * self->srt.transl.z));
-        temp = (objdata->dockpoint->srt.transl.x * sp44) + (sp40 * objdata->dockpoint->srt.transl.y) + (sp3C * objdata->dockpoint->srt.transl.z) + temp2;
-        if (temp < 0) {
-            return 1;
+        //Get the dockpoint's dismount point
+        dismountTarget.x = objdata->dockpoint->srt.transl.x;
+        dismountTarget.y = objdata->dockpoint->srt.transl.y;
+        dismountTarget.z = objdata->dockpoint->srt.transl.z;
+        dockpointSetup = (DFdockpoint_Setup*)objdata->dockpoint->setup;
+        if (dockpointSetup) {
+            //Add a position offset to dismount towards
+            dismountTarget.x += dockpointSetup->dismountOffsetX * 8;
+            dismountTarget.z += dockpointSetup->dismountOffsetZ * 8;
+        }
+
+        //Get the log's SRT, rotated in yaw by 90 degrees
+        logSideSRT.yaw = self->srt.yaw + M_90_DEGREES;
+        logSideSRT.pitch = self->srt.pitch;
+        logSideSRT.roll = self->srt.roll;
+        logSideSRT.transl.x = 0.0f;
+        logSideSRT.transl.y = 0.0f;
+        logSideSRT.transl.z = 0.0f;
+        logSideSRT.scale = 1.0f;
+
+        //Get a transformation matrix from the SRT
+        mathYprXyzMtx(&logSideMtx, &logSideSRT);
+
+        //Transform a unit vector (pointing forward in Z) by the matrix, to get the log's lateral objectSpace unit vector
+        mathMtxXFMF(&logSideMtx, 0.0f, 0.0f, 1.0f, &u.x, &u.y, &u.z);
+
+        //Project the log's position onto the axis
+        logProjected = (u.x * self->srt.transl.x) + (u.y * self->srt.transl.y) + (u.z * self->srt.transl.z);
+
+        //Project the dockpoint's dismount target position onto the axis 
+        dismountTargetProjected = (u.x * dismountTarget.x) + (u.y * dismountTarget.y) + (u.z * dismountTarget.z);
+        
+        //Compare with the log's projected position
+        if (dismountTargetProjected < logProjected) {
+            return VEHICLE_SIDE_Left;
         }
     }
-    return 2;
+
+    return VEHICLE_SIDE_Right;
+}
+
+/* Optionally avoid setting a mapID when dismounting the log */
+RECOMP_PATCH void BWlog_vehicle_SetMountState(Object* self, s32 state) {
+    Object* player = objGetPlayer();
+    BWlog_Data* objdata = (BWlog_Data*)self->data;
+    /* RECOMP */
+    BWlog_Setup* objSetup;
+
+    if (state != VEHICLE_NoRider) {
+        objClearMapID(self);
+        ((DLL_210_Player*)player->dll)->vtbl->func28(player, 1);
+        gDLL_2_Camera->vtbl->change_mode(0, 0x2B);
+    } else {
+        objSetup = (BWlog_Setup*)self->setup;
+        //@recomp: check if mapID shouldn't be stored
+        if (objSetup && (objSetup->dockpointOptions & DFdockpoint_OPTION_1_Create_Log_Without_MapID) == FALSE) {
+            objInferMapID(self);
+        }
+        ((DLL_210_Player*)player->dll)->vtbl->func29(player, 1);
+        gDLL_2_Camera->vtbl->change_mode(0, 1);
+    }
+
+    objdata->mountState = state;
+}
+
+/** Handles unloading the log when its mapID is -1 (the usual OBJLOAD_MAIN unload only runs when the mapID is defined)
+  * 
+  * Needed when a dockpoint intentionally spawns a log without a mapID, because the dockpoint was on the boundary between
+  * two levels and the log shouldn't suddenly disappear when stepping into the opposite level - e.g. for the dockpoint
+  * between Discovery Falls and Moon Mountain Pass.) 
+  */
+static void BWlog_handleUnloadWithoutMapID(Object* self, BWlog_Data* objData) {
+    Object* player;
+
+    //Return if the log already handles its own unloading
+    if (self->mapID != -1 || (self->setup && self->setup->loadFlags == OBJSETUP_LOAD_MANUAL)) {
+        return;
+    }
+
+    //Return if the log is currently the player's vehicle
+    if (objData == NULL || objData->mountState != VEHICLE_NoRider) {
+        return;
+    }
+    player = objGetPlayer();
+    if (player && ((DLL_210_Player*)player->dll)->vtbl->get_vehicle(player) == self) {
+        return;
+    }
+
+    //Do the usual objUnload check
+    if (mapShouldObjUnload(self)) {
+        objFreeObject(self);
+    }
+}
+
+/** 
+  * Checks whether to use DFlog's unique water effects (BWlog didn't have them!)
+  *
+  * Per mapID for now, so no calm water ripples in BWC's rapids for example.
+  *
+  * TODO: maybe control this purely through TriggerPlane gamebit setups, so you could toggle the 
+  * calm water effects when entering/exiting places like BWC/DB's rapids. That way you could still
+  * have the calm water effects in the main bay part of Diamond Bay, or in the still waters around 
+  * BWC's Tree of Life for example.
+  */
+static void BWlog_checkMapFX(Object* self, BWlog_Data* objData) {
+    s16 mapID;
+    u8 useFX;
+
+    //Force off by gamebit
+    if (mainGetBits(DINOMOD_BIT_971_BWLog_In_Choppy_Waters)) {
+        objData->useDFLogFX = FALSE;
+        return;
+    }
+
+    //Stagger map checks
+    if (objData->mapCheckInterval > 0) {
+        objData->mapCheckInterval = UINT_SAFE_SUBTRACT(objData->mapCheckInterval, gUpdateRate);
+        return;
+    }
+    objData->mapCheckInterval = 120;
+    mapID = mapWorldXZToMapID(self->globalPosition.x, self->globalPosition.z);
+
+    switch (mapID) {
+    case MAP_BLACKWATER_CANYON:
+    case MAP_DIAMOND_BAY: 
+        //TODO: revise these with TriggerPlane gamebit setups, so the effect only switches off in the rapids
+        useFX = FALSE;
+        break;
+    case MAP_DISCOVERY_FALLS:
+    case MAP_CAPE_CLAW:
+    default:
+        useFX = TRUE;
+        break;
+    }
+
+    objData->useDFLogFX = useFX;
+}
+
+/** 
+  * Brought in from DFlog, with minor tweaks.
+  *
+  * TODO: Not used currently, since it looks a bit visually intense/chaotic.
+  * The intention might be for the ripple to appear during the paddle animation as well, 
+  * when the opposite end of the weapon is in the water? Revisit sometime!
+  */
+PRAGMA_IGNORE_PUSH("-Wunused")
+static void BWlog_handleFxWeaponRipples(Object* self, BWlog_Data* objData) {
+    f32 spDC;
+    f32 spD8;
+    f32 spD4;
+    f32 spD0;
+    f32 sp9C;
+    f32 scale;
+    Vec3f spAC;
+    Vec3f spA0;
+    SRT fxTransform;
+    s32 i = 0;
+
+    if (objData->useDFLogFX == FALSE) { //TODO: use separate/related config
+        return;
+    }
+
+    Object* weapon;
+    Object* player = objGetPlayer();
+    if (player == NULL) {
+        return;
+    }
+
+    weapon = player->linkedObject;
+    if (weapon == NULL) {
+        return;
+    }
+
+    //TODO: should be water height at weapon's point of contact with the water I think?
+    //Just using log's own Y for now
+    spD0 = self->srt.transl.y; 
+    
+    ((DLL_Unknown*)weapon->dll)->vtbl->func[17].withThreeArgs((s32)weapon, (s32)&spAC, (s32)&spA0);
+    sp9C = (spAC.y - spD0) / (spAC.y - spA0.y);
+    if ((sp9C >= 0.0f) && (sp9C <= 1.0f) && (objData->paddleFXCooldown == 0)) {
+        objData->paddleFXCooldown = 6;
+
+        fxTransform.transl.x = ((spA0.x - spAC.x) * sp9C) + spAC.x;
+        fxTransform.transl.y = spD0;
+        fxTransform.transl.z = ((spA0.z - spAC.z) * sp9C) + spAC.z;
+        scale = sqrtf(SQ(objData->velocity[i].x) + SQ(objData->velocity[i].z)) * 5.0f;
+        if (scale < 0.0f) {
+            fxTransform.scale = 0.0f;
+        } else {
+            fxTransform.scale = (scale > 1.0f) ? 1.0f : scale;
+        }
+        fxTransform.yaw = (mathAtan2f(objData->endPoints[0].x - objData->endPoints[1].x, objData->endPoints[0].z - objData->endPoints[1].z) + M_180_DEGREES) & 0xFFFF & 0xFFFF;
+        fxTransform.transl.x -= self->srt.transl.x;
+        fxTransform.transl.y -= self->srt.transl.y;
+        fxTransform.transl.z -= self->srt.transl.z;
+        gDLL_17_partfx->vtbl->spawn(self, PARTICLE_3C4, &fxTransform, PARTFXFLAG_NONE, -1, NULL);
+        gDLL_17_partfx->vtbl->spawn(self, PARTICLE_3C5, &fxTransform, PARTFXFLAG_NONE, -1, NULL);
+    } else if (objData->paddleFXCooldown) {
+        objData->paddleFXCooldown = UINT_SAFE_SUBTRACT(objData->paddleFXCooldown, gUpdateRate);
+    }
+}
+PRAGMA_IGNORE_POP()
+
+/* Brought in from DFlog, with minor tweaks */
+static void BWlog_handleFxEndpointRipples(Object* self, BWlog_Data* objData) {
+    SRT fxTransform;
+    s32 yawSpeed;
+    u8 cooldown;
+    u8 i;
+    /* RECOMP */
+    f32 tValueTurn;
+    f32 maxScale;
+    u8 rippleMode = configs_GetLogEndpointFXMode();
+
+    //@recomp: Check if the config is switched off
+    if (rippleMode == RECOMP_LOG_RIPPLES_NONE) {
+        return;
+    }
+
+    //@recomp: Check if the ripples are temporarily switched off (e.g. in a level with choppy waters, which wouldn't suit the effect)
+    if (objData->useDFLogFX == FALSE) {
+        return;
+    }
+
+    //@recomp: no effects if the log isn't in still water (roughly) or is going over a waterfall
+    if (-DEGREES_TO_ANGLE16(10) > self->srt.pitch || self->srt.pitch > DEGREES_TO_ANGLE16(10)) {
+        return;
+    }
+
+    //@recomp: no effects if the water height couldn't be found at one of the sides (passing over waterfalls)
+    if (BWlog_areBothEndsOverWater(self, objData) == FALSE) {
+        return;
+    }
+
+    //@recomp: use a timer instead of random selection
+    if (objData->endPointFXCooldown) {
+        objData->endPointFXCooldown = UINT_SAFE_SUBTRACT(objData->endPointFXCooldown, gUpdateRate);
+        if (objData->endPointFXCooldown) {
+            return;
+        }
+    }
+    
+    //@recomp: get turn speed
+    {
+        yawSpeed = self->srt.yaw - objData->prevYaw;
+        CIRCLE_WRAP(yawSpeed);
+        if (yawSpeed < 0) {
+            yawSpeed = -yawSpeed;
+        }
+        if (gUpdateRate) {
+            yawSpeed /= gUpdateRate;
+        }
+
+        tValueTurn = (f32)yawSpeed/200.0f;
+        if (tValueTurn > 1.0f) {
+            tValueTurn = 1.0f;
+        } else if (tValueTurn < 0.0f) {
+            tValueTurn = 0.0f;
+        }
+    }
+
+    //@recomp: mode-specific params
+    if (rippleMode == RECOMP_LOG_RIPPLES_REDUCED) {
+        maxScale = 0.6f; //reduce max scale so the effect isn't as "busy"
+    } else {
+        maxScale = 0.95f;
+    }
+
+    for (i = 0; i < 2; i++) {
+        if (objData->velocity[i].x ||  objData->velocity[i].y || objData->velocity[i].z) {
+            // if (mathRnd(0, 5) == 0) { //@recomp: don't use random selection
+                fxTransform.transl.x = objData->endPoints[i].x;
+                fxTransform.scale = sqrtf(SQ(objData->velocity[i].x) + SQ(objData->velocity[i].z));
+                if (fxTransform.scale > 0.1f) {
+                    fxTransform.transl.y = self->srt.transl.y;
+                    fxTransform.transl.z = objData->endPoints[i].z;
+                    fxTransform.yaw = (mathAtan2f(objData->velocity[i].x, objData->velocity[i].z) + M_180_DEGREES) & 0xFFFF & 0xFFFF;
+                    fxTransform.transl.x -= self->srt.transl.x;
+                    fxTransform.transl.y -= self->srt.transl.y;
+                    fxTransform.transl.z -= self->srt.transl.z;
+
+                    //@recomp: Reduce particle size when barely turning (so there aren't very large ripples at the front/back when paddling dead ahead)
+                    if (rippleMode == RECOMP_LOG_RIPPLES_REDUCED) {
+                        fxTransform.scale = lerp_float(tValueTurn, 0.1f, fxTransform.scale);
+                    }
+
+                    //@recomp: cap scale
+                    if (fxTransform.scale > maxScale) {
+                        fxTransform.scale = maxScale;
+                    } else if (fxTransform.scale < 0.1f) {
+                        //Don't create a particle if it's going to be below the original minimum scale
+                        continue;
+                    }
+
+                    gDLL_17_partfx->vtbl->spawn(self, PARTICLE_3C4, &fxTransform, PARTFXFLAG_NONE, -1, NULL);
+
+                    //@recomp: use a cooldown for the particles, with a shorter cooldown when turning rapidly
+                    if (yawSpeed > DEGREES_TO_ANGLE16(1)) {
+                        cooldown = 6;
+                    } else {
+                        cooldown = lerp_float(tValueTurn, 15, 6);
+                    }
+
+                    if (objData->endPointFXCooldown == 0 || cooldown < objData->endPointFXCooldown) {
+                        objData->endPointFXCooldown = cooldown;
+                    }
+                }
+            // }
+        }
+    }
+}
+
+/* Checks whether both ends of the log are at their average water height when in still water */
+static _Bool BWlog_areBothEndsOverWater(Object* self, BWlog_Data* objData) {
+    for (u8 i = 0; i < 2; i++) {
+        //Check if water couldn't be found
+        if (objData->unk300[i] == 0.0f) {
+            return FALSE;
+        }
+
+        //Check if side isn't roughly at surface level
+        if (4.0f > objData->unk300[i]) {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+/** 
+  * Fades the log in when it's spawned by a DFdockpoint,
+  * and fades the shadow out when passing over waterfalls 
+  */
+static void BWlog_handleFade(Object* self, BWlog_Data* objData) {
+    u8 inWater = TRUE;
+    u8 rate;
+    u32 opacity;
+
+    //Fade in (after DFdockpoint spawn)
+    if (self->opacity < OBJECT_OPACITY_MAX && self->opacity > 0) {
+        opacity = self->opacity + 8 * gUpdateRate;
+        if (opacity > OBJECT_OPACITY_MAX) {
+            opacity = OBJECT_OPACITY_MAX;
+        }
+        self->opacity = opacity;
+    }
+
+    //Fade out shadow when in midair 
+    //TODO: this just hides the shadow when it's at 0 alpha (which is still helpful), 
+    // but the in-between fade itself isn't respected in newshadows
+    if (self->shadow) {
+        rate = objData->useDFLogFX ? 4 : 2; //Slower rate in choppy waters, since it can cause opacity to flicker
+        if (BWlog_areBothEndsOverWater(self, objData) == FALSE) {
+            if (self->shadow->a > 0) {
+                self->shadow->a = UINT_SAFE_SUBTRACT(self->shadow->a, rate * gUpdateRate);
+            }
+        } else {
+            if (self->shadow->a < 0x7F) {
+                self->shadow->a = UINT_SAFE_ADD(self->shadow->a, rate * gUpdateRate, 0x7F);
+            }
+        }
+    }
+}
+
+/* Apply a visual flip to the log via a seqJoint, if the player mounted it backwards */
+RECOMP_PATCH void BWlog_obj_Print(Object* self, Gfx** gdl, Mtx** mtxs, Vertex** vtxs, Triangle** pols, s8 visibility) {
+    if (visibility) {
+        BWlog_Data* objData = self->data;
+
+        SeqJoint* seqJoint = objExpr_func_80034804(self, 0);
+        if (seqJoint) {
+            if (objData->flipState) {
+                seqJoint->yaw = M_180_DEGREES;
+            } else {
+                seqJoint->yaw = 0;
+            }
+        }
+
+        objprintDrawModel(self, gdl, mtxs, vtxs, pols, 1.0f);
+    }
+}
+
+/* Reset physics when an objSeq message is received, used to make sure the player 
+   doesn't suddenly start paddling after Discovery Falls' HighTop cutscene. */
+static void BWlog_handlePhysicsReset(Object* self) {
+    BWlog_Data* objData = self->data;
+    Object* player;
+
+    self->srt.roll = 0;
+
+    objData->paddleTimer = 0;
+    objData->paddlePower = 0;
+    objData->playerVehicleAnim = 0;
+    objData->rollAngle = 0;
+    objData->rollTimer = 0.0f;
+    objData->rollSpeed = 0;
+    objData->rollCurveProgress = 0.0f;
+    objData->tValueRoll = 1.0f;
+    objData->velocity[0].x = objData->velocity[0].y = objData->velocity[0].z = 0;
+    objData->velocity[1].x = objData->velocity[1].y = objData->velocity[1].z = 0;
+    objData->unk300[0] = 0;
+    objData->unk300[1] = 0;
+    objData->powerX[0] = objData->powerZ[0] = 0;
+    objData->powerX[1] = objData->powerZ[1] = 0;
+    objData->state = BWLog_STATE_0_Main;
+
+    player = objGetPlayer();
+    if (player) {
+        player->animProgress = 1.0f;
+    }
 }
