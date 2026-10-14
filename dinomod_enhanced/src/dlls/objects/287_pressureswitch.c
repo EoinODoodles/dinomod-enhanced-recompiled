@@ -8,7 +8,7 @@
 #include "sys/objects.h"
 #include "sys/objtype.h"
 
-#include "recomp/dlls/objects/287_pressureswitch_recomp.h"
+#include "recomp/dlls/objects/287_PressureSwitch_recomp.h"
 
 typedef struct {
 f32 x;
@@ -24,7 +24,7 @@ typedef struct {
 } PressureSwitch_Data;
 
 // Prevents the pressure switches' object arrays from overflowing and crashing (originally by MusicalProgrammer)
-RECOMP_PATCH void pressureswitch_add_object(Object* self, Object* objectOnSwitch) {
+RECOMP_PATCH void PressureSwitch_addObject(Object* self, Object* objectOnSwitch) {
     PressureSwitch_Data *objdata = self->data;
     u8 objectIndex;
     

@@ -33,7 +33,7 @@ static s16 mushroomCollectionGamebits[10] = {
 
 /** Allows game progress to continue if there's a desync between the White Mushroom collection gamebits
   * and the White Mushroom inventory gamebit (a commonly-reported bug) */
-static void handle_mushroom_gamebit_contradictions(){
+static void handle_mushroom_gamebit_contradictions(void) {
     u8 mushroomsCollected = 0;
     u8 mushroomsGiven;
     u8 mushroomsHeld;
@@ -86,7 +86,7 @@ static void handle_mushroom_gamebit_contradictions(){
     recomp_printf("No contradictions found for White Mushrooms!\n");
 }
 
-RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
+RECOMP_PATCH void SHqueenearthwalker_obj_Control(Object* self) {
     SHqueenearthwalker_Data* objdata;
     s32 prevQuestProgress;
 
@@ -132,7 +132,7 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
                     gDLL_3_Animation->vtbl->start_obj_sequence(3, self, -1);
                 } else {
                     objdata->questProgress = 4U;
-                    gDLL_30_Task->vtbl->mark_task_completed(0xB);
+                    gDLL_30_Task->vtbl->MarkTaskCompleted(0xB);
                     mainSetBits(BIT_SH_Move_Thorntail_Blocking_Swapstone, 1);
                 }
                 mainSetBits(BIT_Inventory_White_Mushrooms, 0);
@@ -164,6 +164,6 @@ RECOMP_PATCH void SHqueenearthwalker_control(Object* self) {
     }
 }
 
-RECOMP_PATCH u32 SHqueenearthwalker_get_data_size(Object *self, u32 a1) {
+RECOMP_PATCH u32 SHqueenearthwalker_obj_GetDataSize(Object *self, u32 a1) {
     return sizeof(SHqueenearthwalker_Data);
 }

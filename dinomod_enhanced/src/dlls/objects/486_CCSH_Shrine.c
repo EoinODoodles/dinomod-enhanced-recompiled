@@ -120,13 +120,13 @@ RECOMP_PATCH void CCSH_Shrine_control(Object* self) {
                 mainSetBits(BIT_DB_Entered_Shrine_3, 0);
                 gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
                 modgfx = dllLoad(DLL_ID_147, 1);
-                modgfx->vtbl->func0(self, 0, 0, 1, -1, 0);
+                modgfx->vtbl->Spawn(self, 0, 0, 1, -1, 0);
                 dllFree(modgfx);
                 modgfx = dllLoad(DLL_ID_148, 1);
-                modgfx->vtbl->func0(self, 0, 0, 1, -1, 0);
+                modgfx->vtbl->Spawn(self, 0, 0, 1, -1, 0);
                 dllFree(modgfx);
                 mainSetBits(BIT_DB_Entered_Shrine_1, 0);
-                gDLL_14_Modgfx->vtbl->func7(&objdata->unkC);
+                gDLL_14_Modgfx->vtbl->Func7(&objdata->unkC);
                 // @recomp: Shut door while test is active (normally the trigger planes will clear this bit but the
                 //          way they are positioned makes it possible to get the door stuck open.
                 mainSetBits(BIT_5B6, 0);
@@ -181,7 +181,7 @@ RECOMP_PATCH void CCSH_Shrine_control(Object* self) {
             mainSetBits(BIT_5B2, 0);
             mainSetBits(BIT_5B9, 1);
             modgfx = dllLoad(DLL_ID_122, 1);
-            objdata->unkC = modgfx->vtbl->func0(self, 0, 0, 0x402, -1, 0);
+            objdata->unkC = modgfx->vtbl->Spawn(self, 0, 0, 0x402, -1, 0);
             dllFree(modgfx);
             mainSetBits(BIT_1CD, 0);
             objdata->unkE = 0;

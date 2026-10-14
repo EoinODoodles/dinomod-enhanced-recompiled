@@ -137,13 +137,13 @@ RECOMP_PATCH void MMshrine_control(Object *self) {
                 gDLL_3_Animation->vtbl->set_camera_module(DLL_ID_CAMSEQ, 0, 0, 0);
                 gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
                 temp_v0_5 = dllLoad(DLL_ID_147, 1);
-                temp_v0_5->vtbl->func0(self, 1, 0, 1, -1, 0);
+                temp_v0_5->vtbl->Spawn(self, 1, 0, 1, -1, 0);
                 dllFree(temp_v0_5);
                 temp_v0_5 = dllLoad(DLL_ID_148, 1);
-                temp_v0_5->vtbl->func0(self, 0, 0, 1, -1, 0);
+                temp_v0_5->vtbl->Spawn(self, 0, 0, 1, -1, 0);
                 dllFree(temp_v0_5);
                 mainSetBits(BIT_DB_Entered_Shrine_1, 0);
-                gDLL_14_Modgfx->vtbl->func7(&objdata->unkC);
+                gDLL_14_Modgfx->vtbl->Func7(&objdata->unkC);
             }
             break;
         case 1:
@@ -204,7 +204,7 @@ RECOMP_PATCH void MMshrine_control(Object *self) {
             mainSetBits(BIT_DB_Entered_Shrine_1, 1);
             mainSetBits(BIT_DB_Entered_Shrine_2, 1);
             temp_v0_5 = dllLoad(DLL_ID_122, 1);
-            objdata->unkC = temp_v0_5->vtbl->func0(self, 0, 0, 0x402, -1, 0);
+            objdata->unkC = temp_v0_5->vtbl->Spawn(self, 0, 0, 0x402, -1, 0);
             dllFree(temp_v0_5);
             break;
         }
