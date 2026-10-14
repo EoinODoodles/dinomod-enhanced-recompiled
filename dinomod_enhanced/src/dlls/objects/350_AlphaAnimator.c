@@ -13,12 +13,6 @@
 
 #include "recomp/dlls/objects/350_AlphaAnimator_recomp.h"
 
-//TEMPORARY DEFINES
-// #define AlphaAnimator_obj_Control dll_350_obj_Control
-// #define AlphaAnimator_animateVertices dll_350_func_808
-// #define AlphaAnimator_calculateAnimatedVertexDistances dll_350_func_C8C
-//END OF TEMPORARY DEFINES
-
 // #define DEBUG_OPAQUE_FLAG
 // #define DEBUG_ANIMATOR
 

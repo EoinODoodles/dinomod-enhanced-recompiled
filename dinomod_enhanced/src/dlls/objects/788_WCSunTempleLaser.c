@@ -13,20 +13,6 @@
 
 #include "recomp/dlls/objects/788_WCSunTempleLaser_recomp.h"
 
-//TEMPORARY DEFINES
-// #define WCSunTempleLaser_obj_Control dll_788_obj_Control
-
-// #define dModGfxDLL data_0
-
-// #define BIT_WC_Moon_Temple_Hazards_Deactivated 0x338
-// #define BIT_468_Forcefield_Spell_Taking_Damage 0x468
-// #define SOUND_2BB_Laser_Stop_Hiss 0x2BB
-// #define SOUND_9F9_Laser_Startup_Hiss 0x9F9
-// #define SOUND_9FA_Laser_Whir_Loop 0x9FA
-// #define SOUND_228_Laser_Zap 0x228
-// #define PARTICLE_28B 0x28B
-//END OF TEMPORARY DEFINES
-
 typedef struct {
     ObjSetup base;
     s8 yaw;

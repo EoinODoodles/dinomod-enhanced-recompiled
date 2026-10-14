@@ -16,27 +16,8 @@
 
 #include "recomp/dlls/objects/433_DFSH_Shrine_recomp.h"
 
-// #define DEBUG_DF_MUSIC
-
-//TEMPORARY DEFINES
-// #define DFShrine_obj_Setup DFShrine_setup
-// #define DFShrine_obj_Control DFShrine_control
-// #define DFShrine_obj_GetDataSize DFShrine_get_data_size
-// #define DFShrine_animCallback DFShrine_anim_callback
-// #define DFShrine_processObjMessages DFShrine_process_obj_messages
-
-// #define BIT_DFSH_ObjCreator_Stop 0x589
-// #define BIT_DF_Shrine_Activate_ObjCreator_1 0xF6
-// #define BIT_DF_Shrine_Activate_ObjCreator_2 0xF7
-// #define BIT_DF_Shrine_Activate_ObjCreator_3 0xF8
-// #define BIT_DF_Shrine_Activate_ObjCreator_4 0xF9
-// #define BIT_DF_Shrine_SharpClaw_Drop_Magic_Gems 0xFC
-// #define BIT_DF_Shrine_SharpClaw_Defeated 0x1E7
-
-// #define dll_player(obj) (((DLL_210_Player*)obj->dll)->vtbl)
-//END OF TEMPORARY DEFINES
-
 // #define DEBUG_TEST_OF_COMBAT
+// #define DEBUG_DF_MUSIC
 
 typedef struct {
 /*00*/ s16 testStartRange;

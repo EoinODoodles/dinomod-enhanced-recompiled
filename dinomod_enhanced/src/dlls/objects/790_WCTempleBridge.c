@@ -16,14 +16,6 @@
 
 // #define RAINBOW_BRIDGE
 
-//TEMPORARY DEFINES
-// #define WCTempleBridge_obj_Control dll_790_obj_Control
-// #define WCTempleBridge_obj_GetDataSize dll_790_obj_GetDataSize
-// #define WCTempleBridge_animCallback dll_790_func_500
-// #define WCTempleBridge_advanceAnimation dll_790_func_644
-// #define WCTempleBridge_updateVertices dll_790_func_7A4
-//END OF TEMPORARY DEFINES
-
 typedef struct {
     ObjSetup base;
     s8 yaw;

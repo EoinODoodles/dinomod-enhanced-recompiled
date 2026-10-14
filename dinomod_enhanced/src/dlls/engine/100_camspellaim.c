@@ -3,9 +3,9 @@
 
 #include "dll.h"
 #include "dlls/objects/210_player.h"
+#include "sys/print.h"
 
 #include "recomp/dlls/engine/100_camspellaim_recomp.h"
-#include "sys/print.h"
 
 //TEMPORARY DEFINES
 #define camspellaim_Control camspellaim_func_64

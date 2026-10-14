@@ -16,14 +16,6 @@
 
 // #define DEBUG_OCCLUSION
 
-//TEMPORARY DEFINES
-// #define WCTrexStatue_obj_Print dll_784_obj_Print
-// #define WCTrexStatue_obj_Update dll_784_obj_Update
-// #define WCTrexStatue_obj_GetDataSize dll_784_obj_GetDataSize
-// #define PARTICLE_73F 0x73F
-// #define PARTICLE_740 0x740
-//END OF TEMPORARY DEFINES
-
 typedef enum {
     DepthFlag_1_Visible = 1,
     DepthFlag_2_New_Check_Needed = 2

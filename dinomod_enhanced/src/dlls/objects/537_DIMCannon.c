@@ -39,10 +39,6 @@
 #define CANNON_CLAW_SHOT_ANTICIPATE 70.0f
 #define CANNON_STOP_SFX_MIN_MOVE 200
 
-//TEMPORARY DEFINES
-#define SOUND_780_Hatch_Opening 0x780
-//END OF TEMPORARY DEFINES
-
 typedef struct {
 /*00*/  ObjSetup base;
 /*18*/  s16 gamebitSiloCoverOpen;

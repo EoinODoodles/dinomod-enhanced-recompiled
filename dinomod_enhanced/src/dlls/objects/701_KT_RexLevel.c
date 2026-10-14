@@ -13,14 +13,6 @@
 
 #include "recomp/dlls/objects/701_KT_RexLevel_recomp.h"
 
-//TEMPORARY DEFINES
-// #define KT_RexLevel_obj_Setup KT_RexLevel_setup
-// #define KT_RexLevel_obj_Control KT_RexLevel_control
-// #define KT_RexLevel_obj_Free KT_RexLevel_free
-// #define KT_RexLevel_obj_GetDataSize KT_RexLevel_get_data_size
-// #define sPrevFightProgress _bss_0
-//END OF TEMPORARY DEFINES
-
 /*0x0*/ extern s32 sPrevFightProgress;
 
 typedef struct {

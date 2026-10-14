@@ -14,41 +14,6 @@
 
 #include "recomp/dlls/objects/390_CFExplodeWall_recomp.h"
 
-//TEMPORARY DEFINES
-// typedef enum {
-//     CFExplodeWall_STATE_0_Waiting,
-//     CFExplodeWall_STATE_1_Exploding,
-//     CFExplodeWall_STATE_2_Finished
-// } CFExplodeWall_States;
-
-// #define CFExplodeWall_obj_Setup dll_390_obj_Setup
-// #define CFExplodeWall_obj_Control dll_390_obj_Control
-// #define CFExplodeWall_calculatePieceData dll_390_func_3E8
-// #define CFExplodeWall_explode dll_390_func_884
-// #define CFExplodeWall_createPiece dll_390_func_C60
-
-// #define dExplodeDefs data_2E4
-
-// typedef enum {
-//     CFExplodePieces_STATE_0_Stopped,
-//     CFExplodePieces_STATE_1_Moving,
-//     CFExplodePieces_STATE_2_Finished
-// } CFExplodePieces_States;
-
-// typedef enum {
-//     CFExplodePieces_FLAGS_4_Touching_Ground = 4
-// } CFExplodePieces_Flags;
-
-// DLL_INTERFACE(DLL_404_CFExplodePieces) {
-//     /*:*/ DLL_INTERFACE_BASE(DLL_IObject);
-//     /*7*/ CFExplodePieces_States (*GetState)(Object* self);
-// };
-
-// #define dll_CFExplodePieces(obj) (((DLL_404_CFExplodePieces*)obj->dll)->vtbl)
-
-// #define SOUND_5B5_Explosion_Debris_Crash 0x5B5
-//END OF TEMPORARY DEFINES
-
 #define MAX_PIECES 15
 
 typedef struct {

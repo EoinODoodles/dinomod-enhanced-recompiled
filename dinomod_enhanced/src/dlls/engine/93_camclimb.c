@@ -26,23 +26,6 @@
 
 #define CLOSER_CAMERA_FACTOR 0.75f
 
-//TEMPORARY DEFINES
-// #define camclimb_setup camclimb_func_18
-// #define camclimb_control camclimb_func_340
-// #define camclimb_ease camclimb_func_63C
-
-// #define M_10_DEGREES (M_5_DEGREES * 2)
-
-// typedef struct {
-//     s8 unk0;
-//     s8 easeDuration;
-//     s8 distance;
-//     s8 pitchOffset;
-//     s8 maxY;
-//     s8 minY;
-// } CamClimb_Params;
-//END OF TEMPORARY DEFINES
-
 typedef struct {
     f32 desiredDistance;    //Desired lateral distance from the player (eased value)
     f32 distance;           //Camera's lateral distance from the player (actual current value)

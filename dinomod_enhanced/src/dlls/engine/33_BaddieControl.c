@@ -14,10 +14,6 @@
 
 #include "recomp/dlls/engine/33_BaddieControl_recomp.h"
 
-//TEMPORARY DEFINES
-#define dll_player(obj) (((DLL_210_Player*)obj->dll)->vtbl)
-//END OF TEMPORARY DEFINES
-
 // #define DEBUG_ICE_BLAST_DAMAGE_MULTIPLIER
 
 /* Apply a damage multiplier when Baddies are attacked while frozen by Ice Blast */

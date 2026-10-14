@@ -10,11 +10,6 @@
 
 #include "recomp/dlls/objects/787_WCApertureSymbol_recomp.h"
 
-//TEMPORARY DEFINES
-// #define WCApertureSymbol_control dll_787_control
-// #define WCApertureSymbol_getTargetOpacity dll_787_func_490
-//END OF TEMPORARY DEFINES
-
 typedef struct {
 /*00*/ ObjSetup base;
 /*18*/ s8 yaw;

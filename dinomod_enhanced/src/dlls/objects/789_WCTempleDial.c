@@ -19,20 +19,6 @@
 
 #include "recomp/dlls/objects/789_WCTempleDial_recomp.h"
 
-//TEMPORARY DEFINES
-// #define WCTempleDial_obj_Control dll_789_obj_Control
-// #define WCTempleDial_obj_GetDataSize dll_789_obj_GetDataSize
-// #define WCTempleDial_setBlockIconFrames dll_789_func_51C
-
-// #define BIT_WC_Sun_Temple_Dial_Hit_Sunrise_Switch 0x2F8
-// #define BIT_WC_Sun_Temple_Dial_Hit_Midday_Switch 0x2D1
-// #define BIT_WC_Sun_Temple_Dial_Hit_Sunset_Switch 0x2D2
-
-// #define BIT_WC_Moon_Temple_Dial_Hit_Crescent_Moon_Switch 0x203
-// #define BIT_WC_Moon_Temple_Dial_Hit_Half_Moon_Switch 0x2EC
-// #define BIT_WC_Moon_Temple_Dial_Hit_Full_Moon_Switch 0x2EF
-//END OF TEMPORARY DEFINES
-
 typedef struct {
     ObjSetup base;
     s8 yaw;

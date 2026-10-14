@@ -7,10 +7,6 @@
 
 #include "recomp/dlls/objects/347_texscroll2_recomp.h"
 
-//TEMPORARY DEFINES
-// #define TexScroll2_setupTextureScrolling TexScroll2_setup_texture_scrolling
-//END OF TEMPORARY DEFINES
-
 typedef struct {
     s32 materialIndex;      //Index of the main material being animated (in the local Block's materials)
     s32 blendMaterialIndex; //Index of the secondary material being animated (optional, -1 if unused)

@@ -7,11 +7,6 @@
 
 #include "recomp/dlls/objects/284_LevelName_recomp.h"
 
-//TEMPORARY DEFINES
-// #define LevelName_obj_Control levelname_control
-// #define LevelName_animCallback levelname_anim_callback
-//END OF TEMPORARY DEFINES
-
 typedef struct {
     ObjSetup base;
     s16 gamebitShown;

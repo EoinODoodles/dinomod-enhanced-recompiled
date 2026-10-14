@@ -8,16 +8,6 @@
 
 #include "recomp/dlls/objects/782_WCPushBlock_recomp.h"
 
-//TEMPORARY DEFINES
-// #define WCPushBlock_obj_Setup dll_782_setup
-// typedef struct {
-// /*00*/ ObjSetup base;
-// /*18*/ u8 unk18;
-// /*19*/ s8 modelIndex;
-// /*1A*/ s16 puzzlePieceID;
-// } WCPushBlock_Setup;
-//END OF TEMPORARY DEFINES
-
 typedef struct {
 /*000*/    DLL27_Data unk0;   //Unused: probably DLL27_Data
 /*260*/    Object* levelCtrl; //WCLevelControl

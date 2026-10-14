@@ -15,16 +15,6 @@
 
 //#define DEBUG_IN_FRONT_OF_SWITCH
 
-//TEMPORARY DEFINES
-// #define WCUseObj_obj_Setup dll_785_obj_Setup
-// #define WCUseObj_obj_Control dll_785_obj_Control
-// #define WCUseObj_obj_GetDataSize dll_785_obj_GetDataSize
-// #define WCUseObj_animCallback dll_785_func_634
-
-// #define BIT_WC_Placed_Gold_RedEye_Tooth 0x25A
-// #define BIT_WC_Placed_Silver_RedEye_Tooth 0x25B
-//END OF TEMPORARY DEFINES
-
 typedef struct {
 /*00*/ ObjSetup base;
 /*18*/ u8 yaw;

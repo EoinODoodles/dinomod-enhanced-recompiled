@@ -17,12 +17,6 @@
 
 #include "recomp/dlls/objects/275_WarpPoint_recomp.h"
 
-//TEMPORARY DEFINES
-// #define WarpPoint_obj_Control WarpPoint_control
-// #define WarpPoint_animCallback WarpPoint_anim_callback
-// #define NO_WARP_ID -1
-//END OF TEMPORARY DEFINES
-
 // #define BLOCK_WARP
 
 typedef enum {

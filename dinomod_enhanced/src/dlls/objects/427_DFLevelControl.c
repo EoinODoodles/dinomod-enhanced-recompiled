@@ -17,15 +17,6 @@
 
 #include "recomp/dlls/objects/427_DFlevelcontrol_recomp.h"
 
-//TEMPORARY DEFINES
-// #define DFlevelcontrol_obj_Setup DFlevelcontrol_setup
-// #define DFlevelcontrol_obj_Control DFlevelcontrol_control
-// #define DFlevelcontrol_obj_GetDataSize DFlevelcontrol_get_data_size
-// #define DFlevelcontrol_initialise DFlevelcontrol_func_388
-
-// #define dll_gplay (gDLL_29_Gplay->vtbl)
-//END OF TEMPORARY DEFINES
-
 typedef struct {
 /*00*/ u8 state;
 /*01*/ u8 openedWhirlpoolCave;

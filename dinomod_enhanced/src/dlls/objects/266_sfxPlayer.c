@@ -17,12 +17,6 @@
 
 // #define DEBUG_FADES
 
-//TEMPORARY DEFINES
-// #define sfxPlayer_obj_Setup sfxplayer_setup
-// #define sfxPlayer_obj_Control sfxplayer_control
-// #define sfxPlayer_obj_GetDataSize sfxplayer_get_data_size
-//END OF TEMPORARY DEFINES
-
 typedef struct {
 /*00*/ f32 innerDistanceSq;
 /*04*/ f32 outerDistanceSq;

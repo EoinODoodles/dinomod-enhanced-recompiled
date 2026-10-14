@@ -26,18 +26,6 @@
 // #define DEBUG_ACT1
 // #define DEBUG_MUSIC
 
-//TEMPORARY DEFINES
-// #define WCLevelControl_obj_Setup WCLevelControl_setup
-// #define WCLevelControl_obj_Control WCLevelControl_control
-// #define WCLevelControl_obj_Free WCLevelControl_free
-// #define WCLevelControl_obj_GetDataSize WCLevelControl_get_data_size
-// #define WCLevelControl_animCallback WCLevelControl_anim_callback
-// #define WCLevelControl_handleAct1 WCLevelControl_handle_act1
-// #define WCLevelControl_handleAct2 WCLevelControl_handle_act2
-// #define WCLevelControl_sunPuzzleReset WCLevelControl_sun_puzzle_init_hard
-// #define WCLevelControl_moonPuzzleReset WCLevelControl_moon_puzzle_init_hard
-//END OF TEMPORARY DEFINES
-
 typedef struct {
     f32 timer;
     u8 state;

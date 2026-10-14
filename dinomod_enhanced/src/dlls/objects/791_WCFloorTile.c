@@ -18,15 +18,6 @@
 
 #include "recomp/dlls/objects/791_WCFloorTile_recomp.h"
 
-//TEMPORARY DEFINES
-// #define WCFloorTile_obj_Control dll_791_obj_Control
-// #define WCFloorTile_manageHitLines dll_791_func_544
-
-// #define BIT_WC_Hazards_Deactivated 0x338
-// #define BIT_WC_Moon_Temple_Illusory_Wall_Switch_Pressed 0x265
-// #define SOUND_A11_Stone_Crumbling 0xA11
-//END OF TEMPORARY DEFINES
-
 typedef struct {
     ObjSetup base;
     s16 unk18;

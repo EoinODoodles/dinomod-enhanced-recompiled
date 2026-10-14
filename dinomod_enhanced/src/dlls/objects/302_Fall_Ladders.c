@@ -7,12 +7,6 @@
 
 #include "recomp/dlls/objects/302_Fall_Ladders_recomp.h"
 
-//TEMPORARY DEFINES
-// #define Fall_Ladders_obj_Setup Fall_Ladders_setup
-// #define Fall_Ladders_fallOrRiseBySequence Fall_Ladders_fall_or_rise_by_sequence
-// #define Fall_Ladders_animCallback Fall_Ladders_anim_callback
-//END OF TEMPORARY DEFINES
-
 typedef struct {
     ObjSetup base;
     s8 yaw;

@@ -23,15 +23,6 @@
 
 #include "recomp/dlls/objects/780_WCBeacon_recomp.h"
 
-//TEMPORARY DEFINES
-// #define WCBeacon_obj_Setup dll_780_setup
-// #define WCBeacon_obj_Control dll_780_control
-// #define WCBeacon_obj_Free dll_780_free
-// #define WCBeacon_obj_GetDataSize dll_780_get_data_size
-
-// #define PARTICLE_1A3 0x1A3
-//END OF TEMPORARY DEFINES
-
 typedef struct {
 /*0*/ f32 timer;
 /*4*/ u8 state;

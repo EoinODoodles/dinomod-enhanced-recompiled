@@ -18,17 +18,6 @@
 
 // #define DEBUG_EASE
 
-//TEMPORARY DEFINES
-// typedef struct {
-//     s32 cameraID;   //The cameraID tag to search for in StaticCamera objects' setup structs
-//     u8 previousCameraEasesIn; //Don't use the StaticCamera's own easing function for the initial ease in
-// } CamStatic_Params;
-
-// #define camstatic_setupEase camstatic_func_5D4
-// #define camstatic_ease camstatic_func_798
-// #define camstatic_findStaticCamera camstatic_func_C04
-//END OF TEMPORARY DEFINES
-
 #define PLAYER_CENTRE_HEIGHT 20
 
 typedef struct {
