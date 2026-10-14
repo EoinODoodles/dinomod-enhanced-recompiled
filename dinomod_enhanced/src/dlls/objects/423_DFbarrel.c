@@ -23,10 +23,10 @@
 #include "recomp/dlls/objects/423_DFbarrel_recomp.h"
 
 //TEMPORARY DEFINES
-#define DFbarrel_obj_Setup DFbarrel_setup
-#define DFbarrel_obj_Control DFbarrel_control
-#define DFbarrel_handleMovement DFbarrel_handle_movement
-#define DFbarrel_handleDamage DFbarrel_handle_damage
+// #define DFbarrel_obj_Setup DFbarrel_setup
+// #define DFbarrel_obj_Control DFbarrel_control
+// #define DFbarrel_handleMovement DFbarrel_handle_movement
+// #define DFbarrel_handleDamage DFbarrel_handle_damage
 //END OF TEMPORARY DEFINES
 
 typedef struct {

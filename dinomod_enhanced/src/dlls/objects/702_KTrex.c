@@ -1,11 +1,13 @@
 #include "configs.h"
 #include "modding.h"
-#include "objects/779_WCLevelControl.h"
 #include "recompconfig.h"
+
+#include "objects/779_WCLevelControl.h"
 
 #include "dlls/engine/18_objfsa.h"
 #include "dlls/engine/28_screen_fade.h"
 #include "dlls/engine/33_BaddieControl.h"
+#include "dlls/objects/779_WCLevelControl.h"
 #include "game/gamebits.h"
 #include "macros.h"
 #include "sys/generic_stack.h"
@@ -244,29 +246,6 @@ static int dinomod_kt_can_see_player(void) {
     return ((sKTData->selfSegmentBitfield & sKTData->playerSegmentBitfield) && 
         ((!reversed && (sKTData->segmentPos + 0.25f) <= sKTData->playerSegmentPos) || (reversed && sKTData->playerSegmentPos <= (sKTData->segmentPos - 0.25f))));
 }
-
-PRAGMA_IGNORE_PUSH("-Wunused")
-static int dinomod_kt_is_player_in_next_segment(void) {
-    static s8 segmentToBitfield[4] = {0x02, 0x08, 0x01, 0x04};
-
-    s32 reversed = sKTData->flags & KTFLAG_REVERSED;
-    s32 segment = KTFLAG_GET_SEGMENT(sKTData->flags);
-
-    if (reversed) {
-        segment -= 1;
-        if (segment < 0) {
-            segment = 3;
-        }
-    } else {
-        segment += 1;
-        if (segment > 3) {
-            segment = 0;
-        }
-    }
-
-    return sKTData->playerSegmentBitfield & segmentToBitfield[segment];
-}
-PRAGMA_IGNORE_POP()
 
 RECOMP_HOOK_DLL(dll_702_setup) void dll_702_setup_hook(Object* self, KTrex_ObjSetup* setup, s32 arg2) {
     dinomodInitHack = FALSE;

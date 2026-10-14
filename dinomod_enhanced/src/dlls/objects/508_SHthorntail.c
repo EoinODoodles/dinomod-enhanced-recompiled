@@ -776,17 +776,17 @@ RECOMP_PATCH void SHthorntail_traderAct1Control(Object *self, SHthorntail_Data *
     // @recomp: Cancel distract after waking up from using distract
     if (objdata->state == THORNTAILSTATE_WakingUp 
             && (objdata->flags & THORNTAILFLAG_ModAnimDone) 
-            && ((DLL_ISidekick*)sidekick->dll)->vtbl->func24(sidekick) != 0
+            && ((DLL_ISidekick*)sidekick->dll)->vtbl->Func24(sidekick) != 0
             && objdata->wakingFromDistract) {
-        ((DLL_ISidekick*)sidekick->dll)->vtbl->func21(sidekick, 0, 0);
+        ((DLL_ISidekick*)sidekick->dll)->vtbl->Func21(sidekick, 0, 0);
         objdata->wakingFromDistract = FALSE;
     }
     if ((objdata->state == THORNTAILSTATE_BlockingProgression) && (sidekick != NULL)) {
         if (vec3DistanceSquared(&player->globalPosition, &self->globalPosition) < SQ(70.0f)) {
             // Allow distract command
-            ((DLL_ISidekick*)sidekick->dll)->vtbl->enable_command(sidekick, Sidekick_Command_INDEX_2_Distract);
+            ((DLL_ISidekick*)sidekick->dll)->vtbl->EnableCommand(sidekick, Sidekick_Command_INDEX_2_Distract);
         }
-        if (((DLL_ISidekick*)sidekick->dll)->vtbl->func24(sidekick) != 0) {
+        if (((DLL_ISidekick*)sidekick->dll)->vtbl->Func24(sidekick) != 0) {
             // Distract successfully used
             // @recomp: Don't try to wake up if it's nighttime, otherwise we will just awkwardly flip back to the sleep
             //          state partway through the waking up state.

@@ -285,7 +285,7 @@ static void CannonClaw_createHitEffects(Object* self, SRT* fxTransform, s32 useM
         fxTransform->roll = 0;
         fxTransform->scale = 1.0f;
 
-        modGfxDLL->vtbl->func0(self, 0, fxTransform, 1, -1, dModGfxParams);
+        modGfxDLL->vtbl->Spawn(self, 0, fxTransform, 1, -1, dModGfxParams);
         if (modGfxDLL != NULL) {
             dllFree(modGfxDLL);
         }
@@ -396,7 +396,7 @@ RECOMP_PATCH void CannonClaw_obj_Control(Object* self) {
             //@recomp: fix missing null check for the sidekick
             sidekick = objGetSidekick();
             if (sidekick) {
-                ((DLL_ISidekick*)sidekick->dll)->vtbl->func21(sidekick, 0, NULL);
+                ((DLL_ISidekick*)sidekick->dll)->vtbl->Func21(sidekick, 0, NULL);
             }
 
             //Start dying

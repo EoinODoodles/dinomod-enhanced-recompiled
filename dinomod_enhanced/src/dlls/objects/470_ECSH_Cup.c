@@ -1,7 +1,8 @@
 #include "modding.h"
 
-#include "PR/ultratypes.h"
 #include "PR/gbi.h"
+#include "PR/ultratypes.h"
+#include "dll.h"
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/469_ECSHshrine.h"
 #include "game/objects/object.h"
@@ -20,7 +21,6 @@
 #include "sys/objprint.h"
 #include "sys/objtype.h"
 #include "sys/print.h"
-#include "dll.h"
 #include "types.h"
 
 #include "recomp/dlls/objects/470_ECSH_Cup_recomp.h"
@@ -55,7 +55,7 @@ typedef struct {
 } ECSHCup_Data;
 
 /* Return early when underground, to avoid poking through the floor before the test begins. */
-RECOMP_PATCH void ECSHCup_control(Object* self) {
+RECOMP_PATCH void ECSHCup_obj_Control(Object* self) {
     ECSHCup_Data* objData = self->data;
     s32 states[] = { ECShrine_STATE_Waiting, Cup_STATE_Unknown }; //@recomp: use an array, to store the shrine's state as well as the cups' state
     Vec3f goal = VEC3F(0, 0, 0);
@@ -76,7 +76,7 @@ RECOMP_PATCH void ECSHCup_control(Object* self) {
     }
     
     //Get cup minigame state, and the index of the cup holding the Spirit
-    ((DLL_469_ECSHshrine*)dShrine->dll)->vtbl->get_minigame_state(states, &cupWithSpirit);
+    ((DLL_469_ECSHshrine*)dShrine->dll)->vtbl->GetMinigameState(states, &cupWithSpirit);
     
     //@recomp: store shrine state
     objData->shrineState = states[0];
@@ -200,7 +200,7 @@ RECOMP_PATCH void ECSHCup_control(Object* self) {
         }
         objData->prevState = state;
     } else if ((state == Cup_STATE_Moving) && (state != objData->prevState)) {
-        ((DLL_469_ECSHshrine*)dShrine->dll)->vtbl->get_cup_coords(objData->cupIndex, &goal.x, &goal.z);
+        ((DLL_469_ECSHshrine*)dShrine->dll)->vtbl->GetCupCoords(objData->cupIndex, &goal.x, &goal.z);
         //@recomp: store current goal
         objData->goalX = goal.x;
         objData->goalZ = goal.z;
@@ -217,17 +217,17 @@ RECOMP_PATCH void ECSHCup_control(Object* self) {
     } else if ((state == Cup_STATE_Shuffle) && (state != objData->prevState)) {
         objData->speedX = 0.0f;
         objData->speedZ = 0.0f;
-        ((DLL_469_ECSHshrine*)dShrine->dll)->vtbl->set_cup_coords(objData->cupIndex, self->srt.transl.x, self->srt.transl.z);
+        ((DLL_469_ECSHshrine*)dShrine->dll)->vtbl->SetCupCoords(objData->cupIndex, self->srt.transl.x, self->srt.transl.z);
         objData->prevState = state;
     } else if ((state == Cup_STATE_Underground) && (state != objData->prevState)) {
         objData->prevState = state;
     } else if ((state == Cup_STATE_Move_Finished) && (state != objData->prevState)) {
-        ((DLL_469_ECSHshrine*)dShrine->dll)->vtbl->get_cup_coords(objData->cupIndex, &goal.x, &goal.z);
+        ((DLL_469_ECSHshrine*)dShrine->dll)->vtbl->GetCupCoords(objData->cupIndex, &goal.x, &goal.z);
         self->srt.transl.x = goal.x;
         self->srt.transl.z = goal.z;
         objData->prevState = state;
     } else if ((state == Cup_STATE_Await_Choice) && player && vec3Distance(&self->globalPosition, &player->globalPosition) < 30.0f) {
-        ((DLL_469_ECSHshrine*)dShrine->dll)->vtbl->choose_cup(objData->cupIndex);
+        ((DLL_469_ECSHshrine*)dShrine->dll)->vtbl->ChooseCup(objData->cupIndex);
         if (objData->cupIndex == cupWithSpirit) {
             gDLL_3_Animation->vtbl->start_obj_sequence(1, self, -1);
         }
@@ -235,7 +235,7 @@ RECOMP_PATCH void ECSHCup_control(Object* self) {
 }
 
 /* Don't draw the cup before the test starts */
-RECOMP_PATCH void ECSHCup_print(Object *self, Gfx **gdl, Mtx **mtxs, Vertex **vtxs, Triangle **pols, s8 visibility) {
+RECOMP_PATCH void ECSHCup_obj_Print(Object *self, Gfx **gdl, Mtx **mtxs, Vertex **vtxs, Triangle **pols, s8 visibility) {
     ECSHCup_Data* objData = self->data; //@recomp
 
     if (visibility && objData && (objData->shrineState >= ECShrine_STATE_Cup_Game_Start)) {
@@ -244,6 +244,6 @@ RECOMP_PATCH void ECSHCup_print(Object *self, Gfx **gdl, Mtx **mtxs, Vertex **vt
 }
 
 /* Extend objData */
-RECOMP_PATCH u32 ECSHCup_get_data_size(Object* self, u32 offsetAddr){
+RECOMP_PATCH u32 ECSHCup_obj_GetDataSize(Object* self, u32 offsetAddr){
     return sizeof(ECSHCup_Data);
 }

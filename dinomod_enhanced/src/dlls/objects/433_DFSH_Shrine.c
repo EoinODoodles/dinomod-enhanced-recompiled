@@ -19,21 +19,21 @@
 // #define DEBUG_DF_MUSIC
 
 //TEMPORARY DEFINES
-#define DFShrine_obj_Setup DFShrine_setup
-#define DFShrine_obj_Control DFShrine_control
-#define DFShrine_obj_GetDataSize DFShrine_get_data_size
-#define DFShrine_animCallback DFShrine_anim_callback
-#define DFShrine_processObjMessages DFShrine_process_obj_messages
+// #define DFShrine_obj_Setup DFShrine_setup
+// #define DFShrine_obj_Control DFShrine_control
+// #define DFShrine_obj_GetDataSize DFShrine_get_data_size
+// #define DFShrine_animCallback DFShrine_anim_callback
+// #define DFShrine_processObjMessages DFShrine_process_obj_messages
 
-#define BIT_DFSH_ObjCreator_Stop 0x589
-#define BIT_DF_Shrine_Activate_ObjCreator_1 0xF6
-#define BIT_DF_Shrine_Activate_ObjCreator_2 0xF7
-#define BIT_DF_Shrine_Activate_ObjCreator_3 0xF8
-#define BIT_DF_Shrine_Activate_ObjCreator_4 0xF9
-#define BIT_DF_Shrine_SharpClaw_Drop_Magic_Gems 0xFC
-#define BIT_DF_Shrine_SharpClaw_Defeated 0x1E7
+// #define BIT_DFSH_ObjCreator_Stop 0x589
+// #define BIT_DF_Shrine_Activate_ObjCreator_1 0xF6
+// #define BIT_DF_Shrine_Activate_ObjCreator_2 0xF7
+// #define BIT_DF_Shrine_Activate_ObjCreator_3 0xF8
+// #define BIT_DF_Shrine_Activate_ObjCreator_4 0xF9
+// #define BIT_DF_Shrine_SharpClaw_Drop_Magic_Gems 0xFC
+// #define BIT_DF_Shrine_SharpClaw_Defeated 0x1E7
 
-#define dll_player(obj) (((DLL_210_Player*)obj->dll)->vtbl)
+// #define dll_player(obj) (((DLL_210_Player*)obj->dll)->vtbl)
 //END OF TEMPORARY DEFINES
 
 // #define DEBUG_TEST_OF_COMBAT
@@ -155,7 +155,7 @@ RECOMP_PATCH void DFShrine_obj_Setup(Object* self, DFShrine_Setup* setup, s32 re
     objdata->testTimer = 0;
 
     modgfx = dllLoad(DLL_ID_122, 1);
-    objdata->modGfxRing = modgfx->vtbl->func0(self, 0, 0, 0x402, -1, 0);
+    objdata->modGfxRing = modgfx->vtbl->Spawn(self, 0, 0, 0x402, -1, 0);
     dllFree(modgfx);
 
     //@recomp: find and fade out Discovery Falls' music, if it's still playing
@@ -284,15 +284,15 @@ RECOMP_PATCH void DFShrine_obj_Control(Object* self) {
             gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
 
             modgfx = dllLoad(DLL_ID_147, 1);
-            modgfx->vtbl->func0(self, 0, 0, 1, -1, 0);
+            modgfx->vtbl->Spawn(self, 0, 0, 1, -1, 0);
             dllFree(modgfx);
 
             modgfx = dllLoad(DLL_ID_148, 1);
-            modgfx->vtbl->func0(self, 0, 0, 1, -1, 0);
+            modgfx->vtbl->Spawn(self, 0, 0, 1, -1, 0);
             dllFree(modgfx);
 
             mainSetBits(BIT_DB_Entered_Shrine_1, 0);
-            gDLL_14_Modgfx->vtbl->func7(&objdata->modGfxRing);
+            gDLL_14_Modgfx->vtbl->Func7(&objdata->modGfxRing);
         }
     default:
         break;
@@ -437,7 +437,7 @@ RECOMP_PATCH void DFShrine_obj_Control(Object* self) {
         objdata->battleRound = 0;
 
         modgfx = dllLoad(DLL_ID_122, 1);
-        objdata->modGfxRing = modgfx->vtbl->func0(self, 0, 0, 0x402, -1, 0);
+        objdata->modGfxRing = modgfx->vtbl->Spawn(self, 0, 0, 0x402, -1, 0);
         dllFree(modgfx);
         break;
     }

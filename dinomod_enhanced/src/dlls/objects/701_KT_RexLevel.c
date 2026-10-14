@@ -1,23 +1,24 @@
+#include "modding.h"
+#include "recompconfig.h"
+
 #include "dll.h"
 #include "game/gamebits.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
-#include "modding.h"
-#include "recompconfig.h"
 #include "sys/envfx.h"
 #include "sys/lfx.h"
 #include "sys/main.h"
-
-#include "recomp/dlls/objects/701_KT_RexLevel_recomp.h"
 #include "sys/map_enums.h"
 #include "sys/objects.h"
 
+#include "recomp/dlls/objects/701_KT_RexLevel_recomp.h"
+
 //TEMPORARY DEFINES
-#define KT_RexLevel_obj_Setup KT_RexLevel_setup
-#define KT_RexLevel_obj_Control KT_RexLevel_control
-#define KT_RexLevel_obj_Free KT_RexLevel_free
-#define KT_RexLevel_obj_GetDataSize KT_RexLevel_get_data_size
-#define sPrevFightProgress _bss_0
+// #define KT_RexLevel_obj_Setup KT_RexLevel_setup
+// #define KT_RexLevel_obj_Control KT_RexLevel_control
+// #define KT_RexLevel_obj_Free KT_RexLevel_free
+// #define KT_RexLevel_obj_GetDataSize KT_RexLevel_get_data_size
+// #define sPrevFightProgress _bss_0
 //END OF TEMPORARY DEFINES
 
 /*0x0*/ extern s32 sPrevFightProgress;

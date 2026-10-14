@@ -37,17 +37,7 @@ union { //height can be treated as a single s16 value, using the uppermost bit o
 /*0f*/    u8 settingsB;
 /*10*/    s16 animatorID;
 /*12*/    s16 pad;
-} TrackLine; 
-
-typedef enum {
-    TrackLine_SETTINGA_Unified_Height = 0x80, //The line's height is read as a single s16 value, instead of separate s8 heights above pointA/pointB
-    TrackLine_SETTINGA_Unk10 = 0x10 //Used sometimes on barrier collision, beside steep terrain?
-} TrackLineSettingsA;
-
-typedef enum {
-    TrackLine_SETTINGB_Deactivated = 0x40,   //Line currently has no effect (can be toggled via HitAnimator)
-    TrackLine_SETTINGB_Nonsolid = 0x80       //Player can pass through (when this flag isn't set, the line even affects the camera!)
-} TrackLineSettingsB;
+} TrackLine;
 
 typedef enum {
     HITS_1 = 1,          //Usually used for invisible walls, whether for Baddies, vehicles, or the player

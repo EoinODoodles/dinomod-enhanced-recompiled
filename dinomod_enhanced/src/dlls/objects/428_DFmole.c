@@ -24,19 +24,19 @@
 // #define DEBUG_MOLE
 
 //TEMPORARY DEFINES
-#define capy_obj_Control capy_control
-#define capy_obj_Free capy_free
-#define capy_obj_GetDataSize capy_get_data_size
-#define capy_findFoodTarget capy_func_468
-#define capy_handlePlayerTarget capy_func_644
-#define capy_searchForTarget capy_func_704
-#define capy_animCallback capy_anim_callback
-#define capy_animState0Standing capy_anim_state_0_standing
-#define capy_animState1Burrowed capy_anim_state_1_burrowed
-#define capy_animState3Burrow capy_anim_state_3_burrow
-#define capy_animState8Walking capy_anim_state_8_walking
-#define capy_logicState2GoToDigSpot capy_logic_state_2_go_to_dig_spot
-#define capy_logicState4Idle capy_logic_state_4_idle
+// #define capy_obj_Control capy_control
+// #define capy_obj_Free capy_free
+// #define capy_obj_GetDataSize capy_get_data_size
+// #define capy_findFoodTarget capy_func_468
+// #define capy_handlePlayerTarget capy_func_644
+// #define capy_searchForTarget capy_func_704
+// #define capy_animCallback capy_anim_callback
+// #define capy_animState0Standing capy_anim_state_0_standing
+// #define capy_animState1Burrowed capy_anim_state_1_burrowed
+// #define capy_animState3Burrow capy_anim_state_3_burrow
+// #define capy_animState8Walking capy_anim_state_8_walking
+// #define capy_logicState2GoToDigSpot capy_logic_state_2_go_to_dig_spot
+// #define capy_logicState4Idle capy_logic_state_4_idle
 
 #define PARTICLE_CA 0xCA
 #define PARTICLE_CB 0xCB

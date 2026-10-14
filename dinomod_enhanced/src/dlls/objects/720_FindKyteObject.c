@@ -13,9 +13,9 @@
 // #define DEBUG_KYTE_TIMEOUT
 
 //TEMPORARY DEFINES
-#define FindKyteObject_obj_Control FindKyteObject_control
-#define FindKyteObject_obj_GetDataSize FindKyteObject_get_data_size
-#define EnableCommand enable_command
+// #define FindKyteObject_obj_Control FindKyteObject_control
+// #define FindKyteObject_obj_GetDataSize FindKyteObject_get_data_size
+// #define EnableCommand enable_command
 //END OF TEMPORARY DEFINES
 
 typedef struct {

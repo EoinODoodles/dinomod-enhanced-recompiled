@@ -11,7 +11,7 @@
 #include "recomp/dlls/objects/786_WCTempleLift_recomp.h"
 
 //TEMPORARY DEFINES
-#define WCTempleLift_obj_Control dll_786_control
+// #define WCTempleLift_obj_Control dll_786_control
 //END OF TEMPORARY DEFINES
 
 typedef struct {

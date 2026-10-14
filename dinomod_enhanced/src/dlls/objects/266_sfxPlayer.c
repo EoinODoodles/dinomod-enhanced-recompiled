@@ -13,14 +13,14 @@
 
 #include "common_objsetups.h"
 
-#include "recomp/dlls/objects/266_sfxplayer_recomp.h"
+#include "recomp/dlls/objects/266_sfxPlayer_recomp.h"
 
 // #define DEBUG_FADES
 
 //TEMPORARY DEFINES
-#define sfxPlayer_obj_Setup sfxplayer_setup
-#define sfxPlayer_obj_Control sfxplayer_control
-#define sfxPlayer_obj_GetDataSize sfxplayer_get_data_size
+// #define sfxPlayer_obj_Setup sfxplayer_setup
+// #define sfxPlayer_obj_Control sfxplayer_control
+// #define sfxPlayer_obj_GetDataSize sfxplayer_get_data_size
 //END OF TEMPORARY DEFINES
 
 typedef struct {

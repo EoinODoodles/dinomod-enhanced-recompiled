@@ -35,6 +35,8 @@
 #include "dlls/engine/33_BaddieControl.h"
 #include "dlls/objects/325_trigger.h"
 #include "dlls/objects/418_DFriverflow.h"
+#include "dlls/objects/420_DFlevelcontrol.h"
+#include "dlls/objects/779_WCLevelControl.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
 #include "game/gamebits.h"
@@ -877,7 +879,7 @@ static void walled_city_modifications(void) {
             SeqDoor_Setup* cageDoor = reasset_map_objects_get(walledCity, 
                 reasset_base_id(0x411B0), NULL);
             cageDoor->gamebitOpenA = NO_GAMEBIT;
-            cageDoor->gamebitRestoreState = BIT_7F5;
+            cageDoor->gamebitRestoreState = BIT_WC_King_EarthWalker_Cage_Opened;
             cageDoor->options = SeqDoor_OPTION_1_Delay_Play_Until_Gamebit_Set | 
                                 SeqDoor_OPTION_2_Unload_If_Already_Open | 
                                 SeqDoor_OPTION_4_Unload_At_End_of_Sequence;
@@ -4526,7 +4528,7 @@ static void discovery_falls_modifications(void) {
             Trigger_Setup* point = GET_MAPS_OBJECT(discoveryFalls, 0x00001e86);
             point->activatorObjType = OBJTYPE_Vehicle;
             point->commands[0].condition |= CMD_COND_CONTINUOUS;
-            point->conditionBitFlagIDs[0] = CHECK_IF_GAMEBIT_UNSET | BIT_17;
+            point->conditionBitFlagIDs[0] = CHECK_IF_GAMEBIT_UNSET | BIT_DF_Play_Seq_0168_Krystal_Meets_HighTop_Archaeologist;
         }
 
         //Cave under Lower Falls
@@ -5327,7 +5329,7 @@ static void discovery_falls_modifications(void) {
                     .sizeX = 24,
                     .sizeY = 29 * 2,
                     .sizeZ = 0x10,
-                    .conditionBitFlagIDs[0] = BIT_101, //Hatch must be open
+                    .conditionBitFlagIDs[0] = BIT_DF_Played_Seq_002C_Mole_Cave_Hatch_Opens, //Hatch must be open
                     .bitFlagID = NO_GAMEBIT
                 };
                 ENTER_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, TRUE, &cylinder, 0); //Use closer CamClimb

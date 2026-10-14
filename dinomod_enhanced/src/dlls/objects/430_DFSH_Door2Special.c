@@ -14,14 +14,14 @@
 #include "recomp/dlls/objects/430_DFSH_door2Special_recomp.h"
 
 //TEMPORARY DEFINES
-#define DFSH_Door2Special_obj_Setup DFSH_Door2Special_setup
-#define DFSH_Door2Special_obj_Control DFSH_Door2Special_control
-#define DFSH_Door2Special_animCallback DFSH_Door2Special_anim_callback
+// #define DFSH_Door2Special_obj_Setup DFSH_Door2Special_setup
+// #define DFSH_Door2Special_obj_Control DFSH_Door2Special_control
+// #define DFSH_Door2Special_animCallback DFSH_Door2Special_anim_callback
 
-typedef enum {
-    SeqDoor_SEQCMD_1_Finished_Closing = 1,
-    SeqDoor_SEQCMD_2_Finished_Opening = 2
-} SeqDoor_ObjSeqMessages;
+// typedef enum {
+//     SeqDoor_SEQCMD_1_Finished_Closing = 1,
+//     SeqDoor_SEQCMD_2_Finished_Opening = 2
+// } SeqDoor_ObjSeqMessages;
 //END OF TEMPORARY DEFINES
 
 extern int DFSH_Door2Special_animCallback(Object* self, Object* overrideObj, AnimObj_Data* animData, s8 prevCallbackResult);

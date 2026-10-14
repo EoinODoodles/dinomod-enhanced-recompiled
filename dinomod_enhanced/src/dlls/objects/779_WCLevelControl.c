@@ -27,15 +27,15 @@
 // #define DEBUG_MUSIC
 
 //TEMPORARY DEFINES
-#define WCLevelControl_obj_Setup WCLevelControl_setup
-#define WCLevelControl_obj_Control WCLevelControl_control
-#define WCLevelControl_obj_Free WCLevelControl_free
-#define WCLevelControl_obj_GetDataSize WCLevelControl_get_data_size
-#define WCLevelControl_animCallback WCLevelControl_anim_callback
-#define WCLevelControl_handleAct1 WCLevelControl_handle_act1
-#define WCLevelControl_handleAct2 WCLevelControl_handle_act2
-#define WCLevelControl_sunPuzzleReset WCLevelControl_sun_puzzle_init_hard
-#define WCLevelControl_moonPuzzleReset WCLevelControl_moon_puzzle_init_hard
+// #define WCLevelControl_obj_Setup WCLevelControl_setup
+// #define WCLevelControl_obj_Control WCLevelControl_control
+// #define WCLevelControl_obj_Free WCLevelControl_free
+// #define WCLevelControl_obj_GetDataSize WCLevelControl_get_data_size
+// #define WCLevelControl_animCallback WCLevelControl_anim_callback
+// #define WCLevelControl_handleAct1 WCLevelControl_handle_act1
+// #define WCLevelControl_handleAct2 WCLevelControl_handle_act2
+// #define WCLevelControl_sunPuzzleReset WCLevelControl_sun_puzzle_init_hard
+// #define WCLevelControl_moonPuzzleReset WCLevelControl_moon_puzzle_init_hard
 //END OF TEMPORARY DEFINES
 
 typedef struct {
@@ -258,6 +258,7 @@ RECOMP_PATCH void WCLevelControl_obj_Control(Object *self) {
     f32 time;
     u8 act;
 
+    //Set up environment/lighting effects
     if (self->unkDC == 0) {
         envfxAction(self, self, 0x1FB, 0);
         envfxAction(self, self, 0x1FC, 0);
@@ -267,6 +268,7 @@ RECOMP_PATCH void WCLevelControl_obj_Control(Object *self) {
         self->unkDC = 1;
     }
 
+    //Handle acts
     act = gDLL_29_Gplay->vtbl->get_act(self->mapID);
     if ((act == 1) || (act != 2)) {
         WCLevelControl_handleAct1(self, objData);

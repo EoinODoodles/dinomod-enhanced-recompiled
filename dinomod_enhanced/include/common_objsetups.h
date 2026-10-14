@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game/objects/object.h"
+#include "dlls/engine/90_camstatic.h"
 
 typedef struct {
     ObjSetup base;
@@ -380,12 +381,6 @@ typedef struct {
     s16 pitch;
     s16 roll;
 } StaticCamera_Setup;
-
-typedef enum {
-    CamStatic_FLAG_Aim_Yaw_at_Player = 1,   //Yaw aims at player, otherwise StaticCamera's own fixed yaw is used
-    CamStatic_FLAG_Aim_Pitch_at_Player = 2, //Pitch aims at player, otherwise StaticCamera's own fixed pitch is used
-    CamStatic_FLAG_Use_Player_Roll = 4      //Player's roll value is used, otherwise StaticCamera's own fixed roll is used
-} CamStatic_Flags;
 
 #define CamStatic_FLAG_Aim_at_Player_Centre 0x10
 #define CamStatic_LOOK_AT (CamStatic_FLAG_Aim_Yaw_at_Player | CamStatic_FLAG_Aim_Pitch_at_Player | CamStatic_FLAG_Aim_at_Player_Centre)

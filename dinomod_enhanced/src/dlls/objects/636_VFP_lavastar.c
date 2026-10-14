@@ -2,7 +2,7 @@
 
 #include "PR/ultratypes.h"
 #include "dlls/engine/6_amsfx.h"
-#include "dlls/modgfx/182.h"
+#include "sys/gfx/modgfx.h"
 #include "sys/dll.h"
 #include "sys/main.h"
 #include "sys/rand.h"
@@ -24,7 +24,7 @@ typedef struct {
     u32 soundHandle;
 } VFP_lavastar_Data;
 
-extern DLL_182 *sDLL_182;
+extern DLL_IModgfx *sDLL_182;
 
 RECOMP_PATCH void VFP_lavastar_control(Object* self) {
     VFP_lavastar_Setup* setup;
@@ -38,7 +38,7 @@ RECOMP_PATCH void VFP_lavastar_control(Object* self) {
         self->srt.transl.y = setup->base.y;
     }
     if (mathRnd(0, 3) == 0) {
-        sDLL_182->vtbl->func0(self, 0, NULL, 4, -1, NULL);
+        sDLL_182->vtbl->Spawn(self, 0, NULL, 4, -1, NULL);
     }
     // @recomp: Disable lavastar sound. It appears to be a blank sound and plays every frame. (originally by MusicalProgrammer)
     // if (objdata->soundHandle == 0) {

@@ -1,6 +1,5 @@
 #include "game/objects/interaction_arrow.h"
 #include "modding.h"
-#include "recomp/dlls/_asm/789_recomp.h"
 #include "recomputils.h"
 
 #include "dll.h"
@@ -10,29 +9,29 @@
 #include "sys/print.h"
 #include "sys/rand.h"
 
-#include "recomp/dlls/_asm/218_recomp.h"
+#include "recomp/dlls/objects/218_WaterBaddie_recomp.h"
 
 // #define DEBUG_WATERBADDIE_TERRAIN
 // #define DEBUG_WATERBADDIE_CURVES
 
 //TEMPORARY DEFINES
-#define WaterBaddie_obj_Setup dll_218_obj_Setup
-#define WaterBaddie_obj_Control dll_218_obj_Control
-#define WaterBaddie_obj_Update dll_218_obj_Update
-#define WaterBaddie_obj_GetDataSize dll_218_obj_GetDataSize
-#define WaterBaddie_animCallback dll_218_func_9D0
-#define WaterBaddie_logicState0Hit dll_218_func_1D8C
-#define WaterBaddie_logicState3Swimming dll_218_func_203C
-#define WaterBaddie_tick dll_218_func_C6C
-#define WaterBaddie_engageTarget dll_218_func_1088
-#define WaterBaddie_searchForTarget dll_218_func_1238
+// #define WaterBaddie_obj_Setup dll_218_obj_Setup
+// #define WaterBaddie_obj_Control dll_218_obj_Control
+// #define WaterBaddie_obj_Update dll_218_obj_Update
+// #define WaterBaddie_obj_GetDataSize dll_218_obj_GetDataSize
+// #define WaterBaddie_animCallback dll_218_func_9D0
+// #define WaterBaddie_logicState0Hit dll_218_func_1D8C
+// #define WaterBaddie_logicState3Swimming dll_218_func_203C
+// #define WaterBaddie_tick dll_218_func_C6C
+// #define WaterBaddie_engageTarget dll_218_func_1088
+// #define WaterBaddie_searchForTarget dll_218_func_1238
 
-#define sAnimStateCallbacks bss_0
-#define sLogicStateCallbacks bss_10
-#define sCurveValue bss_44
-#define dCurveTypes data_0
-#define dWaterSounds data_8
-#define dBaddieSounds data_C
+// #define sAnimStateCallbacks bss_0
+// #define sLogicStateCallbacks bss_10
+// #define sCurveValue bss_44
+// #define dCurveTypes data_0
+// #define dWaterSounds data_8
+// #define dBaddieSounds data_C
 //END OF TEMPORARY DEFINES
 
 typedef struct {

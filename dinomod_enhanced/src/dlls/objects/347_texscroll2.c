@@ -8,7 +8,7 @@
 #include "recomp/dlls/objects/347_texscroll2_recomp.h"
 
 //TEMPORARY DEFINES
-#define TexScroll2_setupTextureScrolling TexScroll2_setup_texture_scrolling
+// #define TexScroll2_setupTextureScrolling TexScroll2_setup_texture_scrolling
 //END OF TEMPORARY DEFINES
 
 typedef struct {

@@ -1,26 +1,26 @@
-#include "modding.h"
 #include "common_objsetups.h"
+#include "modding.h"
+#include "recomputils.h"
 
-#include "PR/ultratypes.h"
 #include "PR/gbi.h"
+#include "PR/ultratypes.h"
+#include "dll.h"
 #include "dlls/engine/6_amsfx.h"
 #include "game/gamebits.h"
 #include "game/objects/object.h"
-#include "recomputils.h"
 #include "sys/asset.h"
 #include "sys/main.h"
 #include "sys/math.h"
 #include "sys/objects.h"
 #include "sys/pi.h"
 #include "types.h"
-#include "dll.h"
 
 #include "recomp/dlls/objects/275_WarpPoint_recomp.h"
 
 //TEMPORARY DEFINES
-#define WarpPoint_obj_Control WarpPoint_control
-#define WarpPoint_animCallback WarpPoint_anim_callback
-#define NO_WARP_ID -1
+// #define WarpPoint_obj_Control WarpPoint_control
+// #define WarpPoint_animCallback WarpPoint_anim_callback
+// #define NO_WARP_ID -1
 //END OF TEMPORARY DEFINES
 
 // #define BLOCK_WARP

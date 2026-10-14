@@ -9,6 +9,7 @@
 #include "core/map.h"
 #include "dll.h"
 #include "dlls/engine/84_camnormal.h"
+#include "dlls/engine/93_camclimb.h"
 #include "dlls/objects/210_player.h"
 #include "game/gamebits.h"
 #include "sys/dll.h"
@@ -26,20 +27,20 @@
 #define CLOSER_CAMERA_FACTOR 0.75f
 
 //TEMPORARY DEFINES
-#define camclimb_setup camclimb_func_18
-#define camclimb_control camclimb_func_340
-#define camclimb_ease camclimb_func_63C
+// #define camclimb_setup camclimb_func_18
+// #define camclimb_control camclimb_func_340
+// #define camclimb_ease camclimb_func_63C
 
-#define M_10_DEGREES (M_5_DEGREES * 2)
+// #define M_10_DEGREES (M_5_DEGREES * 2)
 
-typedef struct {
-    s8 unk0;
-    s8 easeDuration;
-    s8 distance;
-    s8 pitchOffset;
-    s8 maxY;
-    s8 minY;
-} CamClimb_Params;
+// typedef struct {
+//     s8 unk0;
+//     s8 easeDuration;
+//     s8 distance;
+//     s8 pitchOffset;
+//     s8 maxY;
+//     s8 minY;
+// } CamClimb_Params;
 //END OF TEMPORARY DEFINES
 
 typedef struct {

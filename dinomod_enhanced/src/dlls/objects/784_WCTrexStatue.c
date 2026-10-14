@@ -12,16 +12,16 @@
 #include "sys/rand.h"
 #include "sys/vi.h"
 
-#include "recomp/dlls/_asm/784_recomp.h"
+#include "recomp/dlls/objects/784_WCTrexStatue_recomp.h"
 
 // #define DEBUG_OCCLUSION
 
 //TEMPORARY DEFINES
-#define WCTrexStatue_obj_Print dll_784_obj_Print
-#define WCTrexStatue_obj_Update dll_784_obj_Update
-#define WCTrexStatue_obj_GetDataSize dll_784_obj_GetDataSize
-#define PARTICLE_73F 0x73F
-#define PARTICLE_740 0x740
+// #define WCTrexStatue_obj_Print dll_784_obj_Print
+// #define WCTrexStatue_obj_Update dll_784_obj_Update
+// #define WCTrexStatue_obj_GetDataSize dll_784_obj_GetDataSize
+// #define PARTICLE_73F 0x73F
+// #define PARTICLE_740 0x740
 //END OF TEMPORARY DEFINES
 
 typedef enum {

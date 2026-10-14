@@ -16,19 +16,19 @@
 #include "recomp/dlls/objects/434_DFSH_ObjCreator_recomp.h"
 
 //TEMPORARY DEFINES
-#define DFSH_ObjCreator_obj_Control DFSH_ObjCreator_control
-#define DFSH_ObjCreator_obj_GetDataSize DFSH_ObjCreator_get_data_size
+// #define DFSH_ObjCreator_obj_Control DFSH_ObjCreator_control
+// #define DFSH_ObjCreator_obj_GetDataSize DFSH_ObjCreator_get_data_size
 
-#define BIT_DFSH_ObjCreator_Stop 0x589
-#define BIT_DF_Shrine_Activate_ObjCreator_1 0xF6
-#define BIT_DF_Shrine_Activate_ObjCreator_2 0xF7
-#define BIT_DF_Shrine_Activate_ObjCreator_3 0xF8
-#define BIT_DF_Shrine_Activate_ObjCreator_4 0xF9
-#define BIT_DF_Shrine_SharpClaw_Drop_Magic_Gems 0xFC
-#define BIT_DF_Shrine_SharpClaw_Defeated 0x1E7
+// #define BIT_DFSH_ObjCreator_Stop 0x589
+// #define BIT_DF_Shrine_Activate_ObjCreator_1 0xF6
+// #define BIT_DF_Shrine_Activate_ObjCreator_2 0xF7
+// #define BIT_DF_Shrine_Activate_ObjCreator_3 0xF8
+// #define BIT_DF_Shrine_Activate_ObjCreator_4 0xF9
+// #define BIT_DF_Shrine_SharpClaw_Drop_Magic_Gems 0xFC
+// #define BIT_DF_Shrine_SharpClaw_Defeated 0x1E7
 
-#define dll_player(obj) (((DLL_210_Player*)obj->dll)->vtbl)
-#define dll_SharpClaw(obj) (((DLL_214_SharpClaw*)obj->dll)->vtbl)
+// #define dll_player(obj) (((DLL_210_Player*)obj->dll)->vtbl)
+// #define dll_SharpClaw(obj) (((DLL_214_SharpClaw*)obj->dll)->vtbl)
 
 typedef enum {
     SharpClaw_LSTATE_0_Top,
@@ -126,8 +126,8 @@ RECOMP_PATCH void DFSH_ObjCreator_obj_Control(Object* self) {
 
     if ((self->unkE0 == 0) && mainGetBits(BIT_DF_Shrine_Activate_ObjCreator_1 + setup->creatorIndex)) {
         modgfx = dllLoad(DLL_ID_146, 1);
-        modgfx->vtbl->func0(self, 0, 0, 1, -1, 0);
-        modgfx->vtbl->func0(self, 1, 0, 1, -1, 0);
+        modgfx->vtbl->Spawn(self, 0, 0, 1, -1, 0);
+        modgfx->vtbl->Spawn(self, 1, 0, 1, -1, 0);
         dll_amSfx->Play(NULL, SOUND_303, MAX_VOLUME, NULL, NULL, 0, NULL);
         dllFree(modgfx);
         

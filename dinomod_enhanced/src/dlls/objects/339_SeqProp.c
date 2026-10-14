@@ -13,12 +13,12 @@
 
 #include "objects/779_WCLevelControl.h"
 
-#include "recomp/dlls/objects/339_recomp.h"
+#include "recomp/dlls/objects/339_SeqProp_recomp.h"
 
 //TEMPORARY DEFINES
-#define SeqProp_obj_Setup dll_339_setup
-#define SeqProp_obj_Control dll_339_control
-#define SeqProp_obj_GetDataSize dll_339_get_data_size
+// #define SeqProp_obj_Setup dll_339_setup
+// #define SeqProp_obj_Control dll_339_control
+// #define SeqProp_obj_GetDataSize dll_339_get_data_size
 //END OF TEMPORARY DEFINES
 
 typedef struct {

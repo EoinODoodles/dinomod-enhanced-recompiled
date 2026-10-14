@@ -17,7 +17,7 @@
 
 #include "recomp/dlls/objects/227_tumbleweed_recomp.h"
 
-extern int Tumbleweed_did_player_lift_twig(Object* self);
+extern int Tumbleweed_didPlayerLiftTwig(Object* self);
 
 /** Toggles creating particles/sounds when the Tumbleweed is deleted from out of the player's hands */
 void tumbleweed_set_silent_delete(Object* self, int enable){
@@ -113,7 +113,7 @@ void tumbleweed_create_disintegrate_effects(Object* self, int createLeaves, int 
   * - Avoid crash when being carried by player.
   * - Avoid crash when parent TumbleweedBush is already deleted.
   */
-RECOMP_PATCH void Tumbleweed_free(Object* self, s32 arg1) {
+RECOMP_PATCH void Tumbleweed_obj_Free(Object* self, s32 arg1) {
     Tumbleweed_Data_Extended* objData;
     Object* object;
     s32 i;
@@ -160,7 +160,7 @@ RECOMP_PATCH void Tumbleweed_free(Object* self, s32 arg1) {
     for (objects = objGetObjects(&i, &count); i < count; i++) {
         object = objects[i];
         if (id == object->id && !(object->stateFlags & OBJSTATE_DESTROYED)) { //@recomp: check Object isn't deleted
-            ((DLL_226_TumbleweedBush*)object->dll)->vtbl->remove_tumbleweed(object, self);
+            ((DLL_226_TumbleweedBush*)object->dll)->vtbl->RemoveTumbleweed(object, self);
         }
     }
     
@@ -176,7 +176,7 @@ RECOMP_PATCH void Tumbleweed_free(Object* self, s32 arg1) {
 /**
   * Fix issue where player could immediately drop a Tumbleweed after picking it up.
   */
-RECOMP_PATCH int Tumbleweed_handle_carry_behaviour(Object* self) {
+RECOMP_PATCH int Tumbleweed_handleCarryBehaviour(Object* self) {
     u32 pad;
     Object* player;
     u32 messageArg;
@@ -190,7 +190,7 @@ RECOMP_PATCH int Tumbleweed_handle_carry_behaviour(Object* self) {
     //Not being carried
     if (objData->carryFlags == Twig_FLAG_None) {
         //Check for player to lift twig via interaction arrow
-        if ((objData->carryFlags = Tumbleweed_did_player_lift_twig(self))) {
+        if ((objData->carryFlags = Tumbleweed_didPlayerLiftTwig(self))) {
             objData->beingCarried = TRUE;
         }
         self->unkAF &= ~ARROW_FLAG_8_No_Targetting;
@@ -246,6 +246,6 @@ RECOMP_PATCH int Tumbleweed_handle_carry_behaviour(Object* self) {
 }
 
 /** Extend objData */
-RECOMP_PATCH u32 Tumbleweed_get_data_size(Object* self, s32 arg1) {
+RECOMP_PATCH u32 Tumbleweed_obj_GetDataSize(Object* self, s32 arg1) {
     return sizeof(Tumbleweed_Data_Extended);
 }

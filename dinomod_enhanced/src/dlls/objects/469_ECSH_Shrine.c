@@ -1,23 +1,23 @@
-#include "dll.h"
-#include "dlls/objects/210_player.h"
-#include "game/gamebits.h"
 #include "modding.h"
 
 #include "PR/ultratypes.h"
+#include "dll.h"
+#include "dlls/objects/210_player.h"
 #include "dlls/objects/469_ECSHshrine.h"
+#include "game/gamebits.h"
 #include "sys/dll.h"
-#include "sys/main.h"
 #include "sys/gfx/modgfx.h"
+#include "sys/main.h"
 #include "sys/map_enums.h"
 #include "sys/objects.h"
-
-#include "recomp/dlls/objects/469_ECSHshrine_recomp.h"
 #include "sys/objtype.h"
 #include "sys/rand.h"
 
+#include "recomp/dlls/objects/469_ECSHshrine_recomp.h"
+
 /*0x40*/ extern Object *dShrine;
 
-extern void ECSHshrine_handle_messages(Object *self);
+extern void ECSHshrine_handleMessages(Object *self);
 
 #define NO_CHOICE_YET -1
 
@@ -40,7 +40,7 @@ typedef enum {
 /*0x40*/ extern Object *dShrine;
 
 /* Fix framerate dependencies */
-RECOMP_PATCH void ECSHshrine_control(Object* self) {
+RECOMP_PATCH void ECSHshrine_obj_Control(Object* self) {
     ECSHshrine_Data* objdata = self->data;
     Object* player = objGetPlayer();
     f32 dz;
@@ -55,7 +55,7 @@ RECOMP_PATCH void ECSHshrine_control(Object* self) {
     s32 i;
 
     objectDistance = 1000.0f;
-    ECSHshrine_handle_messages(self);
+    ECSHshrine_handleMessages(self);
     mainSetBits(BIT_DB_Entered_Shrine_2, 1);
 
     //Update music volume (whispers)
@@ -137,15 +137,15 @@ RECOMP_PATCH void ECSHshrine_control(Object* self) {
             gDLL_3_Animation->vtbl->start_obj_sequence(0, self, -1);
 
             modGfxDLL = dllLoad(DLL_ID_147, 1);
-            modGfxDLL->vtbl->func0(self, 2, NULL, 1, -1, NULL);
+            modGfxDLL->vtbl->Spawn(self, 2, NULL, 1, -1, NULL);
             dllFree(modGfxDLL);
 
             modGfxDLL = dllLoad(DLL_ID_148, 1);
-            modGfxDLL->vtbl->func0(self, 0, NULL, 1, -1, NULL);
+            modGfxDLL->vtbl->Spawn(self, 0, NULL, 1, -1, NULL);
             dllFree(modGfxDLL);
 
             mainSetBits(BIT_DB_Entered_Shrine_1, 0);
-            gDLL_14_Modgfx->vtbl->func7(&objdata->modGfxCircle);
+            gDLL_14_Modgfx->vtbl->Func7(&objdata->modGfxCircle);
         }
         break;
     case ECShrine_STATE_Test_Start:
@@ -395,7 +395,7 @@ RECOMP_PATCH void ECSHshrine_control(Object* self) {
         mainSetBits(BIT_DB_Entered_Shrine_2, 1);
 
         modGfxDLL = dllLoad(DLL_ID_122, 1);
-        objdata->modGfxCircle = modGfxDLL->vtbl->func0(self, 2, NULL, 0x402, -1, NULL);
+        objdata->modGfxCircle = modGfxDLL->vtbl->Spawn(self, 2, NULL, 0x402, -1, NULL);
         dllFree(modGfxDLL);
         break;
     case ECShrine_STATE_Finished:
@@ -406,7 +406,7 @@ RECOMP_PATCH void ECSHshrine_control(Object* self) {
 /** 
   * Exports the shrine's state and the cup minigame's substate value, and the index of the cup currently holding the Krazoa Spirit.
   */
-RECOMP_PATCH void ECSHshrine_get_minigame_state(s32* shrineStatesArray, u8* cupWithSpirit) {
+RECOMP_PATCH void ECSHshrine_GetMinigameState(s32* shrineStatesArray, u8* cupWithSpirit) {
     Object* object;
     ECSHshrine_Data* objdata;
 

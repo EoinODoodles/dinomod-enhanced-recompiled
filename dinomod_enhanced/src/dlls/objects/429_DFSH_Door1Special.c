@@ -3,6 +3,7 @@
 
 #include "dll.h"
 #include "common.h"
+#include "dlls/objects/307_SeqDoor.h"
 #include "game/objects/object_id.h"
 #include "sys/main.h"
 #include "sys/objects.h"
@@ -13,14 +14,14 @@
 #include "recomp/dlls/objects/429_DFSH_door1Special_recomp.h"
 
 //TEMPORARY DEFINES
-#define DFSH_Door1Special_obj_Setup DFSH_Door1Special_setup
-#define DFSH_Door1Special_obj_Control DFSH_Door1Special_control
-#define DFSH_Door1Special_animCallback DFSH_Door1Special_anim_callback
+// #define DFSH_Door1Special_obj_Setup DFSH_Door1Special_setup
+// #define DFSH_Door1Special_obj_Control DFSH_Door1Special_control
+// #define DFSH_Door1Special_animCallback DFSH_Door1Special_anim_callback
 
-typedef enum {
-    SeqDoor_SEQCMD_1_Finished_Closing = 1,
-    SeqDoor_SEQCMD_2_Finished_Opening = 2
-} SeqDoor_ObjSeqMessages;
+// typedef enum {
+//     SeqDoor_SEQCMD_1_Finished_Closing = 1,
+//     SeqDoor_SEQCMD_2_Finished_Opening = 2
+// } SeqDoor_ObjSeqMessages;
 //END OF TEMPORARY DEFINES
 
 extern int DFSH_Door1Special_animCallback(Object* self, Object* overrideObj, AnimObj_Data* animData, s8 prevCallbackResult);

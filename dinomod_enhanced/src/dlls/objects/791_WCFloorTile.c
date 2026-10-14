@@ -1,9 +1,10 @@
-#include "dll.h"
-#include "game/objects/object_id.h"
 #include "modding.h"
 #include "recomputils.h"
 #include "math_util.h"
 
+#include "dll.h"
+#include "game/gamebits.h"
+#include "game/objects/object_id.h"
 #include "sys/dll.h"
 #include "sys/gfx/animseq.h"
 #include "sys/intersect.h"
@@ -13,17 +14,17 @@
 #include "sys/objexpr.h"
 #include "sys/objhits.h"
 #include "sys/print.h"
-
-#include "recomp/dlls/_asm/791_recomp.h"
 #include "sys/rand.h"
 
-//TEMPORARY DEFINES
-#define WCFloorTile_obj_Control dll_791_obj_Control
-#define WCFloorTile_manageHitLines dll_791_func_544
+#include "recomp/dlls/objects/791_WCFloorTile_recomp.h"
 
-#define BIT_WC_Hazards_Deactivated 0x338
-#define BIT_WC_Moon_Temple_Illusory_Wall_Switch_Pressed 0x265
-#define SOUND_A11_Stone_Crumbling 0xA11
+//TEMPORARY DEFINES
+// #define WCFloorTile_obj_Control dll_791_obj_Control
+// #define WCFloorTile_manageHitLines dll_791_func_544
+
+// #define BIT_WC_Hazards_Deactivated 0x338
+// #define BIT_WC_Moon_Temple_Illusory_Wall_Switch_Pressed 0x265
+// #define SOUND_A11_Stone_Crumbling 0xA11
 //END OF TEMPORARY DEFINES
 
 typedef struct {
@@ -68,7 +69,7 @@ RECOMP_PATCH void WCFloorTile_obj_Control(Object* self) {
 
     //Reappear and don't fall if a particular gamebit is set
     if (objData->state != WCFloorTile_STATE_3_Finished && //@recomp: tweak condition so this block only runs once
-        mainGetBits(BIT_WC_Hazards_Deactivated)
+        mainGetBits(BIT_WC_Moon_Temple_Hazards_Deactivated)
     ) {
         self->srt.transl.y = objSetup->base.y;
 

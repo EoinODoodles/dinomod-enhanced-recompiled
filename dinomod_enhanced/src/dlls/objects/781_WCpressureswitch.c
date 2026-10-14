@@ -12,14 +12,14 @@
 #include "sys/objexpr.h"
 #include "sys/print.h"
 
-#include "recomp/dlls/objects/781_WCpressureswitch_recomp.h"
+#include "recomp/dlls/objects/781_WCPressureSwitch_recomp.h"
 
 //TEMPORARY DEFINES
-#define WCPressureSwitch_obj_Control WCpressureswitch_control
-#define WCPressureSwitch_obj_GetModelFlags WCpressureswitch_get_model_flags
-#define WCPressureSwitch_addObject WCpressureswitch_add_object
-#define WCPressureSwitch_isObjectOnSwitch WCpressureswitch_is_object_on_switch
-#define WCPressureSwitch_animCallback WCpressureswitch_anim_callback
+// #define WCPressureSwitch_obj_Control WCpressureswitch_control
+// #define WCPressureSwitch_obj_GetModelFlags WCpressureswitch_get_model_flags
+// #define WCPressureSwitch_addObject WCpressureswitch_add_object
+// #define WCPressureSwitch_isObjectOnSwitch WCpressureswitch_is_object_on_switch
+// #define WCPressureSwitch_animCallback WCpressureswitch_anim_callback
 //END OF TEMPORARY DEFINES
 
 // #define DEBUG_SWITCH

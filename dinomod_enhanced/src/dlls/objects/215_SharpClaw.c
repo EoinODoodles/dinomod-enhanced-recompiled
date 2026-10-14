@@ -22,7 +22,7 @@
 #include "recomp/dlls/objects/215_SharpClaw_recomp.h"
 
 //TEMPORARY DEFINES
-#define SharpClaw_initFSACallbacks SharpClaw_func_0
+// #define SharpClaw_initFSACallbacks SharpClaw_func_0
 
 typedef enum {
     SharpClaw_ASTATE_0_Idle,
@@ -69,32 +69,32 @@ typedef enum {
     SharpClaw_LSTATE_13
 } SharpClaw_LogicStates;
 
-typedef enum {
-    SharpClaw_FLAG_1 = 1,
-    SharpClaw_FLAG_2 = 2,
-    SharpClaw_FLAG_4 = 4,
-    SharpClaw_FLAG_8 = 8,
-    SharpClaw_FLAG_10 = 0x10,
-    SharpClaw_FLAG_20 = 0x20,
-    SharpClaw_FLAG_40 = 0x40,
-    SharpClaw_FLAG_80_Vulnerable_During_Attack = 0x80 //Harder SharpClaw, parries attacks when not vulnerable
-} SharpClaw_Flags_3B0;
+// typedef enum {
+//     SharpClaw_FLAG_1 = 1,
+//     SharpClaw_FLAG_2 = 2,
+//     SharpClaw_FLAG_4 = 4,
+//     SharpClaw_FLAG_8 = 8,
+//     SharpClaw_FLAG_10 = 0x10,
+//     SharpClaw_FLAG_20 = 0x20,
+//     SharpClaw_FLAG_40 = 0x40,
+//     SharpClaw_FLAG_80_Vulnerable_During_Attack = 0x80 //Harder SharpClaw, parries attacks when not vulnerable
+// } SharpClaw_Flags_3B0;
 
-typedef enum {
-    SharpClaw_OTHERFLAG_1 = 1,
-    SharpClaw_OTHERFLAG_2 = 2,
-    SharpClaw_OTHERFLAG_4 = 4,
-    SharpClaw_OTHERFLAG_8 = 8,
-    SharpClaw_OTHERFLAG_10 = 0x10,
-    SharpClaw_OTHERFLAG_20 = 0x20,
-    SharpClaw_OTHERFLAG_40 = 0x40,
-    SharpClaw_OTHERFLAG_80_Frozen = 0x80,
-    SharpClaw_OTHERFLAG_100 = 0x100
-} SharpClaw_OtherFlags_3B2;
+// typedef enum {
+//     SharpClaw_OTHERFLAG_1 = 1,
+//     SharpClaw_OTHERFLAG_2 = 2,
+//     SharpClaw_OTHERFLAG_4 = 4,
+//     SharpClaw_OTHERFLAG_8 = 8,
+//     SharpClaw_OTHERFLAG_10 = 0x10,
+//     SharpClaw_OTHERFLAG_20 = 0x20,
+//     SharpClaw_OTHERFLAG_40 = 0x40,
+//     SharpClaw_OTHERFLAG_80_Frozen = 0x80,
+//     SharpClaw_OTHERFLAG_100 = 0x100
+// } SharpClaw_OtherFlags_3B2;
 
-#define dll_BaddieControl (gDLL_33_BaddieControl->vtbl)
+// #define dll_BaddieControl (gDLL_33_BaddieControl->vtbl)
 
-#define SOUND_510_Ice_Shatter 0x510
+// #define SOUND_510_Ice_Shatter 0x510
 //END OF TEMPORARY DEFINES
 
 extern void SharpClaw_initFSACallbacks(void);
@@ -360,7 +360,7 @@ RECOMP_PATCH void SharpClaw_obj_Print(Object* self, Gfx** gdl, Mtx** mtxs, Verte
         
         if (rsModGfxDLL) {
             //TODO: tint the polygons an icy colour! It looks way too brutal when it's the same texture as the character
-            rsModGfxDLL->vtbl->func0(self, 0xE, &fxTransform, 0, 0, 0);
+            rsModGfxDLL->vtbl->Spawn(self, 0xE, &fxTransform, 0, 0, 0);
         }
     } else if (objData->fxFlags & SharpClaw_FXFLAG_2_Frost) {
         objData->fxFlags &= ~SharpClaw_FXFLAG_2_Frost;

@@ -24,12 +24,12 @@
 #include "recomp/dlls/objects/780_WCBeacon_recomp.h"
 
 //TEMPORARY DEFINES
-#define WCBeacon_obj_Setup dll_780_setup
-#define WCBeacon_obj_Control dll_780_control
-#define WCBeacon_obj_Free dll_780_free
-#define WCBeacon_obj_GetDataSize dll_780_get_data_size
+// #define WCBeacon_obj_Setup dll_780_setup
+// #define WCBeacon_obj_Control dll_780_control
+// #define WCBeacon_obj_Free dll_780_free
+// #define WCBeacon_obj_GetDataSize dll_780_get_data_size
 
-#define PARTICLE_1A3 0x1A3
+// #define PARTICLE_1A3 0x1A3
 //END OF TEMPORARY DEFINES
 
 typedef struct {
@@ -211,7 +211,7 @@ static void WCBeacon_createFlame(Object* self) {
         objData->flameAnimObj->srt.yaw = yaw;
 
         modGfxDLL = dllLoad(DLL_ID_121, 1);
-        modGfxDLL->vtbl->func0(objData->flameAnimObj, 1, NULL, 0, -1, 0);
+        modGfxDLL->vtbl->Spawn(objData->flameAnimObj, 1, NULL, 0, -1, 0);
         dllFree(modGfxDLL);
         objData->flameAnimObj->opacity = 1;
     }
@@ -231,7 +231,7 @@ static void WCBeacon_unloadFlame(Object* self) {
 
     //Free animObj and modGfx
     if (objData->flameAnimObj) {
-        gDLL_14_Modgfx->vtbl->func5(objData->flameAnimObj);
+        gDLL_14_Modgfx->vtbl->Func5(objData->flameAnimObj);
         gDLL_13_Expgfx->vtbl->func5(self);
 
         objFreeObject(objData->flameAnimObj);

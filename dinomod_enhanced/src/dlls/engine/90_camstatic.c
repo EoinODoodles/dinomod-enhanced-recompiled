@@ -1,14 +1,11 @@
 #include "configs.h"
 #include "modding.h"
+#include "common_objsetups.h"
 #include "recompconfig.h"
 #include "recomputils.h"
 
-#include "core/map.h"
-#include "common_objsetups.h"
 #include "dll.h"
-// #include "dlls/engine/90_camstatic.h"
 #include "dlls/objects/210_player.h"
-// #include "dlls/objects/715_StaticCamera.h"
 #include "game/gamebits.h"
 #include "game/objects/object.h"
 #include "sys/dll.h"
@@ -22,14 +19,14 @@
 // #define DEBUG_EASE
 
 //TEMPORARY DEFINES
-typedef struct {
-    s32 cameraID;   //The cameraID tag to search for in StaticCamera objects' setup structs
-    u8 previousCameraEasesIn; //Don't use the StaticCamera's own easing function for the initial ease in
-} CamStatic_Params;
+// typedef struct {
+//     s32 cameraID;   //The cameraID tag to search for in StaticCamera objects' setup structs
+//     u8 previousCameraEasesIn; //Don't use the StaticCamera's own easing function for the initial ease in
+// } CamStatic_Params;
 
-#define camstatic_setupEase camstatic_func_5D4
-#define camstatic_ease camstatic_func_798
-#define camstatic_findStaticCamera camstatic_func_C04
+// #define camstatic_setupEase camstatic_func_5D4
+// #define camstatic_ease camstatic_func_798
+// #define camstatic_findStaticCamera camstatic_func_C04
 //END OF TEMPORARY DEFINES
 
 #define PLAYER_CENTRE_HEIGHT 20

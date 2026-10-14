@@ -13,8 +13,8 @@
 #include "recomp/dlls/engine/7_newday_recomp.h"
 
 //TEMPORARY DEFINES
-#define newday_func_102C dll_7_func_102C
-#define newday_func_56F8 dll_7_func_56F8
+// #define newday_func_102C dll_7_func_102C
+// #define newday_func_56F8 dll_7_func_56F8
 //END OF TEMPORARY DEFINES
 
 typedef struct {

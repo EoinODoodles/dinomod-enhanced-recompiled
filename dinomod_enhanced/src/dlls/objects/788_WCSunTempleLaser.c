@@ -3,28 +3,28 @@
 
 #include "dll.h"
 #include "dlls/objects/210_player.h"
-#include "game/objects/object_id.h"
 #include "game/gamebits.h"
+#include "game/objects/object_id.h"
 #include "sys/gfx/modgfx.h"
 #include "sys/dll.h"
 #include "sys/main.h"
 #include "sys/objects.h"
 #include "sys/objmsg.h"
 
-#include "recomp/dlls/_asm/788_recomp.h"
+#include "recomp/dlls/objects/788_WCSunTempleLaser_recomp.h"
 
 //TEMPORARY DEFINES
-#define WCSunTempleLaser_obj_Control dll_788_obj_Control
+// #define WCSunTempleLaser_obj_Control dll_788_obj_Control
 
-#define dModGfxDLL data_0
+// #define dModGfxDLL data_0
 
-#define BIT_WC_Moon_Temple_Hazards_Deactivated 0x338
-#define BIT_468_Forcefield_Spell_Taking_Damage 0x468
-#define SOUND_2BB_Laser_Stop_Hiss 0x2BB
-#define SOUND_9F9_Laser_Startup_Hiss 0x9F9
-#define SOUND_9FA_Laser_Whir_Loop 0x9FA
-#define SOUND_228_Laser_Zap 0x228
-#define PARTICLE_28B 0x28B
+// #define BIT_WC_Moon_Temple_Hazards_Deactivated 0x338
+// #define BIT_468_Forcefield_Spell_Taking_Damage 0x468
+// #define SOUND_2BB_Laser_Stop_Hiss 0x2BB
+// #define SOUND_9F9_Laser_Startup_Hiss 0x9F9
+// #define SOUND_9FA_Laser_Whir_Loop 0x9FA
+// #define SOUND_228_Laser_Zap 0x228
+// #define PARTICLE_28B 0x28B
 //END OF TEMPORARY DEFINES
 
 typedef struct {
@@ -121,7 +121,7 @@ RECOMP_PATCH void WCSunTempleLaser_obj_Control(Object* self) {
                     objData->soundHandle = 0;
                 }
                 
-                gDLL_14_Modgfx->vtbl->func5(self);
+                gDLL_14_Modgfx->vtbl->Func5(self);
                 dll_amSfx->Play(self, SOUND_2BB_Laser_Stop_Hiss, MAX_VOLUME, NULL, NULL, 0, NULL);
             } else {
                 //Firing
@@ -146,7 +146,7 @@ RECOMP_PATCH void WCSunTempleLaser_obj_Control(Object* self) {
                         //Create modGfx
                         if (dModGfxDLL != NULL) {
                             effectIdx = (objSetup->mode == WCSunTempleLaser_MODE_Timed_Blue) ? 13 : 15;
-                            dModGfxDLL->vtbl->func0(self, effectIdx, NULL, 0x10004, -1, NULL);
+                            dModGfxDLL->vtbl->Spawn(self, effectIdx, NULL, 0x10004, -1, NULL);
                         }
                     }
                     
@@ -155,7 +155,7 @@ RECOMP_PATCH void WCSunTempleLaser_obj_Control(Object* self) {
                             objData->state = WCSunTempleLaser_STATE_2_Stopping;
                             if (dModGfxDLL != NULL) {
                                 effectIdx = (objSetup->mode == WCSunTempleLaser_MODE_Timed_Blue) ? 13 : 16;
-                                dModGfxDLL->vtbl->func0(self, effectIdx, NULL, 0x10004, -1, NULL);
+                                dModGfxDLL->vtbl->Spawn(self, effectIdx, NULL, 0x10004, -1, NULL);
                             }
                         }
                     } else if (objData->whirVolume <= 1.0f) {
