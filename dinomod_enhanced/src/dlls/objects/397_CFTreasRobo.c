@@ -240,7 +240,7 @@ RECOMP_PATCH void CFTreasRobo_obj_Control(Object* self) {
             }
             break;
         case 10:
-            mainSetBits(BIT_8F7, 0);
+            mainSetBits(BIT_CRF_Galleon_Force_Low_Detail, 0);
             mainSetBits(BIT_Play_Seq_02C7_Scales_Takes_Baby_Cloudrunner_Away, 1);
             mainSetBits(BIT_CRF_Galleon_Fade_to_High_Detail, 1);
             mainSetBits(BIT_CRF_Galleon_Fade_to_Low_Detail, 0);

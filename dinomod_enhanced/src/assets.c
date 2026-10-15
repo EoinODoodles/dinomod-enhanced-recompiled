@@ -3345,8 +3345,8 @@ static void swapstone_hollow_additions(void) {
             .unk2D = 0,
             .unk2E = 0x40,
             .unk2F = -1,
-            .type24.unk30 = -1,
-            .type24.unk32 = BIT_14 // disable after woken up
+            .type24.activeBit = -1,
+            .type24.usedBit = BIT_14 // disable after woken up
         };
 
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &distractNode, sizeof(distractNode));
@@ -4861,7 +4861,7 @@ static void discovery_falls_modifications(void) {
                             reasset_base_id(MAP_MOON_MOUNTAIN_PASS), 
                             kyteCurveUIDs[i]
                         );
-                        curve->type22.unk30 = DINOMOD_BIT_975_DF_Kyte_Can_Fly_Through_Door_to_MMP;
+                        curve->type22.activeBit = DINOMOD_BIT_975_DF_Kyte_Can_Fly_Through_Door_to_MMP;
                     }
                 }
             }
@@ -5970,7 +5970,7 @@ static void discovery_falls_modifications(void) {
             };
             for (u32 i = 0; i < ARRAYCOUNT(kyteDoorwayUIDs); i++) {
                 CurveSetup* flyCurve = GET_MAPS_OBJECT(discoveryFalls, kyteDoorwayUIDs[i]);
-                flyCurve->type22.unk30 = BIT_DF_Shrine_Door_Opens;
+                flyCurve->type22.activeBit = BIT_DF_Shrine_Door_Opens;
             }
         }
 
@@ -7495,17 +7495,17 @@ static void inside_galleon_modifications(void) {
         CurveSetup* curve;
 
         curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A3E), NULL);
-        curve->type22.unk30 = -1;
+        curve->type22.activeBit = -1;
         curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A3F), NULL);
-        curve->type22.unk30 = -1;
+        curve->type22.activeBit = -1;
         curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A40), NULL);
-        curve->type22.unk30 = -1;
+        curve->type22.activeBit = -1;
         curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A46), NULL);
-        curve->type22.unk30 = -1;
+        curve->type22.activeBit = -1;
         curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A4A), NULL);
-        curve->type22.unk30 = -1;
+        curve->type22.activeBit = -1;
         curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A4C), NULL);
-        curve->type22.unk30 = -1;
+        curve->type22.activeBit = -1;
     }
 }
 
