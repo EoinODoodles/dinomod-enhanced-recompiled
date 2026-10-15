@@ -1,3 +1,6 @@
+# Discovery Falls - Kyte Wants to Visit CloudRunner Fortress
+# Edited so that the camera doesn't end up clipped outside the level model at the end of the cutscene.
+
 actors:
 # Actor 0
 - uid: 0x0
@@ -17,7 +20,7 @@ actors:
   objectID: 0x25 # Kyte
 
 curves:
-# Curve 0
+# Curve 0 (DFsequences)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 1800 } # SETDURATION @ 0
@@ -26,7 +29,7 @@ curves:
   - { type: 11, delay: 0, params: 1 } # CODE @ 1800
   - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (END)
   keyframes:
-# Curve 1
+# Curve 1 (Camera)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 1800 } # SETDURATION @ 0
@@ -44,6 +47,11 @@ curves:
   - { channel: 6, time: 172, value: 0.0, interp: 2, weight: 8 }
   - { channel: 6, time: 174, value: -6.121729373931885, interp: 0, weight: 6 }
   - { channel: 6, time: 278, value: 0.4976077973842621, interp: 0, weight: 4 }
+
+    #Rotate the camera at the end so it doesn't drift if you skip the sequence
+  - { channel: 6, time: 1799, value: 0.4976077973842621, interp: 2, weight: 0 }
+  - { channel: 6, time: 1800, value: 0, interp: 0, weight: 0 }
+
     # ROTATE_Y
   - { channel: 7, time: 0, value: 201.4901580810547, interp: 1, weight: 56 }
   - { channel: 7, time: 173, value: 198.56651306152344, interp: 2, weight: 0 }
@@ -59,6 +67,11 @@ curves:
   - { channel: 7, time: 1007, value: 115.98294830322266, interp: 1, weight: 0 }
   - { channel: 7, time: 1513, value: 115.98294067382812, interp: 2, weight: 0 }
   - { channel: 7, time: 1556, value: 187.3439483642578, interp: 0, weight: 4 }
+
+    #Rotate the camera at the end so it doesn't drift if you skip the sequence
+  - { channel: 7, time: 1799, value: 187.3439483642578, interp: 2, weight: 0 }
+  - { channel: 7, time: 1800, value: 224.461669, interp: 0, weight: 0 }
+
     # ROTATE_X
   - { channel: 8, time: 0, value: 8.732932090759277, interp: 1, weight: 56 }
   - { channel: 8, time: 173, value: 1.2799103260040283, interp: 2, weight: 56 }
@@ -74,6 +87,11 @@ curves:
   - { channel: 8, time: 1007, value: 10.568873405456543, interp: 1, weight: 8 }
   - { channel: 8, time: 1513, value: 18.011171340942383, interp: 2, weight: 0 }
   - { channel: 8, time: 1556, value: 7.141130447387695, interp: 0, weight: 60 }
+
+    #Rotate the camera at the end so it doesn't drift if you skip the sequence
+  - { channel: 8, time: 1799, value: 7.141130447387695, interp: 2, weight: 0 }
+  - { channel: 8, time: 1800, value: -12.804565429, interp: 0, weight: 0 }
+
     # TRANSLATE_Z
   - { channel: 11, time: 1, value: -162.25125122070312, interp: 1, weight: 56 }
   - { channel: 11, time: 173, value: -162.651123046875, interp: 2, weight: 0 }
@@ -89,6 +107,11 @@ curves:
   - { channel: 11, time: 1007, value: -140.21495056152344, interp: 1, weight: 8 }
   - { channel: 11, time: 1513, value: -140.21495056152344, interp: 2, weight: 0 }
   - { channel: 11, time: 1556, value: -165.7023468017578, interp: 0, weight: 60 }
+
+    #Reposition the camera so it's not clipped through the wall at the end
+  - { channel: 11, time: 1799, value: -165.7023468017578, interp: 2, weight: 0 }
+  - { channel: 11, time: 1800, value: -199.029296749999, interp: 0, weight: 0 }
+
     # TRANSLATE_Y
   - { channel: 12, time: 0, value: 58.81975555419922, interp: 1, weight: 8 }
   - { channel: 12, time: 173, value: 62.780704498291016, interp: 2, weight: 8 }
@@ -104,6 +127,11 @@ curves:
   - { channel: 12, time: 1007, value: 55.846893310546875, interp: 1, weight: 0 }
   - { channel: 12, time: 1513, value: 55.846900939941406, interp: 2, weight: 0 }
   - { channel: 12, time: 1556, value: 49.846900939941406, interp: 0, weight: 60 }
+
+    #Reposition the camera so it's not clipped through the wall at the end
+  - { channel: 12, time: 1799, value: 49.846900939941406, interp: 2, weight: 0 }
+  - { channel: 12, time: 1800, value: 92.999634, interp: 0, weight: 0 }
+
     # TRANSLATE_X
   - { channel: 13, time: -1, value: 52.37360382080078, interp: 1, weight: 8 }
   - { channel: 13, time: 173, value: 54.98660659790039, interp: 2, weight: 8 }
@@ -119,7 +147,12 @@ curves:
   - { channel: 13, time: 1007, value: 89.31511688232422, interp: 1, weight: 8 }
   - { channel: 13, time: 1513, value: 83.72737884521484, interp: 2, weight: 56 }
   - { channel: 13, time: 1556, value: 60.13935089111328, interp: 0, weight: 60 }
-# Curve 2
+
+    #Reposition the camera so it's not clipped through the wall at the end
+  - { channel: 13, time: 1799, value: 60.13935089111328, interp: 2, weight: 0 }
+  - { channel: 13, time: 1800, value: -8.46386734375, interp: 0, weight: 0 }
+
+# Curve 2 (Krystal)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 1661 } # SETDURATION @ 0
@@ -314,7 +347,7 @@ curves:
   - { channel: 17, time: 1389, value: -4.8565673828125, interp: 0, weight: 0 }
   - { channel: 17, time: 1442, value: -16.62567901611328, interp: 0, weight: 0 }
   - { channel: 17, time: 1495, value: -3.4719696044921875, interp: 0, weight: 4 }
-# Curve 3
+# Curve 3 (Kyte)
 - events:
   - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
   - { type: -1, delay: 0, params: 1800 } # SETDURATION @ 0
