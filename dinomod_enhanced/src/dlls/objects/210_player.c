@@ -3351,180 +3351,22 @@ RECOMP_HOOK_DLL(dll_210_func_D788) void dll_210_func_D788_hook(Object* self, Obj
     }
 }
 
-/** @recomp: keep track of whether player is still holding back on stick after turning on rope 
-            (to prevent going into a direction-changing loop) */
-static u8 stillHoldingBackAfterTurn = FALSE;
-
-/**  
-  *  PLAYER_ASTATE_Rope_Climb_Start
-  *  - Some setup for preventing turning around rapidly while holding back on the control stick. 
-  */
-RECOMP_PATCH s32 dll_210_func_16648(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
-    Player_Data* objdata = player->data;
-    s32 pad;
-    Vec3f sp7C;
-    Vec3f sp70;
-    f32 animTickDelta;
-    f32 temp_fa1;
-    f32 var_fv0;
-    s16 pad_sp62;
-    s16 sp60;
-    ModelInstance* modelInstance = player->modelInsts[player->modelInstIdx];
-    s32 pad2;
-    Vec3f sp4C;
-    u8 animArg;
-    /* RECOMP */
-    u8 cameraRelativeControls = configs_RopeMoveMode();
-
-    //@recomp: when using tank controls, check if the player starts off the rope jump while already holding back on the stick
-    if (cameraRelativeControls == ROPE_MOVE_DEFAULT) {
-        if (fsa->yAnalogInput >= -5.0f) {
-            stillHoldingBackAfterTurn = FALSE;
-        } else {
-            stillHoldingBackAfterTurn = TRUE;
-        }
-    }
-
-    {
-        s32 nextState = dll_210_func_EFB4(player, fsa, updateRate);
-        if (nextState) { return nextState; }
-    }
-
-    // @fake
-    if ((_bss_200 && _bss_200) && _bss_200) {}
-    _bss_202 = _bss_200;
-    animArg = 0;
-
-    switch (_bss_200) {
-    case 0:
-        if (fsa->unk33A != 0) {
-            player->globalPosition.x = objdata->unk7EC.x;
-            player->globalPosition.y = objdata->unk7EC.y;
-            player->globalPosition.z = objdata->unk7EC.z;
-            camInverseTransformPointByObject(player->globalPosition.x, player->globalPosition.y, player->globalPosition.z, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z, player->parent);
-            objAnimSet(player, _data_69C[1], 0.0f, 1);
-            fsa->animTickDelta = 0.01f;
-            _bss_202 = _bss_200 = 1;
-            mod_func_8001A3FC(modelInstance, 0, 0, 0.0f, player->srt.scale, &sp7C, &sp60);
-            player->srt.transl.y -= sp7C.f[1];
-            temp_fa1 = (_bss_1B0[2] + (objdata->unk6B0.unk0.y - objdata->unk7EC.y));
-            player->velocity.y = sqrtf(-temp_fa1 * -5.6f);
-            player->velocity.y = sqrtf(-temp_fa1 * -0.34f);
-            sp4C.f[0] = _bss_1F8[0] * objdata->unk6B0.unkC.x;
-            sp4C.f[1] = _bss_1F8[0] * objdata->unk6B0.unkC.y;
-            sp4C.f[2] = _bss_1F8[0] * objdata->unk6B0.unkC.z;
-            sp70.f[0] = objdata->unk6B0.unk1C.x + sp4C.x;
-            sp70.f[1] = objdata->unk6B0.unk1C.y + sp4C.y;
-            sp70.f[2] = objdata->unk6B0.unk1C.z + sp4C.z;
-            fsa->unk2EC.f[0] = sp70.f[0] - player->srt.transl.x;
-            fsa->unk2EC.f[1] = 0.0f;
-            fsa->unk2EC.f[2] = sp70.f[2] - player->srt.transl.z;
-            _bss_204 = player->srt.transl.x;
-            _bss_208 = player->srt.transl.z;
-        } else {
-            player->velocity.y = 0.0f;
-            gDLL_18_objfsa->vtbl->func10(player, fsa, updateRate, 0.1f);
-        }
-        break;
-    case 1:
-        temp_fa1 = _bss_1B0[2] + objdata->unk6B0.unk0.y;
-        player->velocity.y += -0.17f * updateRate;
-        var_fv0 = (objdata->unk7EC.y - objdata->unk6B0.unk0.z) / (temp_fa1 - objdata->unk6B0.unk0.z);
-        if (var_fv0 < 0.0f) {
-            var_fv0 = 0.0f;
-        } else if (var_fv0 > 1.0f) {
-            var_fv0 = 1.0f;
-        }
-        player->srt.transl.x = (fsa->unk2EC.f[0] * var_fv0) + _bss_204;
-        player->srt.transl.z = (fsa->unk2EC.f[2] * var_fv0) + _bss_208;
-        if ((temp_fa1 - 1.0f) <= objdata->unk7EC.y) {
-            if (objdata->unk848 == 0) {
-                objdata->unk848 = dll_amSfx->Play(player, SOUND_768_Rope_Climb, MAX_VOLUME, NULL, NULL, 0, NULL);
-                dll_amSfx->SetPitch(objdata->unk848, (mathRnd(-15, 15) / 100.0f) + 1.0f);
-            }
-            _bss_200 = 7;
-            animArg = 1;
-            animTickDelta = 0.035f;
-            objAnimSet(player, 16, 0.0f, 1);
-            fsa->animTickDelta = 0.035f;
-            player->srt.transl.x = objdata->unk6B0.unk1C.x;
-            player->srt.transl.y = objdata->unk6B0.unk1C.y;
-            player->srt.transl.z = objdata->unk6B0.unk1C.z;
-            player->velocity.y = 0.0f;
-        }
-        break;
-    case 7:
-    case 8:
-        if (fsa->unk33A != 0) {
-            player->globalPosition.x = objdata->unk7EC.x;
-            player->globalPosition.y = objdata->unk7EC.y;
-            player->globalPosition.z = objdata->unk7EC.z;
-            camInverseTransformPointByObject(player->globalPosition.x, player->globalPosition.y, player->globalPosition.z, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z, player->parent);
-            dll_210_func_7260(player, objdata);
-            objAnimSet(player, _data_6C0[0], 0.0f, 1);
-            return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Rope_Climb);
-        }
-        break;
-    case 2:
-        if (fsa->unk33A != 0) {
-            if (fsa->yAnalogInput > 5.0f) {
-                player->globalPosition.x = objdata->unk7EC.x;
-                player->globalPosition.y = objdata->unk7EC.y;
-                player->globalPosition.z = objdata->unk7EC.z;
-                camInverseTransformPointByObject(player->globalPosition.x, player->globalPosition.y, player->globalPosition.z, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z, player->parent);
-                dll_210_func_7260(player, objdata);
-                objAnimSet(player, _data_6C0[0], 0.0f, 1);
-                return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Rope_Climb);
-            }
-            if (fsa->yAnalogInput < -5.0f) {
-                return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Rope_Climb_End);
-            }
-            _bss_200 = 3;
-            animTickDelta = 0.008f;
-        }
-        break;
-    case 3:
-        if (fsa->yAnalogInput > 5.0f) {
-            player->globalPosition.x = objdata->unk7EC.x;
-            player->globalPosition.y = objdata->unk7EC.y;
-            player->globalPosition.z = objdata->unk7EC.z;
-            camInverseTransformPointByObject(player->globalPosition.x, player->globalPosition.y, player->globalPosition.z, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z, player->parent);
-            dll_210_func_7260(player, objdata);
-            objAnimSet(player, _data_6C0[0], 0.0f, 1);
-            return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Rope_Climb);
-        }
-        if (fsa->yAnalogInput < -5.0f) {
-            return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Rope_Climb_End);
-        }
-        break;
-    default:
-        _bss_200 = 0;
-        animTickDelta = 0.029f;
-        fsa->unk2F8 = objdata->unk6B0.unk54 - player->srt.yaw;
-        if (objdata->unk6B0.unk45 == 0) {
-            fsa->unk2F8 += M_180_DEGREES;
-        }
-        if (fsa->unk2F8 > M_180_DEGREES) {
-            fsa->unk2F8 += -(M_360_DEGREES - 1);
-        }
-        if (fsa->unk2F8 < -M_180_DEGREES) {
-            fsa->unk2F8 += (M_360_DEGREES - 1);
-        }
-        fsa->unk2A0 = 0.0f;
-        break;
-    }
-
-    if (_bss_202 != _bss_200) {
-        objAnimSet(player, _data_69C[_bss_200], 0.0f, animArg);
-        fsa->animTickDelta = animTickDelta;
-    }
-
-    dll_210_func_7260(player, objdata);
-
-    return 0;
-}
-
 // #define DEBUG_NEW_ROPE_CONTROLS
+
+typedef struct {
+    u8 stillHoldingBackAfterTurn : 1;           //keeps track of whether player is still holding back on stick after turning on rope (to prevent going into a direction-changing loop)
+    u8 stickPositionChangedSignificantly : 1;   //for the `ROPE_MOVE_CAMERA_RELATIVE_INITIAL` mode, recalculates the direction the player will travel in
+    s32 moveInitialStickAngle;                  //for the `ROPE_MOVE_CAMERA_RELATIVE_INITIAL` mode
+    f32 sin;
+    f32 cos;
+} RopeControlData;
+
+static RopeControlData rsRopeControls;
+
+RECOMP_HOOK_RETURN_DLL(dll_210_ctor) void player_ctor_hookResetRopeData(void) {
+    // Clear mutable static data (TODO: append this to objData instead of storing it statically)
+    bzero(&rsRopeControls, sizeof(RopeControlData));
+}
 
 /**  
   *  PLAYER_ASTATE_Rope_Climb
@@ -3550,14 +3392,26 @@ RECOMP_PATCH s32 dll_210_func_16EB4(Object* player, ObjFSA_Data* fsa, f32 update
     f32 cameraRelativeY;
     Camera* cam;
     Vec3f camToPlayer;
-    static s32 facingAngle = 0;
-    static s32 moveInitialStickAngle = 0;
-    static s8 stickPositionChangedSignificantly = TRUE;
-    static f32 sin;
-    static f32 cos;
+    s32 facingAngle;
     s32 moveCurrentStickAngle;
+    RopeControlData* ropeControl = &rsRopeControls; //TODO: append the rope control data to objData instead of using a static
 
     objData = player->data;
+
+    //@recomp: start-of-state checks
+    if (fsa->enteredAnimState) {
+        //When using tank controls, check if the player starts off the rope climb while already holding back on the stick
+        if (cameraRelativeControls == ROPE_MOVE_DEFAULT) {
+            if (fsa->yAnalogInput >= -5.0f) {
+                ropeControl->stillHoldingBackAfterTurn = TRUE;
+            } else {
+                ropeControl->stillHoldingBackAfterTurn = FALSE;
+            }
+        }
+
+        //Set to TRUE so an initial direction calculation is performed
+        ropeControl->stickPositionChangedSignificantly = TRUE;
+    }
 
     //@recomp: optional camera-relative rope controls
     if (cameraRelativeControls && (fsa->xAnalogInput || fsa->yAnalogInput)) {
@@ -3565,9 +3419,11 @@ RECOMP_PATCH s32 dll_210_func_16EB4(Object* player, ObjFSA_Data* fsa, f32 update
         if (cam) {
             //When using "initial" camera-relative controls, check if the stick angle changed significantly from the 
             //direction it was initially held in. If so, recalculate the basis angle for the camera-relative controls
-            if (cameraRelativeControls == ROPE_MOVE_CAMERA_RELATIVE_INITIAL && stickPositionChangedSignificantly == FALSE) {
+            if (cameraRelativeControls == ROPE_MOVE_CAMERA_RELATIVE_INITIAL && 
+                (ropeControl->stickPositionChangedSignificantly == FALSE)
+            ) {
                 moveCurrentStickAngle = mathAtan2f(fsa->xAnalogInput/70.0f, fsa->yAnalogInput/70.0f);
-                moveCurrentStickAngle -= moveInitialStickAngle;
+                moveCurrentStickAngle -= ropeControl->moveInitialStickAngle;
                 CIRCLE_WRAP(moveCurrentStickAngle);
                 if (moveCurrentStickAngle < 0) {
                     moveCurrentStickAngle = -moveCurrentStickAngle;
@@ -3577,12 +3433,12 @@ RECOMP_PATCH s32 dll_210_func_16EB4(Object* player, ObjFSA_Data* fsa, f32 update
 #endif
 
                 if (moveCurrentStickAngle > M_20_DEGREES) { //40 degree cone around initial direction counts as same direction
-                    stickPositionChangedSignificantly = TRUE;
+                    ropeControl->stickPositionChangedSignificantly = TRUE;
                 }
             }
 
             //Transform the stick controls relative to the camera
-            if (cameraRelativeControls == ROPE_MOVE_CAMERA_RELATIVE_CURRENT || stickPositionChangedSignificantly) {
+            if (cameraRelativeControls == ROPE_MOVE_CAMERA_RELATIVE_CURRENT || ropeControl->stickPositionChangedSignificantly) {
 #ifdef DEBUG_NEW_ROPE_CONTROLS
                 if (cameraRelativeControls == ROPE_MOVE_CAMERA_RELATIVE_INITIAL) {
                     diPrintf("ROPE CONTROLS: Recalculating angular basis\n");
@@ -3593,11 +3449,11 @@ RECOMP_PATCH s32 dll_210_func_16EB4(Object* player, ObjFSA_Data* fsa, f32 update
                 vec3Normalize(&camToPlayer);
                 facingAngle = mathAtan2f(camToPlayer.x, camToPlayer.z) - player->srt.yaw;
                 CIRCLE_WRAP(facingAngle);
-                sin = Sinf(facingAngle);
-                cos = Cosf(facingAngle);
+                ropeControl->sin = Sinf(facingAngle);
+                ropeControl->cos = Cosf(facingAngle);
             }
 
-            cameraRelativeY = -(sin * fsa->xAnalogInput + cos * fsa->yAnalogInput);
+            cameraRelativeY = -(ropeControl->sin * fsa->xAnalogInput + ropeControl->cos * fsa->yAnalogInput);
 
 #ifdef DEBUG_NEW_ROPE_CONTROLS
             diPrintf("cameraRelativeY: %f\n\n", &cameraRelativeY);
@@ -3612,12 +3468,12 @@ RECOMP_PATCH s32 dll_210_func_16EB4(Object* player, ObjFSA_Data* fsa, f32 update
 
     //@recomp: allow player to turn around another time after they stop holding back on the stick
     if (cameraRelativeY >= -5.0f) {
-        stillHoldingBackAfterTurn = FALSE;
+        ropeControl->stillHoldingBackAfterTurn = FALSE;
     } 
 
     //@recomp: when using "initial" camera-relative controls, recalculate angular basis when the stick goes close to neutral
     if (cameraRelativeY < 5.0f) {
-        stickPositionChangedSignificantly = TRUE;
+        ropeControl->stickPositionChangedSignificantly = TRUE;
     }
 
     if (fsa->enteredAnimState) {
@@ -3719,9 +3575,9 @@ RECOMP_PATCH s32 dll_210_func_16EB4(Object* player, ObjFSA_Data* fsa, f32 update
         if (player->animProgress == 0.0f) {
             if (cameraRelativeY > 5.0f) {
                 //@recomp: store initial stick angle when moving
-                if (cameraRelativeControls == ROPE_MOVE_CAMERA_RELATIVE_INITIAL && stickPositionChangedSignificantly == TRUE) {
-                    moveInitialStickAngle = mathAtan2f(fsa->xAnalogInput/70.0f, fsa->yAnalogInput/70.0f);
-                    stickPositionChangedSignificantly = FALSE;
+                if (cameraRelativeControls == ROPE_MOVE_CAMERA_RELATIVE_INITIAL && ropeControl->stickPositionChangedSignificantly == TRUE) {
+                    ropeControl->moveInitialStickAngle = mathAtan2f(fsa->xAnalogInput/70.0f, fsa->yAnalogInput/70.0f);
+                    ropeControl->stickPositionChangedSignificantly = FALSE;
                 }
 
                 if (((objData->unk6B0.unk48 < 0.3f) && (objData->unk6B0.unk45 == 1)) || ((objData->unk6B0.unk48 > 6.7f) && (objData->unk6B0.unk45 == 0))) {
@@ -3741,10 +3597,10 @@ RECOMP_PATCH s32 dll_210_func_16EB4(Object* player, ObjFSA_Data* fsa, f32 update
                     }
                 }
             } else if (cameraRelativeY < -5.0f
-                && (configs_RopesTurnOnce() == FALSE || !stillHoldingBackAfterTurn) //@recomp: optionally prevent rapidly changing direction on rope
+                && (configs_RopesTurnOnce() == FALSE || !ropeControl->stillHoldingBackAfterTurn) //@recomp: optionally prevent rapidly changing direction on rope
             ) {
                 //@recomp: track that the player is holding back on the stick
-                stillHoldingBackAfterTurn = TRUE;
+                ropeControl->stillHoldingBackAfterTurn = TRUE;
 
                 pad_sp6A = objData->unk6B0.unk45;
                 objData->unk6B0.unk45 = pad_sp6A == 0;
@@ -3770,10 +3626,10 @@ RECOMP_PATCH s32 dll_210_func_16EB4(Object* player, ObjFSA_Data* fsa, f32 update
 
         if (player->animProgress == 1.0f) {
             if (cameraRelativeY < -5.0f
-                && (configs_RopesTurnOnce() == FALSE || !stillHoldingBackAfterTurn) //@recomp: optionally prevent rapidly changing direction on rope
+                && (configs_RopesTurnOnce() == FALSE || !ropeControl->stillHoldingBackAfterTurn) //@recomp: optionally prevent rapidly changing direction on rope
             ) {
                 //@recomp: track that the player is holding back on the stick
-                stillHoldingBackAfterTurn = TRUE;
+                ropeControl->stillHoldingBackAfterTurn = TRUE;
 
                 pad_sp6A = objData->unk6B0.unk45;
                 objData->unk6B0.unk45 = pad_sp6A == 0;
