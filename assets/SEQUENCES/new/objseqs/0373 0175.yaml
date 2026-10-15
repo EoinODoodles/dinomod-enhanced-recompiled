@@ -24,7 +24,7 @@ actors:
   unk5: 0x0
   objectID: 0x0 # Sabre
 # Actor 4
-- uid: 0x0
+- uid: 0x80000000          #@recomp: Specify that Tricky is an optional actor in this sequence (custom actor setting)
   settings: 0xD7
   unk5: 0x0
   objectID: 0x24 # Tricky

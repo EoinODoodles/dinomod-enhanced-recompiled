@@ -1,3 +1,4 @@
+#include "configs.h"
 #include "modding.h"
 #include "recompconfig.h"
 #include "recomputils.h"
@@ -87,12 +88,12 @@ RECOMP_HOOK_RETURN("objInit") void init_custom_text_ids(void) {
     customObjDefTextIDs = recomp_alloc(gNumObjectsTabEntries*2);
 }
 
-RECOMP_PATCH ObjDef *objLoadObjdef(s32 tabIdx) {
+RECOMP_PATCH ObjDef* objLoadObjdef(s32 tabIdx) {
     ObjDef *def;
     s32 fileOffset;
     s32 fileSize;
     //@recomp
-    int useExtraText = recomp_get_config_u32("lamingaming_extra_description_text");
+    int useExtraText = configs_GetGametextUseExtraDescriptions();
 
     if (tabIdx >= gNumObjectsTabEntries) {
         // @recomp: Warn about failures
@@ -174,7 +175,7 @@ RECOMP_PATCH ObjDef *objLoadObjdef(s32 tabIdx) {
 
 /** Check if extra text config has changed */
 RECOMP_CALLBACK("*", recomp_on_game_tick_start) void updateExtraTextObjects(void) {
-    int setting = recomp_get_config_u32("lamingaming_extra_description_text");
+    int setting = configs_GetGametextUseExtraDescriptions();
     if (useExtraDescriptionsObjects == setting){
         return;
     }

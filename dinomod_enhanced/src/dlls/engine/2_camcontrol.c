@@ -1,4 +1,5 @@
 #include "modding.h"
+#include "player_util.h"
 #include "recomputils.h"
 #include "dll_util.h"
 #include "sidekick_util.h"
@@ -8,14 +9,19 @@
 #include "sys/dll.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
+#include "sys/memory.h"
 #include "sys/menu.h"
 #include "sys/print.h"
 #include "sys/objects.h"
 #include "sys/objtype.h"
 #include "dll.h"
 #include "dlls/engine/2_camcontrol.h"
+#include "dlls/engine/89_campath.h"
+#include "dlls/engine/90_camstatic.h"
 
 #include "recomp/dlls/engine/2_camcontrol_recomp.h"
+
+// #define DEBUG_CAMERAACTIONS
 
 typedef enum {
     LockIcon_STATE_Hidden = 0,
@@ -36,7 +42,81 @@ extern s8 sIconState;         //State Machine value for OBJ_LockIcon
 extern s16 sIconRotateSpeed;  //Rotation of lock-on icon
 extern Object* sLockIcon;     //OBJ_LockIcon
 
+extern void* sCamData;         //Cam module specific data
+extern u8 sCamSwitchNeeded;    //Boolean, starts a new camera ease
+extern s8 sNextSetupVal;       //Ease (End Module): arg1 for next module's setup function
+extern s8 sNextFree;           //Ease (End Module): free setting for next module
+extern s32 sEaseDuration;      //Duration of easing between camera modules, in frames
+extern u8 sEaseFlags;          //Which components to lerp during ease (x/y/z/yaw/pitch/roll)
+
 extern void CamControl_set_letterbox_goal(s32 height, s32 startAtGoal);
+extern void CamControl_change_camera_module(s32 dllID, s32 doDeferredFree, s32 setupVal, s32 dataSize, void* data, s32 easeDuration, u8 easeFlags);
+extern CameraAction* CamControl_get_camera_action(s32 actionIndex);
+extern CamControl_Module* CamControl_get_camnormal_module(void);
+
+/** Hijack the `CamControl_tick` function, since `CamControl_update_camera` is already patched by base recomp. */
+typedef s32 (*CamControlTick)(void);
+static CamControlTick tick_func; 
+static void CamControl_tick_custom(void);
+
+RECOMP_HOOK_DLL(CamControl_ctor) void camcontrol_ctor_hook(DLLFile *dll) {
+    tick_func = dinomod_hijack_dll_export(dll, 1, CamControl_tick_custom);
+}
+
+RECOMP_HOOK_RETURN_DLL(CamControl_dtor) void camcontrol_dtor_hook() {
+    tick_func = NULL;
+}
+
+/*0x174*/ extern CamControl_Module* sActiveModule; //Active module: the camera module DLL currently in use
+/*0x1C0*/ extern f32 sFov;
+
+/* The relevant functions are already patched in base recomp, so `CamControl_tick` has been 
+   wrapped/hijacked here to append FOV interpolating onto it.
+
+   TODO: it'd be more efficient to apply FOV without redoing some of the calcs (curvesHermite etc.), 
+   so ask if this could maybe be merged into base recomp?
+*/
+static void CamControl_tick_custom(void) {
+    Camera* camera;
+    f32 tValue;
+    f32 spline[4];
+
+    //Run the base recomp version of the function
+    tick_func();
+
+    //Apply FOV interpolation
+    if (sActiveModule != NULL) {
+        camSetCameraSelector(0);
+        camera = camGetMain();
+
+        sFov = sCam->fov;
+
+        if (sCam->tValue > 0.0f) { //TODO: not a big deal, but tValue will be one tick ahead here because of the wrapping
+            #define Cam_Ease_Skip_FOV 0x40
+
+            //Get Hermite-eased tValue for interpolation
+            spline[3] = 0.0f;
+            spline[2] = 0.0f;
+            spline[0] = 0.0f;
+            spline[1] = 1.0f;
+            tValue = 1.0f - curvesHermite(spline, sCam->tValue, 0);
+        
+            //@recomp: linear interpolate FOV too (avoids a sudden jarring pop when the FOV changes between cameras)
+            if (sCam->easeFlags == (u8)Cam_Ease_All || 
+                (sCam->easeFlags & Cam_Ease_Skip_FOV) == FALSE //Maybe add a custom ease flag like this, so it can optionally be switched off?
+            ) {
+                sCam->unkEC = sCam->goalFov - sCam->fov;
+                camera->fov = sCam->goalFov - (sCam->unkEC * tValue);
+                sFov = camera->fov;
+            }
+        }
+        
+        //Change FOV
+        if (camGetFOV() != sFov) {
+            camSetFOV(sFov);
+        }
+    }
+}
 
 #ifdef DINOMOD_ROM_PATCH
 /**
@@ -240,4 +320,109 @@ RECOMP_PATCH void CamControl_lock_icon_tick(void) {
         sIconRotateSpeed = 0;
     }    
     arrow->srt.yaw += sIconRotateSpeed * gUpdateRate;
+}
+
+/**
+  * - Don't apply CamClimb when a StaticCamera is active (fixes camera clipping out of bounds during climbs in Discovery Falls)
+  *   TODO: check if it's okay to apply this throughout the game and not just in Discovery Falls - can it cause problems elsewhere?
+  */
+RECOMP_PATCH void CamControl_change_camera_module(s32 dllID, s32 doDeferredFree, s32 setupVal, s32 dataSize, void* data, s32 easeDuration, u8 easeFlags) {
+    void* currentCamData;
+
+#ifdef DEBUG_CAMERAACTIONS
+    recomp_printf("CamControlChangeModule: %d -> %d\n", sActiveID, dllID);
+#endif
+
+    // @recomp: give StaticCameras priority over CamClimb 
+    {
+        //Limit this to just Discovery Falls for now, since it's experimental
+        if (dllID == DLL_ID_CAMCLIMB && playerUtil_doesStaticCameraHavePriority(objGetPlayer())) {
+#ifdef DEBUG_CAMERAACTIONS
+            recomp_printf("SKIPPING CAMCLIMB, because a StaticCamera is currently active!\n");
+#endif
+            return;
+        }
+    }
+
+    //Free the previously-used camera data
+    currentCamData = sCamData;
+    if (currentCamData != NULL) {
+        mmFree(currentCamData);
+        sCamData = NULL;
+        sCamSwitchNeeded = FALSE;
+    }
+    
+    //Set up the camera DLL to ease into
+    sNextID = dllID;
+    sEaseDuration = easeDuration;
+    
+    if (data != NULL) {
+        sCamData = mmAlloc(dataSize, ALLOC_TAG_CAM_COL, ALLOC_NAME("camcontrol1"));
+        bcopy(data, sCamData, dataSize);
+    } else {
+        sCamData = NULL;
+    }
+    
+    sNextFree = doDeferredFree;
+    sNextSetupVal = setupVal;
+
+    sCamSwitchNeeded = TRUE;
+    sEaseFlags = easeFlags;
+}
+
+/**
+  * - Fix a bug where camAction could be uninitialised.
+  */
+RECOMP_PATCH void CamControl_change_mode(u32 cameraMode, s32 params) {
+    CamStatic_Params staticCam;
+    CamPath_Params pathCam;
+    CameraAction* camAction;
+    s32 pad[2];
+
+    // @bug: camAction is uninitialized if params == 0
+#ifdef AVOID_UB
+    camAction = NULL;
+#endif
+    
+#ifdef DEBUG_CAMERAACTIONS
+    recomp_printf("CamControlChangeMode: %d, %x\n", cameraMode, params);
+#endif
+
+    switch (cameraMode) {
+    case Camera_MODE_1_Static:
+        staticCam.cameraID = params & 0x7F; //extract lower bits
+        staticCam.previousCameraEasesIn = params & 0x80; //store uppermost bit
+        CamControl_change_camera_module(DLL_ID_CAMSTATIC, TRUE, 0, sizeof(staticCam), &staticCam, 120, 0xFF);
+        break;
+    case Camera_MODE_2_Path:
+        pathCam.pathID = params & 0x7F; //extract lower bits
+        pathCam.previousCameraEasesIn = params & 0x80; //store uppermost bit
+        CamControl_change_camera_module(DLL_ID_CAMPATH, TRUE, 0, sizeof(pathCam), &pathCam, 120, 0xFF);
+        break;
+    case Camera_MODE_3_Normal:
+        CamControl_change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 120, 0xFF);
+        break;
+    case Camera_MODE_4_Module:
+        CamControl_change_camera_module(DLL_ID_CAMNORMAL + params, TRUE, 0, 0, NULL, 120, 0xFF);
+        break;
+    case Camera_MODE_0_CameraAction:
+    default:
+        if (params != 0) {
+            camAction = CamControl_get_camera_action(params);
+        }
+        if (camAction != NULL) {
+            gDLL_29_Gplay->vtbl->get_current_player_lactions()->unk12 = params;
+            if ((sActiveID == DLL_ID_CAMLOCKON) || (sActiveID == DLL_ID_CAMSEQ)) {
+                CamControl_get_camnormal_module()->dll->vtbl->func3(camAction, 16);
+            } else {
+                if ((camAction->unk0 == 0) || (camAction->unk0 != 1)) {
+                    CamControl_change_camera_module(DLL_ID_CAMNORMAL, FALSE, 2, sizeof(CameraAction), camAction, 0, 0xFF);
+                } else {
+                    CamControl_change_camera_module(DLL_ID_CAMCLIMB, TRUE, 2, sizeof(CameraAction), camAction, 0, 0xFF);
+                }
+            }
+            mmFree(camAction);
+        }
+        break;
+    }
 }

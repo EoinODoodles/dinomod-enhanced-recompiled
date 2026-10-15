@@ -69,9 +69,9 @@ ObjSetup *objsetup_next(ObjSetup* setup){
   *
   * `removeWhenSet` removes the line/shape when the HitAnimator's gamebit is set, rather than before it's set.
   * `isBlocksAnimator` decides whether the HitAnimator is targetting a Blocks shape rather than a Hits line.
-  * `fadeBlocks` decides whether or not to fade a Blocks shape in/out when affecting its state. 
+  * `affectShapeVisibility` decides whether or not to update Blocks shapes' visibility too. 
   */
-u8 hitanimator_configure_mode_flags(_Bool removeWhenSet, _Bool isBlocksAnimator, _Bool fadeBlocks) {
+u8 hitAnimator_configureModeFlags(_Bool removeWhenSet, _Bool isBlocksAnimator, _Bool affectShapeVisibility) {
     u8 mode = 0;
 
     if (removeWhenSet) {
@@ -80,8 +80,8 @@ u8 hitanimator_configure_mode_flags(_Bool removeWhenSet, _Bool isBlocksAnimator,
 
     if (isBlocksAnimator) {
         mode |= HitAnimator_Mode_BLOCKS;
-        if (!fadeBlocks) {
-            mode |= HitAnimator_Mode_No_Fade;
+        if (affectShapeVisibility) { 
+            mode |= HitAnimator_Mode_Update_Visibility;
         }
     } else {
         mode |= HitAnimator_Mode_HITS;

@@ -58,7 +58,7 @@ static s16 SCcollectables_override_tutorial_gamebitID(Object* self, Collectable_
     }
 
     //Check if repeat collections should be overridden
-    if (recomp_get_config_u32("cmdmenu_info_popup_expand") < POPUP_CONFIG_OVERRIDE_TUTORIAL_ON_REPEAT) {
+    if (configs_GetItemInfoPopupMode() < POPUP_CONFIG_OVERRIDE_TUTORIAL_ON_REPEAT) {
         return defaultGamebit;
     }
 
@@ -115,7 +115,7 @@ static s16 SCcollectables_get_popup_icon_gamebit(Object* self, Collectable_Setup
     //Handle special cases
     switch (self->id) {
     case OBJ_SC_golden_nugge:
-        stackableGold = recomp_get_config_u32("cmdmenu_stack_shiny_nuggets");
+        stackableGold = configs_GetStackShinyNuggets();
         if (stackableGold) {
             return objSetup->gamebitCount;
         } else {
@@ -159,7 +159,7 @@ static void SCcollectables_handle_popup(Object* self, Collectable_Setup* objSetu
     #endif
 
     //Do nothing if the mod config isn't enabled
-    if (recomp_get_config_u32("cmdmenu_info_popup_expand") == FALSE) {
+    if (configs_GetItemInfoPopupMode() == FALSE) {
         return;
     }
 

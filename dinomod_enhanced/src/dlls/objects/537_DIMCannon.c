@@ -39,10 +39,6 @@
 #define CANNON_CLAW_SHOT_ANTICIPATE 70.0f
 #define CANNON_STOP_SFX_MIN_MOVE 200
 
-//TEMPORARY DEFINES
-#define SOUND_780_Hatch_Opening 0x780
-//END OF TEMPORARY DEFINES
-
 typedef struct {
 /*00*/  ObjSetup base;
 /*18*/  s16 gamebitSiloCoverOpen;
@@ -196,7 +192,7 @@ RECOMP_HOOK_DLL(DIMCannon_animCallback) void printCannonStateAnimCallback(Object
 
 /* Checks whether a cannon fire sound should be used */
 static s32 DIMCannon_configUseBasicSounds(void) {
-    if (recomp_get_config_u32(DIMCannonSounds_Config) >= DIM_CANNON_SFX_ON_BASIC) {
+    if (configs_GetDIMCannonSoundMode() >= DIM_CANNON_SFX_ON_BASIC) {
         return TRUE;
     } else {
         return FALSE;
@@ -205,7 +201,7 @@ static s32 DIMCannon_configUseBasicSounds(void) {
 
 /* Checks whether extra cannon sound design should be used (machinery sounds, CannonClaw voices, etc.) */
 static s32 DIMCannon_configUseFancySounds(void) {
-    if (recomp_get_config_u32(DIMCannonSounds_Config) == DIM_CANNON_SFX_ON_FULL) {
+    if (configs_GetDIMCannonSoundMode() == DIM_CANNON_SFX_ON_FULL) {
         return TRUE;
     } else {
         return FALSE;

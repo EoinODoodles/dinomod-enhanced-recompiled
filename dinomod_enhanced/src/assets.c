@@ -3,39 +3,55 @@
 #include "recomputils.h"
 #include "reasset.h"
 
+#include "core/map.h"
 #include "custom/dlls/SHbarrel.h"
 #include "custom/dlls/SHbarrelcreator.h"
+#include "custom/dlls/WCDialProjectileSwitch.h"
+#include "custom/dlls/LODAnimator.h"
 #include "custom_object_ids.h"
 #include "custom_objsetups.h"
+#include "custom_sound_ids.h"
 #include "compression_util.h"
 #include "common_objsetups.h"
 #include "configs.h"
 #include "custom_textable_ids.h"
 #include "custom_gamebits.h"
+#include "map_util.h"
 #include "math_util.h"
 #include "mod_common.h"
 #include "object_util.h"
+#include "objects/307_SeqDoor.h"
+#include "objects/419_DFdockpoint.h"
+#include "objects/427_DFLevelControl.h"
 #include "objects/511_SHboulder.h"
+#include "objects/779_WCLevelControl.h"
+#include "objects/780_WCBeacon.h"
+#include "objects/781_WCPressureSwitch.h"
+#include "trigger_object_macros.h"
 
 #include "PR/ultratypes.h"
 #include "dlls/objects/common/collectable.h"
+#include "dlls/engine/29_gplay.h"
 #include "dlls/engine/33_BaddieControl.h"
 #include "dlls/objects/325_trigger.h"
 #include "dlls/objects/418_DFriverflow.h"
+#include "dlls/objects/420_DFlevelcontrol.h"
+#include "dlls/objects/779_WCLevelControl.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
 #include "game/gamebits.h"
 #include "macros.h"
+#include "sys/curves.h"
 #include "sys/pi.h"
 #include "sys/map.h"
 #include "sys/map_enums.h"
 #include "sys/math.h"
 #include "sys/memory.h"
+#include "sys/objtype.h"
 
-INCBIN(block611, "inc/blocks_0611_WC_central_temple_south.bin");
-INCBIN(block628, "inc/blocks_0628_WC_moon_temple_viewing_tile.bin");
 INCBIN(block351, "inc/blocks_0351_SHriver_rocky_waterfall.bin");
 INCBIN(block358, "inc/blocks_0358_SH_reflection_pool.bin");
+INCBIN(block362, "inc/blocks_0362_SH_Walled_City_gateway.bin");
 INCBIN(block579, "inc/blocks_0579_SHwell_lily_pond_climb.bin");
 INCBIN(block580, "inc/blocks_0580_SHwell_lily_pond_vines.bin");
 INCBIN(block581, "inc/blocks_0581_SHwell_entrance.bin");
@@ -48,7 +64,93 @@ INCBIN(block989, "inc/blocks_0989_DBriver_waterfall_basin_1.bin");
 INCBIN(hits989, "inc/hits_0989_DBriver_waterfall_basin_1.bin");
 INCBIN(block995, "inc/blocks_0995_DBriver_bend_1.bin");
 INCBIN(block994, "inc/blocks_0994_DBriver_waterfall_basin_2.bin");
-// INCBIN(block338, "inc/blocks_0338 0152.bin");
+INCBIN(block336, "inc/blocks_0336_DF_entrance_1_waterfall.bin");
+INCBIN(block340, "inc/blocks_0340_DF_entrance_2_corner.bin");
+INCBIN(block339, "inc/blocks_0339_DF_lower_falls_entrance.bin");
+INCBIN(block338, "inc/blocks_0338_DF_lower_falls_cliff_face.bin");
+INCBIN(block335, "inc/blocks_0335_DF_lower_falls_west.bin");
+INCBIN(block334, "inc/blocks_0334_DF_lower_falls_foodbag_cave_entrance.bin");
+INCBIN(block333, "inc/blocks_0333_DF_foodbag_cave.bin");
+INCBIN(block331, "inc/blocks_0331_DF_middle_falls_cradle_station_1.bin");
+INCBIN(block325, "inc/blocks_0325_DF_middle_falls_cradle_station_2.bin");
+INCBIN(block329, "inc/blocks_0329_DF_middle_falls_cradle_station_3_and_turbine.bin");
+INCBIN(block330, "inc/blocks_0330_DF_middle_falls_corner.bin");
+INCBIN(block344, "inc/blocks_0344_DF_middle_falls_mole_cave_entrance.bin");
+INCBIN(block326, "inc/blocks_0326_DF_mole_cave.bin");
+INCBIN(block332, "inc/blocks_0332_DF_toxic_cave.bin");
+INCBIN(block328, "inc/blocks_0328_DF_upper_falls.bin");
+INCBIN(block324, "inc/blocks_0324_DF_upper_falls_rapids.bin");
+INCBIN(block327, "inc/blocks_0327_DF_stalactite_cave.bin");
+INCBIN(block322, "inc/blocks_0322_DF_demolition_cave.bin");
+INCBIN(block319, "inc/blocks_0319_DF_whirlpool_cave.bin");
+INCBIN(block323, "inc/blocks_0323_DF_upper_falls_shrine_exit_climb.bin");
+INCBIN(block320, "inc/blocks_0320_DF_shrine_area_exit.bin");
+INCBIN(block321, "inc/blocks_0321_DF_shrine_exterior.bin");
+INCBIN(block343, "inc/blocks_0343_DF_shrine_interior.bin");
+INCBIN(block337, "inc/blocks_0337_DF_tunnel_to_MMP.bin");
+INCBIN(block341, "inc/blocks_0341_DF_BWC_exit_corner.bin");
+INCBIN(block342, "inc/blocks_0342_DF_BWC_exit.bin");
+INCBIN(block722, "inc/blocks_0722_DIM1_river_end.bin");
+INCBIN(block597, "inc/blocks_0597_WC_approach_gateway_corridor.bin");
+INCBIN(block599, "inc/blocks_0599_WC_jungle_door_area_ne.bin");
+INCBIN(block600, "inc/blocks_0600_WC_jungle_door_area_se.bin");
+INCBIN(block616, "inc/blocks_0616_WC_jungle_door_area_sw.bin");
+INCBIN(block615, "inc/blocks_0615_WC_approach_cave_entrance.bin");
+INCBIN(block607, "inc/blocks_0607_WC_approach_cave_exit.bin");
+INCBIN(block606, "inc/blocks_0606_WC_approach_corridor_bend_to_obelisk.bin");
+INCBIN(block598, "inc/blocks_0598_WC_approach_corridor_bend.bin");
+INCBIN(block614, "inc/blocks_0614_WC_approach_obelisk.bin");
+INCBIN(block601, "inc/blocks_0601_WC_central_temple_north_east.bin");
+INCBIN(block602, "inc/blocks_0602_WC_central_temple_east.bin");
+INCBIN(block608, "inc/blocks_0608_WC_jungle_door.bin");
+INCBIN(block609, "inc/blocks_0609_WC_central_temple_north.bin");
+INCBIN(block610, "inc/blocks_0610_WC_central_temple_middle.bin");
+INCBIN(block611, "inc/blocks_0611_WC_central_temple_south.bin");
+INCBIN(block612, "inc/blocks_0612_WC_central_temple_southmost.bin");
+INCBIN(block617, "inc/blocks_0617_WC_central_temple_north_west.bin");
+INCBIN(block618, "inc/blocks_0618_WC_central_temple_west.bin");
+INCBIN(block619, "inc/blocks_0619_WC_central_temple_south_west.bin");
+INCBIN(block625, "inc/blocks_0625_WC_moon_passageway.bin");
+INCBIN(block630, "inc/blocks_0630_WC_moon_pushblock_puzzle.bin");
+INCBIN(block594, "inc/blocks_0594_WC_sun_passageway.bin");
+INCBIN(block589, "inc/blocks_0589_WC_sun_pushblock_puzzle.bin");
+INCBIN(block590, "inc/blocks_0590_WC_sun_temple_entrance.bin");
+INCBIN(block585, "inc/blocks_0585_WC_sun_temple_ne.bin");
+INCBIN(block586, "inc/blocks_0586_WC_sun_temple_se.bin");
+INCBIN(block591, "inc/blocks_0591_WC_sun_temple_sw.bin");
+INCBIN(block635, "inc/blocks_0635_WC_sun_temple_dial_hall.bin");
+INCBIN(block628, "inc/blocks_0628_WC_moon_temple_ne.bin");
+INCBIN(block633, "inc/blocks_0633_WC_moon_temple_nw.bin");
+INCBIN(block629, "inc/blocks_0629_WC_moon_temple_se.bin");
+INCBIN(block634, "inc/blocks_0634_WC_moon_temple_sw.bin");
+INCBIN(block636, "inc/blocks_0636_WC_moon_temple_dial_hall.bin");
+INCBIN(block623, "inc/blocks_0623_WC_outskirts_1.bin");
+INCBIN(block624, "inc/blocks_0624_WC_outskirts_2.bin");
+INCBIN(block626, "inc/blocks_0626_WC_outskirts_3.bin");
+INCBIN(block631, "inc/blocks_0631_WC_outskirts_4.bin");
+INCBIN(block632, "inc/blocks_0632_WC_outskirts_5.bin");
+INCBIN(block627, "inc/blocks_0627_WC_outskirts_6.bin");
+INCBIN(block620, "inc/blocks_0620_WC_outskirts_7.bin");
+INCBIN(block621, "inc/blocks_0621_WC_outskirts_8.bin");
+INCBIN(block613, "inc/blocks_0613_WC_outskirts_9.bin");
+INCBIN(block605, "inc/blocks_0605_WC_outskirts_10.bin");
+INCBIN(block604, "inc/blocks_0604_WC_outskirts_11.bin");
+INCBIN(block596, "inc/blocks_0596_WC_outskirts_12.bin");
+INCBIN(block595, "inc/blocks_0595_WC_outskirts_13.bin");
+INCBIN(block593, "inc/blocks_0593_WC_outskirts_14.bin");
+INCBIN(block588, "inc/blocks_0588_WC_outskirts_15.bin");
+INCBIN(block587, "inc/blocks_0587_WC_outskirts_16.bin");
+INCBIN(block592, "inc/blocks_0592_WC_outskirts_17.bin");
+INCBIN(block1086, "inc/blocks_1086_WC_boss_corner_sw.bin");
+INCBIN(block1087, "inc/blocks_1087_WC_boss_west_corridor_south.bin");
+INCBIN(block1088, "inc/blocks_1088_WC_boss_west_corridor_north.bin");
+INCBIN(block1089, "inc/blocks_1089_WC_boss_corner_nw.bin");
+INCBIN(block1093, "inc/blocks_1093_WC_boss_north_corridor_west.bin");
+INCBIN(block1094, "inc/blocks_1094_WC_boss_south_corridor_east.bin");
+INCBIN(block1098, "inc/blocks_1098_WC_boss_corner_se.bin");
+INCBIN(block1099, "inc/blocks_1099_WC_boss_east_corridor_south.bin");
+INCBIN(block1100, "inc/blocks_1100_WC_boss_east_corridor_north.bin");
+INCBIN(block1101, "inc/blocks_1101_WC_boss_corner_ne.bin");
 
 INCBIN(tex0_kiosk_gold_key,             "inc/tex0_kiosk_gold_key.bin");
 INCBIN(tex0_kiosk_silver_key,           "inc/tex0_kiosk_silver_key_custom.bin");
@@ -57,31 +159,49 @@ INCBIN(tex0_kiosk_firefly,              "inc/tex0_kiosk_firefly_custom.bin");
 INCBIN(tex0_custom_energy_egg,          "inc/tex0_energy_egg_custom.bin");
 INCBIN(tex0_custom_energy_egg_moldy,    "inc/tex0_energy_egg_moldy_custom.bin");
 INCBIN(tex0_kiosk_fox,                  "inc/tex0_kiosk_fox_icon_custom.bin");
+INCBIN(tex0_0294_centred,               "inc/tex0_0294_centred.bin");
 
-INCBIN(models_dimtent_burnt,    "inc/models_0886_DIMtent_burnt_opacity.bin");
-INCBIN(objects_dimtent,         "inc/objects_0320_DIMTent.bin");
+INCBIN(models_dimtent_burnt,      "inc/models_0886_DIMtent_burnt_opacity.bin");
+INCBIN(objects_dimtent,           "inc/objects_0320_DIMTent.bin");
 
-INCBIN(models_purple_mushroom,  "inc/models_purple_mushroom_recreation.bin");
-INCBIN(modanim_purple_mushroom, "inc/modanim_purple_mushroom_recreation.bin");
-INCBIN(amap_purple_mushroom,    "inc/amap_purple_mushroom_recreation.bin");
-INCBIN(objects_purple_mushroom, "inc/objects_0571_SHrocketmushroo.bin");
+INCBIN(models_purple_mushroom,    "inc/models_purple_mushroom_recreation.bin");
+INCBIN(modanim_purple_mushroom,   "inc/modanim_purple_mushroom_recreation.bin");
+INCBIN(amap_purple_mushroom,      "inc/amap_purple_mushroom_recreation.bin");
+INCBIN(objects_purple_mushroom,   "inc/objects_0571_SHrocketmushroo.bin");
 
-INCBIN(objects_shseqobject,     "inc/objects_0561_SHseqobject.bin");
-INCBIN(objects_shboulder,       "inc/objects_0583_SHboulder.bin");
+INCBIN(objects_vampirebat,        "inc/objects_0053_VampireBat.bin");
+INCBIN(objects_bwlog,             "inc/objects_0242_BWLog.bin");
+INCBIN(objects_wcseqobject,       "inc/objects_0252_WCSeqObject.bin");
+INCBIN(objects_wctemplebridge,    "inc/objects_0288_WCTempleBridge.bin");
+INCBIN(objects_shseqobject,       "inc/objects_0561_SHseqobject.bin");
+INCBIN(objects_shboulder,         "inc/objects_0583_SHboulder.bin");
+INCBIN(objects_warppoint,         "inc/objects_1124_WarpPoint.bin");
 
-INCBIN(objects_shbarrel,        "inc/objects_SHbarrel.bin");
-INCBIN(objects_shbarrelcreator, "inc/objects_SHbarrelcreator.bin");
+INCBIN(objects_shbarrel,          "inc/objects_SHbarrel.bin");
+INCBIN(objects_shbarrelcreator,   "inc/objects_SHbarrelcreator.bin");
+INCBIN(objects_wcdialswitch,      "inc/objects_WCDialProjectileSwitch.bin");
+INCBIN(objects_lodanimator,       "inc/objects_LODAnimator.bin");
 
-INCBIN(models_wcslabdoor,       "inc/models_0942_WCSlabDoor.bin");
-INCBIN(models_wcbossdoor,       "inc/models_0943_WCBossDoor.bin");
-
-INCBIN(objects_vampirebat,      "inc/objects_0053_VampireBat.bin");
+INCBIN(models_dfpodium,           "inc/models_0252_DFpodium.bin");
+INCBIN(models_dfpodiumswitch,     "inc/models_0253_DFpodiumswitch.bin");
+INCBIN(models_wcsuntempledoor,    "inc/models_0938_WCSunTempleDoor.bin");
+INCBIN(models_wcmoontempledoor,   "inc/models_0939_WCMoonTempleDoor.bin");
+INCBIN(models_wcslabdoor,         "inc/models_0942_WCSlabDoor.bin");
+INCBIN(models_wcbossdoor,         "inc/models_0943_WCBossDoor.bin");
+INCBIN(models_wctemplebridgesun,  "inc/models_0969_WCTempleBridgeSun.bin");
+INCBIN(models_wctemplebridgemoon, "inc/models_0970_WCTempleBridgeMoon.bin");
+INCBIN(models_wcfloortile,        "inc/models_0974_WCFloorTile.bin");
+INCBIN(models_wcsundoor,          "inc/models_0940_WCSunDoor.bin");
+INCBIN(models_wcmoondoor,         "inc/models_0941_WCMoonDoor.bin");
+INCBIN(models_wcgeneraldoor,      "inc/models_0959_WCGeneralDoor.bin");
+INCBIN(models_wcsuntemplelift,    "inc/models_0957_WCSunTempleLift.bin");
+INCBIN(models_wcmoontemplelift,   "inc/models_0958_WCMoonTempleLift.bin");
+INCBIN(models_wcsuntempleswitch,  "inc/models_0964_WCSunTempleSwitch.bin");
 
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
+#define MODELS_REPLACE_BASE(modelID, file) (reasset_models_set(reasset_base_id(modelID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 
-#define COORDS_SETUP(coordX, coordY, coordZ) .base.x = coordX, .base.y = coordY, .base.z = coordZ
-#define TRIGGER_YAW(degrees) ((u8)((float)degrees*0x10/90.0f + 0.5f)) //Yaw for TriggerPlanes etc. (other axes use DEGREES_TO_ANGLE8)
-#define TRIGGER_SCALE(scaleFloat) ((u8)(scaleFloat*0x10 + 0.5f))
+#define OBJECT_GET_OBJSEQS(objDef) ((s16*)((u8*)objDef + (u32)objDef->pSeq))
 
 #define INCFST(fileID, filename, ext) \
     INCBIN(fst_assets_##filename##_##ext, "assets/" #filename "."#ext); \
@@ -108,7 +228,7 @@ REASSET_ON_FST_SET_LOW_PRIORITY void dinomod_on_reasset_fst_set(void) {
     INCFST(ENVFXACT_BIN, ENVFXACT, bin)
     INCFST(FONTS_BIN, FONTS, bin)
 
-    if (recomp_get_config_u32("gametext_flavor") == GAMETEXT_COSMETIC) {
+    if (configs_GetGametextFlavour() == GAMETEXT_COSMETIC) {
         INCFST(GAMETEXT_BIN, GAMETEXT_cosmetic, bin)
         INCFST(GAMETEXT_TAB, GAMETEXT_cosmetic, tab)
     } else {
@@ -160,11 +280,15 @@ REASSET_ON_FST_SET_LOW_PRIORITY void dinomod_on_reasset_fst_set(void) {
 
 s32 OBJ_SHbarrel = 1466;
 s32 OBJ_SHbarrelcreator = 1467;
+s32 OBJ_WCDialProjectileSwitch = 1469;
+s32 OBJ_LODAnimator = 1470;
 
 static ReAssetNamespace dinomodNs;
 
 static ReAssetID shBarrelIndexID;
 static ReAssetID shBarrelcreatorIndexID;
+static ReAssetID wcDialProjectileSwitchIndexID;
+static ReAssetID lodAnimatorIndexID;
 
 s32 UID_SH_BurrowsSharpClaw = 0x10000;
 
@@ -173,17 +297,9 @@ REASSET_ON_INIT void dinomod_reasset_on_init(void) {
 
     shBarrelIndexID = reasset_id(dinomodNs, OBJ_SHbarrel);
     shBarrelcreatorIndexID = reasset_id(dinomodNs, OBJ_SHbarrelcreator);
+    wcDialProjectileSwitchIndexID = reasset_id(dinomodNs, OBJ_WCDialProjectileSwitch);
+    lodAnimatorIndexID = reasset_id(dinomodNs, OBJ_LODAnimator);
 }
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s8 unk18;
-/*19*/ s8 unk19;
-/*1A*/ s16 unk1A;
-/*1C*/ u8 _unk1C[0x1E - 0x1C];
-/*1E*/ s16 unk1E;
-/*20*/ s16 unk20;
-} WCApertureSymbol_Setup;
 
 static void walled_city_additions(void) {
     ReAssetID walledCity = reasset_base_id(MAP_WALLED_CITY);
@@ -209,32 +325,32 @@ static void walled_city_additions(void) {
                 fxemit.base.x += 0.0f;
                 fxemit.base.y += -0.24524f;
                 fxemit.base.z += 0.846679f;
-                fxemit.unk1A = 0x741; // Circular blue glow inside of aperture
-                fxemit.unk1C = -5;
-                fxemit.unk27 = 0;
+                fxemit.indexInBank = 0x741; // Circular blue glow inside of aperture
+                fxemit.fxRate = -5;
+                fxemit.yawSpeed = 0;
                 break;
             case 1:
                 fxemit.base.x += -0.266602f;
                 fxemit.base.y += -1.635926f - 9.0f;
                 fxemit.base.z += 0.492187f + -70.0f;
-                fxemit.unk1A = 0x25A; // Blue beams
-                fxemit.unk1C = -1;
-                fxemit.unk27 = 0;
+                fxemit.indexInBank = 0x25A; // Blue beams
+                fxemit.fxRate = -1;
+                fxemit.yawSpeed = 0;
                 break;
         }
 
-        fxemit.unk18 = 0;
-        fxemit.unk19 = 0;
+        fxemit.activationRange = 0;
+        fxemit.bank = 0;
         fxemit.toggleGamebit = 0x848; // Active during the aperture cutscene
         fxemit.disableGamebit = -1;
-        fxemit.unk22 = 0;
-        fxemit.unk23 = 0;
-        fxemit.unk24 = 0;
-        fxemit.unk25 = 0;
-        fxemit.unk26 = 0;
-        fxemit.unk28 = 0;
-        fxemit.unk29 = 0;
-        fxemit.unk2A = 0;
+        fxemit.roll = 0;
+        fxemit.pitch = 0;
+        fxemit.yaw = 0;
+        fxemit.rollSpeed = 0;
+        fxemit.pitchSpeed = 0;
+        fxemit.flagConfig = 0;
+        fxemit.interval = 0;
+        fxemit.intervalSoundID = 0;
 
         reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &fxemit, sizeof(fxemit));
     }
@@ -264,138 +380,2199 @@ static void walled_city_additions(void) {
 
 static void walled_city_modifications(void) {
     ReAssetID walledCity = reasset_base_id(MAP_WALLED_CITY);
+    ReAssetID wcBossRoom = reasset_base_id(MAP_BOSS_KLANADACK);
     ReAssetID wcTrkblk = reasset_base_id(20);
+    ReAssetID ktTrkblk = reasset_base_id(53);
     int wcBlocksBase = 585;
+    int ktBlocksBase = 1086;
 
-    // Fix terrain ID of moon temple viewing tile (to let the aperture work correctly)
-    BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 628, block628);
-
-    // Revert dinomod's removal of the moon temple lift sequences, so it can be used again
+    //MAPS - VisGrid
     {
-        ObjDef *moonTempleLiftDef = reasset_objects_get(reasset_base_id(276), NULL);
-        s16 *seq = (s16*)((u8*)moonTempleLiftDef + (u32)moonTempleLiftDef->pSeq);
-        seq[0] = 0x3D4;
-        seq[1] = 0x3D6;
+        VisGridCellROM* gridA1 = reasset_maps_get_grid_a1(walledCity, NULL);
+        VisGridCellROM* gridA2 = reasset_maps_get_grid_a2(walledCity, NULL);
+
+        //See a little of the end of the outskirts through its exit onto the Jungle Door area,
+        //so it doesn't immediately vanish as you're crossing its threshold
+        //(TODO: revisit and refine this area's visibility a bit more)
+        {
+            u32 cellIdx = VISGRID_CELL_IDX(walledCity, 3, 5);
+            VISGRID_SET_CELL_RANGE_PAIRED(0, &gridA1[cellIdx], &gridA2[cellIdx], 6, 7, 7, 7);
+        }
     }
 
-    // Moon door seqobj
-    // Revert dinomod's gamebit change, so the door only opens after the aperture sequence
+    //Approach
     {
-        SeqObj_Setup *seqobj = (SeqObj_Setup*)reasset_map_objects_get(walledCity, 
-            reasset_base_id(0x41474), NULL);
-        seqobj->gamebitPlay = 0x829;
+        //BLOCKS
+        {
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 597, block597); //Corridor: Fix UV and colour discontinuity where SH and WC meet
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 598, block598); //Corridor bend: Minor UV edits/optimisation
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 606, block606); //Corridor bend to obelisk: Fix gaps/discontinuities in tree border, repair nonmanifold geometry
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 614, block614); //Obelisk: Fix single-sided tree, gaps in tree border, improve glitchy collision around jutting root
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 615, block615); //Cave entrance: fix gap in ceiling, clean up UVs
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 607, block607); //Cave exit: clean up UVs
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 599, block599); //Jungle Door exterior NE: fix gap in trees, clean up UVs
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 600, block600); //Jungle Door exterior SE: clean up exit of outskirts
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 616, block616); //Jungle Door exterior SW: clean up UVs, Tricky dig spot
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 608, block608); //Jungle Door: Blend between exterior and interior of WC
+        }
+
+        //Add new TriggerPlanes
+        {
+            //Obelisk Archway
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 50,
+                        .fadeDistance = 50,
+                        .x = 1285.444,
+                        .y = -733.000,
+                        .z = -2237.867
+                    },
+                    .rotationY = TRIGGER_YAW(270),
+                    .sizeX = TRIGGER_SCALE(0.841),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Approach_Cave_Entrance, &plane, 0, 1); //Load/unload cave entrance objects
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+
+            //Cave entrance
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 50,
+                        .fadeDistance = 50,
+                        .x = 1701.000,
+                        .y = -785.008,
+                        .z = -2469.848
+                    },
+                    .rotationY = 0,
+                    .sizeX = TRIGGER_SCALE(1.2),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Approach_Cave_Exit, &plane, 0, 1); //Load/unload cave exit objects
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+
+            //Cave exit
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 100,
+                        .fadeDistance = 100,
+                        .x = 772.980,
+                        .y = -881.985,
+                        .z = -2979.903
+                    },
+                    .rotationY = 0,
+                    .sizeX = TRIGGER_SCALE(1.42),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Approach_Cave_Entrance, &plane, 0, 1); //Load/unload cave entrance objects
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Jungle_Door_Area, &plane, 2, 3); //Load/unload Jungle Door area objects
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup5_Central_Temple, &plane, 4, 5); //Load/unload central temple objects
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+
+            //Jungle Door
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 100,
+                        .fadeDistance = 100,
+                        .x = 960.000,
+                        .y = -874.000,
+                        .z = -3840.000
+                    },
+                    .rotationY = 0,
+                    .sizeX = TRIGGER_SCALE(3.1),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Approach_Cave_Exit, &plane, 0, 1); //Load/unload cave exit objects
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Jungle_Door_Area, &plane, 2, 3); //Load/unload Jungle Door area objects
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Moon_Passageway_Door, &plane, 4, 5); //Load/unload Moon Passageway Door
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Sun_Passageway_Door, &plane, 6, 7);  //Load/unload Sun Passageway Door
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+
+            //Outskirts entrance
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 50,
+                        .fadeDistance = 50,
+                        .x = 1920.000,
+                        .y = -862.000,
+                        .z = -3323.000
+                    },
+                    .rotationY = TRIGGER_YAW(270),
+                    .sizeX = TRIGGER_SCALE(0.97),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Approach_Cave_Exit, &plane, 0, 1); //Load/unload cave exit objects
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Jungle_Door_Area, &plane, 2, 3); //Load/unload Jungle Door area objects
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_ObjGroup5_Central_Temple, &plane, 4, 5); //Load/unload central temple objects
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Outskirts, &plane, 6, 7); //Load/unload outskirts objects
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+
+            //Outskirts exit (load/unload cave exit objects)
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 60,
+                        .fadeDistance = 60,
+                        .x = 0,
+                        .y = -771.000,
+                        .z = -3472.000
+                    },
+                    .rotationY = TRIGGER_YAW(270),
+                    .sizeX = TRIGGER_SCALE(0.97),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Approach_Cave_Exit, &plane, 0, 1); //Load/unload cave exit objects
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Jungle_Door_Area, &plane, 2, 3); //Load/unload Jungle Door area objects
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup5_Central_Temple, &plane, 4, 5); //Load/unload central temple objects
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Outskirts, &plane, 6, 7); //Load/unload outskirts objects
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+        }
+
+        //Add subtle animation to the caves' light beams
+        {
+            TexScroll_Setup texScrollData[] = {
+                { COORDS_SETUP(1593, -693, -2772), .base.mapObjGroup = WC_OBJGROUP_Approach_Cave_Entrance },
+                { COORDS_SETUP(919,  -693, -2699), .base.mapObjGroup = WC_OBJGROUP_Approach_Cave_Exit },
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(texScrollData); i++) {
+                TexScroll_Setup* scroll = &texScrollData[i];
+                scroll->base.objId = OBJ_texscroll;
+                scroll->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                scroll->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                scroll->base.fadeDistance = 255;
+                scroll->textureIndex = 58;
+                scroll->speedU = 2;
+                scroll->gamebitActivate = NO_GAMEBIT;
+                reasset_map_objects_set(walledCity, 
+                    reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll_Setup)
+                );
+            }
+        }
     }
 
-    // Moon Aperture
-    // Set to always enabled (the sun aperture is always enabled as well)
+    //Jungle Door area
     {
-        WCApertureSymbol_Setup *moonAperture = (WCApertureSymbol_Setup*)reasset_map_objects_get(walledCity, 
-            reasset_base_id(0x41463), NULL);
-        moonAperture->unk20 = BIT_ALWAYS_1;
+        //Move mushrooms into objectGroup (so they're not constantly loaded)
+        {
+            u32 mushroomUIDs[] = {
+                0x41111,
+                0x41112,
+                0x41114,
+                0x41115
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(mushroomUIDs); i++) {
+                ObjSetup* mushroom = GET_MAPS_OBJECT(walledCity, mushroomUIDs[i]);
+                mushroom->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                mushroom->mapObjGroup = WC_OBJGROUP_Jungle_Door_Area;
+            }
+        }
+
+        //Add levers
+        {
+            UseObj_Setup levers[] = {
+                { COORDS_SETUP(1718.522, -597.755, -3775.0), .gamebitUsed = DINOMOD_BIT_964_WC_Jungle_Door_Lever_Moon },
+                { COORDS_SETUP(201.478,  -597.755, -3775.0), .gamebitUsed = DINOMOD_BIT_965_WC_Jungle_Door_Lever_Sun }
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(levers); i++) {
+                UseObj_Setup* lever = &levers[i];
+                lever->base.objId = OBJ_DIMLever;
+                lever->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                lever->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                lever->base.fadeDistance = 255;
+                lever->base.mapObjGroup = WC_OBJGROUP_Jungle_Door_Area;
+                lever->flags = USEOBJ_SeqControlsUsedBit | USEOBJ_DisableAfterUse | USEOBJ_NoTargetingWhenDisabled;
+                lever->gamebitRequiredItem = NO_GAMEBIT;
+                lever->gamebitEnabled = NO_GAMEBIT;
+                lever->replayStartTime = 155;
+
+                reasset_map_objects_set(walledCity, 
+                    reasset_auto_id(dinomodNs), lever, sizeof(UseObj_Setup)
+                );
+            }
+        }
+
+        //Add ladder
+        {
+            typedef struct {
+                ObjSetup base;
+                s8 yaw;
+                s8 modelIdx;        //Which ladder model to use
+                s16 raisedOffsetY;  //When raised, the ladder starts off this far above its base position
+                s16 unused1C;
+                s16 gamebitRaise;   //Ladder rises up by sequence when this gamebit is set (exclusive to `VFP_Ladders2`)
+                s16 gamebitFall;    //Ladder starts falling when this gamebit is set
+            } Fall_Ladders_Setup;
+
+            Fall_Ladders_Setup ladder = {
+                .base = {
+                    .objId = OBJ_Fall_Ladders,
+                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .fadeDistance = FADE_DISTANCE(640),
+                    .mapObjGroup = WC_OBJGROUP_Jungle_Door_Area
+                },
+                COORDS_SETUP(1331, -695, -3752.859),
+                .raisedOffsetY = 104,
+                .gamebitFall = DINOMOD_BIT_964_WC_Jungle_Door_Lever_Moon
+            };
+            reasset_map_objects_set(walledCity, 
+                reasset_auto_id(dinomodNs), &ladder, sizeof(Fall_Ladders_Setup)
+            );
+        }
+
+        //Add ladder HitAnimators
+        {
+            HitAnimator_Setup hitAnims[] = {
+                { COORDS_SETUP(1346, -766, -3752.859), .hitsAnimatorID = 0xE,   .mode = HITANIMATOR_MODE_HITS_ON },
+                { COORDS_SETUP(1346, -738, -3752.859), .blocksAnimatorID = 0xE, .mode = HITANIMATOR_MODE_SHAPE_ON }
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(hitAnims); i++) {
+                HitAnimator_Setup* hitAnim = &hitAnims[i];
+                hitAnim->base.objId = OBJ_HitAnimator;
+                hitAnim->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                hitAnim->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                hitAnim->base.fadeDistance = FADE_DISTANCE(50);
+                hitAnim->base.mapObjGroup = WC_OBJGROUP_Jungle_Door_Area;
+                hitAnim->gamebitActivate = DINOMOD_BIT_964_WC_Jungle_Door_Lever_Moon;
+                
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), hitAnim, sizeof(HitAnimator_Setup));
+            }
+        }
+
+        //Add camera triggers to the ladder
+        {
+            Trigger_Setup camTrigs[] = {
+                { .base.objId = OBJ_TriggerPoint, COORDS_SETUP(1331, -766, -3752.859), 
+                    .sizeX = 26, .sizeY = 100, .sizeZ = 100,
+                    .commands = {
+                        {
+                            .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
+                            .id = TRG_CMD_CAMERA_ACTION,
+                            .paramCombined = 98
+                        },
+                        {
+                            .condition = CMD_COND_OUT | CMD_COND_RE_EXIT,
+                            .id = TRG_CMD_CAMERA_ACTION,
+                            .paramCombined = 1
+                        },
+                    }
+                },
+                { .base.objId = OBJ_TriggerPlane, COORDS_SETUP(1346, -766, -3752.859), 
+                    .sizeX = TRIGGER_SCALE(0.1875), .sizeY = 0x10, .sizeZ = 0x10, 
+                    .rotationX = DEGREES_TO_ANGLE8(270), .rotationY = TRIGGER_YAW(90), 
+                    .commands = {
+                        {
+                            .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
+                            .id = TRG_CMD_CAMERA_ACTION,
+                            .paramCombined = 98
+                        },
+                    }
+                }
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(camTrigs); i++) {
+                Trigger_Setup* camTrig = &camTrigs[i];
+                camTrig->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                camTrig->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                camTrig->base.fadeDistance = FADE_DISTANCE(50);
+                camTrig->base.mapObjGroup = WC_OBJGROUP_Jungle_Door_Area;
+                camTrig->conditionBitFlagIDs[0] = DINOMOD_BIT_964_WC_Jungle_Door_Lever_Moon;
+                camTrig->bitFlagID = NO_GAMEBIT;
+                
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), camTrig, sizeof(Trigger_Setup));
+            }
+        }
+
+        //Add door HitAnimators
+        {
+            #define ANIMATORID_LATCH_W 1
+            #define ANIMATORID_LATCH_E 2
+            #define ANIMATORID_BAR 3
+            #define ANIMATORID_DOOR_CLOSED 4
+            #define ANIMATORID_DOOR_OPEN 5
+            #define ANIMATORID_DOOR_OPEN_HITS 6
+
+            #define BIT_MOON DINOMOD_BIT_964_WC_Jungle_Door_Lever_Moon
+            #define BIT_SUN DINOMOD_BIT_965_WC_Jungle_Door_Lever_Sun
+            #define BIT_DOOR DINOMOD_BIT_96A_WC_Jungle_Door_Open
+
+            HitAnimator_Setup hitAnims[] = {
+                { COORDS_SETUP(960, -758, -3593), .blocksAnimatorID = ANIMATORID_DOOR_CLOSED,  .gamebitActivate = BIT_SUN,  .mode = HITANIMATOR_MODE_SHAPE_OFF },
+                { COORDS_SETUP(960, -748, -3593), .blocksAnimatorID = ANIMATORID_DOOR_OPEN,    .gamebitActivate = BIT_SUN,  .mode = HITANIMATOR_MODE_SHAPE_ON },
+ 
+                { COORDS_SETUP(960, -718, -3593), .hitsAnimatorID = ANIMATORID_DOOR_CLOSED,    .gamebitActivate = BIT_SUN,  .mode = HITANIMATOR_MODE_HITS_OFF },
+                { COORDS_SETUP(960, -708, -3593), .hitsAnimatorID = ANIMATORID_DOOR_OPEN_HITS, .gamebitActivate = BIT_DOOR, .mode = HITANIMATOR_MODE_HITS_ON },
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(hitAnims); i++) {
+                HitAnimator_Setup* hitAnim = &hitAnims[i];
+                hitAnim->base.objId = OBJ_HitAnimator;
+                hitAnim->base.loadFlags = OBJSETUP_LOAD_LEVEL;
+                hitAnim->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                hitAnim->base.fadeDistance = FADE_DISTANCE(1000);
+                hitAnim->base.loadDistance = 0xFF;
+                
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), hitAnim, sizeof(HitAnimator_Setup));
+            }
+        }
+
+        //Add LevelName
+        {
+            LevelName_Setup wc = {
+                .base = {
+                    .objId = OBJ_LevelName,
+                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .fadeDistance = 50,
+                    .mapObjGroup = WC_OBJGROUP_Jungle_Door_Area
+                },
+                COORDS_SETUP(960, -748, -3593),
+                .activationRadius = 100,
+                .textID = 715,
+                .gamebitShown = BIT_ALWAYS_1 //Shown by sequence message instead
+            };
+
+            reasset_map_objects_set(walledCity, 
+                reasset_auto_id(dinomodNs), &wc, sizeof(wc)
+            );
+        }
+
+        //Add FXEmits
+        {
+            ReAssetID uID;
+            
+            FXEmit_Setup dustFx[] = {
+                {COORDS_SETUP(738.713, -874, -3683.846)},
+                {COORDS_SETUP(1180.286, -874, -3683.846)},
+            };
+
+            for (u32 i = 0; i < 2; i++) {
+                FXEmit_Setup* fx = &dustFx[i];
+                fx->base.objId = OBJ_FXEmit;
+                fx->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                fx->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                fx->base.mapObjGroup = WC_OBJGROUP_Jungle_Door_FXEmits;
+                fx->base.fadeDistance = 50;
+                fx->activationRange = 0;
+                fx->bank = 0;
+                fx->indexInBank = 0xD4;
+                fx->fxRate = -2;
+                fx->toggleGamebit = DINOMOD_BIT_965_WC_Jungle_Door_Lever_Sun;
+                fx->disableGamebit = DINOMOD_BIT_96A_WC_Jungle_Door_Open;
+
+                reasset_map_objects_set(walledCity, 
+                    reasset_auto_id(dinomodNs), fx, sizeof(FXEmit_Setup));
+            }
+        }
+
+        //Add extra seq to WCSeqObject
+        {
+            ReAssetID objects_wcseqobject_id = reasset_base_id(252); //OBJ_WCSeqObject
+            reasset_objects_set(objects_wcseqobject_id, REASSET_BASE_NAMESPACE, objects_wcseqobject, objects_wcseqobject_end - objects_wcseqobject);
+        }
+
+        //Add WCSeqObject
+        {
+            SeqObj_Setup doorSeq = {
+                .base = {
+                    .objId = OBJ_WCSeqObject,
+                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .fadeDistance = 50,
+                    .mapObjGroup = WC_OBJGROUP_Jungle_Door_Area
+                },
+                COORDS_SETUP(960, -874, -3750),
+                .gamebitPlay = DINOMOD_BIT_965_WC_Jungle_Door_Lever_Sun,
+                .gamebitHasPlayed = DINOMOD_BIT_96A_WC_Jungle_Door_Open,
+                .seqIndex = 14,
+                .playbackOptions = SEQOBJ_OPTIONS_AutoHasPlayed_Set_After_Sequence
+            };
+
+            reasset_map_objects_set(walledCity, 
+                reasset_auto_id(dinomodNs), &doorSeq, sizeof(doorSeq)
+            );
+        }
+
+        //Edit the Sideload in front of King EarthWalker, so Tricky can't load in behind the door while it's still closed
+        {
+            SideLoad_Setup* sideLoad = GET_MAPS_OBJECT(walledCity, 0x40f24);
+            sideLoad->gamebitUnlocked = DINOMOD_BIT_96A_WC_Jungle_Door_Open;
+        }
+
     }
 
-    // Delete DummyObjects in Moon/Sun temple basements (these are objects with an unmapped OBJINDEX.bin entry)
-    reasset_map_objects_delete(walledCity, reasset_base_id(0x41AFC));
-    reasset_map_objects_delete(walledCity, reasset_base_id(0x41B35));
-
-    typedef struct {
-        ObjSetup base;
-        s16 gamebitOpenA;           //animCallback advances door to "Opening" state when this gamebit (and gamebitOpenB if specified) is set, or to "Closing" state when unset (obj must be in a sequence!)
-        s16 gamebitRestoreState;    //Restores state when the door loads (either "Open" or "Closed" state) - objSeq will use a preemptTime to skip the door to its open position when restoring "Open" state.
-        s16 preemptTime;            //The sequence time to jump to when the object loads in its "Open" state (state restored via `gamebitRestoreState`).
-        s8 objSeqIdx;               //The door opening cutscene's objSeqIdx
-        u8 yaw;
-        u8 preemptEnabledActors;    //Configures which actors to include when the door's sequence is played using a preemptTime
-        u8 scale;                   //Scale factor for the door (0x40 is 1x scale)
-        s16 gamebitOpenB;           //When specified, animCallback advances door to "Opening" state when this gamebit and gamebitOpenA are set (obj must be in a sequence!)
-        s16 gamebitCameraBack;      //When specified, animCallback flips part (`flipBitsCameraBack`) of this gamebit's value if the camera is behind the door when the door finishes opening/closing (obj must be in a sequence!)
-        s16 gamebitCameraFront;     //When specified, animCallback flips part (`flipBitsCameraFront`) of this gamebit's value if the camera is in front of the door when the door finishes opening/closing (obj must be in a sequence!)
-        u8 flipBitsCameraBack;      //The section of `gamebitCameraBack`'s value to flip when `gamebitCameraBack`'s value is updated
-        u8 flipBitsCameraFront;     //The section of `gamebitCameraFront`'s value to flip when `gamebitCameraFront`'s value is updated
-    } SeqDoor_Setup;
-
-    // WCCageDoor
-    // Fix the door playing a sound from far away whenever you approach Walled City
+    //Act 1
     {
-        SeqDoor_Setup* cageDoor = (SeqDoor_Setup*)reasset_map_objects_get(walledCity, 
-            reasset_base_id(0x411B0), NULL);
-        cageDoor->gamebitOpenA = NO_GAMEBIT;
-        cageDoor->gamebitRestoreState = BIT_WC_King_EarthWalker_Cage_Opened;
-    }
+        //BLOCKS - Central Temple
+        {
+            /* 
+                - Fix gaps in the temple's Moon/Sun Door entrances
+                - UV/terrain issues in the tunnels to the beacons
+                - Decals for the tunnel's lasers
+                - Prevent Tricky from falling into the pits below the beacons
+                - Prevent Tricky from falling into the pits below the RedEye statues
+                - Collision, UV, and double-sided face fixes around tree border
+            */
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 601, block601); //NE: Prevent Tricky falling into pit below Sun Beacon
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 602, block602); //E: Fix UV/terrain issues in Sun Beacon tunnel, laser decals, add passageway LOD
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 609, block609); //N: Fix UVs on ceiling of King EarthWalker's cage room
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 610, block610); //Middle: Fix gaps in temple's Moon/Sun door entrances, beacon tunnel UV fixes, stop Tricky falling below RedEye statues
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 611, block611); //S: Fix a small gap between WCSlabDoor and its surroundings
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 612, block612); //Southmost: Fix seams and missing collision on tree border
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 617, block617); //NW: Fix stretched UVs on top of the wall beside the tree border
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 618, block618); //W: Fix UV/terrain issues in Moon Beacon tunnel, laser decals, add passageway LOD
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 619, block619); //SW: Prevent Tricky falling into pit below Moon Beacon
+        }
 
-    // WCSlabDoor
-    {
-        // Fix the small gap between the slab and its surroundings
+        //WCCageDoor (Fix the door playing a sound from far away as you approach Walled City)
+        {
+            SeqDoor_Setup* cageDoor = reasset_map_objects_get(walledCity, 
+                reasset_base_id(0x411B0), NULL);
+            cageDoor->gamebitOpenA = NO_GAMEBIT;
+            cageDoor->gamebitRestoreState = BIT_WC_King_EarthWalker_Cage_Opened;
+            cageDoor->options = SeqDoor_OPTION_1_Delay_Play_Until_Gamebit_Set | 
+                                SeqDoor_OPTION_2_Unload_If_Already_Open | 
+                                SeqDoor_OPTION_4_Unload_At_End_of_Sequence;
+        }
+
+        //WCPressureSwitch
+        {
+            // Moon
+            {
+                //MAPS - Restore Moon switch's model, store Beacon Lit gamebit
+                {
+                    WCPressureSwitch_Setup* pSwitch = reasset_map_objects_get(walledCity, 
+                        reasset_base_id(0x411b6), NULL);
+                    pSwitch->modelIdx = 1;
+                    pSwitch->gamebitFinished = BIT_WC_Moon_Beacon_Lit;
+                    pSwitch->gamebitPlayerOnSwitch = DINOMOD_BIT_92E_WC_Player_on_Moon_Pressure_Switch;
+                }
+            }
+
+            // Sun
+            {
+                //MAPS - Store Beacon Lit gamebit
+                {
+                    WCPressureSwitch_Setup* pSwitch = reasset_map_objects_get(walledCity, 
+                        reasset_base_id(0x411b3), NULL);
+                    pSwitch->gamebitFinished = BIT_WC_Sun_Beacon_Lit;
+                    pSwitch->gamebitPlayerOnSwitch = DINOMOD_BIT_92F_WC_Player_on_Sun_Pressure_Switch;
+                }
+            }
+        }
+
+        //WCSunTempleDoor/WCMoonTempleDoor (Fix gaps between the doors and the temple entrances)
+        {
+            typedef struct {
+                ObjSetup base;
+                s8 yaw;
+                s8 mode;
+                s16 offIntervalDuration;
+                s16 firingDuration;
+                s16 gamebitEnabled;
+            } WCSunTempleLaser_Setup;
+
+            // Moon
+            {
+                //MAPS - Align the door exactly with the temple entrance, and add custom settings
+                {
+                    SeqDoor_Setup* moonDoor = reasset_map_objects_get(walledCity, 
+                        reasset_base_id(0x411b4), NULL);
+                    moonDoor->base.x = 1280;
+                    moonDoor->base.y = -682;
+                    moonDoor->base.z = -4800;
+
+                    //Don't close on top of the player/sidekick
+                    moonDoor->options = SeqDoor_OPTION_10_Wait_While_Player_Nearby | SeqDoor_OPTION_20_Wait_While_Sidekick_Nearby | SeqDoor_OPTION_40_3D_Nearby_Check;
+                    moonDoor->range = 64;
+                }
+
+                //MODELS - Fix gaps
+                {
+                    MODELS_REPLACE_BASE(939, models_wcmoontempledoor);
+                }
+
+                //OBJECTS - Use a modified ObjSeq (Sink down instead of up, to avoid sticking up nonsensically through the next tier's walkway)
+                {
+                    ObjDef* moonTempleDoorDef = reasset_objects_get(reasset_base_id(257), NULL);
+                    s16* seq = OBJECT_GET_OBJSEQS(moonTempleDoorDef);
+                    seq[0] = 0x450;
+                }
+
+                //MAPS - Align the Moon Beacon tunnel's lasers exactly with the wall tiles
+                //       (so it's easier to predict where they'll appear)
+                {
+                    WCSunTempleLaser_Setup* laser;
+                    
+                    laser = reasset_map_objects_get(walledCity, 
+                        reasset_base_id(0x4186a), NULL);
+                    laser->base.x = 1528.388;
+                    laser->base.y = -939.75;
+                    laser->base.z = -4900.0;
+                    laser->yaw = DEGREES_TO_ANGLE8(180);
+
+                    laser = reasset_map_objects_get(walledCity, 
+                        reasset_base_id(0x41b51), NULL);
+                    laser->base.x = 1693.126;
+                    laser->base.y = -939.75;
+                    laser->base.z = -4900.0;
+                    laser->yaw = DEGREES_TO_ANGLE8(180);
+                    //Put this laser into the same objectGroup as its peers 
+                    //(for some reason it wasn't in an objectGroup before, unlike all the other beacon tunnel lasers)
+                    laser->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                    laser->base.mapObjGroup = 1;
+
+                    laser = reasset_map_objects_get(walledCity, 
+                        reasset_base_id(0x4186b), NULL);
+                    laser->base.x = 1834.060;
+                    laser->base.y = -939.75;
+                    laser->base.z = -4900.0;
+                    laser->yaw = DEGREES_TO_ANGLE8(180);
+                }
+            }
+
+            // Sun
+            {
+                //MAPS - Align the door exactly with the temple entrance, and add custom settings
+                {
+                    SeqDoor_Setup* sunDoor = reasset_map_objects_get(walledCity, 
+                        reasset_base_id(0x411b1), NULL);
+                    sunDoor->base.x = 640;
+                    sunDoor->base.y = -682;
+                    sunDoor->base.z = -4799;
+
+                    //Don't close on top of the player/sidekick
+                    sunDoor->options = SeqDoor_OPTION_10_Wait_While_Player_Nearby | SeqDoor_OPTION_20_Wait_While_Sidekick_Nearby | SeqDoor_OPTION_40_3D_Nearby_Check;
+                    sunDoor->range = 64;
+                }
+
+                //MODELS - Fix gaps, draw underside (since this door moves up instead of down)
+                {
+                    MODELS_REPLACE_BASE(938, models_wcsuntempledoor);
+                }
+
+                //MAPS - Align the Sun Beacon tunnel's lasers exactly with the wall tiles
+                //       (so it's easier to predict where they'll appear)
+                {
+                    WCSunTempleLaser_Setup* laser;
+                    
+                    laser = reasset_map_objects_get(walledCity, 
+                        reasset_base_id(0x41813), NULL);
+                    laser->base.x = 391.612;
+                    laser->base.y = -939.75;
+                    laser->base.z = -4700.0;
+                    laser->yaw = 0;
+
+                    laser = reasset_map_objects_get(walledCity, 
+                        reasset_base_id(0x4183d), NULL);
+                    laser->base.x = 226.874;
+                    laser->base.y = -939.75;
+                    laser->base.z = -4700.0;
+                    laser->yaw = 0;
+
+                    laser = reasset_map_objects_get(walledCity, 
+                        reasset_base_id(0x4183c), NULL);
+                    laser->base.x = 85.940;
+                    laser->base.y = -939.75;
+                    laser->base.z = -4700.0;
+                    laser->yaw = 0;
+                }
+            }
+        }
+
+        //WCBeacons
+        {
+            // Sun beacon
+            {
+                WCBeacon_Setup* sunBeacon = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x411B2), NULL);
+                sunBeacon->gamebitSwitch = BIT_WC_Sun_Pressure_Switch_Active;
+                sunBeacon->gamebitSlab = BIT_WC_SlabDoor_Sun_Symbol_Lit;
+            }
+
+            // Moon beacon
+            {
+                WCBeacon_Setup* sunBeacon = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x411B5), NULL);
+                sunBeacon->gamebitSwitch = BIT_WC_Moon_Pressure_Switch_Active;
+                sunBeacon->gamebitSlab = BIT_WC_SlabDoor_Moon_Symbol_Lit;
+            }
+        }
+
+        //WCSlabDoor
+        {
+            // Fix the small gap between the slab and its surroundings
+            {
+                //MAPS
+                {
+                    SeqDoor_Setup* slab = reasset_map_objects_get(walledCity, 
+                        reasset_base_id(0x411b7), NULL);
+                    slab->base.x = 959.000;
+                    slab->base.y = -874.000;
+                    slab->base.z = -5681.000;
+                    slab->options = SeqDoor_OPTION_8_Sync_With_State_Gamebit; //Add custom setting too
+                }
+
+                //MODELS
+                {
+                    MODELS_REPLACE_BASE(942, models_wcslabdoor);
+                }
+            }
+
+            //Ensure ledge grab HITS aren't active until WCSlabDoor moves out of the way
+            {
+                //HITS (tag line #6 with an animatorID)
+                {
+                    TrackLine* line = reasset_hits_get(wcTrkblk, reasset_base_id(611 - wcBlocksBase), reasset_base_id(6));
+                    line->animatorID = 8;
+                }
+            }
+        }
+
+        //WCBossDoor (Fix the small gap between the boss door and its surroundings, and tweak the UVs to reduce seams)
         {
             //MAPS
             {
-                SeqDoor_Setup* slab = (SeqDoor_Setup*)reasset_map_objects_get(walledCity, 
-                    reasset_base_id(0x411b7), NULL);
-                slab->base.x = 959.000;
-                slab->base.y = -874.000;
-                slab->base.z = -5681.000;
+                SeqDoor_Setup* door = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x41392), NULL);
+                door->base.x = 959.506;
+                door->base.y = -1123.000;
+                door->base.z = -4800.000;
+                door->scale = 65;
+                door->options = SeqDoor_OPTION_8_Sync_With_State_Gamebit; //Ensures boss room ramp door is open when Sabre's exiting it with the SpellStone
             }
 
             //MODELS
             {
-                ReAssetID models_wcslabdoor_ID = reasset_base_id(942);
-                reasset_models_set(models_wcslabdoor_ID, REASSET_BASE_NAMESPACE, models_wcslabdoor, models_wcslabdoor_end - models_wcslabdoor);
+                ReAssetID models_wcbossdoor_ID = reasset_base_id(943);
+                reasset_models_set(models_wcbossdoor_ID, REASSET_BASE_NAMESPACE, models_wcbossdoor, models_wcbossdoor_end - models_wcbossdoor);
             }
+        }
+
+        // BLOCKS - Boss Room
+        {
+            BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1086, block1086); //Minor UV fixes: ceiling
+            BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1087, block1087); //Minor UV fixes: ceiling
+            BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1088, block1088); //Minor UV fixes: ceiling
+            BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1089, block1089); //Minor UV fixes: ceiling, floor 
+            BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1093, block1093); //Ceiling UV fixes (fix broken range wrap)
+            BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1094, block1094); //Ceiling UV fixes (fix broken range wrap)
+            BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1098, block1098); //Minor UV fixes: ceiling, floor 
+            BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1099, block1099); //Minor UV fixes: ceiling
+            BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1100, block1100); //Minor UV fixes: ceiling
+            BLOCKS_REPLACE_BASE(ktTrkblk, ktBlocksBase, 1101, block1101); //Minor UV fixes: ceiling
+        }
+
+        //Boss Room Warps
+        {
+            //Lobby room
+            {
+                //WarpPoint (handles inbound and outbound warps)
+                {
+                    WarpPoint_Setup* warp = reasset_map_objects_get(walledCity, 
+                        reasset_base_id(0x413ae), NULL);
+                    warp->mode = WarpPoint_CUSTOMMODE_5;
+                    warp->isInboundWarp = TRUE; //NOTE: it's both inbound and outbound!
+                    warp->objectSeqIndex = 10;       //Custom sequence (arrival)
+                    warp->objectSeqIndexDepart = 11; //Custom sequence (departure)
+
+                    //Ensures the arrival sequence doesn't overlap/interfere with the post-boss sequence
+                    warp->gamebit = BIT_WC_King_EarthWalker_Cage_Opened; //Post-boss sequence needs to have been viewed
+
+                    warp->gamebitDepart = BIT_81B; //Set via a TriggerPlane to activate the warp, becomes unset afterwards
+                
+                    warp->zShiftArrival = -3;
+                    warp->zShiftDeparture = -1;
+                }
+
+                //TriggerPlane (activates outbound warp into boss room, but only if the entrance ramp is lowered)
+                {
+                    Trigger_Setup* plane = reasset_map_objects_get(walledCity, 
+                        reasset_base_id(0x413af), NULL);
+                    plane->base.z = -4642; //Shift out slightly, so the player isn't too close to the WarpPoint when the departure sequence plays
+                    plane->rotationX = DEGREES_TO_ANGLE8(336); //Tilt plane backwards, to help ensure player can't drop down from above and miss it
+                    plane->sizeX = TRIGGER_SCALE(0.64f); //Scale up slightly
+                    plane->conditionBitFlagIDs[0] = BIT_WC_Boss_Door_Opened; //@recomp: make sure ramp is lowered (sorry speedrunners!)
+                }
+            }
+
+            //Boss room
+            {
+                //WarpPoint (handles inbound and outbound warp)
+                //Has a custom arrival sequence and departure sequence, which only play on revisits
+                {
+                    WarpPoint_Setup* warp = reasset_map_objects_get(wcBossRoom, 
+                        reasset_base_id(0x413B0), NULL);
+                    warp->base.x = 1376.557;
+                    warp->base.z = -1680.0;
+                    warp->mode = WarpPoint_CUSTOMMODE_5;
+                    warp->isInboundWarp = TRUE; //NOTE: it's both inbound and outbound!
+                    warp->yaw = DEGREES_TO_ANGLE8(180);
+                    warp->quarterRange = 120;
+                    warp->warpID = 91; //Walled City boss lobby
+                    warp->objectSeqIndex = 10;       //Custom sequence (arrival)
+                    warp->objectSeqIndexDepart = 11; //Custom sequence (departure)
+
+                    //Ensures the arrival sequence only plays on revisits, and doesn't overlap/interfere with the boss intro sequence
+                    warp->gamebit = BIT_SpellStone_WC;
+
+                    warp->gamebitDepart = DINOMOD_BIT_962_WC_Boss_Room_Warp_to_Lobby; //Set via a TriggerPlane to activate the warp, becomes unset afterwards
+                }
+
+                //TriggerPlane (activates outbound warp back to lobby)
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .actExclusions1 = MAP_ACT(1), //Only appears after finishing the boss battle
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 64,
+                            .fadeDistance = 64,
+                            .x = 1378.742,
+                            .y = 0,
+                            .z = -1725.389
+                        },
+                        .commands[0] = {
+                            .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
+                            .id = TRG_CMD_BITS,
+                            .paramCombined = TRG_GAMEBIT(DINOMOD_BIT_962_WC_Boss_Room_Warp_to_Lobby, TRUE)
+                        },
+                        .sizeX = TRIGGER_SCALE(0.812),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
+                    };
+                    reasset_map_objects_set(wcBossRoom, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+            }
+
+            //Add HITS lines allowing the player clamber up from the sides of the ramp 
+            //(No real reason for this except that you'd expect to be able to, so shur lookit... why not!)
+            {
+                ReAssetID blockIDCentralTempleMiddle = reasset_base_id(610 - wcBlocksBase);
+                #define BOSS_RAMP_HITS_ANIMATOR 0xB5
+
+                //Uppies
+                {
+                    TrackLine stepUpLines[2] = {
+                        { HITS_A(356, -1210, 515), HITS_B(356, -1123, 320), .heightB = 0, .heightA = 87 },
+                        { HITS_A(283, -1123, 320), HITS_B(283, -1210, 515), .heightA = 0, .heightB = 87 }
+                    };
+
+                    for (u32 i = 0; i < ARRAYCOUNT(stepUpLines); i++) {
+                        stepUpLines[i].settingsA = 0xe;
+                        stepUpLines[i].settingsB = TrackLine_SETTINGB_Nonsolid | HITS_Clamber_Up;
+                        stepUpLines[i].animatorID = BOSS_RAMP_HITS_ANIMATOR;
+                        reasset_hits_set(wcTrkblk, blockIDCentralTempleMiddle, 
+                            reasset_auto_id(36 + i), REASSET_BASE_NAMESPACE, &stepUpLines[i]);
+                    }
+                }
+            
+                //Add HitAnimator for enabling these lines
+                {
+                    HitAnimator_Setup hitA = {
+                        .base = {
+                            .objId = OBJ_HitAnimator,
+                            .actExclusions1 = 0, //NOTE: HITS line needs controlling regardless of current Act
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 30,
+                            .fadeDistance = 30,
+                            .x = 953.487,
+                            .y = -1123.000,
+                            .z = -4605.000
+                        },
+                        .gamebitActivate = BIT_WC_Boss_Door_Opened,
+                        .mode = HITANIMATOR_MODE_HITS_ON,
+                        .hitsAnimatorID = BOSS_RAMP_HITS_ANIMATOR
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                }
+            }
+        }
+
+        //Boss Room - Adding Act values to all boss fight objects (so they can be hidden on revisit)
+        {
+            
+            ReAssetIterator iterator = reasset_map_objects_create_iterator(wcBossRoom);
+            ReAssetID id;
+            while (reasset_iterator_next(iterator, &id)) {
+                ObjSetup* setup = reasset_map_objects_get(wcBossRoom, id, NULL);
+                switch (setup->objId) {
+                case OBJ_KT_Rex:
+                case OBJ_KT_Fallingrocks:
+                case OBJ_KT_RexSequences:
+                case OBJ_KT_RexFloorSwit:
+                case OBJ_KT_Lazerwall:
+                case OBJ_KT_Lazerlight:
+                    setup->actExclusions1 = ~MAP_ACT(1);
+                }
+            }
+            reasset_iterator_destroy(iterator);
+        }
+    }
+
+    //Act 2
+    {
+        //Sun/Moon Temple Passageways
+        {
+            //BLOCKS
+            {
+                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 625, block625); //Moon passageway: fix UVs on trims at the pushblock puzzle boundary
+                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 630, block630); //Moon pushblock puzzle: fix gaps between vertices, tree discontinuities, visible gaps under trees 
+                
+                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 594, block594); //Sun passageway: fix UVs on trims at the pushblock puzzle boundary, add animatorIDs for HitAnimators
+                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 589, block589); //Sun pushblock puzzle: fix gaps between vertices, tree discontinuities, visible gaps under trees 
+            }
+
+            //HITS
+            {
+                //Sun pushblock puzzle: delete duplicate line (essentially) that prevented climbing up in the south-east corner
+                reasset_hits_delete(wcTrkblk, reasset_base_id(589 - wcBlocksBase), reasset_base_id(2));
+            }
+
+            //GeneralDoors (align exactly with entrances)
+            {
+                MODELS_REPLACE_BASE(959, models_wcgeneraldoor);
+
+                //Moon Temple passageway door
+                {
+                    //Left half
+                    SeqDoor_Setup* moonsideDoorL = GET_MAPS_OBJECT(walledCity, 0x413aa);
+                    moonsideDoorL->yaw = DEGREES_TO_ANGLE8(270);
+                    moonsideDoorL->base.x = 1853.479;
+                    moonsideDoorL->base.y = -874.000;
+                    moonsideDoorL->base.z = -4806.500;
+
+                    //Right half
+                    SeqDoor_Setup* moonsideDoorR = GET_MAPS_OBJECT(walledCity, 0x413a9);
+                    moonsideDoorR->yaw = DEGREES_TO_ANGLE8(90); //Fix rotation: this was off by 1
+                    moonsideDoorR->base.x = 1865.479;
+                    moonsideDoorR->base.y = -874.000;
+                    moonsideDoorR->base.z = -4806.500;
+                }
+
+                //Sun Temple passageway door
+                {
+                    //Left half
+                    SeqDoor_Setup* sunsideDoorL = GET_MAPS_OBJECT(walledCity, 0x413ac);
+                    sunsideDoorL->yaw = DEGREES_TO_ANGLE8(90); //Fix rotation: this was off by 1
+                    sunsideDoorL->base.x = 66.521;
+                    sunsideDoorL->base.y = -874.000;
+                    sunsideDoorL->base.z = -4792.500;
+
+                    //Right half
+                    SeqDoor_Setup* sunsideDoorR = GET_MAPS_OBJECT(walledCity, 0x413ab);
+                    sunsideDoorR->yaw = DEGREES_TO_ANGLE8(270);
+                    sunsideDoorR->base.x = 54.521;
+                    sunsideDoorR->base.y = -874.000;
+                    sunsideDoorR->base.z = -4792.500;
+                }
+            }
+
+            //Move objects into new objectGroups to prevent pop-in along corridors
+            {
+                //Move to new objGroups
+                {
+                    typedef struct {
+                        u32 uID;
+                        u32 objectGroup;
+                    } ObjectGroupConfigs;
+
+                    ObjectGroupConfigs passagewayObjects[] = {
+                        {0x413aa, WC_OBJGROUP_Moon_Passageway_Door}, //WCGeneralDoor, left half
+                        {0x413a9, WC_OBJGROUP_Moon_Passageway_Door}, //WCGeneralDoor, right half
+                        {0x414a3, WC_OBJGROUP_Moon_Passageway}, //WL_Torch left
+                        {0x414a4, WC_OBJGROUP_Moon_Passageway}, //WL_Torch right
+
+                        {0x413ac, WC_OBJGROUP_Sun_Passageway_Door}, //WCGeneralDoor, left half
+                        {0x413ab, WC_OBJGROUP_Sun_Passageway_Door}, //WCGeneralDoor, right half
+                        {0x414ab, WC_OBJGROUP_Sun_Passageway}, //WL_Torch left
+                        {0x414aa, WC_OBJGROUP_Sun_Passageway}, //WL_Torch right
+                    };
+
+                    for (u32 i = 0; i < ARRAYCOUNT(passagewayObjects); i++) {
+                        ObjSetup* obj = GET_MAPS_OBJECT(walledCity, passagewayObjects[i].uID);
+                        obj->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                        obj->mapObjGroup = passagewayObjects[i].objectGroup;
+                    }
+                }
+
+                //Add TriggerPlanes to manage new objectGroups
+                {
+                    //Moon Passageway Door
+                    {
+                        Trigger_Setup plane = {
+                            .base = {
+                                .objId = OBJ_TriggerPlane,
+                                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                .mapObjGroup = WC_OBJGROUP_Moon_Passageway_Door,
+                                .fadeDistance = 50,
+                                .x = 1865.479,
+                                .y = -874.000,
+                                .z = -4806.829
+                            },
+                            .rotationY = TRIGGER_YAW(270),
+                            .sizeX = TRIGGER_SCALE(0.500),
+                            .sizeY = 0x10,
+                            .sizeZ = 0x10,
+                            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                            .bitFlagID = NO_GAMEBIT
+                        };
+                        DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Moon_Passageway, &plane, 0, 1);
+                        DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Sun_Passageway_Door, &plane, 2, 3);
+                        reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                    }
+
+                    //Near Moon Temple Archway
+                    {
+                        Trigger_Setup plane = {
+                            .base = {
+                                .objId = OBJ_TriggerPlane,
+                                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                .mapObjGroup = WC_ObjGroup7_Moon_Temple_Exterior,
+                                .fadeDistance = 50,
+                                .x = 3007.554,
+                                .y = -969.9134,
+                                .z = -4360.130
+                            },
+                            .rotationY = TRIGGER_YAW(0),
+                            .sizeX = TRIGGER_SCALE(0.9375),
+                            .sizeY = 0x10,
+                            .sizeZ = 0x10,
+                            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                            .bitFlagID = NO_GAMEBIT
+                        };
+                        DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Moon_Passageway, &plane, 0, 1);
+                        DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Moon_Passageway_Door, &plane, 2, 3);
+                        reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                    }
+
+                    //Sun Passageway Door
+                    {
+                        Trigger_Setup plane = {
+                            .base = {
+                                .objId = OBJ_TriggerPlane,
+                                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                .mapObjGroup = WC_OBJGROUP_Sun_Passageway_Door,
+                                .fadeDistance = 50,
+                                .x = 54.521,
+                                .y = -874.000,
+                                .z = -4792.171
+                            },
+                            .rotationY = TRIGGER_YAW(90),
+                            .sizeX = TRIGGER_SCALE(0.500),
+                            .sizeY = 0x10,
+                            .sizeZ = 0x10,
+                            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                            .bitFlagID = NO_GAMEBIT
+                        };
+                        DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Sun_Passageway, &plane, 0, 1);
+                        DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Moon_Passageway_Door, &plane, 2, 3);
+                        reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                    }
+
+                    //Near Sun Temple
+                    {
+                        Trigger_Setup plane = {
+                            .base = {
+                                .objId = OBJ_TriggerPlane,
+                                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                .mapObjGroup = WC_ObjGroup6_Sun_Temple_Exterior,
+                                .fadeDistance = 50,
+                                .x = -1087.554,
+                                .y = -969.9134,
+                                .z = -5238.870
+                            },
+                            .rotationY = TRIGGER_YAW(180),
+                            .sizeX = TRIGGER_SCALE(0.9375),
+                            .sizeY = 0x10,
+                            .sizeZ = 0x10,
+                            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                            .bitFlagID = NO_GAMEBIT
+                        };
+                        DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Sun_Passageway, &plane, 0, 1);
+                        DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Sun_Passageway_Door, &plane, 2, 3);
+                        reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                    }
+                }
+
+                //Edit TriggerPlanes to manage new objectGroups
+                {
+                    //Moon Passageway
+                    {
+                        Trigger_Setup* plane = GET_MAPS_OBJECT(walledCity, 0x41370);
+                        ENTER_OBJGROUP_OFF(WC_OBJGROUP_Sun_Passageway_Door, plane, 2);
+                    }
+
+                    //Sun Passageway
+                    {
+                        Trigger_Setup* plane = GET_MAPS_OBJECT(walledCity, 0x41373);
+                        ENTER_OBJGROUP_OFF(WC_OBJGROUP_Moon_Passageway_Door, plane, 2);
+                    }
+                }
+            }
+
+            //Add LODAnimators (a new custom kind of animator!)
+            {
+                //Central Temple West (stand-in for Moon Passageway)
+                {
+                    LODAnimator_Setup lod = {
+                        .base = {
+                            .objId = OBJ_LODAnimator,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_ObjGroup5_Central_Temple,
+                            .fadeDistance = 50
+                        },
+                        COORDS_SETUP(1728.825, -747, -4808.705),
+                        .animatorID = 1,
+                        .gridOffsetX = +1,
+                        .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+                }
+
+                //Moon Passageway (stand-in for pushblock puzzle area)
+                {
+                    LODAnimator_Setup lod = {
+                        .base = {
+                            .objId = OBJ_LODAnimator,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_OBJGROUP_Moon_Passageway,
+                            .fadeDistance = 50
+                        },
+                        COORDS_SETUP(2191.825, -747, -4808.705),
+                        .animatorID = 1,
+                        .gridOffsetX = +1,
+                        .options = LODAnimator_OPTION_1_Show_LOD_on_Unload
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+                }
+
+                //Central Temple East (stand-in for Sun Passageway)
+                {
+                    LODAnimator_Setup lod = {
+                        .base = {
+                            .objId = OBJ_LODAnimator,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_ObjGroup5_Central_Temple,
+                            .fadeDistance = 50
+                        },
+                        COORDS_SETUP(191.175, -747, -4790.295),
+                        .animatorID = 1,
+                        .gridOffsetX = -1,
+                        .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+                }
+
+                //Sun Passageway (stand-in for pushblock puzzle area)
+                {
+                    LODAnimator_Setup lod = {
+                        .base = {
+                            .objId = OBJ_LODAnimator,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_OBJGROUP_Sun_Passageway,
+                            .fadeDistance = 50
+                        },
+                        COORDS_SETUP(-271.825, -747, -4790.295),
+                        .animatorID = 3,
+                        .gridOffsetX = -1,
+                        .options = LODAnimator_OPTION_1_Show_LOD_on_Unload
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+                }
+            }
+
+            //Add HitAnimators, temporarily hiding the section of outskirts that smashes through the Sun Passageway in an impossible way
+            //(In the unmodified prototype you see the inner faces of the outskirts' tunnel from the passageway below, which looks really nonsensical - 
+            // so I'm guessing they intended to hide the outskirts' tunnel section when standing in the passageway corridor, and vice versa!)
+            {
+                typedef struct {
+                    Vec3f coords;
+                    u8 objGroup;
+                    u8 animatorID;
+                    u8 show;
+                } WCOutskirtsHitAnimators;
+
+                WCOutskirtsHitAnimators hAnimData[] = {
+                    //In Central Temple area
+                    { VEC3F(-145.7, -779, -4792), WC_ObjGroup5_Central_Temple, 1, TRUE },   //Show passageway
+                    { VEC3F(-145.7, -665, -4792), WC_ObjGroup5_Central_Temple, 2, FALSE },  //Hide outskirts
+
+                    //In passageway
+                    { VEC3F(-145.7, -779, -4792), WC_OBJGROUP_Sun_Passageway, 1, TRUE },    //Show passageway
+                    { VEC3F(-145.7, -665, -4792), WC_OBJGROUP_Sun_Passageway, 2, FALSE },   //Hide outskirts
+
+                    //In outskirts
+                    { VEC3F(-145.7, -779, -4792), WC_OBJGROUP_Outskirts, 1, FALSE },        //Hide passageway
+                    { VEC3F( 191.2, -779, -4792), WC_OBJGROUP_Outskirts, 1, FALSE },        //Hide passageway LOD
+                    { VEC3F(-145.7, -665, -4792), WC_OBJGROUP_Outskirts, 2, TRUE },         //Show outskirts
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(hAnimData); i++) {
+                    HitAnimator_Setup hitAnim = {
+                        .base = {
+                            .objId = OBJ_HitAnimator,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = hAnimData[i].objGroup,
+                            .fadeDistance = 50,
+                            .x = hAnimData[i].coords.x,
+                            .y = hAnimData[i].coords.y,
+                            .z = hAnimData[i].coords.z
+                        },
+                        .gamebitActivate = BIT_ALWAYS_1,
+                        .mode = hitAnimator_configureModeFlags(
+                            (hAnimData[i].show == FALSE), TRUE, TRUE),
+                        .blocksAnimatorID = hAnimData[i].animatorID
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitAnim, sizeof(hitAnim));
+                }
+            }
+
+            //Add TriggerAreas, just in case the Sun Corridor's objectGroups are in the wrong state
+            {
+                //Load outskirts
+                {
+                    Trigger_Setup area = {
+                        .base = {
+                            .objId = OBJ_TriggerArea,
+                            .actExclusions1 = 0,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_OBJGROUP_Sun_Passageway,
+                            .fadeDistance = 64,
+                        },
+                        COORDS_SETUP(-160, -745, -4800),              
+                        .sizeX = 70,
+                        .sizeY = 40,
+                        .sizeZ = 200,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
+                    };
+                    ENTER_OBJGROUP_ON(WC_OBJGROUP_Outskirts, &area, 0);
+                    ENTER_OBJGROUP_OFF(WC_OBJGROUP_Sun_Passageway, &area, 1);
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &area, sizeof(area));
+                }
+
+                //Load passageway
+                {
+                    Trigger_Setup area = {
+                        .base = {
+                            .objId = OBJ_TriggerArea,
+                            .actExclusions1 = 0,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_OBJGROUP_Outskirts,
+                            .fadeDistance = 64,
+                        },
+                        COORDS_SETUP(-160, -865, -4800),              
+                        .sizeX = 70,
+                        .sizeY = 20,
+                        .sizeZ = 160,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
+                    };
+                    ENTER_OBJGROUP_OFF(WC_OBJGROUP_Outskirts, &area, 0);
+                    ENTER_OBJGROUP_ON(WC_OBJGROUP_Sun_Passageway, &area, 1);
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &area, sizeof(area));
+                }
+            }
+        }
+
+        //Sun/Moon Apertures
+        {
+            typedef struct {
+            /*00*/ ObjSetup base;
+            /*18*/ s8 yaw;
+            /*19*/ s8 modelIdx;
+            /*1A*/ s16 opacityThreshold;
+            /*1C*/ u16 unk1C;
+            /*1E*/ s16 gamebitViewed;
+            /*20*/ s16 gamebitEnabled;
+            } WCApertureSymbol_Setup;
+
+            // Fix terrain ID of moon temple viewing tile (to let the aperture work correctly)
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 628, block628);
+
+            // Revert dinomod's removal of the moon temple lift sequences, so it can be used again
+            {
+                ObjDef* moonTempleLiftDef = reasset_objects_get(reasset_base_id(276), NULL);
+                s16* seq = OBJECT_GET_OBJSEQS(moonTempleLiftDef);
+                seq[0] = 0x3D4;
+                seq[1] = 0x3D6;
+            }
+
+            // Moon door seqobj
+            // Revert dinomod's gamebit change, so the door only opens after the aperture sequence
+            {
+                SeqObj_Setup* seqobj = reasset_map_objects_get(walledCity, 
+                    reasset_base_id(0x41474), NULL);
+                seqobj->gamebitPlay = BIT_WC_Moon_Temple_Opened;
+            }
+
+            // Moon Aperture
+            {
+                WCApertureSymbol_Setup* moonAperture = GET_MAPS_OBJECT(walledCity, 0x41463);
+
+                //Don't allow the moon to be viewed until the aperture is open
+                moonAperture->gamebitEnabled = BIT_WC_Moon_Aperture_Opened;
+
+                //Reduce activation opacity threshold, since this symbol has a reputation for being fussy 
+                //(Players probably try to keep the off-centre moon in the centre of screen, rather than the symbol object itself)
+                moonAperture->opacityThreshold *= 0.75f;
+            }
+
+            // Sun Aperture
+            {
+                WCApertureSymbol_Setup* sunAperture = GET_MAPS_OBJECT(walledCity, 0x41471);
+
+                //Don't allow the sun to be viewed until the aperture is open
+                sunAperture->gamebitEnabled = BIT_WC_Sun_Aperture_Opened;
+                
+                //Reduce activation opacity threshold to match Moon aperture's reduction
+                sunAperture->opacityThreshold *= 0.75f;
+            }
+        }
+
+        //Moon/Sun Temple Interiors
+        {
+            // Delete DummyObjects in Moon/Sun temple basements (these are objects with an unmapped OBJINDEX.bin entry)
+            reasset_map_objects_delete(walledCity, reasset_base_id(0x41AFC));
+            reasset_map_objects_delete(walledCity, reasset_base_id(0x41B35));
 
             //BLOCKS
             {
-                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 611, block611);
+                //Moon Temple
+                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 628, block628); //Northeast: align floor tiles exactly, fix UVs and optimise faces
+                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 629, block629); //Southeast: fix gaps between vertices near slide puzzle archway
+                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 633, block633); //Northwest: fix UVs and optimise faces
+                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 636, block636); //Dial hall (back): add Magic Bridge collision, optimise wall and sculpture faces
+                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 634, block634); //Dial hall (front): fix UVs and optimise sculpture faces
+            
+                //Sun Temple
+                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 586, block586); //Southeast: fix UVs at start of maze, optimise faces above ground
+                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 585, block585); //Northeast: fix UVs at end of maze, optimise faces above ground
+                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 590, block590); //Entrance: fix gaps between vertices near slide puzzle archway, improve entrance collision, unify sides with Moon Temple design
+                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 591, block591); //Southwest: fix UVs, split off illusory wall so other faces aren't animated too
+                BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 635, block635); //Dial hall: add Magic Bridge collision, optimise wall and sculpture faces
             }
-        }
 
-        //Ensure ledge grab HITS aren't active until WCSlabDoor moves out of the way
-        {
-            //HITS (tag line #6 with an animatorID)
+            //WCTempleDial
             {
-                HitsLine* line = reasset_hits_get(wcTrkblk, reasset_base_id(611 - wcBlocksBase), reasset_base_id(6));
-                line->animatorID = 8;
+                // Replace the dials' Projectile Switches with similar ones that use a custom DLL, 
+                // to handle blocking Projectile Spells if the dial's opening isn't over the switch
+                {
+                    u32 dialSwitchUIDs[] = {
+                        //Moon
+                        0x4165C,
+                        0x4165B,
+                        0x4165D,
+
+                        //Sun
+                        0x41562,
+                        0x41563,
+                        0x41561
+                    };
+
+                    for (u32 i = 0; i < ARRAYCOUNT(dialSwitchUIDs); i++) {
+                        ObjSetup* dialSwitch = GET_MAPS_OBJECT(walledCity, dialSwitchUIDs[i]);
+                        dialSwitch->objId = OBJ_WCDialProjectileSwitch;
+                    }
+                }
+            }
+
+            //WCTempleBridge
+            {
+                #define MAGIC_BRIDGE_ANIMATORID 5
+
+                typedef struct {
+                    ObjSetup base;
+                    s8 yaw;
+                    s8 modelIdx;                    //Which bridge model to use
+                    s16 hitsAnimatorID;             //@recomp: repurpose unused field
+                    s16 unk1C;
+                    s16 gamebitVisible;             //Stores the bridge's visibility state
+                } WCTempleBridge_Setup;
+
+                //Restore original DLL usage (another level's Magic Bridge was used as a workaround)
+                {
+                    ReAssetID objects_wctemplebridge_id = reasset_base_id(288); //OBJ_WCTempleBridge
+                    reasset_objects_set(objects_wctemplebridge_id, REASSET_BASE_NAMESPACE, objects_wctemplebridge, objects_wctemplebridge_end - objects_wctemplebridge);
+                }
+
+                //Fix model UVs
+                {
+                    MODELS_REPLACE_BASE(969, models_wctemplebridgesun);
+                    MODELS_REPLACE_BASE(970, models_wctemplebridgemoon);
+                }
+
+                //Add HITS animatorIDs to Magic Bridges' objSetups
+                {
+                    u32 bridgeUIDs[] = { 
+                        0x000414BC, 
+                        0x00041659 
+                    };
+
+                    for (u32 i = 0; i < ARRAYCOUNT(bridgeUIDs); i++) {
+                        WCTempleBridge_Setup* bridge = GET_MAPS_OBJECT(walledCity, bridgeUIDs[i]);
+                        bridge->hitsAnimatorID = MAGIC_BRIDGE_ANIMATORID;
+                    }
+                }
+
+                //Edit/add HitAnimators for controlling the Magic Bridges' walkable collision
+                {
+                    HitAnimator_Setup* hitAnim;
+
+                    //Sun Temple (edit)
+                    hitAnim = GET_MAPS_OBJECT(walledCity, 0xBE03005);
+                    hitAnim->gamebitActivate = BIT_WC_Sun_Temple_Magic_Bridge_Visible;
+                    hitAnim->mode = HITANIMATOR_MODE_SHAPE_ON,
+                    hitAnim->blocksAnimatorID = MAGIC_BRIDGE_ANIMATORID;
+
+                    //Moon Temple (add)
+                    HitAnimator_Setup hitA = {
+                        .base = {
+                            .objId = OBJ_HitAnimator,
+                            .actExclusions1 = 0,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_ObjGroup9_Moon_Temple_Interior,
+                            .fadeDistance = 100,
+                            .x = 3520,
+                            .y = -1386.25,
+                            .z = -4534
+                        },
+                        .gamebitActivate = BIT_WC_Moon_Temple_Magic_Bridge_Visible,
+                        .mode = HITANIMATOR_MODE_SHAPE_ON,
+                        .blocksAnimatorID = MAGIC_BRIDGE_ANIMATORID
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                }
+
+                //Edit/add HitAnimators for removing a ledge grab section in front of each Magic Bridge
+                {
+                    HitAnimator_Setup* hitAnim;
+
+                    //Sun Temple (edit)
+                    hitAnim = GET_MAPS_OBJECT(walledCity, 0xBE03006);
+                    hitAnim->gamebitActivate = BIT_WC_Sun_Temple_Magic_Bridge_Visible;
+                    hitAnim->mode = HITANIMATOR_MODE_HITS_OFF,
+                    hitAnim->hitsAnimatorID = MAGIC_BRIDGE_ANIMATORID;
+
+                    //Moon Temple (add)
+                    HitAnimator_Setup hitA = {
+                        .base = {
+                            .objId = OBJ_HitAnimator,
+                            .actExclusions1 = 0,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = WC_ObjGroup9_Moon_Temple_Interior,
+                            .fadeDistance = 100,
+                            .x = 3520,
+                            .y = -1339,
+                            .z = -4481
+                        },
+                        .gamebitActivate = BIT_WC_Moon_Temple_Magic_Bridge_Visible,
+                        .mode = HITANIMATOR_MODE_HITS_OFF,
+                        .hitsAnimatorID = MAGIC_BRIDGE_ANIMATORID
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                }
+            }
+
+            //Ensure that the Sun/Moon Stones always draw above the dial 
+            //(Previously the dial would draw over them at certain camera angles - often during their collection cutscene!)
+            {
+                u16 stoneObjects[] = {
+                    270, //WCSunStone
+                    271, //WCMoonStone
+                    268, //WCAnimSunStone
+                    269  //WCAnimMoonStone
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(stoneObjects); i++) {
+                    ObjDef* stone = reasset_objects_get(reasset_base_id(stoneObjects[i]), NULL);
+                    stone->flags |= OBJDEF_FORCE_TRANSPARENT_DRAW_ORDER;
+                }
+            }
+
+            //Increase Sun dial hall's torch fade distances very slightly, so they don't pop in while walking back along the Magic Bridge
+            {
+                u32 torchUIDs[] = {
+                    0x4155F,
+                    0x41560
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(torchUIDs); i++) {
+                    ObjSetup* torch = GET_MAPS_OBJECT(walledCity, torchUIDs[i]);
+                    torch->fadeFlags = OBJSETUP_FADE_CAMERA;
+                    torch->fadeDistance = FADE_DISTANCE(555);
+                }
+            }
+
+            //Sun Temple Entrance Door (align exactly)
+            {
+                ObjSetup* sunEntrance = GET_MAPS_OBJECT(walledCity, 0x41418);
+                sunEntrance->x = -1088;
+                sunEntrance->y = -1002;
+                sunEntrance->z = -5543;
+
+                MODELS_REPLACE_BASE(940, models_wcsundoor);
+            }
+
+            //Sun Temple Lift 
+            {
+                //Align exactly
+                {
+                    ObjSetup* sunLift = GET_MAPS_OBJECT(walledCity, 0x413a7);
+                    sunLift->x = -1088;
+                    sunLift->y = -1002;
+                    sunLift->z = -5543;
+
+                    MODELS_REPLACE_BASE(957, models_wcsuntemplelift);
+                }
+
+                //Add HITS lines so you can step out of the small pit (just in case)
+                {
+                    #define STEP (TrackLine_SETTINGB_Nonsolid | HITS_Clamber_Up)
+                    #define TEMPLE_STEP_ANIMATORID 101
+
+                    TrackLine lines[] = {
+                        { HITS_A(152, -1012, 270), HITS_B(233, -1012, 270), .heightA = 12, .heightB = 12, .settingsA = 0, .settingsB = STEP, .animatorID = 111 },
+                        { HITS_A(233, -1011, 220), HITS_B(152, -1011, 220), .heightA = 10, .heightB = 10, .settingsA = 0, .settingsB = STEP, .animatorID = TEMPLE_STEP_ANIMATORID },
+                    };
+
+                    for (u32 i = 0; i < ARRAYCOUNT(lines); i++) {
+                        reasset_hits_set(wcTrkblk, reasset_base_id(590 - wcBlocksBase), reasset_auto_id(8 + i), REASSET_BASE_NAMESPACE, &lines[i]);
+                    }
+
+                    //Add a HitAnimator for the line leading into the temple
+                    {
+                        HitAnimator_Setup hitA = {
+                            .base = {
+                                .objId = OBJ_HitAnimator,
+                                .actExclusions1 = 0,
+                                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                .mapObjGroup = WC_ObjGroup6_Sun_Temple_Exterior,
+                                .fadeDistance = 200,
+                            },
+                            COORDS_SETUP(-1088, -1011, -5540),
+                            .gamebitActivate = BIT_WC_Sun_Temple_Opened,
+                            .mode = HITANIMATOR_MODE_HITS_ON,
+                            .hitsAnimatorID = TEMPLE_STEP_ANIMATORID
+                        };
+                        reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                    }
+                }
+
+
+                //Add collision reinforcing the temple entrance 
+                //(avoiding bug where the lift could clip you through it when running at the door's edges)
+                {
+                    #define TEMPLE_ENTRANCE_ANIMATORID 64
+
+                    TrackLine line = { 
+                        HITS_A(235, -1002, 202), 
+                        HITS_B(150, -1002, 202), 
+                        .heightA = 100, .heightB = 100, 
+                        .settingsA = 0, .settingsB = HITS_1, 
+                        .animatorID = TEMPLE_ENTRANCE_ANIMATORID
+                    };
+                    reasset_hits_set(wcTrkblk, reasset_base_id(590 - wcBlocksBase), 
+                    reasset_auto_id(11), REASSET_BASE_NAMESPACE, &line);
+
+                    //Add a HitAnimator for the line
+                    {
+                        HitAnimator_Setup hitA = {
+                            .base = {
+                                .objId = OBJ_HitAnimator,
+                                .actExclusions1 = 0,
+                                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                .mapObjGroup = WC_ObjGroup6_Sun_Temple_Exterior,
+                                .fadeDistance = 200,
+                            },
+                            COORDS_SETUP(-1088, -983, -5558),
+                            .gamebitActivate = BIT_WC_Sun_Temple_Opened,
+                            .mode = HITANIMATOR_MODE_HITS_OFF,
+                            .hitsAnimatorID = TEMPLE_ENTRANCE_ANIMATORID
+                        };
+                        reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                    }
+
+                    //Add a HitAnimator for the door
+                    {
+                        HitAnimator_Setup hitA = {
+                            .base = {
+                                .objId = OBJ_HitAnimator,
+                                .actExclusions1 = 0,
+                                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                .mapObjGroup = WC_ObjGroup6_Sun_Temple_Exterior,
+                                .fadeDistance = 200,
+                            },
+                            COORDS_SETUP(-1088, -976.612, -5564.950),
+                            .gamebitActivate = BIT_WC_Sun_Temple_Opened,
+                            .mode = HITANIMATOR_MODE_SHAPE_OFF,
+                            .blocksAnimatorID = TEMPLE_ENTRANCE_ANIMATORID
+                        };
+                        reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                    }
+                }
+
+                //Add HitAnimators so you can switch between the original lift rails (cleaned up) or an alternate version 
+                //incorporating design elements from the Moon Temple's rails (suggested by Jeebs2kx, implemented by Banjeoin)
+                {
+                    //Original shapes on
+                    {
+                        HitAnimator_Setup hitAnimOriginal = {
+                            .base = {
+                                .objId = OBJ_HitAnimator,
+                                .actExclusions1 = 0,
+                                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                .mapObjGroup = WC_ObjGroup6_Sun_Temple_Exterior,
+                                .fadeDistance = 200,
+                            },
+                            COORDS_SETUP(-1087.7, -880.4, -5648.5),
+                            .gamebitActivate = DINOMOD_BIT_963_WC_Alternate_Sun_Temple_Exterior,
+                            .mode = HITANIMATOR_MODE_SHAPE_OFF,
+                            .blocksAnimatorID = 30
+                        };
+                        reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitAnimOriginal, sizeof(hitAnimOriginal));
+                    }
+
+                    //Alternate shapes on
+                    {
+                        HitAnimator_Setup hitAnimAlternate = {
+                            .base = {
+                                .objId = OBJ_HitAnimator,
+                                .actExclusions1 = 0,
+                                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                .mapObjGroup = WC_ObjGroup6_Sun_Temple_Exterior,
+                                .fadeDistance = 200,
+                            },
+                            COORDS_SETUP(-1087.7, -880.4, -5648.5),
+                            .gamebitActivate = DINOMOD_BIT_963_WC_Alternate_Sun_Temple_Exterior,
+                            .mode = HITANIMATOR_MODE_SHAPE_ON,
+                            .blocksAnimatorID = 31
+                        };
+                        reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitAnimAlternate, sizeof(hitAnimAlternate));
+                    }
+                }
+            }
+
+            //Sun Temple Maze
+            {
+                //Fix texture on WCSunTempleSwitch (the sun model showed the moon icon by mistake - the moon model already had the correct icon though!)
+                {
+                    MODELS_REPLACE_BASE(964, models_wcsuntempleswitch);
+                }
+
+                //Slightly increase the fade distance of the wall switch that leads into the maze
+                {
+                    ObjSetup* button = GET_MAPS_OBJECT(walledCity, 0x414b3);
+                    button->fadeFlags = OBJSETUP_FADE_CAMERA;
+                    button->fadeDistance = FADE_DISTANCE(775);
+                }
+
+                //Ensure all illusory wall AlphaAnimators turn fully opaque when at max opacity (prevent other transparent shapes drawing through them)
+                {
+                    //Delete custom HitAnimators that were used as a temporary fix for this bug
+                    reasset_map_objects_delete(walledCity, reasset_base_id(0xBE03003));
+                    reasset_map_objects_delete(walledCity, reasset_base_id(0xBE03004));
+
+                    //Restore AlphaAnimators that had been deleted as a temporary fix for this bug
+                    {
+                        //Maze entry illusory wall (0x412e1)
+                        {
+                            AlphaAnimator_Setup alphaAnim = {
+                                .base = {
+                                    .objId = OBJ_AlphaAnimator,
+                                    .actExclusions1 = 0,
+                                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                    .mapObjGroup = WC_ObjGroup8_Sun_Temple_Interior,
+                                    .fadeDistance = 50,
+                                },
+                                COORDS_SETUP(-1208.816, -1107.007, -6275.149),
+                                .gamebitActivate = BIT_WC_Sun_Temple_Illusory_Wall_Switch_Pressed,
+                                .gamebitActivated = BIT_WC_Sun_Temple_Illusory_Wall_Switch_Pressed,
+                                .initialOpacity = 0xFF,
+                                .goalOpacity = 0,
+                                .animatorID = 1,
+                                .fadeSpeed = 1,
+                                .mode = AlphaAnimator_MODE_0_Basic_Fade_and_Set_Gamebit,
+                                .playSound = TRUE,
+                                .removeCollisionWhenHidden = TRUE,
+                                .soundID = SOUND_9FB_Illusory_Wall_Revealed,
+
+                                //@recomp: set custom flags
+                                .opaqueAtMaxOpacity = TRUE
+                            };
+                            reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &alphaAnim, sizeof(alphaAnim));
+                        }
+
+                        //Last maze illusory wall (0x4148e)
+                        {
+                            AlphaAnimator_Setup alphaAnim = {
+                                .base = {
+                                    .objId = OBJ_AlphaAnimator,
+                                    .actExclusions1 = 0,
+                                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                    .mapObjGroup = WC_ObjGroup8_Sun_Temple_Interior,
+                                    .fadeDistance = 50,
+                                },
+
+                                COORDS_SETUP(-1784.581, -1085.147, -5737.937),
+                                .gamebitActivate = BIT_WC_Sun_Temple_Maze_Illusory_Wall_4_Hidden,
+                                .gamebitActivated = NO_GAMEBIT,
+                                .initialOpacity = 0xFF,
+                                .goalOpacity = 0,
+                                .animatorID = 4,
+                                .fadeSpeed = 2,
+                                .mode = AlphaAnimator_MODE_2_Toggleable_Fade,
+                                .playSound = TRUE,
+                                .removeCollisionWhenHidden = TRUE,
+                                .soundID = SOUND_9FB_Illusory_Wall_Revealed,
+                                
+                                //@recomp: set custom flags
+                                .opaqueAtMaxOpacity = TRUE,
+                                // .noSoundOnReverse = TRUE,
+                                .soundIDReverse = SOUND_7AF_Switch_Reset_Swoosh
+                            };
+                            reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &alphaAnim, sizeof(alphaAnim));
+                        }
+                    }
+
+                    //Edit all Sun Maze AlphaAnimators so they use the custom opaque-at-full-opacity flag
+                    {
+                        u32 alphaAnimatorUIDs[] = {
+                            // 0x412e1,
+                            0x4148b,
+                            0x4148c,
+                            0x4148d,
+                            // 0x4148e
+                        };
+                        for (u32 i = 0; i < ARRAYCOUNT(alphaAnimatorUIDs); i++) {
+                            AlphaAnimator_Setup* alphaAnim = GET_MAPS_OBJECT(walledCity, alphaAnimatorUIDs[i]);
+                            alphaAnim->opaqueAtMaxOpacity = TRUE;
+                            alphaAnim->soundIDReverse = SOUND_7AF_Switch_Reset_Swoosh;
+
+                            //Restore playing a sound when vanishing (this was moved to sfxPlayers previously, as a temporary bug fix)
+                            alphaAnim->playSound = TRUE;
+                            alphaAnim->soundID = SOUND_9FB_Illusory_Wall_Revealed;
+                        }
+                    }
+                    
+                    //Delete custom sfxPlayers that were used as a temporary fix for the AlphaAnimator DLL's sound-on-load bug
+                    {
+                        u32 customSfxPlayers[] = {
+                            0xBE03008,
+                            0xBE03009,
+                            0xBE0300A,
+                            0xBE0300B,
+                            0xBE0300C
+                        };
+
+                        for (u32 i = 0; i < ARRAYCOUNT(customSfxPlayers); i++) {
+                            reasset_map_objects_delete(walledCity, reasset_base_id(customSfxPlayers[i]));
+                        }
+                    }
+                }
+
+                //Set the "Maze Completed" gamebit as you pass through the exit doorway
+                {
+                    Trigger_Setup* plane = GET_MAPS_OBJECT(walledCity, 0x410f0);
+                    plane->commands[4].condition = CMD_COND_IN | CMD_COND_RE_ENTER;
+                    plane->commands[4].id = TRG_CMD_BITS;
+                    plane->commands[4].paramCombined = TRG_GAMEBIT(BIT_WC_Sun_Temple_Maze_Solved, TRUE);
+                }
+
+                //Fade distances
+                {
+                    //Increase the last maze button's fade distance slightly, so it doesn't pop in
+                    {
+                        ObjSetup* button = GET_MAPS_OBJECT(walledCity, 0x414b7);
+                        button->fadeFlags = OBJSETUP_FADE_CAMERA;
+                        button->fadeDistance = FADE_DISTANCE(615);
+                    }
+
+                    //Increase the Sun Temple Maze Door's fade distance, so it doesn't vanish during the maze intro cutscene
+                    {
+                        ObjSetup* mazeDoor = GET_MAPS_OBJECT(walledCity, 0x41492);
+                        mazeDoor->fadeFlags = OBJSETUP_FADE_CAMERA;
+                        mazeDoor->fadeDistance = FADE_DISTANCE(955);
+                    }
+
+                    //Increase the Sun Temple Portal Spell door's fade distance, so you don't see the sky through it
+                    {
+                        ObjSetup* portalDoor = GET_MAPS_OBJECT(walledCity, 0x41494);
+                        portalDoor->fadeFlags = OBJSETUP_FADE_CAMERA;
+                        portalDoor->fadeDistance = FADE_DISTANCE(1100);
+                    }
+                }
+
+                //Lock the main maze button after the maze is completed
+                {
+                    UseObj_Setup* button = GET_MAPS_OBJECT(walledCity, 0x41525);
+                    button->gamebitEnabled = BIT_WC_Sun_Temple_Maze_Solved;
+                    button->flags |= WCUseObj_FLAG_10_No_Targetting_When_Locked | WCUseObj_CUSTOMFLAG_2_Invert_GamebitUnlocked;
+
+                    //Align this button's rotation exactly too (it was off by 1)
+                    button->yaw = DEGREES_TO_ANGLE8(180);
+                }
+            }
+
+            //Moon Temple Entrance Door (align exactly)
+            {
+                ObjSetup* moonEntrance = GET_MAPS_OBJECT(walledCity, 0x4133d);
+                moonEntrance->x = 3008;
+                moonEntrance->y = -1002;
+                moonEntrance->z = -4057;
+
+                MODELS_REPLACE_BASE(941, models_wcmoondoor);
+            }
+
+            //Moon Temple Lift
+            {
+                //Align exactly
+                {
+                    ObjSetup* moonLift = GET_MAPS_OBJECT(walledCity, 0x413a7);
+                    moonLift->x = 3008;
+                    moonLift->y = -1002;
+                    moonLift->z = -4057;
+
+                    MODELS_REPLACE_BASE(958, models_wcmoontemplelift);
+                }
+
+                //Add HITS lines so you can step out of the small pit (just in case)
+                {
+                    #define STEP (TrackLine_SETTINGB_Nonsolid | HITS_Clamber_Up)
+                    #define TEMPLE_STEP_ANIMATORID 101
+
+                    TrackLine lines[] = {
+                        { HITS_A(488, -1012, 371), HITS_B(407, -1012, 371), .heightA = 12, .heightB = 12, .settingsA = 0, .settingsB = STEP, .animatorID = 111 },
+                        { HITS_A(407, -1011, 420), HITS_B(488, -1011, 420), .heightA = 10, .heightB = 10, .settingsA = 0, .settingsB = STEP, .animatorID = TEMPLE_STEP_ANIMATORID },
+                    };
+
+                    for (u32 i = 0; i < ARRAYCOUNT(lines); i++) {
+                        reasset_hits_set(wcTrkblk, reasset_base_id(629 - wcBlocksBase), reasset_auto_id(8 + i), REASSET_BASE_NAMESPACE, &lines[i]);
+                    }
+
+                    //Add a HitAnimator for the line leading into the temple
+                    {
+                        HitAnimator_Setup hitA = {
+                            .base = {
+                                .objId = OBJ_HitAnimator,
+                                .actExclusions1 = 0,
+                                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                .mapObjGroup = WC_ObjGroup7_Moon_Temple_Exterior,
+                                .fadeDistance = 200,
+                            },
+                            COORDS_SETUP(3008, -1011, -4060),
+                            .gamebitActivate = BIT_WC_Moon_Temple_Opened,
+                            .mode = HITANIMATOR_MODE_HITS_ON,
+                            .hitsAnimatorID = TEMPLE_STEP_ANIMATORID
+                        };
+                        reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                    }
+                }
+
+                //Add collision reinforcing the temple entrance 
+                //(avoiding bug where the lift could clip you through it when running at the door's edges)
+                {
+                    #define TEMPLE_ENTRANCE_ANIMATORID 64
+
+                    TrackLine line = { 
+                        HITS_A(405, -1002, 438), 
+                        HITS_B(490, -1002, 438), 
+                        .heightA = 100, .heightB = 100, 
+                        .settingsA = 0, .settingsB = HITS_1, 
+                        .animatorID = TEMPLE_ENTRANCE_ANIMATORID 
+                    };
+                    reasset_hits_set(wcTrkblk, reasset_base_id(629 - wcBlocksBase), 
+                    reasset_auto_id(11), REASSET_BASE_NAMESPACE, &line);
+
+                    //Add a HitAnimator for the line
+                    {
+                        HitAnimator_Setup hitA = {
+                            .base = {
+                                .objId = OBJ_HitAnimator,
+                                .actExclusions1 = 0,
+                                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                .mapObjGroup = WC_ObjGroup7_Moon_Temple_Exterior,
+                                .fadeDistance = 200,
+                            },
+                            COORDS_SETUP(3008, -983, -4042),
+                            .gamebitActivate = BIT_WC_Moon_Temple_Opened,
+                            .mode = HITANIMATOR_MODE_HITS_OFF,
+                            .hitsAnimatorID = TEMPLE_ENTRANCE_ANIMATORID
+                        };
+                        reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                    }
+
+                    //Add a HitAnimator for the door
+                    {
+                        HitAnimator_Setup hitA = {
+                            .base = {
+                                .objId = OBJ_HitAnimator,
+                                .actExclusions1 = 0,
+                                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                                .mapObjGroup = WC_ObjGroup7_Moon_Temple_Exterior,
+                                .fadeDistance = 200,
+                            },
+                            COORDS_SETUP(3008, -976.612, -4035.050),
+                            .gamebitActivate = BIT_WC_Moon_Temple_Opened,
+                            .mode = HITANIMATOR_MODE_SHAPE_OFF,
+                            .blocksAnimatorID = TEMPLE_ENTRANCE_ANIMATORID
+                        };
+                        reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                    }
+                }
+            }
+
+            //Moon Temple Floor Tiles
+            {
+                //Align tiles exactly
+                {
+                    ObjSetupTweak tiles[] = {
+                        { .uID = 0x415ff, VEC3F(3019, -1232, -3403) },
+                        { .uID = 0x41600, VEC3F(3019, -1232, -3350) },
+                        { .uID = 0x41601, VEC3F(3019, -1232, -3297) },
+                        { .uID = 0x41602, VEC3F(3019, -1232, -3244) },
+
+                        {.uID = 0x415fb, VEC3F(2966, -1232, -3403) },
+                        {.uID = 0x415fc, VEC3F(2966, -1232, -3350) },
+                        {.uID = 0x415fd, VEC3F(2966, -1232, -3297) },
+                        {.uID = 0x415fe, VEC3F(2966, -1232, -3244) },
+
+                        { .uID = 0x415f7, VEC3F(2913, -1232, -3403) },
+                        { .uID = 0x415f8, VEC3F(2913, -1232, -3350) },
+                        { .uID = 0x415fa, VEC3F(2913, -1232, -3297) },
+                        { .uID = 0x415f9, VEC3F(2913, -1232, -3244) },
+
+                        { .uID = 0x415f3, VEC3F(2835, -1232, -3403) },
+                        { .uID = 0x415f4, VEC3F(2835, -1232, -3350) },
+                        { .uID = 0x415f5, VEC3F(2835, -1232, -3297) },
+                        { .uID = 0x415f6, VEC3F(2835, -1232, -3244) },
+
+                        { .uID = 0x415ee, VEC3F(2782, -1232, -3403) },
+                        { .uID = 0x415ef, VEC3F(2782, -1232, -3350) },
+                        { .uID = 0x415f0, VEC3F(2782, -1232, -3297) },
+                        { .uID = 0x415f1, VEC3F(2782, -1232, -3244) },
+
+                        { .uID = 0x415ea, VEC3F(2704, -1232, -3403) },
+                        { .uID = 0x415eb, VEC3F(2704, -1232, -3350) },
+                        { .uID = 0x415ec, VEC3F(2704, -1232, -3297) },
+                        { .uID = 0x415ed, VEC3F(2704, -1232, -3244) }
+                    };
+
+                    for (u32 i = 0; i < ARRAYCOUNT(tiles); i++) {
+                        ObjSetup* tile = GET_MAPS_OBJECT(walledCity, tiles[i].uID);
+                        tile->x = tiles[i].coords.x;
+                        tile->y = tiles[i].coords.y;
+                        tile->z = tiles[i].coords.z;
+                    }
+                }
+
+                //Tweak floor tile's vertex positions very slightly (shift by 1 in negative X/Z), so the gaps are evenly divisible
+                {
+                    MODELS_REPLACE_BASE(974, models_wcfloortile);
+                }
+
+                //Move the last laser very slightly further down the hall, to match adjusted position of nearby vertices
+                {
+                    ObjSetup* laser = GET_MAPS_OBJECT(walledCity, 0x41615);
+                    laser->x = 3057.990;
+                }
+
+                //Move the last two jump/grab HITS lines very slightly further down the hall, to match adjusted position of nearby vertices
+                {
+                    for (u32 i = 0; i < 2; i++) {
+                        TrackLine* line = reasset_hits_get(wcTrkblk, reasset_base_id(628 - wcBlocksBase), 
+                        reasset_base_id(16 + i));
+                        line->Ax = 485;
+                        line->Bx = 485;
+                    }
+                }
+
+                //Fix a bug where you could see the skylight hall's semi-transparent light beams through the illusory wall 
+                {
+                    AlphaAnimator_Setup* alphaAnim = GET_MAPS_OBJECT(walledCity, 0x41688);
+                    alphaAnim->mode = AlphaAnimator_MODE_0_Basic_Fade_and_Set_Gamebit;
+                    alphaAnim->playSound = TRUE;
+                    alphaAnim->opaqueAtMaxOpacity = TRUE;
+                    alphaAnim->initialOpacity = 0xFF;
+                    alphaAnim->goalOpacity = 0;
+                    alphaAnim->fadeSpeed = 1;
+                }
+
+                //Wall Switch edits
+                {
+                    UseObj_Setup* wallSwitch = GET_MAPS_OBJECT(walledCity, 0x4168b);
+                    //Increase the wall button's draw distance, so you can see it from the skylight hall
+                    wallSwitch->base.fadeDistance = FADE_DISTANCE(1200);
+
+                    //Lock the switch after the challenge is finished
+                    wallSwitch->gamebitEnabled = BIT_WC_Moon_Temple_Hazards_Deactivated;
+                    wallSwitch->flags |= WCUseObj_FLAG_10_No_Targetting_When_Locked | WCUseObj_CUSTOMFLAG_2_Invert_GamebitUnlocked;
+                }
+            }
+
+            //Moon Temple: Skylight Hall
+            {
+                //Add HITS lines so you can step out of the small pit
+                {
+                    #define STEP (TrackLine_SETTINGB_Nonsolid | HITS_Clamber_Up)
+
+                    TrackLine lines[] = {
+                        { HITS_A(471, -1295, 538), HITS_B(471, -1295, 602), .heightA = 12, .heightB = 12, .settingsA = 0, .settingsB = STEP, .animatorID = 99 },
+                        { HITS_A(471, -1295, 602), HITS_B(535, -1295, 602), .heightA = 12, .heightB = 12, .settingsA = 0, .settingsB = STEP, .animatorID = 99 },
+                        { HITS_A(535, -1295, 602), HITS_B(535, -1295, 538), .heightA = 12, .heightB = 12, .settingsA = 0, .settingsB = STEP, .animatorID = 99 },
+                        { HITS_A(535, -1295, 538), HITS_B(471, -1295, 538), .heightA = 12, .heightB = 12, .settingsA = 0, .settingsB = STEP, .animatorID = 99 },
+                    };
+
+                    for (u32 i = 0; i < ARRAYCOUNT(lines); i++) {
+                        reasset_hits_set(wcTrkblk, reasset_base_id(633 - wcBlocksBase), reasset_auto_id(2 + i), REASSET_BASE_NAMESPACE, &lines[i]);
+                    }
+                }
+
+                //Add subtle animation to the light beams
+                {
+                    TexScroll_Setup scroll = { 
+                        .base = {
+                            .objId = OBJ_texscroll,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .mapObjGroup = WC_ObjGroup9_Moon_Temple_Interior,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .fadeDistance = FADE_DISTANCE(BLOCKS_GRID_UNIT/2),
+                        },
+                        COORDS_SETUP(3703, -1127, -3270),
+                        .textureIndex = 58,
+                        .speedU = 2,
+                        .gamebitActivate = NO_GAMEBIT
+                    };
+                    reasset_map_objects_set(walledCity, 
+                        reasset_auto_id(dinomodNs), &scroll, sizeof(TexScroll_Setup)
+                    );
+                }
+
+                //Increase the Moon Temple Hall Door's fade distance, so it can always be seen in the hall outside it
+                {
+                    ObjSetup* moonDoor = GET_MAPS_OBJECT(walledCity, 0x4165A);
+                    moonDoor->fadeFlags = OBJSETUP_FADE_CAMERA;
+                    moonDoor->fadeDistance = FADE_DISTANCE(675);
+                }
+
+                //Increase the Moon Temple Portal Door's fade distance, so it can always be seen in the hall outside it
+                {
+                    ObjSetup* portalDoor = GET_MAPS_OBJECT(walledCity, 0x41642);
+                    portalDoor->fadeFlags = OBJSETUP_FADE_CAMERA;
+                    portalDoor->fadeDistance = FADE_DISTANCE(1085);
+                }
+
+                //Adjust cameraActions as you back out of the hall, so the camera doesn't get stuck above the exit
+                {
+                    Trigger_Setup* plane = GET_MAPS_OBJECT(walledCity, 0x41766);
+                    plane->commands[1].paramCombined = 0x3d; //Camera pushes in close to player
+                }
+            }
+        }
+
+        //Remove HITS around Central Temple's Krazoa Shrine transporter when risen (fixing a bug where you'd climb over them on your way into the transporter)
+        {
+            #define TRANSPORTER_CHAMBER_HITS_ANIMATOR 0x54
+            #define TRANSPORTER_CHAMBER_HITS_LINE_BASE 32
+
+            //Add animatorID to relevant lines
+            {
+                TrackLine* line;
+                ReAssetID blockIDCentralTempleMiddle = reasset_base_id(610 - wcBlocksBase);
+
+                for (u32 i = 0; i < 4; i++) {
+                    line = reasset_hits_get(wcTrkblk, blockIDCentralTempleMiddle, 
+                    reasset_base_id(TRANSPORTER_CHAMBER_HITS_LINE_BASE + i));
+
+                    line->animatorID = TRANSPORTER_CHAMBER_HITS_ANIMATOR;
+                }
+            }
+        
+            //Add HitAnimator for removing these lines
+            {
+                HitAnimator_Setup hitA = {
+                    .base = {
+                        .objId = OBJ_HitAnimator,
+                        .actExclusions1 = 0,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 200,
+                        .fadeDistance = 200,
+                        .x = 959.000,
+                        .y = -413.000,
+                        .z = -4799.000
+                    },
+                    .gamebitActivate = BIT_WC_Transporter_Chamber_Opened,
+                    .mode = HITANIMATOR_MODE_HITS_OFF,
+                    .hitsAnimatorID = TRANSPORTER_CHAMBER_HITS_ANIMATOR
+                };
+                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
             }
         }
     }
 
-    // WCBossDoor
-    // Fix the small gap between the boss door and its surroundings, and tweak the UVs to reduce seams
+    //Outskirts
     {
-        //MAPS
+        //BLOCKS (Basic cleanup pass, tidying up broken UVs and some of the more serious gaps in meshes/collision)
         {
-            SeqDoor_Setup* door = (SeqDoor_Setup*)reasset_map_objects_get(walledCity, 
-                reasset_base_id(0x41392), NULL);
-            door->base.x = 959.506;
-            door->base.y = -1123.000;
-            door->base.z = -4800.000;
-            door->scale = 65;
-        }
-
-        //MODELS
-        {
-            ReAssetID models_wcbossdoor_ID = reasset_base_id(943);
-            reasset_models_set(models_wcbossdoor_ID, REASSET_BASE_NAMESPACE, models_wcbossdoor, models_wcbossdoor_end - models_wcbossdoor);
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 623, block623); //1
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 624, block624); //2
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 626, block626); //3
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 631, block631); //4
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 632, block632); //5
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 627, block627); //6
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 620, block620); //7
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 621, block621); //8
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 613, block613); //9
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 605, block605); //10
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 604, block604); //11
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 596, block596); //12
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 595, block595); //13
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 593, block593); //14
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 588, block588); //15
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 587, block587); //16
+            BLOCKS_REPLACE_BASE(wcTrkblk, wcBlocksBase, 592, block592); //17
         }
     }
 
-    //WCPressureSwitch (Moon)
+    //Edit objectGroup toggle TriggerPlanes to be directionally specific
     {
-        typedef struct {
-        /*00*/ ObjSetup base;
-        /*18*/ u8 yaw;
-        /*19*/ u8 modelIdx;
-        /*1A*/ s16 gameBitPressed;             //Gamebit to set when switch is pressed down
-        /*1C*/ u8 yOffsetAnimation;            //How far down the switch should move when pressed
-        /*1D*/ u8 yThreshold;                  //Threshold for other objects pressing switch
-        /*1E*/ u8 distanceGuardCommand;        //Player distance at which Guard sidekick command is selectable
-        /*20*/ s16 gamebitActivated;           //Gamebit to check if switch is deactivated
-        } PressureSwitch_Setup;
+        Trigger_Setup* plane;
 
-        //MAPS - Restore Moon switch's model
+        //Approach route
         {
-            PressureSwitch_Setup* pSwitch = (PressureSwitch_Setup*)reasset_map_objects_get(walledCity, 
-                reasset_base_id(0x411b6), NULL);
-            pSwitch->modelIdx = 1;
+            plane = GET_MAPS_OBJECT(walledCity, 0x40beb); //90-degree bend after Queen EarthWalker's gateway
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup5_Central_Temple, plane, 0, 4);
+            EMPTY_TRIGGER_COMMAND(plane, 0); //Don't load the central temple's objects until the player's a lot closer
+        }
+
+        //Central temple
+        {
+            plane = GET_MAPS_OBJECT(walledCity, 0x40dad); //Sun beacon temple entrance
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup0_Sun_Beacon_Tunnel, plane, 2, 5);
+
+            plane = GET_MAPS_OBJECT(walledCity, 0x40dae); //Sun beacon tunnel exit
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup0_Sun_Beacon_Tunnel, plane, 2, 5);
+
+            plane = GET_MAPS_OBJECT(walledCity, 0x4104c); //Moon beacon temple entrance
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup1_Moon_Beacon_Tunnel, plane, 2, 5);
+
+            plane = GET_MAPS_OBJECT(walledCity, 0x4104f); //Moon beacon tunnel exit
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup1_Moon_Beacon_Tunnel, plane, 2, 5);
+
+            plane = GET_MAPS_OBJECT(walledCity, 0x41052); //Boss lobby tunnel entrance (outdoors)
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup4_Boss_Lobby, plane, 2, 3);
+            DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Moon_Passageway_Door, plane, 4, 5);
+            DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_OBJGROUP_Sun_Passageway_Door, plane, 6, 7);
+
+            plane = GET_MAPS_OBJECT(walledCity, 0x41053); //Boss lobby entrance (indoors)
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup5_Central_Temple, plane, 2, 3); //TODO: does this mess up the post-boss sequence? KTrex enables ObjGroup 5 on defeat, so it should be okay?    
+        }
+
+        //Sun temple route
+        {
+            plane = GET_MAPS_OBJECT(walledCity, 0x41312); //Sun pushblocks approach
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup2_Sun_Pushblock_Puzzle, plane, 0, 5);
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup6_Sun_Temple_Exterior, plane, 6, 7);
+
+            plane = GET_MAPS_OBJECT(walledCity, 0x41311); //Sun temple approach
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup2_Sun_Pushblock_Puzzle, plane, 0, 5);
+
+            plane = GET_MAPS_OBJECT(walledCity, 0x41775); //Sun temple entry
+            DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_ObjGroup6_Sun_Temple_Exterior, plane, 0, 1);
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup8_Sun_Temple_Interior, plane, 6, 7);
+        }
+
+        //Moon temple route
+        {
+            plane = GET_MAPS_OBJECT(walledCity, 0x4130e); //Moon pushblocks approach
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup3_Moon_Pushblock_Puzzle, plane, 0, 5);
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup7_Moon_Temple_Exterior, plane, 6, 7);
+
+            plane = GET_MAPS_OBJECT(walledCity, 0x4130f); //Moon temple approach
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup3_Moon_Pushblock_Puzzle, plane, 0, 6);
+
+            plane = GET_MAPS_OBJECT(walledCity, 0x41604); //Moon temple entry
+            DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(WC_ObjGroup7_Moon_Temple_Exterior, plane, 6, 7);
+            DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup9_Moon_Temple_Interior, plane, 2, 3);
         }
     }
 }
@@ -411,9 +2588,9 @@ static void shrine_fxemit_modifications(void) {
         ReAssetIterator iterator = reasset_map_objects_create_iterator(mapID);
         ReAssetID id;
         while (reasset_iterator_next(iterator, &id)) {
-            ObjSetup *setup = reasset_map_objects_get(mapID, id, NULL);
+            ObjSetup* setup = reasset_map_objects_get(mapID, id, NULL);
             if (setup->objId == OBJ_FXEmit) {
-                FXEmit_Setup *fxemit = (FXEmit_Setup*)setup;
+                FXEmit_Setup* fxemit = (FXEmit_Setup*)setup;
                 if (fxemit->disableGamebit == 0x5) {
                     fxemit->disableGamebit = -1;
                 }
@@ -471,7 +2648,7 @@ static void warlock_mountain_platform_modifications(void) {
     ReAssetID wlTrkblk = reasset_base_id(15);
 
     // Modify the ledge grab HITS lines at the lifts' upper destinations, adding HitAnimator tags
-    HitsLine *line;
+    TrackLine* line;
 
     //Krystal's side
     line = reasset_hits_get(wlTrkblk, reasset_base_id(459 - 438), reasset_base_id(0));
@@ -515,11 +2692,11 @@ static void dragon_rock_upper_modifications(void) {
         FXEmit_Setup* fxemit;
 
         fxemit = reasset_map_objects_get(drTop, reasset_base_id(0x353AC), NULL);
-        fxemit->unk1A = 0x6DC;
+        fxemit->indexInBank = 0x6DC;
         fxemit = reasset_map_objects_get(drTop, reasset_base_id(0x40497), NULL);
-        fxemit->unk1A = 0x6DC;
+        fxemit->indexInBank = 0x6DC;
         fxemit = reasset_map_objects_get(drTop, reasset_base_id(0x404B2), NULL);
-        fxemit->unk1A = 0x6DC;
+        fxemit->indexInBank = 0x6DC;
     }
 }
 
@@ -544,7 +2721,7 @@ static void golden_plains_modifications(void) {
     ReAssetIterator iterator = reasset_map_objects_create_iterator(mapID);
     ReAssetID id;
     while (reasset_iterator_next(iterator, &id)) {
-        ObjSetup *setup = reasset_map_objects_get(mapID, id, NULL);
+        ObjSetup* setup = reasset_map_objects_get(mapID, id, NULL);
         if (setup->objId == OBJ_GP_PillarDoor || setup->objId == OBJ_GP_ShrinePillar) {
             setup->fadeFlags = OBJSETUP_FADE_MANUAL;
         }
@@ -565,7 +2742,7 @@ static void collectables_animobj_patch(void) {
     };
 
     ReAssetID objectIndex;
-    ObjDef *objDef;
+    ObjDef* objDef;
     CollectableDef* collectable;
 
     for (u32 i = 0; i < ARRAYCOUNT(collectables); i++) {
@@ -596,7 +2773,7 @@ static void cape_claw_modifications(void) {
 
     // Causes Cape Claw's Shiny Nugget to increment the same gamebit used by SwapStone Circle's Shiny Nuggets
     {
-        Collectable_Setup *gold = (Collectable_Setup*)reasset_map_objects_get(capeClaw, 
+        Collectable_Setup* gold = (Collectable_Setup*)reasset_map_objects_get(capeClaw, 
                 reasset_base_id(0x42DFD), NULL);
         if (gold->base.objId == OBJ_CCgoldnuggetPic) {
             gold->gamebitCount = BIT_627;
@@ -608,7 +2785,7 @@ static void cape_claw_modifications(void) {
         u32 waterFallSprays[] = {0x42E2C, 0x42E2D, 0x42E2E};
 
         for (u8 i = 0, end = ARRAYCOUNT(waterFallSprays); i < end; i ++) {
-            WaterFallSpray_Setup *spray = (WaterFallSpray_Setup*)reasset_map_objects_get(capeClaw, 
+            WaterFallSpray_Setup* spray = (WaterFallSpray_Setup*)reasset_map_objects_get(capeClaw, 
                     reasset_base_id(waterFallSprays[i]), NULL);
             if (spray->base.objId == OBJ_WaterFallSpray) {
                 spray->gamebit = BIT_144;
@@ -701,10 +2878,9 @@ static void golden_plains_fuel_additions(void) {
         {VEC3F(2086.857, 120.619, 2888.839)},
         {VEC3F(2681.164, 212.499, 2171.146)},
     };
-    u8 count = ARRAYCOUNT(fuelData);
 
     //Insert the new objects
-    for (s32 i = 0; i < count; i++) {
+    for (u32 i = 0; i < ARRAYCOUNT(fuelData); i++) {
         CRFuelTank_Setup fuel = {
             .base = {
                 .objId = OBJ_CRFuelTank,
@@ -777,10 +2953,11 @@ static void swapstone_hollow_additions(void) {
                 {
                     .condition = CMD_COND_IN,
                     .id = TRG_CMD_BITS,
-                    TRIG_PARAMS_COMBINED( TRIG_BITS_MODE(0) | BIT_SP_Exiting_Shop ) //Unset gamebit
+                    .paramCombined = TRG_GAMEBIT(BIT_SP_Exiting_Shop, FALSE)
                 },
             },
-            .timerDuration = 60
+            .timerDuration = 60,
+            .bitFlagID = NO_GAMEBIT
         };
 
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &tTime, sizeof(tTime));
@@ -794,7 +2971,7 @@ static void swapstone_hollow_additions(void) {
             {COORDS_SETUP(2383.0, -642.7, 922.0), .scale = 141, .yaw = DEGREES_TO_ANGLE8(21.0f), .pitch = 0,                       .invincible = TRUE,  .debris = TRUE},  //Outer side
         };
 
-        for (s32 i = 0, count = ARRAYCOUNT(boulders); i < count; i++) {
+        for (u32 i = 0; i < ARRAYCOUNT(boulders); i++) {
             SHboulder_Setup* boulder = &boulders[i];
             boulder->base.objId = OBJ_SHboulder;
             boulder->base.actExclusions1 = ~MAP_ACT(1);
@@ -819,8 +2996,8 @@ static void swapstone_hollow_additions(void) {
             VEC3F(459, -691, 349)
         };
 
-        for (int i = 0, count = ARRAYCOUNT(points); i < count - 1; i++) {
-            HitsLine line = {
+        for (u32 i = 0, count = ARRAYCOUNT(points); i < count - 1; i++) {
+            TrackLine line = {
                 .Ax = points[i].x,
                 .Ay = points[i].y,
                 .Az = points[i].z,
@@ -833,7 +3010,7 @@ static void swapstone_hollow_additions(void) {
                 .heightB = 60,
 
                 .settingsA = 0,
-                .settingsB = 1,
+                .settingsB = HITS_1,
 
                 .animatorID = BOULDER_HITS_ANIMATOR,
             };
@@ -855,13 +3032,11 @@ static void swapstone_hollow_additions(void) {
                     .z = 967.463
                 },
                 .gamebitActivate = BOULDER_BIT,
-                .mode = hitanimator_configure_mode_flags(
-                    TRUE, FALSE, FALSE),
+                .mode = HITANIMATOR_MODE_HITS_OFF,
                 .hitsAnimatorID = BOULDER_HITS_ANIMATOR
             };
             reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
         }
-
     }
 
     //Add an ObjectGroup (#21) for the reflection pool cave
@@ -883,16 +3058,12 @@ static void swapstone_hollow_additions(void) {
                 plane->base.loadDistance = 0x40,
                 plane->base.fadeDistance = 0x40,
 
-                plane->commands[0].condition = CMD_COND_IN | CMD_COND_RE_ENTER;
-                plane->commands[0].id = TRG_CMD_ENABLE_OBJ_GROUP;
-                plane->commands[0].param2 = OBJGROUP_REFLECTION_POOL;
-
-                plane->commands[1].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;
-                plane->commands[1].id = TRG_CMD_DISABLE_OBJ_GROUP;
-                plane->commands[1].param2 = OBJGROUP_REFLECTION_POOL;
+                DIRECTIONAL_OBJGROUP_TOGGLE(OBJGROUP_REFLECTION_POOL, plane, 0, 1);
 
                 plane->sizeY = 0x10;
                 plane->sizeZ = 0x10;
+                plane->conditionBitFlagIDs[0] = NO_GAMEBIT;
+                plane->bitFlagID = NO_GAMEBIT;
 
                 reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), plane, sizeof(Trigger_Setup));
             }
@@ -921,35 +3092,33 @@ static void swapstone_hollow_additions(void) {
 
         //Add a SharpClaw guarding the barrel
         {
-            u8 sharpClaw_Setup[] = {
-                /*00*/ 0x00, 0x11, 0x0E, 0x00, 
-                /*04*/ 0x00, 0x00, 0x7F, 0x60,
-                /*08*/ 0x00, 0x00, 0x00, 0x00, 
-                /*0C*/ 0x00, 0x00, 0x00, 0x00, 
-                /*10*/ 0x00, 0x00, 0x00, 0x00, 
-                /*14*/ 0x00, 0x00, 0x00, 0x00, 
-
-                /*18*/ 0xFF, 0xFF, 0xFF, 0xFF, 
-                /*1C*/ 0xFF, 0xFF, 0x00, 0x00, 
-                /*20*/ 0x00, 0x00, 0x00, 0x01, 
-                /*24*/ 0x00, 0x00, 0x00, 0x03, 
-                /*28*/ 0x00, 0x0E, 0x00, 0x00, 
-                /*2C*/ 0x00, 0x48, 0xFF, 0x01, 
-                /*30*/ 0xFF, 0xFF, 0x06, 0x00, 
-                /*34*/ 0x00, 0x00, 0x00, 0x00 
+            Baddie_Setup sharpClaw = {
+                .base = {
+                    .objId = OBJ_ClubSharpClaw,
+                    .quarterSize = sizeof(Baddie_Setup)/4,
+                    .actExclusions1 = ~MAP_ACT(1),
+                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .mapObjGroup = OBJGROUP_REFLECTION_POOL,
+                    .fadeDistance = 140,
+                    .x = 2370.327f,
+                    .y = -674.900f,
+                    .z = 2259.521f,
+                    .uID = 0 //set by reasset
+                },
+                .unk18 = -1,
+                .unk1A = -1,
+                .unk1C = -1,
+                .unk22 = 1,
+                .initialWeaponID = 3,
+                .unk29 = 14,
+                .unk2C = 72,
+                .unk2E = -1,
+                .unk2F = 1,
+                .unk30 = -1,
+                .quarterHitpoints = 6
             };
-
-            ObjSetup* sharpClaw = (ObjSetup*)sharpClaw_Setup;
-            sharpClaw->objId = OBJ_ClubSharpClaw;
-            sharpClaw->actExclusions1 = ~MAP_ACT(1);
-            sharpClaw->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
-            sharpClaw->fadeFlags = OBJSETUP_FADE_CAMERA;
-            sharpClaw->mapObjGroup = OBJGROUP_REFLECTION_POOL;
-            sharpClaw->fadeDistance = 140;
-            // sharpClaw->x = 2467.278f; sharpClaw->y = -658.742f; sharpClaw->z = 2183.488f;
-            sharpClaw->x = 2370.327f; sharpClaw->y = -674.900f; sharpClaw->z = 2259.521f;
-
-            reasset_map_objects_set(mapID, reasset_id(dinomodNs, UID_SH_BurrowsSharpClaw), &sharpClaw_Setup, sizeof(sharpClaw_Setup));
+            reasset_map_objects_set(mapID, reasset_id(dinomodNs, UID_SH_BurrowsSharpClaw), &sharpClaw, sizeof(sharpClaw));
         }
     }
 
@@ -966,7 +3135,7 @@ static void swapstone_hollow_additions(void) {
             VEC3F(443, -680, 304),
         };
         for (int i = 0, count = ARRAYCOUNT(points); i < count; i++) {
-            HitsLine line = {
+            TrackLine line = {
                 .Ax = points[i].x,
                 .Ay = points[i].y,
                 .Az = points[i].z,
@@ -979,7 +3148,7 @@ static void swapstone_hollow_additions(void) {
                 .heightB = 80,
 
                 .settingsA = 0xb,
-                .settingsB = 0x01,
+                .settingsB = HITS_1,
             };
             reasset_hits_set(shTrkblk, blockIDReflectionPool, reasset_auto_id(14 + i), REASSET_BASE_NAMESPACE, &line);
         }
@@ -1013,20 +3182,19 @@ static void swapstone_hollow_additions(void) {
     //Add HitAnimators for removing tangible parts of the water
     {
         HitAnimator_Config hitAnimatorData[] = {
-            {VEC3F(2369.237, -620,  737.118),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block351 (waterfall near Rocky)
-            {VEC3F(2119.723, -620,  477.954),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block347 (river bend with log dockpoint)
-            {VEC3F(1588.987, -620,  436.598),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block360 (river section beside 4 White Mushrooms)
-            {VEC3F(1158.884, -620,  538.609),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block346 (river crossing, Queen EarthWalker side)
-            {VEC3F(903.856,  -620,  789.503),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block349 (river crossing, well side)
-            {VEC3F(590.928,  -620,  965.955),   RIVER_BIT, 1, FALSE, TRUE, FALSE}, //block989 (Diamond Bay waterfall basin 1) (upper river)
-            {VEC3F(285.865,  -1000, 994.401),   RIVER_BIT, 3, FALSE, TRUE, FALSE}, //                                         (rapids)
-            {VEC3F(557.214,  -825,  1013.432),  RIVER_BIT, 1, TRUE, FALSE, FALSE}, //                                         (ledge-grab HITS line)
-            {VEC3F(180.215,  -1000, 1625.786),  RIVER_BIT, 3, FALSE, TRUE, FALSE}, //block995 (Diamond Bay river bend)
-            {VEC3F(-263.215, -1000, 1740.963),  RIVER_BIT, 3, FALSE, TRUE, FALSE}, //block994 (Diamond Bay waterfall basin 2) (water)
+            {VEC3F(2369.237, -620,  737.118),   RIVER_BIT, 1, FALSE, TRUE, TRUE}, //block351 (waterfall near Rocky)
+            {VEC3F(2119.723, -620,  477.954),   RIVER_BIT, 1, FALSE, TRUE, TRUE}, //block347 (river bend with log dockpoint)
+            {VEC3F(1588.987, -620,  436.598),   RIVER_BIT, 1, FALSE, TRUE, TRUE}, //block360 (river section beside 4 White Mushrooms)
+            {VEC3F(1158.884, -620,  538.609),   RIVER_BIT, 1, FALSE, TRUE, TRUE}, //block346 (river crossing, Queen EarthWalker side)
+            {VEC3F(903.856,  -620,  789.503),   RIVER_BIT, 1, FALSE, TRUE, TRUE}, //block349 (river crossing, well side)
+            {VEC3F(590.928,  -620,  965.955),   RIVER_BIT, 1, FALSE, TRUE, TRUE}, //block989 (Diamond Bay waterfall basin 1) (upper river)
+            {VEC3F(285.865,  -1000, 994.401),   RIVER_BIT, 3, FALSE, TRUE, TRUE}, //                                         (rapids)
+            {VEC3F(557.214,  -825,  1013.432),  RIVER_BIT, 1, TRUE, FALSE, TRUE}, //                                         (ledge-grab HITS line)
+            {VEC3F(180.215,  -1000, 1625.786),  RIVER_BIT, 3, FALSE, TRUE, TRUE}, //block995 (Diamond Bay river bend)
+            {VEC3F(-263.215, -1000, 1740.963),  RIVER_BIT, 3, FALSE, TRUE, TRUE}, //block994 (Diamond Bay waterfall basin 2) (water)
         };
-        u8 count = ARRAYCOUNT(hitAnimatorData);
 
-        for (s32 i = 0; i < count; i++) {
+        for (u32 i = 0; i < ARRAYCOUNT(hitAnimatorData); i++) {
             HitAnimator_Config* data = &hitAnimatorData[i];
             HitAnimator_Setup hitA = {
                 .base = {
@@ -1041,8 +3209,8 @@ static void swapstone_hollow_additions(void) {
                     .z = data->coords.z
                 },
                 .gamebitActivate = data->gamebit,
-                .mode = hitanimator_configure_mode_flags(
-                    data->removeWhenSet, data->isBlocksAnimator, data->blocksFade),
+                .mode = hitAnimator_configureModeFlags(
+                    data->removeWhenSet, data->isBlocksAnimator, data->affectVisibility),
                 .hitsAnimatorID =   (data->isBlocksAnimator == FALSE) * data->animatorID,
                 .blocksAnimatorID = (data->isBlocksAnimator == TRUE)  * data->animatorID
             };
@@ -1067,10 +3235,9 @@ static void swapstone_hollow_additions(void) {
             {VEC3F(-230.137, -1000, 1740.963), RIVER_BIT, 2, FALSE},  //block994 (Diamond Bay waterfall basin 2) (waterfall)
             {VEC3F(-287.761, -1000, 1740.963), RIVER_BIT, 4, FALSE},  //block994 (Diamond Bay waterfall basin 2) (rapids foam)
         };
-        u8 count = ARRAYCOUNT(visAnimatorData);
 
         //Insert the new objects
-        for (s32 i = 0; i < count; i++) {
+        for (u32 i = 0; i < ARRAYCOUNT(visAnimatorData); i++) {
             VisAnimators* data = &visAnimatorData[i];
             VisAnimator_Setup visA = {
                 .base = {
@@ -1100,10 +3267,9 @@ static void swapstone_hollow_additions(void) {
             {.base.x = 501.871, .base.y = -671.187, .base.z = 981.222, .textureIndex = 37, RIVER_BIT, 0, 0, 0, -7, -1}, //block989 (Diamond Bay waterfall basin 1) (waterfall top)
             {.base.x = 483.437, .base.y = -638.000, .base.z = 981.222, .textureIndex = 45, RIVER_BIT, 0, 0, 0, -7, -1}, //block989 (Diamond Bay waterfall basin 1) (waterfall main)
         };
-        u8 count = ARRAYCOUNT(texScrollData);
 
         //Insert the new objects
-        for (s32 i = 0; i < count; i++) {
+        for (u32 i = 0; i < ARRAYCOUNT(texScrollData); i++) {
             TexScroll2_Setup* scroll = &texScrollData[i];
             scroll->base.objId = OBJ_texscroll2;
             scroll->base.actExclusions1 = ~MAP_ACT(1);
@@ -1231,10 +3397,14 @@ static void swapstone_hollow_modifications(void) {
         reasset_objects_set(objects_shseqobject_id, REASSET_BASE_NAMESPACE, objects_shseqobject, objects_shseqobject_end - objects_shseqobject);
     }
 
-    //BLOCKS edits (Tag Blocks shapes with animatorIDs, so they can be removed with HitAnimators)
+    //BLOCKS edits 
     {
+        //Tag Blocks shapes with animatorIDs, so they can be removed with HitAnimators)
         BLOCKS_REPLACE_BASE(shTrkblk, sHollowBlocksBase, 351, block351);
-        BLOCKS_REPLACE_BASE(shTrkblk, sHollowBlocksBase, 358, block358); //add light source
+        BLOCKS_REPLACE_BASE(shTrkblk, sHollowBlocksBase, 358, block358); //Add light source
+
+        //Fix colour discontinuity where SH and WC meet, small vertex alignment fixes, optimise stairs
+        BLOCKS_REPLACE_BASE(shTrkblk, sHollowBlocksBase, 362, block362); 
     }
 
     //Revert changes to SHboulder's DLL usage
@@ -1253,7 +3423,7 @@ static void swapstone_hollow_modifications(void) {
 
     // Move river sfx TriggerPoints into obj group 11
     {
-        ObjSetup *triggerPoint;
+        ObjSetup* triggerPoint;
         
         triggerPoint = reasset_map_objects_get(sHollow, reasset_base_id(0x31CDD), NULL);
         triggerPoint->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
@@ -1266,7 +3436,7 @@ static void swapstone_hollow_modifications(void) {
 
     // Move dockpoint into obj group 12
     {
-        ObjSetup *dockpoint = reasset_map_objects_get(sHollow, reasset_base_id(0x42BAA), NULL);
+        ObjSetup* dockpoint = reasset_map_objects_get(sHollow, reasset_base_id(0x42BAA), NULL);
         dockpoint->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
         dockpoint->mapObjGroup = 12;
     }
@@ -1274,34 +3444,22 @@ static void swapstone_hollow_modifications(void) {
     // Edit trigger plane at the start of the DB side of the river to enable the DB
     // river object group that contains river flows etc.
     {
-        Trigger_Setup *trigger = reasset_map_objects_get(sHollow, reasset_base_id(0x18EB), NULL);
-        trigger->commands[1].id = TRG_CMD_WORLD_ENABLE_OBJ_GROUP;
-        trigger->commands[1].condition = CMD_COND_IN | CMD_COND_RE_ENTER;
-        trigger->commands[1].param1 = 0;
-        trigger->commands[1].param2 = MAP_DIAMOND_BAY;
-        trigger->commands[2].id = TRG_CMD_WORLD_DISABLE_OBJ_GROUP;
-        trigger->commands[2].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;
-        trigger->commands[2].param1 = 0;
-        trigger->commands[2].param2 = MAP_DIAMOND_BAY;
+        Trigger_Setup* plane = reasset_map_objects_get(sHollow, reasset_base_id(0x18EB), NULL);
+        DIRECTIONAL_WORLD_OBJGROUP_TOGGLE(0, MAP_DIAMOND_BAY, plane, 1, 2);
     }
 
     //Add a HITS line so you dangle off SwapStone Hollow's waterfall when attempting to run off it
     {
         ReAssetID dbTrkblk = reasset_base_id(48);
-        HitsLine line = {
-            .Ax = 538,
-            .Ay = -825,
-            .Az = 308,
+        TrackLine line = {
+            HITS_A(538, -825, 308),
+            HITS_B(575, -825, 434),
 
-            .Bx = 575,
-            .By = -825,
-            .Bz = 434,
-
-            .heightA = 0x28,
-            .heightB = 0x28,
+            .heightA = 40,
+            .heightB = 40,
 
             .settingsA = 0xe,
-            .settingsB = 0x82,
+            .settingsB = TrackLine_SETTINGB_Nonsolid | HITS_Precipice,
 
             .animatorID = 1,
         };
@@ -1317,22 +3475,25 @@ static void swapstone_hollow_modifications(void) {
 
     // Edit TriggerCylinder around Rocky, so it unsets the "Exiting the Shop" gamebit
     {
-        Trigger_Setup *trigger = reasset_map_objects_get(
-            sHollow, reasset_base_id(0xbe040a9), NULL);
-        trigger->commands[1].id = TRG_CMD_BITS;
-        trigger->commands[1].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
-        trigger->commands[1].param1 = (BIT_SP_Exiting_Shop >> 8);
-        trigger->commands[1].param2 = (BIT_SP_Exiting_Shop);
+        Trigger_Setup* cylinder = GET_MAPS_OBJECT(sHollow, 0xbe040a9);
+        cylinder->commands[1].id = TRG_CMD_BITS;
+        cylinder->commands[1].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
+        cylinder->commands[1].paramCombined = TRG_GAMEBIT(BIT_SP_Exiting_Shop, FALSE);
     }
 
     // Edit TriggerPlane approaching Rocky, so it unsets the "Exiting the Shop" gamebit too (just in case)
     {
-        Trigger_Setup *trigger = reasset_map_objects_get(
-            sHollow, reasset_base_id(0x34732), NULL);
-        trigger->commands[7].id = TRG_CMD_BITS;
-        trigger->commands[7].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
-        trigger->commands[7].param1 = (BIT_SP_Exiting_Shop >> 8);
-        trigger->commands[7].param2 = (BIT_SP_Exiting_Shop);
+        Trigger_Setup* plane = GET_MAPS_OBJECT(sHollow, 0x34732);
+        plane->commands[7].id = TRG_CMD_BITS;
+        plane->commands[7].condition = (CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT);
+        plane->commands[7].paramCombined = TRG_GAMEBIT(BIT_SP_Exiting_Shop, FALSE);
+    }
+
+    // Edit TriggerPlane just inside the gateway to Walled City, so 
+    // the river crossing area's objects are loaded when approaching from Walled City
+    {
+        Trigger_Setup* plane = GET_MAPS_OBJECT(sHollow, 0x40B75);
+        DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(6, plane, 1, 2);
     }
 }
 
@@ -1403,8 +3564,7 @@ static void swapstone_hollow_well_additions(void) {
                 .z = 609.779
             },
             .gamebitActivate = VINES_BIT,
-            .mode = hitanimator_configure_mode_flags(
-                TRUE, FALSE, FALSE),
+            .mode = HITANIMATOR_MODE_HITS_OFF,
             .hitsAnimatorID = 1,
         };
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -1426,8 +3586,7 @@ static void swapstone_hollow_well_additions(void) {
                 .z = 609.779
             },
             .gamebitActivate = VINES_BIT,
-            .mode = hitanimator_configure_mode_flags(
-                TRUE, TRUE, FALSE),
+            .mode = HITANIMATOR_MODE_SHAPE_OFF,
             .blocksAnimatorID = 3,
         };
         reasset_map_objects_set(mapID, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -1483,21 +3642,13 @@ static void swapstone_hollow_well_modifications(void) {
            until Tricky learns Flame.) */
         {
             ReAssetID blockIDLilyPondVines = reasset_base_id(580 - shWellBlocksBase);
-            HitsLine line = {
-                .Ax = 247,
-                .Ay = -1125,
-                .Az = 575,
+            TrackLine line = {
+                HITS_A(247, -1125, 575),
+                HITS_B(460, -1109, 579),
 
-                .Bx = 460,
-                .By = -1109,
-                .Bz = 579,
-
-                .heightA = 0,
-                .heightB = 56,
-
-                .settingsA = 0x8e,
-                .settingsB = 0x01,
-
+                .heightUnified = 56,
+                .settingsA = TrackLine_SETTINGA_Unified_Height | 0xe,
+                .settingsB = HITS_1,
                 .animatorID = 1,
             };
             reasset_hits_set(shWellTrkblk, blockIDLilyPondVines, reasset_base_id(32), REASSET_BASE_NAMESPACE, &line);
@@ -1506,21 +3657,13 @@ static void swapstone_hollow_well_modifications(void) {
         //Add an equivalent HITS line at the opposite side of the vines, so the collision's more stable at that side too
         {
             ReAssetID blockIDLilyPondVines = reasset_base_id(580 - shWellBlocksBase);
-            HitsLine line = {
-                .Ax = 454,
-                .Ay = -1127,
-                .Az = 640,
+            TrackLine line = {
+                HITS_A(454, -1127, 640),
+                HITS_B(238, -1127, 640),
 
-                .Bx = 238,
-                .By = -1127,
-                .Bz = 640,
-
-                .heightA = 0,
-                .heightB = 56,
-
-                .settingsA = 0x8e,
-                .settingsB = 0x01,
-
+                .heightUnified = 56,
+                .settingsA = TrackLine_SETTINGA_Unified_Height | 0xe,
+                .settingsB = HITS_1,
                 .animatorID = 1,
             };
             reasset_hits_set(shWellTrkblk, blockIDLilyPondVines, reasset_auto_id(33), REASSET_BASE_NAMESPACE, &line);
@@ -1531,20 +3674,20 @@ static void swapstone_hollow_well_modifications(void) {
         {
             ReAssetID blockIDLilyPondClimb = reasset_base_id(579 - shWellBlocksBase);
             
-            HitsLine line;
+            TrackLine* line;
 
             //Line 50
             ReAssetID hitsVineTopEdge1 = reasset_base_id(50);
-            bcopy(reasset_hits_get(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge1), &line, sizeof(HitsLine));
-            line.settingsA = 0;
-            line.settingsB = 0x82;
+            line = reasset_hits_get(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge1);
+            line->settingsA = 0;
+            line->settingsB = TrackLine_SETTINGB_Nonsolid | HITS_Precipice;
             reasset_hits_set(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge1, REASSET_BASE_NAMESPACE, &line);
             
             //Line 51
             ReAssetID hitsVineTopEdge2 = reasset_base_id(51);
-            bcopy(reasset_hits_get(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge2), &line, sizeof(HitsLine));
-            line.settingsA = 0;
-            line.settingsB = 0x82;
+            line = reasset_hits_get(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge2);
+            line->settingsA = 0;
+            line->settingsB = TrackLine_SETTINGB_Nonsolid | HITS_Precipice;
             reasset_hits_set(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge2, REASSET_BASE_NAMESPACE, &line);
         }
 
@@ -1563,7 +3706,7 @@ static void swapstone_hollow_well_modifications(void) {
                 VEC3F(296, -1127, 294)
             };
             for (int i = 0, count = ARRAYCOUNT(points); i < count; i++) {
-                HitsLine line = {
+                TrackLine line = {
                     .Ax = points[i].x,
                     .Ay = points[i].y,
                     .Az = points[i].z,
@@ -1576,7 +3719,7 @@ static void swapstone_hollow_well_modifications(void) {
                     .heightB = 40,
 
                     .settingsA = 0,
-                    .settingsB = 0x85
+                    .settingsB = TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice
                 };
                 reasset_hits_set(shWellTrkblk, blockIDStalactiteCave, reasset_auto_id(127 + i), REASSET_BASE_NAMESPACE, &line);
             }
@@ -1587,80 +3730,56 @@ static void swapstone_hollow_well_modifications(void) {
 
 static void cc_lightfoot_patch(void) {
     // Change CClightfoot model from chief to normal red-colored LightFoot
-    ObjDef *ccLightfootObjDef = reasset_objects_get(reasset_base_id(430), NULL);
-    u32 *ccLightfootModelList = (u32*)((u8*)ccLightfootObjDef + (u32)ccLightfootObjDef->pModelList);
+    ObjDef* ccLightfootObjDef = reasset_objects_get(reasset_base_id(430), NULL);
+    u32* ccLightfootModelList = (u32*)((u8*)ccLightfootObjDef + (u32)ccLightfootObjDef->pModelList);
     ccLightfootModelList[0] = 0x00CB;
 }
 
 /** Fix DIM and Galadon related music actions. Original patch by nuggs. */
 static void music_actions_patch(void) {
     // Galadon
-    MusicAction *action103 = reasset_music_actions_get(reasset_base_id(103 - 1));
+    MusicAction* action103 = reasset_music_actions_get(reasset_base_id(103 - 1));
     action103->seqID = 60;
-    MusicAction *action104 = reasset_music_actions_get(reasset_base_id(104 - 1));
+    MusicAction* action104 = reasset_music_actions_get(reasset_base_id(104 - 1));
     action104->seqID = 60;
-    MusicAction *action106 = reasset_music_actions_get(reasset_base_id(106 - 1));
+    MusicAction* action106 = reasset_music_actions_get(reasset_base_id(106 - 1));
     action106->seqID = 60;
-    MusicAction *action108 = reasset_music_actions_get(reasset_base_id(108 - 1));
+    MusicAction* action108 = reasset_music_actions_get(reasset_base_id(108 - 1));
     action108->seqID = 60;
     
     // DIM
-    MusicAction *action109 = reasset_music_actions_get(reasset_base_id(109 - 1));
+    MusicAction* action109 = reasset_music_actions_get(reasset_base_id(109 - 1));
     action109->seqID = 66;
-    MusicAction *action110 = reasset_music_actions_get(reasset_base_id(110 - 1));
+    MusicAction* action110 = reasset_music_actions_get(reasset_base_id(110 - 1));
     action110->seqID = 66;
-    MusicAction *action111 = reasset_music_actions_get(reasset_base_id(111 - 1));
+    MusicAction* action111 = reasset_music_actions_get(reasset_base_id(111 - 1));
     action111->seqID = 66;
-    MusicAction *action135 = reasset_music_actions_get(reasset_base_id(135 - 1));
+    MusicAction* action135 = reasset_music_actions_get(reasset_base_id(135 - 1));
     action135->seqID = 66;
-    MusicAction *action136 = reasset_music_actions_get(reasset_base_id(136 - 1));
+    MusicAction* action136 = reasset_music_actions_get(reasset_base_id(136 - 1));
     action136->seqID = 66;
-    MusicAction *action138 = reasset_music_actions_get(reasset_base_id(138 - 1));
+    MusicAction* action138 = reasset_music_actions_get(reasset_base_id(138 - 1));
     action138->seqID = 66;
-    MusicAction *action140 = reasset_music_actions_get(reasset_base_id(140 - 1));
+    MusicAction* action140 = reasset_music_actions_get(reasset_base_id(140 - 1));
     action140->seqID = 66;
 }
 
-PRAGMA_IGNORE_PUSH("-Wunused")
-static void df_patches_shinx(void) {
-    ReAssetID df = reasset_base_id(MAP_DISCOVERY_FALLS);
-    ReAssetID dfTrkblk = reasset_base_id(11);
-    
-    // Fix block shapes that are missing the fog render flag
-    ReAssetID blockID = reasset_base_id(338 - 319);
-    u32 blockDataSize;
-    u8 *blockData = reasset_blocks_get(dfTrkblk, blockID, &blockDataSize);
-    blockData = dinomod_block_decompress(blockData, blockDataSize, &blockDataSize);
-    Block *block = (Block*)(blockData + 8);
-    BlockShape *shapes = (BlockShape*)((u8*)block + (u32)block->shapes);
-    // Shape index 2 is also missing fog but i don't know where it is?
-    shapes[26].flags |= RENDER_FOG_ACTIVE; // The shapes around the climbable bit at the start of DF
-    shapes[27].flags |= RENDER_FOG_ACTIVE;
-    reasset_blocks_set(dfTrkblk, blockID, REASSET_BASE_NAMESPACE, blockData, blockDataSize);
-    recomp_free(blockData);
-}
-PRAGMA_IGNORE_POP()
-
-PRAGMA_IGNORE_PUSH("-Wunused")
-static void df_modifications(void) {
-    ReAssetID discoveryFalls = reasset_base_id(MAP_DISCOVERY_FALLS);
-    ReAssetID dfTrkblk = reasset_base_id(11);
-
-    // reasset_blocks_set(dfTrkblk, reasset_base_id(338 - 319), REASSET_BASE_NAMESPACE, block338, block338_end - block338);
-}
-PRAGMA_IGNORE_POP()
-
 static void darkice_mines_modifications(void) {
     ReAssetID dim1MapID = reasset_base_id(MAP_DARK_ICE_MINES_1);
+    ReAssetID dim2MapID = reasset_base_id(MAP_DARK_ICE_MINES_2);
+    ReAssetID dim1Trkblk = reasset_base_id(26);
+    ReAssetID dim2Trkblk = reasset_base_id(34);
+    u32 dim1BlocksBase = 711;
+    u32 dim2BlocksBase = 829;
 
     //BLOCKS edits
     {
-        ReAssetID dim1Trkblk = reasset_base_id(26);
-        u32 dim1BlocksBase = 711;
-
         //Fix the river crossing area's invisible rock climbing decal setup (it was being drawn in the wrong order and getting erased by the underlay)
         BLOCKS_REPLACE_BASE(dim1Trkblk, dim1BlocksBase, 718, block718);
         
+        //Avoid camera popping through the wall while climbing ladder near Famished SnowHorn
+        BLOCKS_REPLACE_BASE(dim1Trkblk, dim1BlocksBase, 722, block722);
+
         //Adjust the invisible terrain around the cannon silo, so Sabre doesn't stand in midair above it while it's closed
         BLOCKS_REPLACE_BASE(dim1Trkblk, dim1BlocksBase, 724, block724);
 
@@ -1668,59 +3787,82 @@ static void darkice_mines_modifications(void) {
         BLOCKS_REPLACE_BASE(dim1Trkblk, dim1BlocksBase, 725, block725);
     }
 
-    //Fix the cannon silo's broken HitAnimator setups
+    //Enclose the ladder near the Famished SnowHorn in a TriggerCylinder,
+    //So CamClimb doesn't pop out of bounds during the climb
     {
-        #define GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo 0x157
-
-        HitAnimator_Setup* siloFlatHitAnim = reasset_map_objects_get(dim1MapID, reasset_base_id(0x1D2D), NULL);
-        siloFlatHitAnim->gamebitActivate = GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo;
-        siloFlatHitAnim->mode = hitanimator_configure_mode_flags(TRUE, TRUE, FALSE);
-
-        HitAnimator_Setup* siloRaisedHitAnim = reasset_map_objects_get(dim1MapID, reasset_base_id(0x1D2E), NULL);
-        siloRaisedHitAnim->gamebitActivate = GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo;
-        siloRaisedHitAnim->mode = hitanimator_configure_mode_flags(FALSE, TRUE, FALSE);
+        Trigger_Setup cylinder = {
+            .base = {
+                .objId = OBJ_TriggerCylinder,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = FADE_DISTANCE(320),
+                .fadeDistance = FADE_DISTANCE(320),
+            },
+            COORDS_SETUP(1177, -1268, 31),
+            .sizeX = 30,
+            .sizeY = 64 * 2,
+            .sizeZ = 0x10,
+            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+            .bitFlagID = NO_GAMEBIT
+        };
+        ENTER_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, TRUE, &cylinder, 0); //Use closer CamClimb
+        EXIT_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, FALSE, &cylinder, 1); //Use regular CamClimb
+        ENTER_GAMEBIT(DINOMOD_BIT_96E_CamClimb_Skip_Ease, TRUE, &cylinder, 2); //Use no CamClimb ease
+        EXIT_GAMEBIT(DINOMOD_BIT_96E_CamClimb_Skip_Ease, FALSE, &cylinder, 3); //Use regular CamClimb ease
+        reasset_map_objects_set(dim1MapID, 
+            reasset_auto_id(dinomodNs), &cylinder, sizeof(cylinder));
     }
 
-    //Fix DIMCannonCover1's objSeq handling 
-    //(there was a bug where it was starting off in its closed position when the CannonClaw has already appeared)
+    //CannonClaw & Tents Area
     {
-        typedef struct {
-            ObjSetup base;
-            s16 unk18;
-            s16 gamebitRestoreState;
-            s16 preemptTime;
-            s8 objSeqIdx;
-            u8 yaw;
-            u8 enabledActors;
-            u8 scale;
-            s16 unk22;
-            s16 unk24;
-            s16 unk26;
-            u8 unk28;
-            u8 unk29;
-        } DLL307_Setup;
+        //Fix the cannon silo's broken HitAnimator setups
+        {
+            #define GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo 0x157
 
-        DLL307_Setup* cannonCover = reasset_map_objects_get(dim1MapID, reasset_base_id(0x17F4), NULL);
-        cannonCover->gamebitRestoreState = NO_GAMEBIT;
+            HitAnimator_Setup* siloFlatHitAnim = reasset_map_objects_get(dim1MapID, reasset_base_id(0x1D2D), NULL);
+            siloFlatHitAnim->gamebitActivate = GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo;
+            siloFlatHitAnim->mode = HITANIMATOR_MODE_SHAPE_OFF;
+
+            HitAnimator_Setup* siloRaisedHitAnim = reasset_map_objects_get(dim1MapID, reasset_base_id(0x1D2E), NULL);
+            siloRaisedHitAnim->gamebitActivate = GAMEBIT_DIM1_CannonClaw_Retreated_into_Silo;
+            siloRaisedHitAnim->mode = HITANIMATOR_MODE_SHAPE_ON;
+        }
+
+        //Fix DIMCannonCover1's objSeq handling 
+        //(there was a bug where it was starting off in its closed position when the CannonClaw has already appeared)
+        {
+            SeqDoor_Setup* cannonCover = reasset_map_objects_get(dim1MapID, reasset_base_id(0x17F4), NULL);
+            cannonCover->gamebitRestoreState = NO_GAMEBIT;
+        }
+
+        //Delete a DIMExplosion (causes random explosion sound when approaching tent area)
+        {
+            //Maybe they placed this here temporarily to help debug the mistake in DIMCannonBall's DIMExplosion-creating code?
+            ReAssetID dimExplosion = reasset_base_id(0x1DA4);
+            reasset_map_objects_delete(dim1MapID, dimExplosion);
+        }
+
+        //Edit DIMTent's burnt model, adding draw modes for handling opacity
+        {
+            ReAssetID models_dimtent_burnt_ID = reasset_base_id(886);
+            reasset_models_set(models_dimtent_burnt_ID, REASSET_BASE_NAMESPACE, models_dimtent_burnt, models_dimtent_burnt_end - models_dimtent_burnt);
+        }
+
+        //Reference DIMTent's unused burnt tent model in its Objects file
+        {
+            ReAssetID objects_dimtent_ID = reasset_base_id(320); //OBJ_DIMTent
+            reasset_objects_set(objects_dimtent_ID, REASSET_BASE_NAMESPACE, objects_dimtent, objects_dimtent_end - objects_dimtent);
+        }
     }
 
-    //Delete a DIMExplosion (causes random explosion sound when approaching tent area)
+    //DarkIce Mines 2 (the mine itself)
     {
-        //Maybe they placed this here temporarily to help debug the mistake in DIMCannonBall's DIMExplosion-creating code?
-        ReAssetID dimExplosion = reasset_base_id(0x1DA4);
-        reasset_map_objects_delete(dim1MapID, dimExplosion);
-    }
-
-    //Edit DIMTent's burnt model, adding draw modes for handling opacity
-    {
-        ReAssetID models_dimtent_burnt_ID = reasset_base_id(886);
-        reasset_models_set(models_dimtent_burnt_ID, REASSET_BASE_NAMESPACE, models_dimtent_burnt, models_dimtent_burnt_end - models_dimtent_burnt);
-    }
-
-    //Reference DIMTent's unused burnt tent model in its Objects file
-    {
-        ReAssetID objects_dimtent_ID = reasset_base_id(320); //OBJ_DIMTent
-        reasset_objects_set(objects_dimtent_ID, REASSET_BASE_NAMESPACE, objects_dimtent, objects_dimtent_end - objects_dimtent);
+        //HITS
+        {
+            //Allow the player to let go at the bottom the rock climb HITS line, in the room with the Red Mushrooms/crates/door key
+            TrackLine* line = reasset_hits_get(dim2Trkblk, reasset_base_id(848 - dim2BlocksBase), reasset_base_id(6));
+            line->settingsA &= ~(Wall_Climb_No_Letting_Go | Wall_Climb_Stop_at_Bottom | Wall_Climb_Stop_at_Top);
+        }
     }
 }
 
@@ -1786,6 +3928,18 @@ static void vampire_bat_patch(void) {
     reasset_objects_set(objects_vampirebat_id, REASSET_BASE_NAMESPACE, objects_vampirebat, objects_vampirebat_end - objects_vampirebat);
 }
 
+//Add a seqJoint to BWLog, used for visually flipping it when mounting it "backwards"
+static void bwlog_patch(void) {
+    ReAssetID objects_bwlog_id = reasset_base_id(242); //OBJ_BWLog
+    reasset_objects_set(objects_bwlog_id, REASSET_BASE_NAMESPACE, objects_bwlog, objects_bwlog_end - objects_bwlog);
+}
+
+//Add extra objSeqs to WarpPoint
+static void warp_point_patch(void) {
+    ReAssetID objects_warppoint_id = reasset_base_id(1124); //OBJ_WarpPoint
+    reasset_objects_set(objects_warppoint_id, REASSET_BASE_NAMESPACE, objects_warppoint, objects_warppoint_end - objects_warppoint);
+}
+
 static void diamond_bay_additions(void) {
     ReAssetID db = reasset_base_id(MAP_DIAMOND_BAY);
 
@@ -1803,15 +3957,15 @@ static void diamond_bay_additions(void) {
                 .y = -956.03f,
                 .z = -1551.03f
             },
-            .unk18 = (19832 / 256), // yaw
-            .unk19 = 0, // pitch
-            .unk1A = 200, // x radius
-            .unk1B = 30, // y radius
-            .unk1C = 100, // z radius
-            .effect = 0, // fall reset
+            .yaw = (19832 / 256), // yaw
+            .roll = 0, // pitch
+            .halfWidth = 200, // x radius
+            .halfHeight = 30, // y radius
+            .halfLength = 100, // z radius
+            .effect = EffectBox_EFFECT_Fall_Reset,
             .gamebitDisableValue = 1,
-            .gamebit = RIVER_BIT, // disable when the SwapStone Hollow river is unblocked
-            .target = 0 // player
+            .gamebitEnable = RIVER_BIT, // disable when the SwapStone Hollow river is unblocked
+            .target = EffectBox_TARGET_Player
         };
 
         reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &riverFallResetBox, sizeof(riverFallResetBox));
@@ -1821,7 +3975,7 @@ static void diamond_bay_additions(void) {
     // this way without a log. The fall reset trigger only applies when the river is dry, so
     // we need something to stop players from fixing the river but not getting the DIM SpellStone.
     {
-        Trigger_Setup drownTrigger = {
+        Trigger_Setup drownArea = {
             .base = {
                 .objId = OBJ_TriggerArea,
                 .loadFlags = OBJSETUP_LOAD_LEVEL,
@@ -1850,15 +4004,17 @@ static void diamond_bay_additions(void) {
             .sizeY = 16,
             .sizeZ = 170,
             .rotationY = 0,
-            .rotationX = 0
+            .rotationX = 0,
+            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+            .bitFlagID = NO_GAMEBIT
         };
 
-        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &drownTrigger, sizeof(drownTrigger));
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &drownArea, sizeof(drownArea));
     }
 
     // Add another drown trigger after the second drop in the river (the deep spot where the vines can knock you down into)
     {
-        Trigger_Setup drownTrigger = {
+        Trigger_Setup drownArea = {
             .base = {
                 .objId = OBJ_TriggerArea,
                 .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
@@ -1887,21 +4043,19 @@ static void diamond_bay_additions(void) {
             .sizeY = 16,
             .sizeZ = 255,
             .rotationY = (12680 >> 8),
-            .rotationX = 0
+            .rotationX = 0,
+            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+            .bitFlagID = NO_GAMEBIT
         };
 
-        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &drownTrigger, sizeof(drownTrigger));
+        reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &drownArea, sizeof(drownArea));
     }
 
     //Add HitAnimator for the top of SwapStone Hollow's waterfall
     //(There's one in SH's map too, but having a copy in Diamond Bay's objects seems to 
     // help this behave reliably, with this spot being on the boundary between two maps)
     {
-        HitAnimator_Config hitAnimatorData[] = {
-            {VEC3F(1197.214,  -813,  -1546.568),  RIVER_BIT, 1, TRUE, FALSE, FALSE}, //block989 (Diamond Bay waterfall basin 1) (ledge-grab HITS line)
-        };
-
-        HitAnimator_Config* data = &hitAnimatorData[0];
+        //block989 (Diamond Bay waterfall basin 1) (ledge-grab HITS line)
         HitAnimator_Setup hitA = {
             .base = {
                 .objId = OBJ_HitAnimator,
@@ -1909,16 +4063,12 @@ static void diamond_bay_additions(void) {
                 .loadFlags = OBJSETUP_LOAD_LEVEL,
                 .fadeFlags = OBJSETUP_FADE_CAMERA,
                 .loadDistance = 140,
-                .fadeDistance = 140,
-                .x = data->coords.x,
-                .y = data->coords.y,
-                .z = data->coords.z
+                .fadeDistance = 140
             },
-            .gamebitActivate = data->gamebit,
-            .mode = hitanimator_configure_mode_flags(
-                data->removeWhenSet, data->isBlocksAnimator, data->blocksFade),
-            .hitsAnimatorID =   ((data->isBlocksAnimator == FALSE) ? data->animatorID : 0),
-            .blocksAnimatorID = ((data->isBlocksAnimator == TRUE) ? data->animatorID : 0)
+            COORDS_SETUP(1197.214,  -813,  -1546.568),
+            .gamebitActivate = RIVER_BIT,
+            .mode = HITANIMATOR_MODE_HITS_OFF,
+            .hitsAnimatorID = 1
         };
 
         reasset_map_objects_set(db, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
@@ -1937,7 +4087,6 @@ static void diamond_bay_modifications(void) {
         BLOCKS_REPLACE_BASE(dbTrkblk, dbTrkblkBase, 989, block989); //Waterfall basin 1 (dropping down from SwapStone Hollow)
         BLOCKS_REPLACE_BASE(dbTrkblk, dbTrkblkBase, 995, block995); //River bend 1 (near SwapStone Hollow)
         BLOCKS_REPLACE_BASE(dbTrkblk, dbTrkblkBase, 994, block994); //Waterfall basin 2 (second drop along river, approaching where rocks fall)
-
     }
 
     // Delete the dockpoints at the start of the DB river
@@ -1952,23 +4101,2107 @@ static void diamond_bay_modifications(void) {
     // Increase the size of the trigger plane at the start of the DB river that
     // sets tricky's goal point and sets up some envfx. In vanilla, it's very easy to miss it.
     {
-        Trigger_Setup *trigger = reasset_map_objects_get(db, reasset_base_id(0x41EF0), NULL);
-        trigger->sizeX = 34; // scale 0.75 -> 2.125
-        trigger->base.loadDistance = 48; // increase load dist to compensate
+        Trigger_Setup* plane = reasset_map_objects_get(db, reasset_base_id(0x41EF0), NULL);
+        plane->sizeX = 34; // scale 0.75 -> 2.125
+        plane->base.loadDistance = 48; // increase load dist to compensate
     }
 
     // Add a gamebit to the SideLoad at the start of the DB river
     // (stops Tricky from warping down there when river's missing)
     {
-        SideLoad_Setup *sideLoad = reasset_map_objects_get(db, reasset_base_id(0x42B6F), NULL);
+        SideLoad_Setup* sideLoad = reasset_map_objects_get(db, reasset_base_id(0x42B6F), NULL);
         sideLoad->gamebitUnlocked = RIVER_BIT;
     }
 
     // Add a gamebit to the WaterFallSpray at the start of the DB river
     {
-        WaterFallSpray_Setup *spray = reasset_map_objects_get(db, reasset_base_id(0x4205B), NULL);
+        WaterFallSpray_Setup* spray = reasset_map_objects_get(db, reasset_base_id(0x4205B), NULL);
         spray->gamebit = RIVER_BIT;
         spray->invertGamebit = TRUE;
+    }
+}
+
+static void swapstone_circle_modifications(void) {
+    ReAssetID swapStoneCircle = reasset_base_id(MAP_SWAPSTONE_CIRCLE);
+    ReAssetID scTrkblk = reasset_base_id(21);
+    int scfBlocksBase = 637;
+
+    //Crawl to Discovery Falls
+    {
+        //Adjust endpoint, so there isn't a big pop in your position when starting a crawl back to SwapStone Circle
+        CurveSetup* dfCrawlEnd = GET_MAPS_OBJECT(swapStoneCircle, 0x34350);
+        dfCrawlEnd->pos.x = -12.309;
+        dfCrawlEnd->pos.y = 166.362;
+        dfCrawlEnd->pos.z = 2665.677;
+        dfCrawlEnd->unk2C = DEGREES_TO_ANGLE8(284.8);
+    }
+
+    //Add texscrolls so Discovery Falls' initial area's water isn't static while crawling in
+    {
+        TexScroll2_Setup texScrollData[] = {
+            { COORDS_SETUP(-162.777, 160.360, 2949.891), .textureIndex = 0,    .blendTextureIndex = 0x14, .uSpeedB = -1, .vSpeedB = -1, .uSpeedA = 0, .vSpeedA = -3 }, //water
+            { COORDS_SETUP(-149.724, 163.000, 2635.210), .textureIndex = 1,    .blendTextureIndex = 3,    .uSpeedB =  0, .vSpeedB =  0, .uSpeedA = 0, .vSpeedA =  5 }, //waterfall
+            { COORDS_SETUP(-146.172, 261.784, 2613.801), .textureIndex = 0x17, .blendTextureIndex = 0x14, .uSpeedB = -1, .vSpeedB = -1, .uSpeedA = 0, .vSpeedA = -5 }, //foam
+        };
+
+        for (u32 i = 0; i < ARRAYCOUNT(texScrollData); i++) {
+            TexScroll2_Setup* scroll = &texScrollData[i];
+            scroll->base.objId = OBJ_texscroll2;
+            scroll->base.loadFlags = OBJSETUP_LOAD_MAIN;
+            scroll->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+            scroll->base.loadDistance = FADE_DISTANCE(640);
+            scroll->base.fadeDistance = 32;
+            scroll->gamebitActivate = NO_GAMEBIT;
+            reasset_map_objects_set(swapStoneCircle, 
+                reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll2_Setup)
+            );
+        }
+    }
+}
+
+static void discovery_falls_modifications(void) {
+    ReAssetID discoveryFalls = reasset_base_id(MAP_DISCOVERY_FALLS);
+    ReAssetID dfTrkblk = reasset_base_id(11);
+    int dfBlocksBase = 319;
+
+    //BLOCKS
+    {
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 336, block336); //Entrance route - near SC: Fix UVs at base of cliff to the left of crawl point, fix gap in water, use clamped cliff textures and fix seams between them
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 340, block340); //Entrance route - corner: Fix missing 0 vertex alpha on water blend (at T-junction with WaterBaddie), minor UV cleanups, use clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 339, block339); //Lower Falls entrance: Fix hovering dockpoint, use clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 338, block338); //Lower Falls cliff-face: Fix broken decals on edges of climbable section and archway, clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 335, block335); //Lower Falls - west: fix up shore under toxic cave entrance, riverbed UV fixes, extend wooden poles, fix floating dockpoint, clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 333, block333); //Lower Falls - foodbag cave interior: fix z-fighting at the back of the ladder, align ladder with climb animation, minor UV fixes at the entrance
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 334, block334); //Lower Falls - foodbag cave entrance: minor UV fixes, use clamped cliff textures, colour discontinuity fix just inside cave
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 331, block331); //Middle Falls - cradle station 1: use clamped cliff textures, widescreen fix for turbine activation sequence
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 325, block325); //Middle Falls - cradle station 2: use clamped cliff textures, fix sudden skinniness in rope
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 329, block329); //Middle Falls - cradle station 3 and turbine: use clamped cliff textures, widescreen fix for turbine activation sequence, fix floating dockpoint
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 344, block344); //Middle Falls - mole cave entrance: fix camera clipping through wall when climbing up ladder, small UV fixes, align ladder with climb animation, add blend into the mole cave
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 330, block330); //Middle Falls - corner: fix issue where the rope got skinnier midway, minor UV fixes, use clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 326, block326); //Middle Falls - mole cave interior: align ladder with climb animation, minor UV fixes at entrance
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 332, block332); //Middle Falls - toxic cave interior: add missing animatorID to one of the crack shapes, hide dev shape, match ground UVs with section near ladder, fix UV seam to the left when facing podium
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 328, block328); //Upper Falls: use clamped cliff textures, fix gap in water, fix floating walkway supports and dockpoint, UV fixes
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 324, block324); //Upper Falls - rapids: use clamped cliff textures, minor UV fixes, add LOD for shrine area
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 327, block327); //Upper Falls - stalactite cave: UV fixes on floor, UV fixes on walls of climbable area, fix a section of the entrance arch being included in torches' vertex colour animation
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 322, block322); //Upper Falls - demolition cave: UV fixes, darken wall cracks slightly, optimise floor triangles
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 319, block319); //Upper Falls - whirlpool cave: UV fixes, transparency order fixes
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 320, block320); //Shrine area exit: move reverse side of destructible whirlpool cave wall here, use clamped cliff textures, add LODs for whirlpool cave and climb
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 321, block321); //Shrine exterior: fix gaps between vertices, orthagonalise shrine facade, improve oddly unstable collision, fix warped ground UVs, use clamped cliff textures, add LODs for interior, door, and rapids
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 343, block343); //Shrine interior: minor UV fixes
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 323, block323); //Shrine area exit climb to Upper Falls: minor UV fixes, add decal to indicate rock climb, use clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 341, block341); //BWC exit (corner): reduce UV warping, use clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 342, block342); //BWC exit: clean up some UVs, extend dockpoint so it's not hovering in the water, clamped cliff textures
+        BLOCKS_REPLACE_BASE(dfTrkblk, dfBlocksBase, 337, block337); //Tunnel to MMP: clean up UVs and improve detail, fix discontinuity with MMP's first block
+    }
+
+    //MODELS
+    {
+        MODELS_REPLACE_BASE(252, models_dfpodium); //Fix an issue where the recess vertex positions were asymmetrical, causing the switch to look off-centre
+        MODELS_REPLACE_BASE(253, models_dfpodiumswitch); //Fix an issue where the widths were asymmetrical, causing the switch to look off-centre
+    }
+
+    //MAPS - VisGrid
+    {
+        VisGridCellROM* gridA1 = reasset_maps_get_grid_a1(discoveryFalls, NULL);
+        VisGridCellROM* gridA2 = reasset_maps_get_grid_a2(discoveryFalls, NULL);
+
+        //Shrine interior visible from the waterfall basin below the whirlpool cave
+        {
+            u32 cellIdx = VISGRID_CELL_IDX(discoveryFalls, 1, 0);
+            VISGRID_SET_CELL_RANGE_PAIRED(2, &gridA1[cellIdx], &gridA2[cellIdx], 9, 9, 7, 7);
+        }
+
+        //Upper Falls visible from just outside the shrine
+        //(so it doesn't suddenly disappear looking back at it from the end of the rapids)
+        {
+            u32 cellIdx = VISGRID_CELL_IDX(discoveryFalls, 2, 0);
+            VISGRID_SET_CELL_RANGE_PAIRED(2, &gridA1[cellIdx], &gridA2[cellIdx], 6, 6, 8, 9);
+        }
+    }
+
+    //Align the podium switches exactly with their podiums
+    {
+        Vec3f positionOffset;
+        u32 podiumUIDPairs[4][2] = {
+            {0x00001fb7, 0x00001fb8 }, //Foodbag cave
+            {0x00002036, 0x00002038 }, //Toxic cave
+            {0x00002152, 0x00002153 }, //Whirlpool cave
+            {0x00002148, 0x00002149 }  //Mole cave
+        };
+        for (u32 i = 0; i < ARRAYCOUNT(podiumUIDPairs); i++) {
+            SeqProp_Setup* podium = GET_MAPS_OBJECT(discoveryFalls, podiumUIDPairs[i][0]);
+            UseObj_Setup* podiumSwitch = GET_MAPS_OBJECT(discoveryFalls, podiumUIDPairs[i][1]);
+
+            //Tweak the mole cave podium very slightly, so it's exactly aligned with the crawl camera
+            if (i == 3) {
+                podium->base.x = 775.393;
+                podium->base.z = -804.238;
+                podium->yaw = DEGREES_TO_ANGLE8(126.89);
+            }
+
+            podiumSwitch->yaw = podium->yaw; //One of the switches didn't have the same yaw as its podium
+            
+            positionOffset.x = 0;
+            positionOffset.y = 17;
+            positionOffset.z = 11.5;
+
+            rotate_point_by_angle_2D(positionOffset.x, positionOffset.z, &positionOffset.x, &positionOffset.z, podium->yaw << 8);
+
+            podiumSwitch->base.x = podium->base.x + positionOffset.x;
+            podiumSwitch->base.y = podium->base.y + positionOffset.y;
+            podiumSwitch->base.z = podium->base.z + positionOffset.z;
+        }
+    }
+
+    //Add sounds to small/medium waterfalls and rapids (only the large lower falls had sounds originally)
+    {
+        SfxPlayer_Setup sfxPlayers[] = {
+            //Approach
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(1130.275, 163, 54),    .base.mapObjGroup = DF_ObjGroup1_Entrance_Magic_Plant_Basin, .fadeDuration = 180, .gamebit = NO_GAMEBIT },    //Entrance
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(994.810,  96,  448),   .base.mapObjGroup = DF_ObjGroup1_Entrance_Magic_Plant_Basin, .fadeDuration = 180, .volume = VOLUME_PERCENT(80), .pitch = -4 }, //Entrance cascade
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(1177.916, 247, 1138),  .base.mapObjGroup = DF_ObjGroup1_Entrance_Magic_Plant_Basin, .fadeDuration = 180, .volume = VOLUME_PERCENT(60), .pitch = 0 },  //Secluded waterfalls 1
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(1081.721, 247, 1222),  .base.mapObjGroup = DF_ObjGroup1_Entrance_Magic_Plant_Basin, .fadeDuration = 180, .volume = VOLUME_PERCENT(60), .pitch = 2 },  //Secluded waterfalls 2
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(1020.721, 183, 817.5), .base.mapObjGroup = DF_ObjGroup1_Entrance_Magic_Plant_Basin, .fadeDuration = 180, .volume = VOLUME_PERCENT(80), .pitch = -3 }, //Secluded waterfalls cascade 1
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(1002.129, 96,  740),   .base.mapObjGroup = DF_ObjGroup1_Entrance_Magic_Plant_Basin, .fadeDuration = 180, .volume = VOLUME_PERCENT(80), .pitch = -7 }, //Secluded waterfalls cascade 2
+
+            //Lower Falls
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(745.306,  30,  760.75), .base.mapObjGroup = DF_ObjGroup2_Lower_Falls, .fadeDuration = 180, .volume = VOLUME_PERCENT(80), .pitch = -6 }, //Cascade to lower falls
+            
+            //Middle Falls
+            { .soundID = SOUND_BC5_Waterfall_Medium, COORDS_SETUP(-1062.626, 391, -180.5),   .base.mapObjGroup = DF_ObjGroup14_Middle_and_Upper_Falls, .fadeDuration = 180, .volume = VOLUME_PERCENT(66), .pitch = -4, .halfRadius = 320/2 }, //Under turbine
+            { .soundID = SOUND_BC5_Waterfall_Medium, COORDS_SETUP(-1017.616, 391, -534.851), .base.mapObjGroup = DF_ObjGroup14_Middle_and_Upper_Falls, .fadeDuration = 180, .volume = VOLUME_PERCENT(100), .pitch = -1, .halfRadius = 320/2 }, //Under upper rope platform
+            
+            //Upper Falls
+            { .soundID = SOUND_BC6_Waterfall_Large, COORDS_SETUP(-1672.693, 514, -408.609), .base.loadDistance = FADE_DISTANCE(960), .fadeDuration = 180, .volume = VOLUME_PERCENT(25), .pitch = -2, .halfRadius = 640/4, .flags = SfxPlayer_CUSTOMFLAG_20_Double_Radius }, //Middle of upper falls
+            { .soundID = SOUND_BC5_Waterfall_Medium, COORDS_SETUP(-1744.202, 490, -428.392), .base.loadDistance = FADE_DISTANCE(320), .fadeDuration = 60, .volume = VOLUME_PERCENT(100), .pitch = 2, .halfRadius = 320/2 }, //Stalactite cave entrance
+            
+            //Upper Falls Rapids
+            { .soundID = SOUND_BC6_Waterfall_Large, COORDS_SETUP(-1039.484, 460, -1116), .base.loadDistance = FADE_DISTANCE(960), .fadeDuration = 180, .volume = VOLUME_PERCENT(50), .pitch = 2, .halfRadius = 640/4, .flags = SfxPlayer_CUSTOMFLAG_20_Double_Radius }, //Middle of rapids
+            { .soundID = SOUND_BC6_Waterfall_Large, COORDS_SETUP(-918.864, 514, -1280), .base.loadDistance = FADE_DISTANCE(960), .fadeDuration = 180, .volume = VOLUME_PERCENT(100), .pitch = 6, .halfRadius = 640/4, .flags = SfxPlayer_CUSTOMFLAG_20_Double_Radius }, //Top of rapids waterfall
+            { .soundID = SOUND_BC5_Waterfall_Medium, COORDS_SETUP(-923, 162, -1295),     .base.mapObjGroup = DF_ObjGroup3_Shrine_Exterior, .fadeDuration = 120, .volume = VOLUME_PERCENT(100), .pitch = -3, .halfRadius = 640/4, .flags = SfxPlayer_CUSTOMFLAG_20_Double_Radius  }, //Bottom of rapids waterfall
+            
+            //Stalactite Cave (not in an objGroup, since it's on the boundary between two objGroups)
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(-2333, 503, -576), .base.loadDistance = FADE_DISTANCE(320), .fadeDuration = 120, .volume = VOLUME_PERCENT(70), .pitch = 0 }, //Cascade down to demolition cave
+            
+            //Whirlpool Cave
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(-2384.841, 419.5, -1496.5), .base.mapObjGroup = DF_ObjGroup8_Whirlpool_Cave, .fadeDuration = 120, .volume = VOLUME_PERCENT(50), .pitch = 0 }, //Cascades into whirlpool cave
+            
+            //Shrine Exterior Area
+            { .soundID = SOUND_BC4_Waterfall_Small, COORDS_SETUP(-1884, 151, -1683), .base.mapObjGroup = DF_ObjGroup3_Shrine_Exterior, .fadeDuration = 30, .volume = VOLUME_PERCENT(100), .pitch = 2, .gamebit = BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished }, //Under whirlpool cave
+        };
+
+        for (u32 i = 0; i < ARRAYCOUNT(sfxPlayers); i++) {
+            SfxPlayer_Setup* sfx = &sfxPlayers[i];
+            sfx->base.objId = OBJ_sfxPlayer;
+
+            if (sfx->halfRadius == 0) {
+                sfx->halfRadius = 320/2;
+            }
+
+            if (sfx->base.mapObjGroup < 32) {
+                sfx->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+            } else {
+                sfx->base.loadFlags = OBJSETUP_LOAD_MAIN;
+            }
+            sfx->base.fadeDistance = FADE_DISTANCE(320);
+
+            sfx->flags |= SfxPlayer_FLAG_1_Looping_Sound | 
+                          SfxPlayer_FLAG_2_Play_if_Gamebit_Set | 
+                          SfxPlayer_CUSTOMFLAG_40_Play_if_Gamebit_Set_on_Setup;
+            if (sfx->fadeDuration > 0) {
+                sfx->flags |= SfxPlayer_CUSTOMFLAG_10_Fade;
+            }
+
+            if (sfx->gamebit == 0) {
+                sfx->gamebit = NO_GAMEBIT;
+            }
+
+            reasset_map_objects_set(discoveryFalls, 
+                reasset_auto_id(dinomodNs), &sfxPlayers[i], sizeof(SfxPlayer_Setup));
+        }
+    }
+
+    //Add dismount direction offsets to all the DFdockpoints
+    {
+        typedef struct {
+            u32 uID;
+            Vec2f dismountTarget; //In mapSpace
+            Vec3f newPosition; //Optional, ignored if all 0
+        } DFdockpoint_DismountAdjust;
+
+        #define SAME_POSITION VEC3F(0, 0, 0)
+
+        DFdockpoint_DismountAdjust dockpointAdjustments[] = {
+            //Lower Falls
+            { 0x00001f47, VEC2F(232.978, 1168.050), SAME_POSITION }, //First dockpoint, needed to get to HighTop
+            { 0x00001f4e, VEC2F(-579.010, 378.428), SAME_POSITION }, //Shore near HighTop, leading up to rockface climb
+            { 0x00001f4b, VEC2F(417.802, 1717.921), VEC3F(311.196, 0, 1739.530) }, //Near BWC (moved slightly too, since it was awkward to mount)
+            
+            //Middle Falls
+            { 0x00001fab, VEC2F(-512.373, -35.345), SAME_POSITION }, //Just in front of the climb up to the middle falls, near the foodbag cave
+            { 0x00001fac, VEC2F(302.188, -133.768), SAME_POSITION },  //Shore under Toxic Cave ladder
+            { 0x0000203c, VEC2F(-789.138, -452.946), SAME_POSITION }, //Shore in front of turbine jetty
+
+            //Upper Falls
+            { 0x00002046, VEC2F(-1371.635, -614.792), SAME_POSITION }, //Shore before rapids, near where Kyte drags over and secures a rope
+            { 0x00002047, VEC2F(-1479.705, -64.625), SAME_POSITION },  //Shore near turbine, between all the ledges and rocks
+            
+            //Shrine Exterior
+            { 0x0000204a, VEC2F(-1009.111, -1837.673), SAME_POSITION }, //Just in front of the shrine
+            { 0x000025f4, VEC2F(-1620.400, -1327.123), SAME_POSITION }, //Shore below the ladder up to the long exit climb
+            
+            //Tunnel to BWC
+            { 0x00001f4d, VEC2F(-1187.813, 771.222), SAME_POSITION }, //Just before the archway into MMP
+        };
+
+        for (u32 i = 0; i < ARRAYCOUNT(dockpointAdjustments); i++) {
+            DFdockpoint_DismountAdjust* adjust = &dockpointAdjustments[i];
+            DFdockpoint_Setup* dockpoint = GET_MAPS_OBJECT(discoveryFalls, adjust->uID);
+            if (adjust->newPosition.x || adjust->newPosition.y || adjust->newPosition.z) {
+                dockpoint->base.x = adjust->newPosition.x;
+                dockpoint->base.y = adjust->newPosition.y;
+                dockpoint->base.z = adjust->newPosition.z;
+            }
+            dockpoint->dismountOffsetX = (adjust->dismountTarget.x - dockpoint->base.x) / 8;
+            dockpoint->dismountOffsetZ = (adjust->dismountTarget.y - dockpoint->base.z) / 8;
+        }
+    }
+
+    //Approach (from SwapStone Circle)
+    {
+        //Add texscrolls to the waterfalls' foam
+        {
+            TexScroll2_Setup texScrollData[] = {
+                { COORDS_SETUP(1130.276, 163, 75.210) },
+                { COORDS_SETUP(1000, 135, 697) },
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(texScrollData); i++) {
+                TexScroll2_Setup* scroll = &texScrollData[i];
+                scroll->base.objId = OBJ_texscroll2;
+                scroll->base.loadFlags = OBJSETUP_LOAD_MAIN;
+                scroll->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                scroll->base.loadDistance = FADE_DISTANCE(640);
+                scroll->base.fadeDistance = 32;
+                scroll->textureIndex = 1;
+                scroll->blendTextureIndex = 3;
+                scroll->vSpeedA = 2;
+                scroll->gamebitActivate = NO_GAMEBIT;
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll2_Setup)
+                );
+            }
+        }
+
+        //Adjust TriggerPlane just as you enter the main Lower Falls
+        {
+            Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x00001e85);
+            plane->sizeX = TRIGGER_SCALE(1.7f); //Increase size just in case you might pass over it when noclipping
+            DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(DF_ObjGroup1_Entrance_Magic_Plant_Basin, plane, 4, 5);
+        }
+    }
+
+    //Kyte's rope fastening sequences
+    {
+        //Rope near BlackWater Canyon 
+        {
+            //Ensure its position is correctly restored on revisiting
+            {
+                //DFSequences object
+                SeqObj_Setup* dfSeqObj = GET_MAPS_OBJECT(discoveryFalls, 0x1F63);
+                dfSeqObj->gamebitHasPlayed = BIT_DF_Played_Seq_0016_Kyte_Secures_Rope_Near_BWC;
+                dfSeqObj->replayStartTime = 0; //Don't replay (seq preempts nearly work as an approach for restoring the ropes' states,
+                                            //except it briefly makes the rope's spring dynamics go haywire on load, because of the 
+                                            //large position change.)
+
+                //Rope grab TriggerPoint (switch the one near the loose rope end off if Kyte's sequence hasn't played yet)
+                Trigger_Setup* ropeGrabPoint = GET_MAPS_OBJECT(discoveryFalls, 0x421e2);
+                ropeGrabPoint->conditionBitFlagIDs[0] = dfSeqObj->gamebitHasPlayed;
+            }
+
+            //Play the sequence automatically if Kyte takes too long trying to reach her TriggerPlane
+            {
+                CurveSetup* findCurve = GET_MAPS_OBJECT(discoveryFalls, 0x40b58);
+                findCurve->type22.usedBit = BIT_DF_Play_Seq_0016_Kyte_Secures_Rope_Near_BWC;
+
+                FindKyteObject_Setup* kyteFind = GET_MAPS_OBJECT(discoveryFalls, 0x00032f04);
+                kyteFind->flags |= FindKyteObject_FLAG_2_Set_Gamebit_After_Timeout;
+                kyteFind->timerSeconds = 10;
+            }
+        }
+
+        //Rope near upper falls 
+        {
+            //Ensure its position is correctly restored on revisiting
+            {
+                //DFSequences object
+                SeqObj_Setup* dfSeqObj = GET_MAPS_OBJECT(discoveryFalls, 0x2569);
+                dfSeqObj->gamebitHasPlayed = BIT_DF_Played_Seq_000F_Kyte_Secures_Rope_Upper_Falls;
+                dfSeqObj->replayStartTime = 0; //Don't replay
+
+                //Rope grab TriggerPoint (switch the one near the loose rope end off if Kyte's sequence hasn't played yet)
+                Trigger_Setup* ropeGrabPoint = GET_MAPS_OBJECT(discoveryFalls, 0x421e0);
+                ropeGrabPoint->conditionBitFlagIDs[0] = dfSeqObj->gamebitHasPlayed;
+            }
+
+            //Play the sequence automatically if Kyte takes too long trying to reach her TriggerPlane
+            {
+                CurveSetup* findCurve = GET_MAPS_OBJECT(discoveryFalls, 0x2567);
+                findCurve->type22.usedBit = BIT_DF_Play_Seq_000F_Kyte_Secures_Rope_Upper_Falls;
+
+                FindKyteObject_Setup* kyteFind = GET_MAPS_OBJECT(discoveryFalls, 0x00032f20);
+                kyteFind->flags |= FindKyteObject_FLAG_2_Set_Gamebit_After_Timeout;
+                kyteFind->timerSeconds = 10;
+            }
+        }
+
+        //DFRopeNodes
+        {
+            typedef struct {
+                ObjSetup base;
+                u8 id;
+            } DLL420_Setup;
+
+            //Move Kyte's initial rope setups into their own objGroups
+            {   
+                //Rope near BWC
+                {
+                    u32 kyteRopeNodesBWC[] = {
+                        0x00001f64, 
+                        0x00001f6a
+                    };
+                    for (u32 i = 0; i < ARRAYCOUNT(kyteRopeNodesBWC); i++) {
+                        ObjSetup* ropeNode = GET_MAPS_OBJECT(discoveryFalls, kyteRopeNodesBWC[i]);
+                        ropeNode->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                        ropeNode->mapObjGroup = DF_ObjGroup_Rope_BWC_Detached;
+                    }
+                }
+
+                //Rope near Upper Falls
+                {
+                    u32 kyteRopeNodesUpperFalls[] = {
+                        0x00002565, 
+                        0x00002566
+                    };
+                    for (u32 i = 0; i < ARRAYCOUNT(kyteRopeNodesUpperFalls); i++) {
+                        ObjSetup* ropeNode = GET_MAPS_OBJECT(discoveryFalls, kyteRopeNodesUpperFalls[i]);
+                        ropeNode->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                        ropeNode->mapObjGroup = DF_ObjGroup_Rope_Upper_Falls_Detached;
+                    }
+                }
+            }
+
+            //Add already-attached versions of the rope setups, in separate objGroups
+            {
+                //Rope near BWC
+                {
+                    DLL420_Setup ropeNodes[] = {
+                        { COORDS_SETUP(-16.754, 323.967, 1383.605), .id = 13 },
+                        { COORDS_SETUP(-323.211,  311.6, 1225.899), .id = 14 },
+                    };
+
+                    for (u32 i = 0; i < ARRAYCOUNT(ropeNodes); i++) {
+                        ObjSetup* ropeNode = (ObjSetup*)&ropeNodes[i];
+                        ropeNode->objId = OBJ_DFropenode;
+                        ropeNode->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                        ropeNode->fadeFlags = OBJSETUP_FADE_CAMERA;
+                        ropeNode->mapObjGroup = DF_ObjGroup_Rope_BWC_Attached;
+                        ropeNode->fadeDistance = 0xFF;
+                        reasset_map_objects_set(discoveryFalls, 
+                            reasset_auto_id(dinomodNs), ropeNode, sizeof(DLL420_Setup));
+                    }
+                }
+
+                //Rope near Upper Falls
+                {
+                    DLL420_Setup ropeNodes[] = {
+                        { COORDS_SETUP(-1169.473, 679.081, -610.168), .id = 15 },
+                        { COORDS_SETUP(-917.637, 579.300, -103.565),  .id = 16 },
+                    };
+
+                    for (u32 i = 0; i < ARRAYCOUNT(ropeNodes); i++) {
+                        ObjSetup* ropeNode = (ObjSetup*)&ropeNodes[i];
+                        ropeNode->objId = OBJ_DFropenode;
+                        ropeNode->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                        ropeNode->fadeFlags = OBJSETUP_FADE_CAMERA;
+                        ropeNode->mapObjGroup = DF_ObjGroup_Rope_Upper_Falls_Attached;
+                        ropeNode->fadeDistance = 0x32;
+                        reasset_map_objects_set(discoveryFalls, 
+                            reasset_auto_id(dinomodNs), ropeNode, sizeof(DLL420_Setup));
+                    }
+                }
+            }
+        }
+    }
+
+    //Lower Falls
+    {
+        //Edit the TriggerPoint that activates the HighTop's cutscene so the player must be riding the log
+        {
+            Trigger_Setup* point = GET_MAPS_OBJECT(discoveryFalls, 0x00001e86);
+            point->activatorObjType = OBJTYPE_Vehicle;
+            point->commands[0].condition |= CMD_COND_CONTINUOUS;
+            point->conditionBitFlagIDs[0] = CHECK_IF_GAMEBIT_UNSET | BIT_DF_Play_Seq_0168_Krystal_Meets_HighTop_Archaeologist;
+        }
+
+        //Cave under Lower Falls
+        {
+            //Add a TriggerCylinder bringing the camera closer (avoiding getting stuck at entrance)
+            Trigger_Setup cylinder = {
+                .base = {
+                    .objId = OBJ_TriggerCylinder,
+                    .loadFlags = OBJSETUP_LOAD_MAIN,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = 50,
+                    .fadeDistance = 50,
+                },
+                COORDS_SETUP(350.751, 0, -128.523),
+                .rotationY = TRIGGER_YAW(0),
+                .rotationX = 0,
+                .sizeX = 143,
+                .sizeY = 64 * 2,
+                .sizeZ = 0x10,
+                .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                .bitFlagID = NO_GAMEBIT
+            };
+            ENTER_CAMERAACTION(0, 0x7D, &cylinder, 0); //Use CameraAction (closer camera with higher FOV)
+            EXIT_CAMERAACTION(0, 1, &cylinder, 1); //Use default camera
+            reasset_map_objects_set(discoveryFalls, 
+                reasset_auto_id(dinomodNs), &cylinder, sizeof(cylinder));
+        }
+
+        //Foodbag Cave
+        {
+            //Move XYZAnimator out of ObjGroup
+            //(since the raised ladder geometry starts flickering between its up/down state when the XYZAnimator unloads on the way out)
+            //TODO: revisit this once XYZAnimator is decompiled and try to come up with a better fix that keeps it in its objGroup
+            {
+                ObjSetup* ladderAnimator = GET_MAPS_OBJECT(discoveryFalls, 0x00031b47);
+                ladderAnimator->loadFlags = OBJSETUP_LOAD_MAIN;
+                ladderAnimator->loadDistance = FADE_DISTANCE(640);
+            }
+
+            //Add a StaticCamera setup to the entrance (based on Rare's mostly finished camera setup for the ladder down to the mole cave)
+            {
+                #define CAM_ID_FOODBAG_CAVE_UPPER 103
+                #define CAM_ID_FOODBAG_CAVE_LOWER 104
+
+                StaticCamera_Setup staticCams[] = {
+                    { COORDS_SETUP(-626.109, 406.964, 300), .cameraID = CAM_ID_FOODBAG_CAVE_UPPER, .fov = 80, .flags = CamStatic_LOOK_AT },
+                    { COORDS_SETUP(-640.000, 325.000, 300), .cameraID = CAM_ID_FOODBAG_CAVE_LOWER, .fov = 70, .flags = CamStatic_LOOK_AT },
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(staticCams); i++) {
+                    StaticCamera_Setup* cam = &staticCams[i];
+                    cam->base.objId = OBJ_StaticCamera;
+                    cam->base.loadFlags = OBJSETUP_LOAD_MAIN;
+                    cam->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                    cam->base.loadDistance = FADE_DISTANCE(320);
+                    cam->base.fadeDistance = 50;
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), cam, sizeof(StaticCamera_Setup));
+                }
+            }
+
+            //Edit existing TriggerPlane to activate the upper camera
+            {
+                //Top of climb
+                {
+                    Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x30a4e);
+                    ENTER_CAMERAACTION(1, CAM_ID_FOODBAG_CAVE_UPPER, plane, 2); //Use upper StaticCamera
+                    EXIT_CAMERAACTION(0, 1, plane, 3); //Use CamNormal
+                }
+            }
+
+            //Add TriggerPlanes activating the cameras
+            {
+                //Middle of climb
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-623.472, 295.388, 321),
+                        .rotationY = TRIGGER_YAW(90),
+                        .rotationX = DEGREES_TO_ANGLE8(270),
+                        .sizeX = TRIGGER_SCALE(0.375),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
+                    };
+                    ENTER_CAMERAACTION(1, CAM_ID_FOODBAG_CAVE_LOWER, &plane, 0); //Use lower StaticCamera
+                    EXIT_CAMERAACTION(1, CAM_ID_FOODBAG_CAVE_UPPER, &plane, 1); //Use upper StaticCamera
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+
+                //Base of climb
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-623.472, 261.932, 321),
+                        .rotationY = TRIGGER_YAW(90),
+                        .rotationX = DEGREES_TO_ANGLE8(270),
+                        .sizeX = TRIGGER_SCALE(0.375),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
+                    };
+                    EXIT_CAMERAACTION(1, CAM_ID_FOODBAG_CAVE_LOWER, &plane, 0); //Use lower StaticCamera
+                    ENTER_CAMERAACTION(0, 1, &plane, 1); //Use CamNormal
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+            }
+        } 
+
+        //Tunnel to MMP
+        {
+            //Move most tunnel objects into a new objGroup of their own (so the Lower Falls group can unload)
+            {
+                u32 tunnelUIDs[] = {
+                    0x00041393, //TriggerPlane
+                    0x00040b88, //DFLantern
+                    0x00001f4d, //DFdockpoint
+                    0x00034c03, //SmallCrate
+                    0x00034c04, //SmallCrate
+                    0x00034c05, //SmallCrate
+                    0x00034017, //FXEmit (drips)
+                    0x00034018, //FXEmit (drips)
+                    0x00034019, //FXEmit (drips)
+                    0x0003401a, //FXEmit (drips)
+                    0x0003401c, //FXEmit (drips)
+                };
+                for (u32 i = 0; i < ARRAYCOUNT(tunnelUIDs); i++) {
+                    ObjSetup* obj = GET_MAPS_OBJECT(discoveryFalls, tunnelUIDs[i]);
+                    obj->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                    obj->mapObjGroup = DF_ObjGroup_Tunnel_to_MMP;
+                }
+            }
+
+            //Add a TriggerPlane at the entrance to the tunnel, loading/unloading the tunnel objGroup
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 50,
+                        .fadeDistance = 50,
+                    },
+                    COORDS_SETUP(-356.967, 0, 969.342),
+                    .rotationY = TRIGGER_YAW(98),
+                    .sizeX = TRIGGER_SCALE(1.38),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
+                };
+                //Bring the camera closer (avoiding getting stuck at entrance)
+                ENTER_CAMERAACTION(0, 0x3D, &plane, 0); //Use CameraAction (closer)
+                EXIT_CAMERAACTION(0, 1, &plane, 1); //Use default camera
+
+                //Load/unload tunnel objects
+                DIRECTIONAL_OBJGROUP_TOGGLE(DF_ObjGroup_Tunnel_to_MMP, &plane, 2, 3);
+                DIRECTIONAL_OBJGROUP_TOGGLE(DF_ObjGroup_MMP_Door, &plane, 4, 5);
+
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+
+            //Add a TriggerPlane, loading/unloading the main Lower Falls objGroup further in
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 50,
+                        .fadeDistance = 50,
+                    },
+                    COORDS_SETUP(-955.792, 0, 1013.321),
+                    .rotationY = TRIGGER_YAW(29),
+                    .sizeX = TRIGGER_SCALE(0.95),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(DF_ObjGroup2_Lower_Falls, &plane, 0, 1);
+
+                //Release the close camera once in the wider part of the cave
+                ENTER_CAMERAACTION(0, 1, &plane, 2); //Use default camera
+                EXIT_CAMERAACTION(0, 0x3D, &plane, 3); //Use CameraAction (closer)
+
+                //Use the remaining slots to clean up any objGroups that should already be off here, just in case
+                ENTER_OBJGROUP_OFF(DF_ObjGroup1_Entrance_Magic_Plant_Basin, &plane, 4);
+                ENTER_OBJGROUP_OFF(DF_ObjGroup3_Shrine_Exterior, &plane, 5);
+                ENTER_OBJGROUP_OFF(DF_ObjGroup4_Toxic_Cave, &plane, 6);
+                ENTER_OBJGROUP_OFF(DF_ObjGroup5_Mole_Cave, &plane, 7);
+
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+
+            //Fix the log disappearing as soon as you step into MMP
+            {
+                //Apply this to any dockpoints whose logs could be brought as far as the MMP entrance
+                u32 dockpointUIDs[] = {
+                    //Tunnel to BWC
+                    0x00001f4d, //Just before the archway into MMP
+
+                    //Lower Falls
+                    0x00001f47, //First dockpoint, needed to get to HighTop
+                    0x00001f4e, //Shore near HighTop, leading up to rockface climb
+                    0x00001f4b, //Near BWC (moved slightly too, since it was awkward to mount)
+                    
+                    //Middle Falls
+                    0x00001fab, //Just in front of the climb up to the middle falls, near the foodbag cave
+                    0x00001fac,  //Shore under Toxic Cave ladder
+                    0x0000203c, //Shore in front of turbine jetty
+
+                    //Upper Falls
+                    0x00002046, //Shore before rapids, near where Kyte drags over and secures a rope
+                    0x00002047, //Shore near turbine, between all the ledges and rocks
+
+                    //Shrine area's dockpoints can be ignored, since there should be no way to get the log out of that area
+                };
+                for (u32 i = 0; i < ARRAYCOUNT(dockpointUIDs); i++) {
+                    DFdockpoint_Setup* dockpoint = GET_MAPS_OBJECT(discoveryFalls, dockpointUIDs[i]);
+                    dockpoint->options = DFdockpoint_OPTION_1_Create_Log_Without_MapID;
+                }
+            }
+
+            //Fix duplicate TriggerPlane near the dockpoint, which's rotated strangely and stops music early
+            {
+                //Delete duplicate
+                reasset_map_objects_delete(discoveryFalls, reasset_base_id(0x00041394));
+                
+                //Add Kyte flight command to the nearby archway TriggerPlane (which had nearly all the same commands, except this one) 
+                Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x00041393);
+                ENTER_KYTE_FLIGHT_GROUP(0x9e, plane, 2);
+
+                //Move the archway TriggerPlane fully inside the MMP door, so DF's music doesn't stop when standing in front of the door
+                plane->base.x = -1262;
+                plane->base.y = 4;
+                plane->base.z = 964;
+            }
+
+            //Add the unused MMP door (optional)
+            {
+                //The door itself
+                {
+                    SeqDoor_Setup door = {
+                        .base = {
+                            .objId = OBJ_DFmoondoor,
+                            .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .mapObjGroup = DF_ObjGroup_MMP_Door,
+                            .fadeDistance = FADE_DISTANCE(640*2),
+                        },
+                        COORDS_SETUP(-1263, 4, 964),
+                        .yaw = DEGREES_TO_ANGLE8(90),
+                        .scale = 0x41,
+                        .gamebitOpenA = NO_GAMEBIT,
+                        .gamebitOpenB = NO_GAMEBIT,
+                        .gamebitRestoreState = DINOMOD_BIT_972_DF_Open_Door_to_MMP,
+                        .options = SeqDoor_OPTION_1_Delay_Play_Until_Gamebit_Set | 
+                                            SeqDoor_OPTION_2_Unload_If_Already_Open | 
+                                            SeqDoor_OPTION_4_Unload_At_End_of_Sequence
+                    };
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &door, sizeof(door));
+                }
+
+                //Add a TriggerPlane, opening the door on approach (if its conditions for opening are met)
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-963.578, 0, 999.343),
+                        .rotationY = TRIGGER_YAW(29),
+                        .sizeX = TRIGGER_SCALE(0.95),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .bitFlagID = NO_GAMEBIT,
+                        .conditionBitFlagIDs[0] = BIT_ALWAYS_1
+                    };
+                    //Set a gamebit causing DFlevelcontrol to check if the door should open
+                    ENTER_GAMEBIT(DINOMOD_BIT_974_DF_Query_Open_Door_to_MMP, TRUE, &plane, 0);
+
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+
+                //Don't let Kyte fly through the door until it's open
+                {
+                    u32 kyteCurveUIDs[] = {
+                        0x00042c5e,
+                        0x00042c5f,
+                    };
+                    for (u32 i = 0; i < ARRAYCOUNT(kyteCurveUIDs); i++) {
+                        CurveSetup* curve = GET_MAPS_OBJECT(
+                            reasset_base_id(MAP_MOON_MOUNTAIN_PASS), 
+                            kyteCurveUIDs[i]
+                        );
+                        curve->type22.unk30 = DINOMOD_BIT_975_DF_Kyte_Can_Fly_Through_Door_to_MMP;
+                    }
+                }
+            }
+        }
+
+        //Climb to Middle Falls
+        {
+            Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x00040c31);
+            DIRECTIONAL_OBJGROUP_TOGGLE(DF_ObjGroup7, plane, 3, 4);
+
+            //Don't load objGroup7 when exiting foodbag cave (since it's an empty group being repurposed for Middle Falls)
+            plane = GET_MAPS_OBJECT(discoveryFalls, 0x00030a8e);
+            EMPTY_TRIGGER_COMMAND(plane, 2);
+        }
+
+        //Lower Falls' texscroll2s
+        /* The Lower Falls and Middle Falls' texscroll2s scroll the water at different speeds (Middle Falls is -4, Lower Falls is -3)
+           There's a slight problem with this: the two blocks that contain the Lower Falls' waterfalls scroll all of their water
+           at the Lower Falls' slower speed (even the small section at the top of the waterfalls), and this speed difference creates a
+           seam across all the water at the start of the Middle Falls. To fix this, the slower-moving water has been changed to use a
+           different textureID (Rare kept a duplicate of the water texture, seemingly for situations like this) and the Lower Falls'
+           texscroll2s are all updated to scroll that texture. A pair of texscroll2s have also been added at the top of the waterfalls,
+           so the section of water there still scrolls (but at the same speed as the rest of the Middle Falls' water, avoiding the seam!)
+        */
+        {
+            //Edit the Lower Falls' texscroll2s so they target tex1_399 (scrollTable36)
+            {
+                u32 waterScrollUIDs[] = {
+                    0x00002de3, //Entrance route 1
+                    0x00002de4, //Entrance route 2
+                    0x00002dee, //Lower Falls (under foodbag cave)
+                    0x00002def, //Lower Falls (under toxic cave)
+                    0x00002de8, //Lower Falls (entrance)
+                    0x00002dea, //Lower Falls (outside tunnel to MMP)
+                    0x00002deb, //BWC exit (corner)
+                    0x00002dec, //BWC exit
+                };
+                for (u32 i = 0; i < ARRAYCOUNT(waterScrollUIDs); i++) {
+                    TexScroll2_Setup* scroll = GET_MAPS_OBJECT(discoveryFalls, waterScrollUIDs[i]);
+                    scroll->textureIndex = 36; //Duplicate of water texture, for different scroll speed within a Block that already has scrolling water 
+                    scroll->options |= BlockTexScrollAdd_REUSE_Match_by_Texture | BlockTexScrollAdd_REUSE_Match_by_SpeedsA;
+                }
+            }
+
+            //Add texscroll2s for the top of the Lower Falls, using the Middle Falls' scroll speed
+            {
+                TexScroll2_Setup texScrollData[] = {
+                    { COORDS_SETUP(316, 296, 76) },
+                    { COORDS_SETUP(-309, 296, 38) },
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(texScrollData); i++) {
+                    TexScroll2_Setup* scroll = &texScrollData[i];
+                    scroll->base.objId = OBJ_texscroll2;
+                    scroll->base.loadFlags = OBJSETUP_LOAD_MAIN;
+                    scroll->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                    scroll->base.loadDistance = FADE_DISTANCE(720);
+                    scroll->base.fadeDistance = 32;
+                    scroll->textureIndex = 0;
+                    scroll->blendTextureIndex = 3;
+                    scroll->vSpeedA = -4;
+                    scroll->gamebitActivate = NO_GAMEBIT;
+                    scroll->options |= BlockTexScrollAdd_REUSE_Match_by_Texture | BlockTexScrollAdd_REUSE_Match_by_SpeedsA;
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll2_Setup)
+                    );
+                }
+            }
+
+            //Edit the rest of the water texscrolls to match by Texture and scroll speed, helping avoid desyncs
+            {
+                u32 waterScrollUIDs[] = {
+                    //Middle Falls
+                    0x00002df0, //Under toxic cave
+                    0x00002df1, //Corner with Scarab in basket
+                    0x00002df2, //Under mole cave entrance
+                    0x00002df3, //Under turbine
+
+                    //Upper Falls
+                    0x00002df4, //Outside stalactite cave
+                    0x00002df5, //Outside Shrine area exit climb
+                    0x00002df6, //Rapids
+
+                    //Outside Shrine
+                    0x00032f60, //Near shrine
+                    0x00032f61, //Near exit climb
+
+                    //Caves
+                    0x00031e53, //Stalactite cave
+                    0x00031e52, //Demolition cave
+                    0x00031b3f, //Whirlpool cave
+
+                    //Tunnel to MMP
+                    0x00002ded, //Dockpoint
+                };
+                for (u32 i = 0; i < ARRAYCOUNT(waterScrollUIDs); i++) {
+                    TexScroll2_Setup* scroll = GET_MAPS_OBJECT(discoveryFalls, waterScrollUIDs[i]);
+                    scroll->options |= BlockTexScrollAdd_REUSE_Match_by_Texture | BlockTexScrollAdd_REUSE_Match_by_SpeedsA;
+                }
+            }
+        }
+
+        //LODs
+        {
+            //Add LOD for the BWC's exit, when viewed from Middle Falls
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup14_Middle_and_Upper_Falls,
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-71, 127, 1281),
+                    .animatorID = 10,
+                    .gridOffsetX = +1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load | 
+                               LODAnimator_OPTION_4_Hide_LOD_on_Unload
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Add LOD for the beginning of the tunnel to MMP, when viewed from near HighTop
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup2_Lower_Falls,
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-319.015, 38, 965),
+                    .animatorID = 10,
+                    .gridOffsetX = -1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load | 
+                               LODAnimator_OPTION_4_Hide_LOD_on_Unload
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Add LOD for the water near the HighTop, when viewed from the tunnel to MMP
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup2_Lower_Falls,
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-222.447, 52, 697),
+                    .animatorID = 11,
+                    .gridOffsetZ = +1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load | 
+                               LODAnimator_OPTION_4_Hide_LOD_on_Unload
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+
+            //Add LOD for Moon Mountain Pass, when viewed from the tunnel to MMP
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup_Tunnel_to_MMP,
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1243, 40, 964),
+                    .animatorID = 10,
+                    .gridOffsetX = -1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load | 
+                               LODAnimator_OPTION_4_Hide_LOD_on_Unload
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+        }
+    }
+
+    //Middle Falls
+    {
+        //Toxic Cave
+        {
+            //Add a StaticCamera setup to the entrance (based on Rare's mostly finished camera setup for the ladder down to the mole cave)
+            {
+                #define CAM_ID_TOXIC_CAVE_UPPER 105
+                #define CAM_ID_TOXIC_CAVE_LOWER 106
+
+                StaticCamera_Setup staticCams[] = {
+                    { COORDS_SETUP(580, 470, -248), .cameraID = CAM_ID_TOXIC_CAVE_UPPER, .fov = 80, .flags = CamStatic_LOOK_AT },
+                    { COORDS_SETUP(587, 389, -245), .cameraID = CAM_ID_TOXIC_CAVE_LOWER, .fov = 70, .speedFactor = 0x60, .flags = CamStatic_LOOK_AT },
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(staticCams); i++) {
+                    StaticCamera_Setup* cam = &staticCams[i];
+                    cam->base.objId = OBJ_StaticCamera;
+                    cam->base.loadFlags = OBJSETUP_LOAD_MAIN;
+                    cam->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                    cam->base.loadDistance = FADE_DISTANCE(320);
+                    cam->base.fadeDistance = 50;
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), cam, sizeof(StaticCamera_Setup));
+                }
+            }
+
+            //Edit existing TriggerPlane to activate the upper camera
+            {
+                //Top of climb
+                {
+                    Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x30aca);
+                    plane->base.x = 530.745; //Push away from ladder slightly
+                    EXIT_CAMERAACTION(1, CAM_ID_TOXIC_CAVE_UPPER, plane, 1); //Use upper StaticCamera
+                    ENTER_CAMERAACTION(0, 1, plane, 2); //Use CamNormal
+                }
+            }
+
+            //Add Trigger Objects activating the cameras
+            {
+                //Base of climb
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(578, 355, -228.25),
+                        .rotationY = TRIGGER_YAW(90),
+                        .rotationX = DEGREES_TO_ANGLE8(270),
+                        .sizeX = TRIGGER_SCALE(0.375),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
+                    };
+                    EXIT_CAMERAACTION(1, CAM_ID_TOXIC_CAVE_UPPER, &plane, 0); //Use upper StaticCamera
+                    ENTER_CAMERAACTION(1, CAM_ID_TOXIC_CAVE_LOWER, &plane, 1); //Use lower StaticCamera
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+
+                //Enclose the ladder chute in a TriggerCylinder
+                {
+                    Trigger_Setup cylinder = {
+                        .base = {
+                            .objId = OBJ_TriggerCylinder,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = FADE_DISTANCE(320),
+                            .fadeDistance = FADE_DISTANCE(320),
+                        },
+                        COORDS_SETUP(543, 418, -228),
+                        .sizeX = 30,
+                        .sizeY = 64 * 2,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
+                    };
+                    ENTER_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, TRUE, &cylinder, 0); //Use closer CamClimb
+                    EXIT_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, FALSE, &cylinder, 1); //Use regular CamClimb
+                    EXIT_CAMERAACTION(0, 1, &cylinder, 2); //Use CamNormal
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &cylinder, sizeof(cylinder));
+                }
+            }
+        }
+
+        //Turbine Lever
+        {
+            //Fix an issue where the lever was hovering in midair slightly away from its housing
+            ObjSetup* lever = GET_MAPS_OBJECT(discoveryFalls, 0x0000250e);
+            lever->fadeDistance = FADE_DISTANCE(480); //Increase fade distance so it's not semi-transparent during Kyte's rope fastening sequence
+            lever->x = -1082.4;
+            lever->z = -247.5;
+
+            //Restore the lever's pose on revisit, via objSeq preempt
+            SeqObj_Setup* turbineSeq = GET_MAPS_OBJECT(discoveryFalls, 0x0000252a);
+            turbineSeq->replayStartTime = 980;
+            turbineSeq->replayActorMask = 1 << 3;
+            turbineSeq->playbackOptions |= SEQOBJ_OPTIONS_HasReplayActorMask;
+
+            //Play the turbine activation sequence automatically if Kyte takes too long trying to reach her TriggerPlane
+            {
+                CurveSetup* findCurve = GET_MAPS_OBJECT(discoveryFalls, 0x32f1d);
+                findCurve->type22.usedBit = BIT_DF_Play_Seq_002F_Kyte_Activates_Turbine;
+
+                FindKyteObject_Setup* kyteFind = GET_MAPS_OBJECT(discoveryFalls, 0x00032f1a);
+                kyteFind->flags |= FindKyteObject_FLAG_2_Set_Gamebit_After_Timeout | FindKyteObject_FLAG_4_Start_Timeout_When_Kyte_is_Nearby;
+                kyteFind->timerSeconds = 3;
+            }
+        }
+
+        //Add HitAnimators for Kyte's turbine sequence (enabling temporary widescreen fixes)
+        {
+            HitAnimator_Setup hitAnims[] = {
+                { COORDS_SETUP(-814,    581, -105) },
+                { COORDS_SETUP(250.136, 482, -547.34) }
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(hitAnims); i++) {
+                HitAnimator_Setup* hitAnim = &hitAnims[i];
+                hitAnim->base.objId = OBJ_HitAnimator;
+                hitAnim->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                hitAnim->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                hitAnim->base.fadeFlags = OBJSETUP_FADE_CAMERA,
+                hitAnim->base.mapObjGroup = DF_ObjGroup_Turbine_Sequence_HitAnimators;
+                hitAnim->base.fadeDistance = 50;
+                hitAnim->gamebitActivate = DINOMOD_BIT_96B_DF_Turbine_Sequence_Active;
+                hitAnim->mode = HITANIMATOR_MODE_SHAPE_ON;
+                hitAnim->blocksAnimatorID = 10;
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), hitAnim, sizeof(HitAnimator_Setup));
+            }
+        }
+
+        //Add texscrolls to the waterfalls' foam
+        {
+            TexScroll2_Setup texScrollData[] = {
+                { COORDS_SETUP(-1007, 300, -196), .base.mapObjGroup = DF_ObjGroup14_Middle_and_Upper_Falls }, //Under turbine
+                { COORDS_SETUP(-1660.168, 514, -427.757), .base.mapObjGroup = DF_ObjGroup14_Middle_and_Upper_Falls }, //Stalactite cave entrance
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(texScrollData); i++) {
+                TexScroll2_Setup* scroll = &texScrollData[i];
+                scroll->base.objId = OBJ_texscroll2;
+                scroll->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                scroll->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                scroll->base.fadeDistance = 32;
+                scroll->textureIndex = 1;
+                scroll->blendTextureIndex = 3;
+                scroll->vSpeedA = 2;
+                scroll->gamebitActivate = NO_GAMEBIT;
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll2_Setup)
+                );
+            }
+        }
+
+        //Adjust DFcradle's Projectile Switches
+        {
+            u32 cradleSwitchUIDs[] = {
+            0x000020ae,
+            0x000020af,
+            0x000020b0,
+            0x000020b1
+            };
+            for (u32 i = 0; i < ARRAYCOUNT(cradleSwitchUIDs); i++) {
+                ProjectileSwitch_Setup* reverseSwitch = GET_MAPS_OBJECT(discoveryFalls, cradleSwitchUIDs[i]);
+                reverseSwitch->resetDelay = 15;
+                reverseSwitch->modelIndexAndFlags |= Switch_FLAG_Resets_After_Delay;
+
+                //Align the first switch with the rope, since it's just off from being aligned with it
+                if (i == 0) {
+                    reverseSwitch->base.x = 238.274f;
+                    reverseSwitch->base.y = 438.849f;
+                    reverseSwitch->base.z = -557.684f;
+                    reverseSwitch->yaw = DEGREES_TO_ANGLE8(319);
+                }
+            }
+        }
+
+        //Adjust DFcradle's rope texScroll2s 
+        //(So they always share the same blockTexScroller and can't end up with separate desynced ones)
+        {
+            u32 ropeScrollUIDs[] = {
+                0x0003254b,
+                0x0003254f,
+                0x00032562,
+                0x00032563
+            };
+            for (u32 i = 0; i < ARRAYCOUNT(ropeScrollUIDs); i++) {
+                TexScroll2_Setup* ropeScroll = GET_MAPS_OBJECT(discoveryFalls, ropeScrollUIDs[i]);
+                ropeScroll->options |= BlockTexScrollAdd_REUSE_Match_by_Texture;
+            }
+        }
+
+        //Add LOD for the distant mole caves entrance
+        {
+            LODAnimator_Setup lod = {
+                .base = {
+                    .objId = OBJ_LODAnimator,
+                    .loadFlags = OBJSETUP_LOAD_CAMERA,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = FADE_DISTANCE(960),
+                    .fadeDistance = 50
+                },
+                COORDS_SETUP(-590, 509, -657),
+                .animatorID = 10,
+                .gridOffsetX = +1,
+                .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+            };
+            reasset_map_objects_set(discoveryFalls, 
+                reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+        }
+    }
+
+    //Middle Falls - Mole Caves
+    {
+        //Ladder leading back outdoors
+        {
+            //Add a second StaticCamera at the base of the climb, to stop the camera clipping through the wall on the way up
+            {
+                StaticCamera_Setup staticCam = {
+                    .base = {
+                        .objId = OBJ_StaticCamera,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(640),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(42.109, 369.964, -956.889), 
+                    .cameraID = 103, 
+                    .fov = 70, 
+                    .flags = CamStatic_LOOK_AT
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &staticCam, sizeof(StaticCamera_Setup));
+            }
+
+            //Add a TriggerPlane to base of ladder climb, to activate the bottom StaticCamera
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 50,
+                        .fadeDistance = 50,
+                    },
+                    COORDS_SETUP(29.001, 318.932, -956.258),
+                    .rotationY = TRIGGER_YAW(90),
+                    .rotationX = DEGREES_TO_ANGLE8(270),
+                    .sizeX = TRIGGER_SCALE(0.375),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
+                };
+                EXIT_CAMERAACTION(1, 103, &plane, 0); //Use bottom StaticCamera
+                ENTER_CAMERAACTION(0, 1, &plane, 1); //Use regular camera
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+
+            //Edit the TriggerPlane just above it too
+            {
+                Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x4273f);
+                plane->base.y = 352.388; //Raise slightly, so the bottom StaticCamera will have fully finished interpolating in by the time the player climbs up to here
+                EMPTY_TRIGGER_COMMAND(plane, 1); //Don't switch back to regular camera just yet
+            }
+        }
+
+        //Upper cave (with SharpClaw guarding a hatch)
+        {
+            //Add a TriggerCylinder around the top of the hatch's ladder, 
+            //to bring the camera a little closer to the player during the climb
+            //(avoids camera clipping through the ground at the opposite side of the hatch hole)
+            {
+                Trigger_Setup cylinder = {
+                    .base = {
+                        .objId = OBJ_TriggerCylinder,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(320),
+                        .fadeDistance = FADE_DISTANCE(320),
+                    },
+                    COORDS_SETUP(988, 188.000, -960),
+                    .sizeX = 24,
+                    .sizeY = 29 * 2,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = BIT_DF_Played_Seq_002C_Mole_Cave_Hatch_Opens, //Hatch must be open
+                    .bitFlagID = NO_GAMEBIT
+                };
+                ENTER_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, TRUE, &cylinder, 0); //Use closer CamClimb
+                EXIT_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, FALSE, &cylinder, 1); //Use regular CamClimb
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &cylinder, sizeof(cylinder));
+            }
+        }
+
+        //Lower cave (home to DFMole!)
+        {
+            //Tweak the crawl curves' positions so they're exactly at ground height (so the camera avoids clipping into the wall during the crawl)
+            //And align them exactly along crawlspace (to reduce jumps in camera angle after settling into the crawl curve from the initial HITS line angle)
+            {
+                ObjSetupTweak crawlNodeUIDs[] = {
+                    //First cave (the one the mole digs automatically)
+                    { .uID = 0x00030bd3, VEC3F(1069.700, -14, -959.5) }, //Out (End)
+                    { .uID = 0x00030bd2, VEC3F(1122.800, -14, -959.5) }, //Out (Start)
+                    { .uID = 0x00030bd1, VEC3F(1135.585, -14, -959.5) }, //In (End)
+                    { .uID = 0x00030bd0, VEC3F(1082.088, -14, -959.5) }, //In (Start)
+
+                    //Second cave
+                    { .uID = 0x00030bce, VEC3F(1012.670, -14, -878.809) }, //Out (End)
+                    { .uID = 0x00030bcd, VEC3F(1029.050, -14, -834.200) }, //Out (Start)
+                    { .uID = 0x00030bcc, VEC3F(1033.539, -14, -821.972) }, //In (End)
+                    { .uID = 0x00030bcb, VEC3F(1014.892, -14, -872.755) }, //In (Start)
+
+                    //Third cave (with the Shrine podium switch)
+                    { .uID = 0x00030b78, VEC3F(924.295, -14, -914.891) }, //Out (End)
+                    { .uID = 0x00030b77, VEC3F(876.073, -14, -879.056) }, //Out (Start)
+                    { .uID = 0x00030b73, VEC3F(861.364, -14, -868.126) }, //In (End) 
+                    { .uID = 0x00030b72, VEC3F(911.424, -14, -905.327) }  //In (Start)
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(crawlNodeUIDs); i++) {
+                    CurveSetup* curve = GET_MAPS_OBJECT(discoveryFalls, crawlNodeUIDs[i].uID);
+                    curve->pos.x = crawlNodeUIDs[i].coords.x;
+                    curve->pos.y = crawlNodeUIDs[i].coords.y;
+                    curve->pos.z = crawlNodeUIDs[i].coords.z;
+                }
+            }
+        }
+    }
+
+    //Upper Falls
+    {
+        //Add a TriggerCylinder enclosing the short ladder up to the top of the shrine exit climb 
+        //So CamClimb doesn't pop out of bounds during the initial ladder-mounting camera ease
+        {
+            Trigger_Setup cylinder = {
+                .base = {
+                    .objId = OBJ_TriggerCylinder,
+                    .loadFlags = OBJSETUP_LOAD_MAIN,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = FADE_DISTANCE(160),
+                    .fadeDistance = FADE_DISTANCE(160),
+                },
+                COORDS_SETUP(-1665, 582, -886),
+                .sizeX = 22,
+                .sizeY = 28 * 2,
+                .sizeZ = 0x10,
+                .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                .bitFlagID = NO_GAMEBIT
+            };
+            ENTER_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, TRUE, &cylinder, 0); //Use closer CamClimb
+            EXIT_GAMEBIT(DINOMOD_BIT_96C_CamClimb_Closer, FALSE, &cylinder, 1); //Use regular CamClimb
+            ENTER_GAMEBIT(DINOMOD_BIT_96E_CamClimb_Skip_Ease, TRUE, &cylinder, 2); //Use no CamClimb ease
+            EXIT_GAMEBIT(DINOMOD_BIT_96E_CamClimb_Skip_Ease, FALSE, &cylinder, 3); //Use regular CamClimb ease
+            reasset_map_objects_set(discoveryFalls, 
+                reasset_auto_id(dinomodNs), &cylinder, sizeof(cylinder));
+        }
+
+        //Stalactite Cave 
+        {
+            //Add camera TriggerPlanes to the narrow entrance (to avoid the camera getting stuck)
+            {
+                //Entrance tunnel start (under waterfall)
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-1898.763, 520.000, -341.005),
+                        .rotationY = TRIGGER_YAW(70),
+                        .rotationX = 0,
+                        .sizeX = TRIGGER_SCALE(0.5),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
+                    };
+                    ENTER_CAMERAACTION(0, 0x7E, &plane, 0); //Use CameraAction (closer camera with higher FOV)
+                    EXIT_CAMERAACTION(0, 1, &plane, 1); //Use default camera
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+
+                    plane.rotationY = TRIGGER_YAW(110);
+                    plane.base.x = -1898.763;
+                    plane.base.z = -457.527;
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+
+                //Entrance tunnel end (inside cave)
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-2078.836, 612.000, -225.221),
+                        .rotationY = TRIGGER_YAW(135.5),
+                        .rotationX = 0,
+                        .sizeX = TRIGGER_SCALE(0.344),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
+                    };
+                    ENTER_CAMERAACTION(0, 1, &plane, 0); //Use default camera
+                    EXIT_CAMERAACTION(0, 0x7E, &plane, 1); //Use CameraAction (closer camera with higher FOV)
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+            }
+
+            //Fix midair save point
+            {
+                Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x00030daa);
+                plane->base.y = 544.235f;
+            }
+
+            //Add LOD for the entrance, when viewed from Middle Falls or the very end of the rapids
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_CAMERA,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(640),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1733, 560, -401),
+                    .animatorID = 10,
+                    .gridOffsetX = -1,
+                    .options = LODAnimator_OPTION_1_Show_LOD_on_Unload
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+        }
+
+        //Demolition Caves
+        {
+            //Don't load the cutscene SharpClaw's DFbarrel when revisiting after the cutscene
+            //(Since this barrel unloads when you enter the whirlpool cave, unlike the DFbarrelcreator's ones)
+            {
+                DFBarrel_Setup* seqBarrel = GET_MAPS_OBJECT(discoveryFalls, 0x00002115);
+                
+                //Remove from objGroup, since it can unload out of Krystal's hands if you carry it into the whirlpool cave
+                seqBarrel->base.loadFlags = OBJSETUP_LOAD_MAIN; 
+                seqBarrel->base.loadDistance = FADE_DISTANCE(640); //Far enough to stay loaded when it drifts to the distant side of the whirlpool
+
+                //Don't appear on revisit
+                seqBarrel->gamebitDisable = BIT_DF_Played_Seq_002E_Demolition_Cave_SharpClaw_Antics;
+            }
+
+            //Fix floating crate in one of the demolition cul-de-sacs
+            {
+                ObjSetup* bigCrate = GET_MAPS_OBJECT(discoveryFalls, 0x42e64);
+                bigCrate->y = 435;
+            }
+
+            //Don't load `DF_ObjGroup11_Shrine_Door` on the way into the Whirlpool Cave (no need, due to LOD)
+            //Unload command can stay though, because the Shrine Switch cutscene activates the door objGroup
+            {
+                Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x0004234d);
+                EMPTY_TRIGGER_COMMAND(plane, 4); //Only remove load command, not unload
+            }
+        }
+        
+        //Whirlpool Cave
+        {
+            //Add HitAnimator for the water flowing below the whirlpool
+            {
+                HitAnimator_Setup hitAnimator = {
+                    .base = {
+                        .objId = OBJ_HitAnimator,
+                        .actExclusions1 = 0,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup9_Whirlpool_Cave_HitAnimator,
+                        .fadeDistance = 32,
+                    },
+                    COORDS_SETUP(-2362, 407, -1511),
+                    .mode = HITANIMATOR_MODE_SHAPE_ON,
+                    .gamebitActivate = BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished,
+                    .blocksAnimatorID = 7
+                };
+
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &hitAnimator, sizeof(hitAnimator));
+            }
+
+            //Move last destructible wall's HitAnimator and DFdebris3 into Whirlpool Cave objGroup, 
+            //to avoid unloading before the explosion finishes playing out (the unload TriggerPlane for their
+            //default objGroup is positioned just beyond the wall, so they could vanish at soon as you stepped through)
+            {
+                u32 wallExplodeUIDs[] = {
+                    0x00002c02, //HitAnimator
+                    0x00002c0a  //DFdebris3
+                };
+                for (u32 i = 0; i < ARRAYCOUNT(wallExplodeUIDs); i++) {
+                    ObjSetup* explodeWallSetup = GET_MAPS_OBJECT(discoveryFalls, wallExplodeUIDs[i]);
+                    explodeWallSetup->mapObjGroup = DF_ObjGroup9_Whirlpool_Cave_HitAnimator;
+                }
+            }
+
+            //Add DFdebris3 to the whirlpool wall, so it doesn't just instantly vanish
+            {
+                CFExplodeWall_CustomSetup dfDebris = {
+                    .base = {
+                        .objId = OBJ_DFdebris3,
+                        .actExclusions1 = 0,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup9_Whirlpool_Cave_HitAnimator,
+                        .fadeDistance = 32,
+                    },
+                    COORDS_SETUP(-1988.434, 385, -1639.172),
+                    .pieceCount = 4,
+                    .yaw = DEGREES_TO_ANGLE16(4),
+                    .displacementOrigin = VEC3F(20, -7, -15),
+                    .explosionPower = 800,
+                    .floorOffset = 0,
+                    .acceleration = -1,
+                    .lifetimeMax = 200,
+                    .gamebitFinished = NO_GAMEBIT,
+                    .gamebitExplode = BIT_DF_Whirlpool_Cave_Wall_Demolished,
+                    .options = CFExplodeWall_CUSTOMOPTION_Use_Default_Explosion_Sound | 
+                               CFExplodeWall_CUSTOMOPTION_Camera_Shake | 
+                               CFExplodeWall_CUSTOMOPTION_No_Falloff_On_Piece_Sounds
+                };
+
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &dfDebris, sizeof(dfDebris));
+            }
+
+            //Add VisAnimator showing the whirlpool cave's inner water 
+            {
+                VisAnimator_Setup visAnimator = {
+                    .base = {
+                        .objId = OBJ_VisAnimator,
+                        .actExclusions1 = 0,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup8_Whirlpool_Cave,
+                        .fadeDistance = 30,
+                    },
+                    COORDS_SETUP(-2014.160, 570, -1639.186),
+                    .animatorID1 = 4,
+                    .gamebitID = BIT_ALWAYS_0,
+                    .initialVisibility = TRUE
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &visAnimator, sizeof(visAnimator));
+            }
+
+            //Add a TriggerPlane to manage objGroups, just in case the player clips out through the "window" of the cave
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = 50,
+                        .fadeDistance = 50,
+                    },
+                    COORDS_SETUP(-1927.434, 440, -1673.172),
+                    .rotationY = TRIGGER_YAW(90),
+                    .rotationX = 0,
+                    .sizeX = TRIGGER_SCALE(0.85),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                    .bitFlagID = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE(DF_ObjGroup8_Whirlpool_Cave, &plane, 0, 1);
+                DIRECTIONAL_OBJGROUP_TOGGLE(DF_ObjGroup9_Whirlpool_Cave_HitAnimator, &plane, 2, 3);
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(DF_ObjGroup3_Shrine_Exterior, &plane, 4, 5);
+                DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(DF_ObjGroup11_Shrine_Door, &plane, 6, 7);
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+        }
+
+        //Shrine Waterfall Rapids
+        {
+            //Block texture scrollers
+            {
+                //Add TexScroll2 for the top of the waterfall
+                //(the faces just inside the rapids' Block didn't have a local TexScroll2 of their own)
+                {
+                    TexScroll2_Setup scroll = {
+                        .base = {
+                            .objId = OBJ_texscroll2,
+                            .loadFlags = OBJSETUP_LOAD_CAMERA,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = FADE_DISTANCE(640 * 2),
+                            .fadeDistance = FADE_DISTANCE(640)
+                        },
+                        COORDS_SETUP(-984.608, 538.485, -1084.027),
+                        .textureIndex = 0x17,
+                        .blendTextureIndex = -1,
+                        .vSpeedA = -10
+                    };
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &scroll, sizeof(scroll));
+                }
+
+                //Adjust the rapids waterfall's TexScroll2 so it loads from further away
+                {
+                    TexScroll2_Setup* rapids = GET_MAPS_OBJECT(discoveryFalls, 0x0031e55);
+                    rapids->base.loadFlags = OBJSETUP_LOAD_CAMERA;
+                    rapids->base.loadDistance = FADE_DISTANCE(640 * 2);
+                    rapids->blendTextureIndex = -1; //Clear reference to old water texture (from earlier art pass maybe?)
+                }
+
+                //Adjust the rapids waterfall's TexScroll2 so it loads from further away
+                //(needs to be seen from as far as the Whirlpool Cave's "window")
+                {
+                    TexScroll2_Setup* rapidsWaterfall = GET_MAPS_OBJECT(discoveryFalls, 0x00031e50);
+                    rapidsWaterfall->base.loadFlags = OBJSETUP_LOAD_CAMERA;
+                    rapidsWaterfall->base.loadDistance = FADE_DISTANCE(640 * 2);
+                    rapidsWaterfall->blendTextureIndex = -1; //Clear reference to old water texture (from earlier art pass maybe?)
+                }
+            }
+
+            //Add LOD for the distant shrine area
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_CAMERA,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(960),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1278, 562, -921),
+                    .animatorID = 10,
+                    .gridOffsetZ = -1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Don't load/unload `DF_ObjGroup9_Whirlpool_Cave_HitAnimator` when passing over the top of the waterfall (no need)
+            {
+                Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x00030aa7);
+                EMPTY_TRIGGER_COMMAND(plane, 2); 
+                EMPTY_TRIGGER_COMMAND(plane, 3);
+            }
+        }
+
+        //Tweak Kyte's out-of-bounds curves (it seems like Rare had yet to move them after updating the shape of the river bend)
+        //Still a bit janky-looking because of the curve tangents, but at least she doesn't fly clean through the wall!
+        //TODO: polish the curve tangents once they're better understood
+        {
+            ObjSetupTweak kyteCurvesOOB[] = {
+                { .uID = 0x00032e7c, VEC3F(-985.725, 554.922, -1144.031) },
+                { .uID = 0x00032e82, VEC3F(-978.070, 551.190, -1271.742) },
+                { .uID = 0x00032e83, VEC3F(-922.070, 551.190, -1215.742) },
+                { .uID = 0x00032e84, VEC3F(-866.070, 551.190, -1271.742) },
+                { .uID = 0x00032e85, VEC3F(-922.070, 551.190, -1327.742) },
+                { .uID = 0x00032e7d, VEC3F(-1043.291, 580.922, -1115.812) },
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(kyteCurvesOOB); i++) {
+                CurveSetup* curve = GET_MAPS_OBJECT(discoveryFalls, kyteCurvesOOB[i].uID);
+                curve->pos.x = kyteCurvesOOB[i].coords.x;
+                curve->pos.y = kyteCurvesOOB[i].coords.y;
+                curve->pos.z = kyteCurvesOOB[i].coords.z;
+            }
+        }
+    }
+
+    //Shrine Area
+    {
+        //Move Whirlpool Cave waterfall's texscroll into the Shrine exterior objGroup
+        {
+            TexScroll2_Setup* texScroll = GET_MAPS_OBJECT(discoveryFalls, 0x00031f07);
+            texScroll->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+            texScroll->base.mapObjGroup = DF_ObjGroup3_Shrine_Exterior;
+        }
+        
+        //Delete Rare's secondary Whirlpool Cave waterfall texscroll, 
+        //since there's already one targetting this textureID in this block
+        {
+            reasset_map_objects_delete(discoveryFalls, reasset_base_id(0x00031e4f));
+        }
+
+        //Add HitAnimator for the reverse side of the Whirlpool Cave's destructible wall
+        {
+            HitAnimator_Setup hitAnimator = {
+                .base = {
+                    .objId = OBJ_HitAnimator,
+                    .actExclusions1 = 0,
+                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .mapObjGroup = DF_ObjGroup3_Shrine_Exterior,
+                    .fadeDistance = 32,
+                },
+                COORDS_SETUP(-1772.884, 398.895, -1682.142),
+                .mode = HITANIMATOR_MODE_SHAPE_OFF,
+                .gamebitActivate = BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished,
+                .blocksAnimatorID = 3
+            };
+
+            reasset_map_objects_set(discoveryFalls, 
+                reasset_auto_id(dinomodNs), &hitAnimator, sizeof(hitAnimator));
+        }
+
+        //Replace the Whirlpool Cave waterfall's HitAnimator with a VisAnimator
+        //(fixes a bug where it used to become solid terrain!)
+        {
+            VisAnimator_Setup* visAnimator = GET_MAPS_OBJECT(discoveryFalls, 0x00032f62);
+            visAnimator->base.objId = OBJ_VisAnimator;
+            bzero(((u8*)visAnimator) + sizeof(ObjSetup), sizeof(VisAnimator_Setup) - sizeof(ObjSetup));
+            visAnimator->animatorID1 = 1;
+            visAnimator->gamebitID = BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished;
+            visAnimator->initialVisibility = FALSE;
+        }
+
+        //View into Whirlpool Cave
+        {
+            //Add VisAnimator hiding the whirlpool cave's light beams
+            {
+                VisAnimator_Setup visAnimator = {
+                    .base = {
+                        .objId = OBJ_VisAnimator,
+                        .actExclusions1 = 0,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup3_Shrine_Exterior,
+                        .fadeDistance = 30,
+                    },
+                    COORDS_SETUP(-2014.160, 500, -1639.186),
+                    .animatorID1 = 6,
+                    .gamebitID = BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished,
+                    .initialVisibility = TRUE
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &visAnimator, sizeof(visAnimator));
+            }
+
+            //Add VisAnimator hiding the whirlpool cave's inner water 
+            //(since it can flicker vertically when the whirlpool objGroup and its XYZAnimator are unloaded)
+            {
+                VisAnimator_Setup visAnimator = {
+                    .base = {
+                        .objId = OBJ_VisAnimator,
+                        .actExclusions1 = 0,
+                        .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .mapObjGroup = DF_ObjGroup3_Shrine_Exterior,
+                        .fadeDistance = 30,
+                    },
+                    COORDS_SETUP(-2014.160, 540, -1639.186),
+                    .animatorID1 = 4,
+                    .gamebitID = BIT_ALWAYS_1,
+                    .initialVisibility = TRUE
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &visAnimator, sizeof(visAnimator));
+            }
+        }
+
+        //LODs
+        {
+            //Add LOD for the climb back up from the shrine (viewed from Whirlpool Cave "window")
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_CAMERA,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(640),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1772.884, 431.895, -1682.142),
+                    .animatorID = 10,
+                    .gridOffsetZ = +1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Add LOD for the rapids (viewed from far side of shrine exterior area, or from whirlpool cave)
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_CAMERA,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(1280),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1279, 431.895, -1682.142),
+                    .animatorID = 10,
+                    .gridOffsetZ = +1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Add LOD for the shrine interior (viewed from whirlpool cave, or just barely from exit climb block)
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_CAMERA,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(1280),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1279, 401.895, -1682.142),
+                    .animatorID = 11,
+                    .gridOffsetX = +1,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Add LOD for the shrine door (viewed from whirlpool cave)
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_CAMERA,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(1280),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1279, 370.895, -1682.142),
+                    .animatorID = 12,
+                    .gridOffsetX = +1,
+                    .gamebitDeactivate = BIT_DF_Shrine_Door_Opens, //Disappear when the door's open
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+
+            //Add LOD for the whirlpool cave interior
+            {
+                LODAnimator_Setup lod = {
+                    .base = {
+                        .objId = OBJ_LODAnimator,
+                        .loadFlags = OBJSETUP_LOAD_CAMERA,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(1280),
+                        .fadeDistance = 50
+                    },
+                    COORDS_SETUP(-1281, 370.895, -1682.142),
+                    .animatorID = 11,
+                    .gridOffsetX = -1,
+                    .gamebitActivate = BIT_DF_Whirlpool_Cave_Wall_Demolition_Finished,
+                    .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+                };
+                reasset_map_objects_set(discoveryFalls, 
+                    reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+            }
+        }
+
+        //Adjust shrine door pieces, centring them exactly
+        //(Also prevents bug where the other door pieces were at random nearby positions/angles for a single frame -
+        // they used to pop into place as the SeqDoor objSeq kicked in! Now they're in the correct position from the start)
+        {
+            u32 shrineDoorUIDs[] = {
+                0x1F84,
+                0x31A3B,
+                0x31A48,
+                0x31A49
+            };
+            for (u32 i = 0; i < ARRAYCOUNT(shrineDoorUIDs); i++) {
+                SeqDoor_Setup* doorPiece = GET_MAPS_OBJECT(discoveryFalls, shrineDoorUIDs[i]);
+                doorPiece->base.x = -840.968;
+                doorPiece->base.y = 273.301;
+                doorPiece->base.z = -1719.032;
+                doorPiece->yaw = DEGREES_TO_ANGLE8(315);
+
+                //Store gamebit on child pieces too, so they can unload if the door's open on setup
+                doorPiece->gamebitOpenA = BIT_DF_Shrine_Door_Opens;
+                doorPiece->gamebitRestoreState = BIT_DF_Shrine_Door_Opened;                
+            }
+        }
+
+        //Fix midair save point at shrine entrance
+        {
+            Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x000022c9);
+            plane->base.y = 218;
+            plane->sizeX = TRIGGER_SCALE(0.916); //Scale up so it still fully covers the entrance after moving it down
+            
+            //Add a condition too, since this TriggerPlane is exactly at the door and I'm worried it could be activated 
+            //before actually opening the door under some circumstances, causing Kyte to fly through it!
+            plane->conditionBitFlagIDs[0] = BIT_DF_Shrine_Door_Opens; 
+        }
+
+        //Don't let Kyte fly through the Shrine door until it's actually open
+        {
+            u32 kyteDoorwayUIDs[] = {
+                0x00042dfe,
+                0x00042dff
+            };
+            for (u32 i = 0; i < ARRAYCOUNT(kyteDoorwayUIDs); i++) {
+                CurveSetup* flyCurve = GET_MAPS_OBJECT(discoveryFalls, kyteDoorwayUIDs[i]);
+                flyCurve->type22.unk30 = BIT_DF_Shrine_Door_Opens;
+            }
+        }
+
+        //Play Discovery Falls' music when leaving the shrine 
+        //(so you don't trek back in silence after the Test!)
+        {
+            //Add a new TriggerPlane instead of reusing the post-shrine cutscene activation one,
+            //since the player might leave the shrine before collecting the spirit
+            Trigger_Setup plane = {
+                .base = {
+                    .objId = OBJ_TriggerPlane,
+                    .loadFlags = OBJSETUP_LOAD_MAIN,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = 50,
+                    .fadeDistance = 50,
+                },
+                COORDS_SETUP(-690, 218, -1766.848),
+                .rotationY = TRIGGER_YAW(90),
+                .rotationX = 0,
+                .sizeX = TRIGGER_SCALE(0.5625),
+                .sizeY = 0x10,
+                .sizeZ = 0x10,
+                .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                .bitFlagID = NO_GAMEBIT
+            };
+            ENTER_PLAY_MUSIC(0xD, &plane, 0);
+
+            reasset_map_objects_set(discoveryFalls, 
+                reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+        }
+
+        //Exit Climb
+        {
+            //Add StaticCameras
+            {
+                StaticCamera_Setup staticCams[] = {
+                    { COORDS_SETUP(-1679.350, 679.964, -1156.490), .cameraID = 101, .fov = 80, .flags = CamStatic_LOOK_AT },
+                    { COORDS_SETUP(-1679.350, 365.964, -1156.490), .cameraID = 102, .fov = 80, .flags = CamStatic_LOOK_AT },
+                };
+
+                for (u32 i = 0; i < ARRAYCOUNT(staticCams); i++) {
+                    StaticCamera_Setup* cam = &staticCams[i];
+                    cam->base.objId = OBJ_StaticCamera;
+                    cam->base.loadFlags = OBJSETUP_LOAD_MAIN;
+                    cam->base.fadeFlags = OBJSETUP_FADE_CAMERA;
+                    cam->base.loadDistance = 0xFF;
+                    cam->base.fadeDistance = 50;
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), cam, sizeof(StaticCamera_Setup));
+                }
+            }
+
+            //Add TriggerPlanes activating the cameras
+            {
+                //Top of climb
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-1709.196, 611, -1045.470),
+                        .rotationY = TRIGGER_YAW(11.25),
+                        .rotationX = 0,
+                        .sizeX = TRIGGER_SCALE(0.795),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
+                    };
+                    ENTER_CAMERAACTION(1, 101, &plane, 0); //Use CameraStatic 101
+                    EXIT_CAMERAACTION(0, 1, &plane, 1); //Use CameraNormal
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+
+                //Middle of climb
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-1688.045, 415.933, -1125.836),
+                        .rotationY = TRIGGER_YAW(90),
+                        .rotationX = DEGREES_TO_ANGLE8(267),
+                        .sizeX = TRIGGER_SCALE(0.56),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
+                    };
+                    ENTER_CAMERAACTION(1, 102, &plane, 0); //Use CameraStatic 102
+                    EXIT_CAMERAACTION(1, 101, &plane, 1); //Use CameraStatic 101
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+
+                //Base of climb
+                {
+                    Trigger_Setup plane = {
+                        .base = {
+                            .objId = OBJ_TriggerPlane,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 50,
+                            .fadeDistance = 50,
+                        },
+                        COORDS_SETUP(-1693.514, 284, -1129.321),
+                        .rotationY = TRIGGER_YAW(180),
+                        .rotationX = DEGREES_TO_ANGLE8(22),
+                        .sizeX = TRIGGER_SCALE(0.85),
+                        .sizeY = 0x10,
+                        .sizeZ = 0x10,
+                        .conditionBitFlagIDs[0] = NO_GAMEBIT,
+                        .bitFlagID = NO_GAMEBIT
+                    };
+                    ENTER_CAMERAACTION(1, 102, &plane, 0); //Use CameraStatic 102
+                    EXIT_CAMERAACTION(0, 1, &plane, 1); //Use CameraNormal
+                    reasset_map_objects_set(discoveryFalls, 
+                        reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+                }
+            }
+
+            //Don't load/unload `DF_ObjGroup9_Whirlpool_Cave_HitAnimator` halfway through the climb (no need)
+            {
+                Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x00030ee9);
+                EMPTY_TRIGGER_COMMAND(plane, 2); 
+                EMPTY_TRIGGER_COMMAND(plane, 3);
+            }
+        }
+    }
+
+    //DF_Lanterns 
+    {
+        //Align more exactly with DFdockpoints and torches
+        {
+            ObjSetupTweak lanternUIDs[] = {
+                //Dockpoints
+                { .uID = 0x00040b8b, VEC3F(105, 60, 1120),   .objGroup = OBJGROUP_TWEAK(DF_ObjGroup2_Lower_Falls),             .fadeDistance = 720 }, //First dockpoint in Lower Falls
+                { .uID = 0x00040b8e, VEC3F(-448, 59, 401),   .objGroup = OBJGROUP_TWEAK(DF_ObjGroup2_Lower_Falls),             .fadeDistance = 720 }, //Lower Falls, near where you meet the HighTop
+                { .uID = 0x00040b81, VEC3F(235, 361, -248),  .objGroup = OBJGROUP_TWEAK(DF_ObjGroup7),  .fadeDistance = 720 }, //Middle Falls, below toxic cave entrance
+                { .uID = 0x00040b8f, VEC3F(-339, 363, -86),  .objGroup = OBJGROUP_TWEAK(DF_ObjGroup7),  .fadeDistance = 720 }, //Middle Falls, just after climbing up near foodbag cave
+                { .uID = 0x00040b90, VEC3F(-652, 361, -316), .objGroup = OBJGROUP_TWEAK(DF_ObjGroup14_Middle_and_Upper_Falls),  .fadeDistance = 720 }, //Middle Falls, below turbine
+                { .uID = 0x00040b91, VEC3F(-1575, 582, -105), .objGroup = OBJGROUP_TWEAK(DF_ObjGroup14_Middle_and_Upper_Falls), .fadeDistance = 720 },  //Upper Falls, near turbine
+                { .uID = 0x00040b92, VEC3F(-1374, 582, -723), .objGroup = OBJGROUP_TWEAK(DF_ObjGroup14_Middle_and_Upper_Falls), .fadeDistance = 720 },  //Upper Falls, near rapids
+                { .uID = 0x00040b94, VEC3F(-1189, 223, -1801), .objGroup = OBJGROUP_TWEAK(DF_ObjGroup3_Shrine_Exterior), .fadeDistance = 720 }, //Outside Shrine
+                { .uID = 0x00040b93, VEC3F(-1483, 223, -1413), .objGroup = OBJGROUP_TWEAK(DF_ObjGroup3_Shrine_Exterior), .fadeDistance = 720 }, //Below Shrine area exit climb
+                { .uID = 0x00040b88, VEC3F(-1045, 71, 826), .fadeDistance = 320 },    //Tunnel to MMP
+                { .uID = 0x00040b8c, VEC3F(288, 60, 1693), .objGroup = OBJGROUP_TWEAK(DF_ObjGroup2_Lower_Falls), .fadeDistance = 320 },    //Near BWC exit
+                
+                //Torches
+                { .uID = 0x00040b87, VEC3F(-818.746, 328.696, 87.383) },     //Foodbag caves (top)
+                { .uID = 0x00040b86, VEC3F(-1259.118, 252.694, 229.900) },   //Foodbag caves (halfway down)
+                { .uID = 0x00040b84, VEC3F(-1068.437, 176.716, 570.38) },    //Foodbag caves (near bottom)
+                { .uID = 0x00040b98, VEC3F(987.016, 226.986, -855.341) },    //Mole caves (upper)
+                { .uID = 0x00040b97, VEC3F(986.966, 225.046, -1062.795) },   //Mole caves (upper)
+                { .uID = 0x00040b99, VEC3F(718.528, 252.600, -747.098) },    //Mole caves (SharpClaw hideaway)
+                { .uID = 0x00040b9c, VEC3F(1067.628, 33.321, -708.101) },    //Mole caves (middle dig spot)
+                { .uID = 0x00040b9d, VEC3F(1252.055, 33.299, -957.935) },    //Mole caves (first dig spot)
+                { .uID = 0x00040ba2, VEC3F(1062.591, 22.345, -1014.798) },   //Mole caves (outside first dig spot)
+                { .uID = 0x00040ba0, VEC3F(894.912, 22.568, -959.711) },     //Mole caves (behind ladder)
+                { .uID = 0x00040b9b, VEC3F(772.841, 33.429, -805.894) },     //Mole caves (above Shrine switch)
+                { .uID = 0x00040b9f, VEC3F(959.257, 22.402, -871.474) },     //Mole caves (between middle and Shrine switch dig spots)
+                { .uID = 0x00042afa, VEC3F(-2073.483, 673.366, -97.014) },   //Stalactite cave
+                { .uID = 0x00042afc, VEC3F(-2525.322, 675.686, -337.255) },  //Stalactite cave
+                { .uID = 0x00042afd, VEC3F(-2186.947, 765.956, -365.047) },  //Stalactite cave
+                { .uID = 0x00042aff, VEC3F(-2005.020, 533.803, -980.717) },  //Demolition caves
+                { .uID = 0x00042b00, VEC3F(-2120.164, 548.387, -1205.157) }, //Demolition caves
+                { .uID = 0x00042b01, VEC3F(-2231.783, 609.781, -1058.930) }, //Demolition caves
+                { .uID = 0x00042b02, VEC3F(-2320.693, 604.596, -760.758) },  //Demolition caves
+                { .uID = 0x00040b69, VEC3F(746.927, 335.763, -377.932) },    //Toxic cave
+                { .uID = 0x00040b6b, VEC3F(1217.160, 200.317, -427.455) },   //Toxic cave
+                { .uID = 0x00040b6d, VEC3F(758.211, 314.767, -118.277) },    //Toxic cave
+                { .uID = 0x00040b6a, VEC3F(963.978, 268.028, -572.901) },    //Toxic cave
+                { .uID = 0x00040b89, VEC3F(-843.840, 57.359, 1067.767), .objGroup = OBJGROUP_TWEAK(DF_ObjGroup_Tunnel_to_MMP), .fadeDistance = 320 }, //Tunnel to MMP
+                { .uID = 0x00040b8a, .objGroup = OBJGROUP_TWEAK(DF_ObjGroup_Tunnel_to_MMP), .fadeDistance = 320 }, //Tunnel to MMP
+            };
+
+            //(Switched off the distance boost, since I worry it's just distracting, 
+            //plus the occlusion is a little bit unreliable!)
+// #ifndef DINOMOD_ROM_PATCH
+//             #define INCREASE_LANTERN_DISTANCE 
+// #endif
+
+            for (u32 i = 0; i < ARRAYCOUNT(lanternUIDs); i++) {
+                DF_Lantern_Setup* lantern = GET_MAPS_OBJECT(discoveryFalls, lanternUIDs[i].uID);
+                if (lanternUIDs[i].coords.x || lanternUIDs[i].coords.y || lanternUIDs[i].coords.z) {
+                    lantern->base.x = lanternUIDs[i].coords.x;
+                    lantern->base.y = lanternUIDs[i].coords.y;
+                    lantern->base.z = lanternUIDs[i].coords.z;
+                }
+
+                //Increase the draw distance of some lanterns (mostly on dockpoints)
+                /* 
+                    NOTE: recomp only for now, because the lantern occlusion checks are expensive!
+                    Staggering the occlusion checks (like the WCTrexStatue sparkle patches) may make it okay for N64,
+                    or taking an approach like switching off the "draw over everything" partFX flag and just nudging
+                    the partFX's draw origin slightly towards the current camera position (so it gets occluded 
+                    automatically but still draws "over" the base dockpoint/torch.)
+                */
+#ifdef INCREASE_LANTERN_DISTANCE
+                if (lanternUIDs[i].objGroup) {
+                    lantern->base.loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                    lantern->base.mapObjGroup = lanternUIDs[i].objGroup & 0xFF;
+                }
+
+                if (lanternUIDs[i].fadeDistance) {
+                    lantern->flags |= DF_Lantern_FLAG_20_Use_Fade_Distance;
+                    if (lanternUIDs[i].fadeDistance > 0xFF) {
+                        lantern->flags |= DF_Lantern_FLAG_40_Quadruple_Fade_Distance;
+                        lantern->base.fadeDistance = lanternUIDs[i].fadeDistance / 4;
+                    } else {
+                        lantern->base.fadeDistance = lanternUIDs[i].fadeDistance;
+                    }
+                }
+#endif
+            }
+        }
+
+        //Centre sprite
+        {
+            ReAssetID tex0_0294_centred_ID = reasset_base_id(294);
+            reasset_textures_set(TEX_BANK_0, tex0_0294_centred_ID, 1, tex0_0294_centred, tex0_0294_centred_end - tex0_0294_centred);
+        }
     }
 }
 
@@ -1977,43 +6210,426 @@ static void discovery_falls_hit_edits(void) {
     ReAssetID dfTrkblk = reasset_base_id(11);
     const int dfTrkblkBase = 319;
 
-    HitsLine *hit;
+    //Approach (from SwapStone Circle)
+    {
+        //Adjust angle of HITS, so the crawl back to SwapStone Circle doesn't initially point the wrong way
+        {
+            TrackLine* crawlLine = reasset_hits_get(dfTrkblk, reasset_base_id(336 - dfTrkblkBase), reasset_base_id(16));
+            crawlLine->Ax = 640; 
+            crawlLine->Ay = 167; 
+            crawlLine->Az = 123;
+            
+            crawlLine->Bx = 629; 
+            crawlLine->By = 167; 
+            crawlLine->Bz = 82;
+        }
 
-    // Rough edits to make it possible to go down to the waterfall leading to the shrine. These hits
+        //Secluded Waterfall Ascent
+        {
+            TrackLine block0340[] = {
+                { HITS_A(205, 79, 67),   HITS_B(262, 79, 56),   .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | Player_Ignores_Line | 0x2), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(262, 79, 56),   HITS_B(290, 79, 77),   .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | Player_Ignores_Line | 0x2), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(290, 71, 77),   HITS_B(317, 65, 129),  .heightUnified = 133, .settingsA = (TrackLine_SETTINGA_Unified_Height | Wall_Climb_Stop_at_Top), .settingsB = HITS_Wall_Climb, .animatorID = NO_ANIMATOR },
+                { HITS_A(438, 152, 175), HITS_B(429, 158, 95),  .heightA = 127, .heightB = 123, .settingsA = Wall_Climb_Stop_at_Top, .settingsB = HITS_Wall_Climb, .animatorID = NO_ANIMATOR },
+                { HITS_A(454, 247, 234), HITS_B(438, 244, 175), .heightA = 33, .heightB = 35, .settingsA = Wall_Climb_Stop_at_Top, .settingsB = HITS_Wall_Climb, .animatorID = NO_ANIMATOR },
+                { HITS_A(68, 66, 0),     HITS_B(61, 71, 54),    .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | Player_Ignores_Line | 0x2), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(290, 61, 77),   HITS_B(373, 66, 0),    .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | Player_Ignores_Line | 0x2), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(61, 71, 54),    HITS_B(50, 71, 99),    .heightUnified = 62, .settingsA = (TrackLine_SETTINGA_Unified_Height | Wall_Climb_Stop_at_Top), .settingsB = HITS_Wall_Climb, .animatorID = NO_ANIMATOR },
+                { HITS_A(50, -10, 99),   HITS_B(17, -10, 128),  .heightUnified = 143, .settingsA = (TrackLine_SETTINGA_Unified_Height | Wall_Climb_Stop_at_Top), .settingsB = HITS_Wall_Climb, .animatorID = NO_ANIMATOR },
+                { HITS_A(61, 53, 54),    HITS_B(205, 61, 67),   .heightUnified = 63, .settingsA = (TrackLine_SETTINGA_Unified_Height | Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                
+                /*  End line of the first rock climb while ascending to secluded waterfall
+
+                    The left endpoint was moved away from the waterfall wall slightly, since you could easily clip through the waterfall wall by pressing
+                    against it and holding left while dropping down from the rock climb, due to the acute angle between the rock climb wall and the waterfall.
+
+                    The left endpoint was also moved very slightly out from the wall to adjust the angle of the climb,
+                    so that the camera wouldn't end up inside the waterfall wall during the climb (especially in widescreen!)
+                */
+                { HITS_A(317, 158, 129), HITS_B(326, 153, 182), .heightA = 40, .heightB = 39, .settingsA = Wall_Climb_Stop_at_Top, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Wall_Climb), .animatorID = NO_ANIMATOR },
+                
+                //Add barrier HITS for two waterfall walls you can be hugging as you drop down at the end of a rock climb
+                //(Helps reduce the chances of clipping clean through the wall if you hold in the direction of the wall while letting go)
+                { HITS_A(317, 66, 129),  HITS_B(429, 66, 95),   .heightUnified = 92, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(325, 152, 202), HITS_B(438, 152, 175), .heightUnified = 92, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(block0340); i++) {
+                reasset_hits_set(dfTrkblk, reasset_base_id(340 - dfTrkblkBase), reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0340[i]);
+            }
+        }
+    }
+
+    //Lower Falls
+    {
+        //Foodbag cave
+        {
+            TrackLine block0333[] = {
+                { HITS_A(540, -44, 400), HITS_B(540, -44, 239), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(540, -44, 400), HITS_B(540, -44, 239), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(601, 246, 363), HITS_B(640, 255, 363), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(475, 247, 260), HITS_B(475, 247, 379), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(475, 247, 379), HITS_B(504, 247, 402), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(504, 247, 402), HITS_B(530, 247, 431), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(530, 247, 431), HITS_B(563, 247, 444), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(244, 247, 28),  HITS_B(248, 247, 68), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump), .animatorID = NO_ANIMATOR },
+                { HITS_A(140, -44, 530), HITS_B(293, -44, 579), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(46, -44, 400),  HITS_B(140, -44, 530), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(46, -44, 239), HITS_B(46, -44, 400), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(140, -44, 109), HITS_B(46, -44, 239), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(293, -44, 60),  HITS_B(140, -44, 109), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(446, -44, 109), HITS_B(293, -44, 60), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(540, -44, 239), HITS_B(446, -44, 109), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(446, -44, 530), HITS_B(540, -44, 400), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(293, -44, 579), HITS_B(446, -44, 530), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+                { HITS_A(474, -44, 335), HITS_B(473, -44, 312), .heightUnified = 291, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = HITS_Ladder, .animatorID = 34 },
+                { HITS_A(248, 247, 68),  HITS_B(276, 247, 96), .heightA = 40, .heightB = 40, .settingsA = 0xE, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump), .animatorID = NO_ANIMATOR },
+                { HITS_A(276, 247, 96),  HITS_B(278, 247, 132), .heightA = 40, .heightB = 40, .settingsA = 0xE, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump), .animatorID = NO_ANIMATOR },
+                { HITS_A(39, 173, 453),  HITS_B(76, 173, 437), .heightA = 40, .heightB = 40, .settingsA = 0xE, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump), .animatorID = NO_ANIMATOR },
+                { HITS_A(76, 173, 437),  HITS_B(94, 173, 402), .heightA = 40, .heightB = 40, .settingsA = 0xE, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump), .animatorID = NO_ANIMATOR },
+                { HITS_A(94, 173, 402),  HITS_B(128, 173, 389), .heightA = 40, .heightB = 40, .settingsA = 0xE, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump), .animatorID = NO_ANIMATOR },
+                
+                //Add lines for the sides/back of the ladder, so you can't walk through it
+                { HITS_A(475, -44, 308), HITS_B(475, -44, 338), .heightUnified = 100, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = 34 },
+                { HITS_A(475, -44, 338), HITS_B(474, -44, 335), .heightUnified = 100, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = 34 },
+                { HITS_A(473, -44, 312), HITS_B(475, -44, 308), .heightUnified = 100, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = 34 },
+                
+                //Add precipice lines to the sections of the wooden platforms that were missing them (aside from the last platform, so you can just walk off)
+                { HITS_A(406, 247, 164), HITS_B(475, 247, 260), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(293, 247, 128), HITS_B(406, 247, 164), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(278, 247, 132), HITS_B(293, 247, 128), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(175, 173, 100), HITS_B(171, 173, 61), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(204, 173, 134), HITS_B(175, 173, 100), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(204, 173, 163), HITS_B(204, 173, 134), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(184, 173, 170), HITS_B(204, 173, 163), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(118, 173, 263), HITS_B(184, 173, 170), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(119, 173, 376), HITS_B(118, 173, 263), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+                { HITS_A(128, 173, 389), HITS_B(119, 173, 376), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(block0333); i++) {
+                reasset_hits_set(dfTrkblk, reasset_base_id(333 - dfTrkblkBase), reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0333[i]);
+            }
+        }
+    }
+
+    //Middle Falls
+    {
+        /* - Add clamber lines to the sides of the jetty under the turbine 
+           - Try to avoid the log ending up on the jetty (or worse: clipped under/inside it!) by raising the height of the log lines surrounding it
+           - Don't let the log pass through the turbine - Rare had a HITS line here, but it didn't affect the log
+           - Allow the player onto the little island in between the two waterfalls, just on the approach angles that have less steep terrain 
+           - Allow the player step onto the turbine lever platform from below
+           - Don't let the player fall through the tiny gap between the turbine and the turbine lever platform (since falling directly down through here softlocks the player collision somehow!) 
+           - Let the player grab the rope point ledge if they don't quite land the jump from the cradle */
+        TrackLine block0329[] = {
+            { HITS_A(122, 280, 362), HITS_B(125, 280, 414), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(136, 280, 230), HITS_B(122, 280, 362), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(138, 280, 131), HITS_B(136, 280, 230), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(466, 505, 535), HITS_B(466, 505, 475), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(466, 505, 475), HITS_B(370, 505, 482), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(370, 505, 482), HITS_B(296, 505, 485), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(296, 505, 485), HITS_B(296, 505, 546), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(259, 326, 230), HITS_B(386, 326, 230), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(259, 326, 391), HITS_B(259, 326, 230), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(168, 326, 391), HITS_B(259, 326, 391), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(168, 384, 230), HITS_B(168, 326, 332), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(168, 326, 332), HITS_B(168, 326, 391), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(215, 375, 247), HITS_B(215, 384, 230), .heightA = 41, .heightB = 29, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(259, 384, 174), HITS_B(168, 384, 174), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(168, 384, 174), HITS_B(168, 384, 230), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(259, 384, 230), HITS_B(259, 384, 174), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(215, 384, 230), HITS_B(215, 393, 247), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(259, 396, 253), HITS_B(259, 384, 230), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = HITS_Jump_or_Precipice, .animatorID = NO_ANIMATOR },
+            { HITS_A(168, 326, 174), HITS_B(168, 326, 230), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(385, 326, 174), HITS_B(168, 326, 174), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(168, 326, 230), HITS_B(215, 326, 230), .heightUnified = 40, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(104, 507, 164), HITS_B(182, 503, 156), .heightA = 40, .heightB = 40, .settingsA = Player_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(240, 503, 18),  HITS_B(0, 514, 0),     .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(169, 608, 64),  HITS_B(169, 608, 13),  .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(65, 608, 64),   HITS_B(169, 608, 64),  .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(0, 567, 64),    HITS_B(65, 608, 64),   .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = HITS_Jump_or_Precipice, .animatorID = NO_ANIMATOR },
+            { HITS_A(215, 326, 230), HITS_B(215, 326, 240), .heightA = 53, .heightB = 53, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(245, 280, 0),   HITS_B(138, 280, 131), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(640, 280, 0),   HITS_B(245, 280, 0),   .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(125, 280, 414), HITS_B(174, 280, 546), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(640, 280, 174), HITS_B(640, 280, 230), .heightA = 60, .heightB = 60, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(588, 280, 121), HITS_B(640, 280, 174), .heightA = 60, .heightB = 60, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(527, 280, 93),  HITS_B(588, 280, 121), .heightA = 60, .heightB = 60, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(451, 280, 67),  HITS_B(527, 280, 93),  .heightA = 60, .heightB = 60, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(385, 280, 85),  HITS_B(451, 280, 67),  .heightA = 60, .heightB = 60, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(355, 280, 174), HITS_B(385, 280, 85),  .heightA = 60, .heightB = 60, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(138, 264, 174), HITS_B(355, 284, 174), .heightUnified = 284, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(640, 280, 230), HITS_B(582, 280, 282), .heightA = 60, .heightB = 60, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(582, 280, 282), HITS_B(451, 280, 335), .heightA = 60, .heightB = 60, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(451, 280, 335), HITS_B(387, 280, 320), .heightA = 60, .heightB = 60, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(387, 280, 320), HITS_B(355, 280, 230), .heightA = 60, .heightB = 60, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(355, 280, 230), HITS_B(259, 261, 230), .heightUnified = 284, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(259, 261, 230), HITS_B(258, 278, 393), .heightUnified = 284, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(258, 278, 393), HITS_B(125, 275, 391), .heightUnified = 284, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(0, 514, 471),   HITS_B(178, 502, 518), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(35, 514, 230),  HITS_B(104, 507, 164), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(29, 514, 316),  HITS_B(35, 514, 230),  .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(63, 509, 397),  HITS_B(29, 514, 316),  .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(146, 503, 410), HITS_B(63, 509, 397),  .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(174, 280, 546), HITS_B(640, 280, 497), .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(355, 264, 174), HITS_B(355, 264, 230), .heightUnified = 284, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(166, 499, 523), HITS_B(146, 500, 391), .heightUnified = 64, .settingsA = (TrackLine_SETTINGA_Unified_Height | 0x10), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(396, 280, 230), HITS_B(259, 280, 230), .heightA = 46, .heightB = 46, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(259, 280, 230), HITS_B(259, 280, 374), .heightA = 46, .heightB = 46, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(247, 280, 391), HITS_B(168, 280, 391), .heightA = 46, .heightB = 46, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(168, 280, 391), HITS_B(168, 280, 332), .heightA = 46, .heightB = 46, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(168, 280, 391), HITS_B(168, 280, 332), .heightA = 46, .heightB = 46, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(168, 280, 332), HITS_B(168, 280, 230), .heightA = 46, .heightB = 104, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(168, 280, 230), HITS_B(168, 280, 174), .heightA = 46, .heightB = 46, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(168, 280, 174), HITS_B(247, 280, 174), .heightA = 46, .heightB = 46, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(254, 280, 174), HITS_B(396, 280, 174), .heightA = 46, .heightB = 46, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(215, 326, 240), HITS_B(215, 326, 332), .heightA = 53, .heightB = 0, .settingsA = 0xE, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(164, 505, 391), HITS_B(110, 505, 391), .heightUnified = 12, .settingsA = (TrackLine_SETTINGA_Unified_Height | 0xE), .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(148, 516, 391), HITS_B(164, 516, 391), .heightA = 72, .heightB = 72, .settingsA = Vehicle_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(146, 503, 410), HITS_B(148, 503, 391), .heightA = 72, .heightB = 72, .settingsA = Vehicle_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(370, 465, 482), HITS_B(466, 465, 475), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Clamber_Up), .animatorID = NO_ANIMATOR },
+            { HITS_A(296, 465, 485), HITS_B(370, 465, 482), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Clamber_Up), .animatorID = NO_ANIMATOR },
+            { HITS_A(466, 465, 475), HITS_B(466, 465, 515), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = (TrackLine_SETTINGB_Nonsolid | HITS_Clamber_Up), .animatorID = NO_ANIMATOR },
+        };
+
+        for (u32 i = 0; i < ARRAYCOUNT(block0329); i++) {
+            reasset_hits_set(dfTrkblk, reasset_base_id(329 - dfTrkblkBase), reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0329[i]);
+        }
+    }
+
+    //Middle Falls - Toxic Cave
+    {
+        TrackLine* ladder;
+
+        //Scoot the exterior ladder out from the wall very slightly so Krystal's hands don't clip through it
+        ladder = reasset_hits_get(dfTrkblk, reasset_base_id(331 - dfTrkblkBase), reasset_base_id(7));
+        ladder->Ax = 316;
+        ladder->Bx = 316;
+
+        //Scoot the interior ladder out from the wall very slightly so Krystal's hands don't clip through it
+        ladder = reasset_hits_get(dfTrkblk, reasset_base_id(331 - dfTrkblkBase), reasset_base_id(8));
+        ladder->Ax = 554;
+        ladder->Bx = 554;
+    }
+
+    //Middle Falls - Mole Caves
+    {
+        TrackLine* line;
+        ReAssetID moleCave = reasset_base_id(326 - dfTrkblkBase);
+
+        //Fix barrier line that was floating slightly
+        line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(5));
+        line->Ax = 243; line->Ay = -14; line->Az = 354;
+        line->Bx = 257; line->By = -14; line->Bz = 373;
+
+        //Edit ladder height so you don't end the climb very slightly too high up
+        line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(16));
+        line->heightUnified = 205;
+
+        //Tweak crawl lines, so the initial direction more closely matches the actual crawl direction
+        line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(36));
+        line->Ax = 257; line->Ay = -14; line->Az = 373;
+        line->Bx = 269; line->By = -14; line->Bz = 389;
+        line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(37));
+        line->Ax = 258; line->Ay = -14; line->Az = 403;
+        line->Bx = 241; line->By = -14; line->Bz = 380;
+
+        line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(38));
+        line->Ax = 370; line->Ay = -14; line->Az = 423;
+        line->Bx = 389; line->By = -14; line->Bz = 416;
+        line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(39));
+        line->Ax = 396; line->Ay = -14; line->Az = 432;
+        line->Bx = 374; line->By = -14; line->Bz = 440;
+        
+        line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(41));
+        line->Ax = 452; line->Ay = -14; line->Az = 331;
+        line->Bx = 452; line->By = -14; line->Bz = 310;
+        line = reasset_hits_get(dfTrkblk, moleCave, reasset_base_id(42));
+        line->Ax = 469; line->Ay = -14; line->Az = 310;
+        line->Bx = 469; line->By = -14; line->Bz = 331;
+    }
+
+    // Edits to make it possible to go down to the waterfall leading to the shrine. These hits
     // in vanilla are for an older DF layout so this patch adjusts them so they don't block the path.
-    // TODO: replace with a more polished patch
     {
         ReAssetID waterfallRiverBlock = reasset_base_id(324 - dfTrkblkBase);
-        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(2));
-        hit->Bx = 237;
-        hit->Bz = 264;
-        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(3));
-        hit->Ax = 237;
-        hit->Az = 264;
 
-        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(5));
-        hit->Ax = 359;
-        hit->Az = 186;
-        hit->Bx = 372;
-        hit->Bz = 115;
+        TrackLine block0324[] = {
+            { HITS_A(0, 468, 450),    HITS_B(115, 468, 430), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(115, 468, 430),  HITS_B(193, 468, 371), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(193, 468, 371),  HITS_B(238, 468, 263), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(238, 468, 263),  HITS_B(343, 468, 196), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(343, 468, 196),  HITS_B(374, 468, 163), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(374, 468, 163),  HITS_B(369, 468, 118), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(369, 468, 118),  HITS_B(394, 468, 108), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(394, 468, 108),  HITS_B(428, 468, 108), .heightA = 65, .heightB = 65, .settingsA = Player_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(428, 468, 108),  HITS_B(427, 468, -0),  .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(85, 468, 220),   HITS_B(0, 468, 275),   .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(123, 468, 166), HITS_B(85, 468, 220),  .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(183, 468, 161), HITS_B(123, 468, 166), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(197, 468, 109), HITS_B(200, 468, 139), .heightA = 65, .heightB = 65, .settingsA = Player_Ignores_Line, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(200, 468, 139), HITS_B(183, 468, 161), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(256, 468, 81),  HITS_B(197, 468, 109), .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(295, 468, 0),   HITS_B(256, 468, 81),  .heightA = 65, .heightB = 65, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+        };
 
-        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(6));
-        hit->Ax = 372;
-        hit->Az = 115;
+        for (u32 i = 0; i < ARRAYCOUNT(block0324); i++) {
+            reasset_hits_set(dfTrkblk, waterfallRiverBlock, reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0324[i]);
+        }
+    }
 
-        reasset_hits_delete(dfTrkblk, waterfallRiverBlock, reasset_base_id(8));
-        reasset_hits_delete(dfTrkblk, waterfallRiverBlock, reasset_base_id(9));
-        reasset_hits_delete(dfTrkblk, waterfallRiverBlock, reasset_base_id(10));
+    //Shrine entrance 
+    {
+        /*  - Fix original collision being oddly unreliable in this area! Something to do with the shrine facade being modelled at 45 degrees, maybe?
+            - Add ledge step-ups/clambers. 
+            - Allow the log to get closer to dockpoint.
+            - Prevent log clipping through the wall while going down the shrine waterfall (if you steer way to the side).
+            - Prevent log entering the shrine if you careen down towards the entrance from the top of the rapids.
+        */
+        TrackLine block0321[] = {
+            { HITS_A(365, 100, 587), HITS_B(437, 86, 635), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(262, 94, 617), HITS_B(365, 100, 587), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(107, 94, 532), HITS_B(262, 94, 617), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(393, 113, 470), HITS_B(210, 92, 272), .heightUnified = 500, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(559, 100, 555), HITS_B(393, 113, 470), .heightUnified = 500, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(437, 86, 635), HITS_B(559, 100, 555), .heightUnified = 500, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(0, 90, 574), HITS_B(107, 94, 532), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(404, 218, 157), HITS_B(483, 218, 237), .heightA = 40, .heightB = 40, .settingsA = (Vehicle_Ignores_Line | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(309, 218, 208), HITS_B(268, 218, 167), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(268, 218, 167), HITS_B(306, 218, 129), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(306, 218, 129), HITS_B(347, 218, 170), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(347, 218, 170), HITS_B(309, 218, 208), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(470, 218, 368), HITS_B(429, 218, 327), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(429, 218, 327), HITS_B(466, 218, 290), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(466, 218, 290), HITS_B(507, 218, 331), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(507, 218, 331), HITS_B(470, 218, 368), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(573, 171, 371), HITS_B(461, 171, 259), .heightUnified = 104, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(381, 175, 179), HITS_B(265, 175, 63), .heightUnified = 100, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(353, 175, 207), HITS_B(316, 175, 244), .heightA = 43, .heightB = 43, .settingsA = 0, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(316, 175, 244), HITS_B(234, 175, 162), .heightA = 43, .heightB = 43, .settingsA = 0, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(234, 175, 162), HITS_B(299, 175, 97), .heightA = 43, .heightB = 43, .settingsA = 0, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(396, 175, 324), HITS_B(433, 175, 287), .heightA = 43, .heightB = 43, .settingsA = 0, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(475, 175, 403), HITS_B(396, 175, 324), .heightA = 43, .heightB = 43, .settingsA = 0, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(540, 175, 338), HITS_B(475, 175, 403), .heightA = 43, .heightB = 43, .settingsA = 0, .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(427, 132, 640), HITS_B(553, 132, 640), .heightUnified = 401, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(295, 132, 640), HITS_B(427, 132, 640), .heightUnified = 336, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(235, 132, 640), HITS_B(295, 132, 640), .heightUnified = 401, .settingsA = TrackLine_SETTINGA_Unified_Height, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(79, 92, 107), HITS_B(0, 92, 76), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(79, 92, 131), HITS_B(79, 92, 107), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(103, 92, 131), HITS_B(79, 92, 131), .heightUnified = 91, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(210, 92, 272), HITS_B(103, 92, 131), .heightUnified = 500, .settingsA = (TrackLine_SETTINGA_Unified_Height | Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+        };
 
-        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(11));
-        hit->Ax = 220;
-        hit->Az = 95;
-        hit->Bx = 180;
-        hit->Bz = 160;
+        for (u32 i = 0; i < ARRAYCOUNT(block0321); i++) {
+            reasset_hits_set(dfTrkblk, reasset_base_id(321 - dfTrkblkBase), reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0321[i]);
+        }
+    }
 
-        hit = reasset_hits_get(dfTrkblk, waterfallRiverBlock, reasset_base_id(12));
-        hit->Ax = 180;
-        hit->Az = 160;
+    /* Edit the HITS at BWC's exit
+     - Allowing stepping/clambering up all of the rocks near where the HighTop gives you a Krazoa Tablet.
+     - Preventing falling off the rope platform and accessing BWC too early (important to stop a common source of player confusion).
+    */
+    {
+        TrackLine block0342[] = {
+            { HITS_A(197, -20, 271), HITS_B(0, -26, 230),   .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(0, -20, 556),   HITS_B(166, -20, 568), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(166, -20, 568), HITS_B(350, -20, 523), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(320, -20, 393), HITS_B(284, -20, 332), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(284, -20, 332), HITS_B(234, -20, 300), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(234, -20, 300), HITS_B(197, -20, 271), .heightA = 40, .heightB = 40, .settingsA = 0, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(350, -20, 523), HITS_B(368, -14, 405), .heightA = 40, .heightB = 40, .settingsA = (Player_Ignores_Line | 0x12), .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(368, -14, 405), HITS_B(320, -20, 393), .heightA = 40, .heightB = 40, .settingsA = 0x10, .settingsB = 0x1, .animatorID = NO_ANIMATOR },
+            { HITS_A(368, 0, 405),   HITS_B(353, 0, 403),   .heightUnified = 23, .settingsA = (UNIHEIGHT | 0xE), .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(377, 5, 358),   HITS_B(368, 5, 405),   .heightUnified = 18, .settingsA = (UNIHEIGHT | 0xE), .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(330, 23, 308),  HITS_B(284, 23, 332),  .heightUnified = 15, .settingsA = (UNIHEIGHT | 0xE), .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(415, 8, 354),   HITS_B(377, 8, 358),   .heightUnified = 50, .settingsA = (UNIHEIGHT | 0xE), .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(377, 23, 358),  HITS_B(330, 23, 308),  .heightUnified = 35, .settingsA = (UNIHEIGHT | 0xE), .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(330, 38, 308),  HITS_B(340, 38, 277),  .heightUnified = 20, .settingsA = (UNIHEIGHT | 0xE), .settingsB = HITS_Clamber_Up, .animatorID = NO_ANIMATOR },
+            { HITS_A(316, 192, 271), HITS_B(288, 192, 222), .heightUnified = 20, .settingsA = (UNIHEIGHT | 0xE), .settingsB = (PASSTHRU | HITS_Precipice_No_Letting_Go), .animatorID = NO_ANIMATOR },
+            { HITS_A(222, 192, 322), HITS_B(316, 192, 271), .heightUnified = 20, .settingsA = (UNIHEIGHT | 0xE), .settingsB = (PASSTHRU | HITS_Precipice), .animatorID = NO_ANIMATOR },
+            { HITS_A(197, 192, 271), HITS_B(222, 192, 322), .heightUnified = 20, .settingsA = (UNIHEIGHT | 0xE), .settingsB = (PASSTHRU | HITS_Jump_or_Precipice), .animatorID = NO_ANIMATOR },
+        };
+
+        for (u32 i = 0; i < ARRAYCOUNT(block0342); i++) {
+            reasset_hits_set(dfTrkblk, reasset_base_id(342 - dfTrkblkBase), reasset_base_id(i), REASSET_BASE_NAMESPACE, &block0342[i]);
+        }
+    }
+}
+
+static void moon_mountain_pass_modifications(void) {
+    ReAssetID moonMountainPass = reasset_base_id(MAP_MOON_MOUNTAIN_PASS);
+    ReAssetID mmpTrkblk = reasset_base_id(25);
+    int mmpBlocksBase = 670;
+
+    //Add a fall reset to the water below the climb up from Discovery Falls
+    {
+        EffectBox_Setup fallReset = {
+            .base = {
+                .objId = OBJ_EffectBox,
+                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .mapObjGroup = 0, //TODO: use enum for MMP objGroups
+                .fadeDistance = 50,
+            },
+            COORDS_SETUP(1076, -193, 242.5),
+            .yaw = DEGREES_TO_ANGLE8(340),
+            .roll = 0,
+            .halfWidth = 146,
+            .halfHeight = 90,
+            .halfLength = 150,
+            .effect = EffectBox_EFFECT_Fall_Reset,
+            .gamebitEnable = NO_GAMEBIT,
+            .target = EffectBox_TARGET_Player
+        };
+
+        reasset_map_objects_set(moonMountainPass, 
+                reasset_auto_id(dinomodNs), &fallReset, sizeof(fallReset));
+    }
+
+    //Add a savepoint TriggerPlane at the top of the climb from Discovery Falls,
+    //Just in case the player dies by falling into the EffectBox
+    {
+        Trigger_Setup plane = {
+            .base = {
+                .objId = OBJ_TriggerPlane,
+                .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .mapObjGroup = 0, //TODO: use enum for MMP objGroups
+                .fadeDistance = 50,
+            },
+            COORDS_SETUP(916.796, 247.000, 458.498),
+            .rotationY = TRIGGER_YAW(180),
+            .sizeX = TRIGGER_SCALE(0.45),
+            .sizeY = 0x10,
+            .sizeZ = 0x10,
+            .conditionBitFlagIDs[0] = NO_GAMEBIT,
+            .bitFlagID = NO_GAMEBIT
+        };
+        ENTER_SET_SAVEPOINT(TRUE, &plane, 0);
+        EXIT_SET_SAVEPOINT(TRUE, &plane, 1);
+
+        //Load/unload Discovery Falls' cave objects here too
+        DIRECTIONAL_WORLD_OBJGROUP_TOGGLE_REVERSE(DF_ObjGroup_Tunnel_to_MMP, MAP_DISCOVERY_FALLS, &plane, 2, 3);
+
+        reasset_map_objects_set(moonMountainPass, 
+            reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+    }
+
+    //Fix mid-air savepoint at the bottom of the climb up from Discovery Falls
+    {
+        Trigger_Setup* plane = GET_MAPS_OBJECT(moonMountainPass, 0x426ea);
+        plane->base.x = 1280;
+        plane->base.y = 4;
+        plane->base.z = 324;
+        plane->rotationY = TRIGGER_YAW(90); //rotate to align with the archway, so it can't be missed before reaching the EffectBox
+        
+        //Split bidirectional save onto separate commands, so they can face different ways on reload
+        ENTER_SET_SAVEPOINT(TRUE, plane, 0);
+        EXIT_SET_SAVEPOINT(TRUE, plane, 1);
+
+        //DF's cave objGroup should already be loaded by now, but add this as a fallback just in case!
+        EXIT_WORLD_OBJGROUP_ON(DF_ObjGroup_Tunnel_to_MMP, MAP_DISCOVERY_FALLS, plane, 2);
     }
 }
 
@@ -2031,6 +6647,20 @@ static void custom_objects(void) {
         reasset_objects_set(shBarrelcreatorID, dinomodNs, objects_shbarrelcreator, objects_shbarrelcreator_end - objects_shbarrelcreator);
         reasset_object_indices_set(shBarrelcreatorIndexID, shBarrelcreatorID);
     }
+
+    // WCDialProjectileSwitch
+    {
+        ReAssetID shWCDialSwitchID = reasset_auto_id(dinomodNs);
+        reasset_objects_set(shWCDialSwitchID, dinomodNs, objects_wcdialswitch, objects_wcdialswitch_end - objects_wcdialswitch);
+        reasset_object_indices_set(wcDialProjectileSwitchIndexID, shWCDialSwitchID);
+    }
+
+    // LODAnimator
+    {
+        ReAssetID lodAnimatorID = reasset_auto_id(dinomodNs);
+        reasset_objects_set(lodAnimatorID, dinomodNs, objects_lodanimator, objects_lodanimator_end - objects_lodanimator);
+        reasset_object_indices_set(lodAnimatorIndexID, lodAnimatorID);
+    }
 }
 
 static void custom_dlls(void) {
@@ -2041,6 +6671,14 @@ static void custom_dlls(void) {
     // SHbarrelcreator
     reasset_dlls_set(reasset_id(dinomodNs, 0x824D), DLL_BANK_OBJECTS, 
         /*exportCount*/ 7, (void*)SHbarrelcreator_ctor, (void*)SHbarrelcreator_dtor, &DLL_SHbarrelcreator_vtbl);
+
+    // WCDialProjectileSwitch
+    reasset_dlls_set(reasset_id(dinomodNs, 0x824E), DLL_BANK_OBJECTS, 
+        /*exportCount*/ 7, (void*)WCDialProjectileSwitch_ctor, (void*)WCDialProjectileSwitch_dtor, &DLL_WCDialProjectileSwitch_vtbl);
+
+    // LODAnimator
+    reasset_dlls_set(reasset_id(dinomodNs, 0x824F), DLL_BANK_OBJECTS, 
+        /*exportCount*/ 8, (void*)LODAnimator_ctor, (void*)LODAnimator_dtor, &DLL_LODAnimator_vtbl);
 }
 
 /** Give WCTrex hit spheres similar to KT_Rex so they can actually do damage. */
@@ -2048,12 +6686,12 @@ static void add_wctrex_hit_spheres(void) {
     ReAssetID id = reasset_base_id(100);
 
     u32 size;
-    void *data = reasset_models_get(id, &size);
+    void* data = reasset_models_get(id, &size);
     data = dinomod_model_decompress(data, size, &size);
     u32 oldSize = size;
     {
         u32 newSize = size + (sizeof(HitSphere) * 3);
-        void *newdata = recomp_alloc(newSize);
+        void* newdata = recomp_alloc(newSize);
         bcopy(data, newdata, oldSize);
         bzero((u8*)newdata + oldSize, newSize - oldSize);
         recomp_free(data);
@@ -2125,7 +6763,7 @@ static void nw_modifications(void) {
     
     // Fix NWMultiSeq so Garunda Te cutscene won't loop if gamebit 0 is set
     {
-        NWMultiSeq_Setup *multiseq = reasset_map_objects_get(nw, reasset_base_id(0x32D52), NULL);
+        NWMultiSeq_Setup* multiseq = reasset_map_objects_get(nw, reasset_base_id(0x32D52), NULL);
         // Set bit/seq indices to -1 (instead of 0) so the cutscene won't replay
         // the first seq is bit 0 is set (there's only 6 seqs for this cutscene).
         multiseq->unk28[6] = -1;
@@ -2137,7 +6775,7 @@ static void nw_modifications(void) {
     // Change the bit the blue SnowHorn hit animator looks for (this is a custom dinomod map obj). We're giving it
     // a custom bit since the rom patches are accidentically using a CC vis anim bit.
     {
-        HitAnimator_Setup* blueSnowHornHitAnim = reasset_map_objects_get(nw, reasset_base_id(0x412E1), NULL);
+        HitAnimator_Setup* blueSnowHornHitAnim = reasset_map_objects_get(nw, reasset_base_id(0xBE03007), NULL);
         blueSnowHornHitAnim->gamebitActivate = DINOMOD_BIT_92D_Blue_SnowHorn_HitAnimator;
     }
 }
@@ -2150,21 +6788,21 @@ static void gpsh_modifications(void) {
         WarpPoint_Setup* completionWarp = reasset_map_objects_get(gpsh, reasset_base_id(0x2C8D), NULL);
         completionWarp->base.objId = OBJ_WarpPoint; // WM_WarpPoint -> WarpPoint (same DLL, but the other shrines use WarpPoint)
         completionWarp->warpID = 31; // go to GP -> GPSH transporter
-        completionWarp->unk1C = 0; // this is an exit warp (why is this 1 normally?? you never warp to here?)
-        completionWarp->unk1D = 2; // warp only when bit is set (the bit is correctly 0xFD but the condition field is wrong)
+        completionWarp->isInboundWarp = FALSE; // this is an exit warp (why is this 1 normally?? you never warp to here?)
+        completionWarp->mode = 2; // warp only when bit is set (the bit is correctly 0xFD but the condition field is wrong)
     }
 
     // Edit trigger planes so the player cannot go back into the entrance hall while the test is active.
     // Bit 0x129 will be 0 while the test is active and 1 otherwise (except after completion where it remains 0
     // but the warp will take the player out of the shrine anyway so it's OK).
     {
-        Trigger_Setup* trigger;
+        Trigger_Setup* plane;
 
-        trigger = reasset_map_objects_get(gpsh, reasset_base_id(0x32974), NULL);
-        trigger->conditionBitFlagIDs[0] = 0x129;
+        plane = reasset_map_objects_get(gpsh, reasset_base_id(0x32974), NULL);
+        plane->conditionBitFlagIDs[0] = 0x129;
 
-        trigger = reasset_map_objects_get(gpsh, reasset_base_id(0x32975), NULL);
-        trigger->conditionBitFlagIDs[0] = 0x129;
+        plane = reasset_map_objects_get(gpsh, reasset_base_id(0x32975), NULL);
+        plane->conditionBitFlagIDs[0] = 0x129;
     }
 
     // Fix flybaddie creators fade distance so the flybaddies (which inherit the distance) are correctly visible.
@@ -2182,13 +6820,63 @@ static void gpsh_modifications(void) {
     }
 }
 
+/* Fix up Test of Combat */
+static void dfsh_modifications(void) {
+    ReAssetID dfsh = reasset_base_id(MAP_SHRINE_DISCOVERY_FALLS);
+
+    // Give each SharpClaw ObjCreator a unique creatorIndex 
+    // (creatorIndex had 4 switch cases programmed but only 3 were used, and the unused 
+    // gamebit fields feature 4 different gamebits, which maybe suggests that the 4 different
+    // ObjCreators were supposed to activate sequentially. The shrine's "Test_Active" state seems
+    // to suggest 3 waves too, with the number of active ObjCreators possibly doubling each time.)
+    {
+        typedef struct {
+        /*00*/ ObjSetup base;
+        /*18*/ s16 gamebit; // Unused in this DLL, but the gamebit used to enable the ObjCreator in the `DFSH_Shrine` DLL is usually the same as the one here.
+        /*1A*/ u16 _unk1A; // Unused in the DLL, but usually set to 0x1C - maybe intended as hit points?
+        /*1C*/ u16 _unk1C;
+        /*1E*/ s8 rotation; // yaw >> 8
+        /*1F*/ s8 creatorIndex; // objCreator's index around the Krazoa symbol, used to determine which gamebit activates it and the parameters for the SharpClaw it spawns
+        } DFSH_ObjCreator_Setup;
+
+        /*
+            The DFSH_ObjCreators are arranged like this around the shrine's 
+            Krazoa floor symbol (showing uIDs, creatorIndex, and unused gamebit field):
+
+                              [Wall Portal]
+
+                                [Columns]
+
+                                    O
+            0x160A #0 (0xF6) ->  O     O  <- 0x160D #1 (0xF7)
+                                    ▲
+            0x160E #2 (0xF9) ->  O     O  <- 0x1617 #1 (0xF8)
+                                    O
+                    
+                [Entrance]
+        */
+
+        u32 dfObjCreatorUIDs[] = {
+            0x160A,
+            0x160D,
+            0x1617,
+            0x160E
+        };
+
+        for (u32 i = 0; i < ARRAYCOUNT(dfObjCreatorUIDs); i++) {
+            DFSH_ObjCreator_Setup* creator = GET_MAPS_OBJECT(dfsh, dfObjCreatorUIDs[i]);
+            creator->creatorIndex = i; //Basing the creatorIndex on the order of the unused gamebit field
+        }
+    }
+}
+
 static void mmsh_modifications(void) {
     ReAssetID mmsh = reasset_base_id(MAP_SHRINE_MOON_MOUNTAIN_PASS);
 
     // Fix transporter so the player can leave
     {
         Transporter_Setup* transporter = reasset_map_objects_get(mmsh, reasset_base_id(0xC5D), NULL);
-        transporter->gamebit = -1; // 0 -> -1 (so it's always enabled)
+        transporter->gamebit = NO_GAMEBIT; // 0 -> -1 (so it's always enabled)
         transporter->warpID = 73; // 77 -> 73 (MMP shrine transporter)
     }
 }
@@ -2199,7 +6887,7 @@ static void ecsh_modifications(void) {
     // Fix transporter so the player can leave
     {
         Transporter_Setup* transporter = reasset_map_objects_get(ecsh, reasset_base_id(0xC5D), NULL);
-        transporter->gamebit = -1; // 0 -> -1 (so it's always enabled)
+        transporter->gamebit = NO_GAMEBIT; // 0 -> -1 (so it's always enabled)
     }
 }
 
@@ -2210,19 +6898,19 @@ static void ccsh_modifications(void) {
     // Bit 0x129 will be 0 while the test is active and 1 otherwise (except after completion where it remains 0
     // but the warp will take the player out of the shrine anyway so it's OK).
     {
-        Trigger_Setup* trigger;
+        Trigger_Setup* plane;
 
-        trigger = reasset_map_objects_get(ccsh, reasset_base_id(0x32F01), NULL);
-        trigger->conditionBitFlagIDs[0] = 0x129;
+        plane = reasset_map_objects_get(ccsh, reasset_base_id(0x32F01), NULL);
+        plane->conditionBitFlagIDs[0] = 0x129;
 
-        trigger = reasset_map_objects_get(ccsh, reasset_base_id(0x32F02), NULL);
-        trigger->conditionBitFlagIDs[0] = 0x129;
+        plane = reasset_map_objects_get(ccsh, reasset_base_id(0x32F02), NULL);
+        plane->conditionBitFlagIDs[0] = 0x129;
     }
 
     // Fix transporter so the player can leave
     {
         Transporter_Setup* transporter = reasset_map_objects_get(ccsh, reasset_base_id(0xC5D), NULL);
-        transporter->gamebit = -1; // 0 -> -1 (so it's always enabled)
+        transporter->gamebit = NO_GAMEBIT; // 0 -> -1 (so it's always enabled)
     }
 }
 
@@ -2233,19 +6921,19 @@ static void wgsh_modifications(void) {
     // Bit 0x129 will be 0 while the test is active and 1 otherwise (except after completion where it remains 0
     // but the warp will take the player out of the shrine anyway so it's OK).
     {
-        Trigger_Setup* trigger;
+        Trigger_Setup* plane;
 
-        trigger = reasset_map_objects_get(wgsh, reasset_base_id(0x32893), NULL);
-        trigger->conditionBitFlagIDs[0] = 0x129;
+        plane = reasset_map_objects_get(wgsh, reasset_base_id(0x32893), NULL);
+        plane->conditionBitFlagIDs[0] = 0x129;
 
-        trigger = reasset_map_objects_get(wgsh, reasset_base_id(0x32894), NULL);
-        trigger->conditionBitFlagIDs[0] = 0x129;
+        plane = reasset_map_objects_get(wgsh, reasset_base_id(0x32894), NULL);
+        plane->conditionBitFlagIDs[0] = 0x129;
     }
 
     // Fix transporter so the player can leave
     {
         Transporter_Setup* transporter = reasset_map_objects_get(wgsh, reasset_base_id(0xC5D), NULL);
-        transporter->gamebit = -1; // 0 -> -1 (so it's always enabled)
+        transporter->gamebit = NO_GAMEBIT; // 0 -> -1 (so it's always enabled)
     }
 }
 
@@ -2492,16 +7180,16 @@ static void crf_modifications(void) {
         // The first emitter now (correctly) turns off after the floor is damaged, so now all
         // three have sound.
         fxemit = reasset_map_objects_get(crf, reasset_base_id(0x2927), NULL); // stage 0
-        fxemit->unk1C = 3; // this is very opinionated, but having the first emitter spawn partfx is a nice visual indicator
-        fxemit->unk29 = 3;
+        fxemit->fxRate = 3; // this is very opinionated, but having the first emitter spawn partfx is a nice visual indicator
+        fxemit->interval = 3;
         fxemit = reasset_map_objects_get(crf, reasset_base_id(0x2928), NULL); // stage 1
-        fxemit->unk1C = 6;
-        fxemit->unk29 = 2;
-        fxemit->unk2A = 0xB8C;
+        fxemit->fxRate = 6;
+        fxemit->interval = 2;
+        fxemit->intervalSoundID = 0xB8C;
         fxemit = reasset_map_objects_get(crf, reasset_base_id(0x2929), NULL); // stage 2
-        fxemit->unk1C = 9;
-        fxemit->unk29 = 1;
-        fxemit->unk2A = 0xB8C;
+        fxemit->fxRate = 9;
+        fxemit->interval = 1;
+        fxemit->intervalSoundID = 0xB8C;
     }
 
     // Move CFAnimBaby spawns closer to their perches to prevent the perch seqs from fighting over
@@ -2833,10 +7521,10 @@ REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     diamond_bay_additions();
 }
 
-/** Fixes probems in the seqJoint jointID mapping for each of Sabre's models */
+/** Fixes problems in the seqJoint jointID mapping for each of Sabre's models */
 static void sabre_seqjoints_patch(void) {
     ReAssetID objectIndex;
-    ObjDef *objDef;
+    ObjDef* objDef;
     u8* seqJointDef;
 
     //Get OBJECTS.bin entry
@@ -2888,42 +7576,46 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     cmdmenu_icons_patch();
     purple_mushroom_patch();
     vampire_bat_patch();
+    warp_point_patch();
+    bwlog_patch();
 
-    shrine_fxemit_modifications();
     warlock_mountain_platform_modifications();
     warlock_mountain_modifications();
+    nw_modifications();
     swapstone_hollow_modifications();
     swapstone_hollow_well_modifications();
+    swapstone_circle_modifications();
     cc_lightfoot_patch();
     cape_claw_modifications();
+    discovery_falls_modifications();
+    discovery_falls_hit_edits();
     darkice_mines_modifications();
-    golden_plains_modifications();
-    walled_city_modifications();
-    dragon_rock_upper_modifications();
-    dragon_rock_bottom_modifications();
+    diamond_bay_modifications();
+    vfp_modifications();
+    moon_mountain_pass_modifications();
     golden_plains_modifications();
     // golden_plains_fuel_modifications();
-    music_actions_patch();
-    // df_patches_shinx();
-    // df_modifications();
-    diamond_bay_modifications();
-    discovery_falls_hit_edits();
+    walled_city_modifications();
     add_wctrex_hit_spheres();
-    vfp_modifications();
-    nw_modifications();
-    gpsh_modifications();
+    dragon_rock_upper_modifications();
+    dragon_rock_bottom_modifications();
+    dfsh_modifications();
     mmsh_modifications();
     ecsh_modifications();
     ccsh_modifications();
     wgsh_modifications();
+    gpsh_modifications();
     nwsh_modifications();
     crf_modifications();
     crf_race_modifications();
     inside_galleon_modifications();
+    shrine_fxemit_modifications();
 }
 
 REASSET_ON_RESOLVE void dinomod_reasset_on_resolve(void) {
     ReAssetResolveMap objIndexResolveMap = reasset_object_indices_get_resolve_map();
     OBJ_SHbarrel = reasset_resolve_map_lookup(objIndexResolveMap, shBarrelIndexID);
     OBJ_SHbarrelcreator = reasset_resolve_map_lookup(objIndexResolveMap, shBarrelcreatorIndexID);
+    OBJ_WCDialProjectileSwitch = reasset_resolve_map_lookup(objIndexResolveMap, wcDialProjectileSwitchIndexID);
+    OBJ_LODAnimator = reasset_resolve_map_lookup(objIndexResolveMap, lodAnimatorIndexID);
 }

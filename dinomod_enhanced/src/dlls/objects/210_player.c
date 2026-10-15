@@ -1,4 +1,5 @@
 #include "configs.h"
+#include "custom_gamebits.h"
 #include "dll_util.h"
 #include "math_util.h"
 #include "modding.h"
@@ -34,19 +35,15 @@
 #include "dlls/objects/common/dinocaller.h"
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/277_iceblast.h"
+#include "dlls/objects/420_DFropenode.h"
 
-enum RecompSpellAimFireLockOption {
-    RECOMP_SPELL_AIM_FIRE_LOCK_OFF,
-    RECOMP_SPELL_AIM_FIRE_LOCK_ON
-};
-
-static _Bool recomp_should_lock_aim_while_firing(void) {
-    return recomp_get_config_u32("spell_aim_fire_lock") == RECOMP_SPELL_AIM_FIRE_LOCK_ON;
-}
+#include "objects/793_BWlog.h"
 
 #include "recomp/dlls/objects/210_player_recomp.h"
 
-#define DEBUG_MESSAGES FALSE
+// #define DEBUG_MESSAGES
+// #define DEBUG_PRIORITISE_STATIC_CAMERA
+// #define DEBUG_BACKWARDS_LOG
 
 extern f32 _data_C[];
 extern u8 _data_14[4];
@@ -65,6 +62,19 @@ extern u8 _data_530;
 extern f32 _data_6F8;
 extern f32 _data_6FC[];
 extern s16 _data_7C4[2];
+
+/*0x4D8*/ extern u16 _data_4D8[];
+/*0x5A0*/ extern s16 _data_5A0[];
+/*0x5B0*/ extern s16 _data_5B0[];
+/*0x5B8*/ extern s16 _data_5B8[];
+/*0x5E0*/ extern s16 _data_5E0[];
+/*0x5E4*/ extern s16 _data_5E4[];
+/*0x5DC*/ extern s16 _data_5DC[];
+/*0x69C*/ extern s16 _data_69C[];
+/*0x6B0*/ extern s16 _data_6B0[];
+/*0x6C0*/ extern s16 _data_6C0[];
+/*0x6C8*/ extern s16 _data_6C8[];
+
 
 extern void dll_210_func_1BC0(Object* arg0, Player_Data* arg1);
 extern int dll_210_func_24FC(Object *player, ObjFSA_Data *fsa);
@@ -95,6 +105,10 @@ extern s32 dll_210_func_7E6C(Object* player, Player_Data* arg1, ObjFSA_Data* fsa
 extern s32 dll_210_func_7BC4(Object* player, Player_Data* arg1, UNUSED Player_Data3B4* arg2, UnkArg4* arg3);
 extern void dll_210_func_1DAB0(Object* player);
 extern s32 dll_210_func_18E80(Object* player, ObjFSA_Data* fsa, f32 arg2);
+extern void dll_210_func_12514(Object* player, ObjFSA_Data* fsa);
+extern void dll_210_func_363C(Object* player, Player_Data* arg1, Gfx** arg2, Mtx** arg3, Vertex** arg4);
+extern void dll_210_func_3B40(Object* player, Gfx** arg1, Mtx** arg2, Vertex** arg3, Triangle** arg4);
+extern void dll_210_func_8EA4(Object* player, Player_Data* arg1, Object* vehicle, Gfx** arg3, Mtx** arg4, Vertex** arg5, Triangle** arg6, s32 arg7);
 
 extern s8 _bss_0;
 extern s16 _bss_2;
@@ -106,6 +120,12 @@ extern s16 _bss_200;
 extern Object *_bss_210[4];
 extern s16 _bss_220[2];
 extern ObjFSA_StateCallback _bss_224[1];
+
+/*0x1B0*/ extern f32 _bss_1B0[0x4];
+/*0x1F8*/ extern f32 _bss_1F8[2];
+/*0x202*/ extern s16 _bss_202;
+/*0x204*/ extern f32 _bss_204;
+/*0x208*/ extern f32 _bss_208;
 
 static s32 dll_210_func_A3FC_custom(Object* player, ObjFSA_Data* fsa, f32 arg2);
 
@@ -256,11 +276,11 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
             }
             break;
         case 0x7000A:
-            #if DEBUG_MESSAGES
+#ifdef DEBUG_MESSAGES
             if (outSender && outSender->def) {
                 recomp_printf("Message received from %s!\n", outSender->def->name);
             }
-            #endif
+#endif
 
             if (messageArgument > 0) {
                 if (mainGetBits(messageArgument) != 0) {
@@ -269,11 +289,11 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                         gDLL_18_objfsa->vtbl->set_anim_state(player, fsa, PLAYER_ASTATE_Collecting);
                     }
 
-                    #if DEBUG_MESSAGES
+#ifdef DEBUG_MESSAGES
                     if (outSender && outSender->def) {
                         recomp_printf("Reply sent to %s! Tutorial seen.\n", outSender->def->name);
                     }
-                    #endif
+#endif
                 } else {
                     mainSetBits(messageArgument, 1);
                     if (fsa->animState != PLAYER_ASTATE_42) {
@@ -286,11 +306,11 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                         case OBJ_SHbluemushroom:
                             objSendMesg(outSender, 0x7000B, player, (void*)TRUE);
                             
-                            #if DEBUG_MESSAGES
+#ifdef DEBUG_MESSAGES
                             if (outSender->def) {
                                 recomp_printf("Reply sent to %s! Tutorial not seen.\n", outSender->def->name);
                             }
-                            #endif
+#endif
 
                             break;
                         }
@@ -305,11 +325,11 @@ RECOMP_PATCH void dll_210_func_1DDC(Object* player, Player_Data* arg1, ObjFSA_Da
                     case OBJ_SHbluemushroom:
                         objSendMesg(outSender, 0x7000B, player, (void*)-1);
 
-                        #if DEBUG_MESSAGES
+#ifdef DEBUG_MESSAGES
                         if (outSender->def) {
                             recomp_printf("Reply sent to %s! No tutorial gamebit.\n", outSender->def->name);
                         }
-                        #endif
+#endif
 
                         break;
                     }
@@ -1248,12 +1268,66 @@ RECOMP_PATCH s32 dll_210_func_142C4(Object* self, Player_Data* objData, f32 arg2
     return 0;
 }
 
+/* Rotates the log 180 before mounting (if needed), so the player's direction is preserved. 
+   Also uses a seqJoint to apply a -180 visual counter-rotation, so the log appears not to have rotated!
+   The log had no seqJoints by default. */
+static void player_handleBackwardsLogMount(Object* player, Object* vehicle) {
+    BWlog_Data* logData;
+    s32 newYaw;
+
+    if (player == NULL || vehicle == NULL) {
+        return;
+    }
+
+    //Get the size of the angular difference between the player's yaw and the log's yaw 
+    s32 yawDiff = vehicle->srt.yaw - player->srt.yaw;
+    CIRCLE_WRAP(yawDiff);
+    if (yawDiff < 0) {
+        yawDiff = -yawDiff;
+    }
+
+#ifdef DEBUG_BACKWARDS_LOG
+    recomp_printf("yawDiff: %x\n", yawDiff);
+#endif
+
+    //No flip needed if the player and the log are already facing roughly the same way
+    if (yawDiff < DEGREES_TO_ANGLE16(110)) { //Not just 90, to prioritise log's "intended" direction (i.e. at dockpoints) if we're approaching from an ambiguous angle
+#ifdef DEBUG_BACKWARDS_LOG
+        recomp_printf("Didn't rotate log.\n");
+#endif
+        return;
+    }
+
+    //Otherwise, a flip is needed! Rotate the log's transform through 180
+    newYaw = vehicle->srt.yaw + M_180_DEGREES;
+    CIRCLE_WRAP(newYaw);
+#ifdef DEBUG_BACKWARDS_LOG
+    recomp_printf("Rotated log! yaw: %x -> %x\n", vehicle->srt.yaw, newYaw);
+#endif
+    vehicle->srt.yaw = newYaw;
+
+    //Then, counter-flip the log's seqJoint so it seems to still be facing the same way as before (only a visual effect)
+    logData = vehicle->data; 
+    if (logData == NULL) {
+        return;
+    }
+
+    //TODO: it'd be nicer to get/set the log's flipState with custom exports
+    if (logData->flipState) {
+        logData->flipState = FALSE;
+    } else {
+        logData->flipState = TRUE;
+    }
+}
+
 /** 
+ * PLAYER_ASTATE_Vehicle_Getting_On
+ *
  * Use a correctly sized mod anim array for BWLog. In the vanilla Dec 2000 build, this array is too short and causes
  * the anims for hopping on/off the log to read out of bounds and interpret other memory as mod anim indices. This build
  * doesn't seem to have actual anims for hopping on/off logs so this patch uses similar anims used for other vehicles.
  */
-RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) {
+RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
     static s16 recomp_betterBWLogAnims_Krystal[] = { 
         0x1b, 0x1d, // idle/rowing anims (same as vanilla)
         0x0453, 0x0454, // meant for rolling? (these are for logs)
@@ -1276,29 +1350,36 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) 
     Object* vehicle;
     Vec3f sp74;
     Vec3f sp68;
-    f32 sp64;
-    f32 sp60;
-    f32 sp5C;
-    Vec3f sp50;
+    f32 goalZ;
+    f32 goalY;
+    f32 goalX;
+    Vec3f pos;
     Player_Data* objdata;
-    s8 v0;
+    s8 animIdx;
     s16 sp48;
-    ModelInstance* sp44;
+    ModelInstance* modelInstance;
+    /* RECOMP */
+    u8 skipMountAnimation;
 
     objdata = player->data;
     vehicle = objdata->vehicle;
+
     {
-        s32 temp_v0 = dll_210_func_EFB4(player, fsa, arg2);
-        if (temp_v0 != 0) { return temp_v0; }
+        s32 nextState = dll_210_func_EFB4(player, fsa, updateRate);
+        if (nextState != 0) { return nextState; }
     }
+
     // @fake
     //if (((!fsa) && (!fsa)) && (!fsa)) {}
-    if (fsa->enteredAnimState != 0) {
+
+    if (fsa->enteredAnimState) {
         fsa->unk270 = PLAYER_ASTATE_Vehicle_Getting_On;
     }
+
     func_800267A4(player);
-    player->velocity.f[1] = 0.0f;
-    if (fsa->enteredAnimState != 0) {
+    player->velocity.y = 0.0f;
+
+    if (fsa->enteredAnimState) {
         objdata->unk8A9 = 1;
         switch (vehicle->id) {
         case OBJ_IMSnowBike:
@@ -1315,70 +1396,93 @@ RECOMP_PATCH s32 dll_210_func_13D08(Object* player, ObjFSA_Data* fsa, f32 arg2) 
             // @recomp: Use custom mod anim list
             objdata->unk76C = player->id == OBJ_Krystal ? recomp_betterBWLogAnims_Krystal : recomp_betterBWLogAnims_Sabre;
             objdata->unk770 = 3;
-            gDLL_2_Camera->vtbl->change_mode(0, 0x29);
+            gDLL_2_Camera->vtbl->change_mode(0, 41);
+
+            // @recomp: handle mounting the log in the direction the player's facing
+            player_handleBackwardsLogMount(player, vehicle);
             break;
         case OBJ_DR_EarthWarrior:
             objdata->unk76C = _data_170;
             objdata->unk770 = 4;
-            gDLL_2_Camera->vtbl->change_mode(0, 0x69);
+            gDLL_2_Camera->vtbl->change_mode(0, 105);
             break;
         default:
             objdata->unk76C = _data_170;
             objdata->unk770 = 4;
-            gDLL_2_Camera->vtbl->change_mode(0, 0x1D);
+            gDLL_2_Camera->vtbl->change_mode(0, 29);
             break;
         }
+
         mountSide = ((DLL_IVehicle*)vehicle->dll)->vtbl->GetMountSide(vehicle);
         ((DLL_IVehicle*)vehicle->dll)->vtbl->SetMountState(vehicle, VEHICLE_Mounting);
         switch (mountSide) {
             case 1:
-                v0 = 6;
+                animIdx = 6;
                 break;
             case 2:
             default:
-                v0 = 7;
+                animIdx = 7;
                 break;
         }
+
         player->srt.yaw = vehicle->srt.yaw;
-        objAnimSet(player, objdata->unk76C[v0], 0.0f, 4U);
-        sp44 = player->modelInsts[player->modelInstIdx];
-        mod_func_8001A3FC(sp44, 0U, 0, 0.0f, player->srt.scale, &sp74, &sp48);
-        mod_func_8001A3FC(sp44, 0U, 0, 1.0f, player->srt.scale, &sp68, &sp48);
-        ((DLL_IVehicle*)vehicle->dll)->vtbl->GetRiderPosition(vehicle, &sp5C, &sp60, &sp64);
+        objAnimSet(player, objdata->unk76C[animIdx], 0.0f, 4);
+        modelInstance = player->modelInsts[player->modelInstIdx];
+        mod_func_8001A3FC(modelInstance, 0, 0, 0.0f, player->srt.scale, &sp74, &sp48);
+        mod_func_8001A3FC(modelInstance, 0, 0, 1.0f, player->srt.scale, &sp68, &sp48);
+        ((DLL_IVehicle*)vehicle->dll)->vtbl->GetRiderPosition(vehicle, &goalX, &goalY, &goalZ);
+        
         // @recomp: HACK: the mod anims used in this patch for hopping on the log plays too low, so
         //          artificially raise the point we lerp to a little bit (is there a better way to do this?).
         if (vehicle->id == OBJ_BWLog) {
-            sp60 += 8.0f;
+            goalY += 8.0f;
         }
-        sp5C -= player->srt.transl.f[0];
-        sp60 -= player->srt.transl.f[1];
-        sp64 -= player->srt.transl.f[2];
+
+        goalX -= player->srt.transl.f[0];
+        goalY -= player->srt.transl.f[1];
+        goalZ -= player->srt.transl.f[2];
         objdata->unk738.f[0] = player->srt.transl.f[0];
         objdata->unk738.f[1] = player->srt.transl.f[1];
         objdata->unk738.f[2] = player->srt.transl.f[2];
-        objdata->unk744.f[0] = sp5C;
-        objdata->unk744.f[1] = sp60 - sp68.f[1];
-        objdata->unk744.f[2] = sp64;
+        objdata->unk744.f[0] = goalX;
+        objdata->unk744.f[1] = goalY - sp68.f[1];
+        objdata->unk744.f[2] = goalZ;
         player->srt.flags |= OBJFLAG_MANUAL_PREV_POSITIONS;
         player->shadow->flags |= OBJ_SHADOW_FLAG_FADE_OUT;
         fsa->animTickDelta = 0.022f;
     }
+
     player->srt.transl.f[0] = objdata->unk738.f[0] + (player->animProgress * objdata->unk744.x);
     player->srt.transl.f[1] = objdata->unk738.f[1] + (player->animProgress * objdata->unk744.y);
     player->srt.transl.f[2] = objdata->unk738.f[2] + (player->animProgress * objdata->unk744.z);
-    ((DLL_IVehicle*)vehicle->dll)->vtbl->GetCameraPosition(vehicle, &sp5C, &sp60, &sp64);
-    sp50.z = ((sp5C - objdata->unk738.x) * player->animProgress) + objdata->unk738.x;
-    sp50.y = ((sp60 - objdata->unk738.y) * player->animProgress) + objdata->unk738.y;
-    sp50.x = ((sp64 - objdata->unk738.z) * player->animProgress) + objdata->unk738.z;
-    gDLL_2_Camera->vtbl->reposition_player(sp50.z, sp50.y, sp50.x);
-    if ((fsa->enteredAnimState == 0) && (fsa->unk33A != 0)) {
-        objAnimSet(player, *objdata->unk76C, 0.0f, 1);
-        ((DLL_IVehicle*)vehicle->dll)->vtbl->SetMountState(vehicle, VEHICLE_Mounted);
-        if (vehicle->id == 0x22) {
-            return 0x26;
+    ((DLL_IVehicle*)vehicle->dll)->vtbl->GetCameraPosition(vehicle, &goalX, &goalY, &goalZ);
+
+    //Linear interpolate the player's position onto the vehicle as the animation progresses
+    pos.z = ((goalX - objdata->unk738.x) * player->animProgress) + objdata->unk738.x;
+    pos.y = ((goalY - objdata->unk738.y) * player->animProgress) + objdata->unk738.y;
+    pos.x = ((goalZ - objdata->unk738.z) * player->animProgress) + objdata->unk738.z;
+    gDLL_2_Camera->vtbl->reposition_player(pos.z, pos.y, pos.x);
+
+    //@recomp: skip past the mounting animState if a gamebit is set
+    //(Used to avoid a bug where the log mounting animation plays after Discovery Falls'
+    //initial HighTop cutscene, even though you're already on the log!)
+    if (fsa->enteredAnimState == FALSE) { //Wait until after the first tick of this state, so the camera module changes
+        skipMountAnimation = mainGetBits(DINOMOD_BIT_96F_Vehicle_Skip_Mount_Animation);
+        if (skipMountAnimation) {
+            mainSetBits(DINOMOD_BIT_96F_Vehicle_Skip_Mount_Animation, FALSE);
         }
-        return 0x25;
     }
+
+    if ((fsa->enteredAnimState == FALSE && fsa->unk33A) || skipMountAnimation) { //@recomp
+        objAnimSet(player, objdata->unk76C[0], 0.0f, 1);
+        ((DLL_IVehicle*)vehicle->dll)->vtbl->SetMountState(vehicle, VEHICLE_Mounted);
+        if (vehicle->id == OBJ_BWLog) {
+            return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Log_Riding);
+        } else {
+            return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Vehicle_Riding);
+        }
+    }
+
     return 0;
 }
 
@@ -2129,7 +2233,7 @@ RECOMP_PATCH void dll_210_func_1AAD8(Object* player, ObjFSA_Data *fsa) {
 
     temp_s0 = player->data;
 
-    // @recomp: Don't uneqiup weapon if targetting (and target is still valid)
+    // @recomp: Don't unequip weapon if targetting (and target is still valid)
     if (fsa->target != NULL && fsa->unk33D == 1) {
         return;
     }
@@ -2188,7 +2292,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
     s32 i;
     Player_Data* objdata;
     //@recomp: Ice Blast config
-    int reduceIceBlastCost = recomp_get_config_u32("iceblast_cost");
+    int reduceIceBlastCost = configs_GetIceBlastCostReduced();
 
     objdata = player->data;
     if (fsa->enteredAnimState != 0) {
@@ -2539,7 +2643,7 @@ RECOMP_PATCH s32 dll_210_func_18EAC(Object* player, ObjFSA_Data* fsa, f32 deltaT
         break;
     case 0x43F:
         // @recomp: Don't lock aim while firing, if option is enabled
-        if (!recomp_should_lock_aim_while_firing() && fsa->target == NULL) {
+        if (!configs_GetSpellAimFireLock() && fsa->target == NULL) {
             if (*_bss_220 == BIT_Spell_Grenade) {
                 var_fa0 = fsa->yAnalogInput / 50.0f;
                 if (var_fa0 < -1.45f) {
@@ -2685,10 +2789,6 @@ RECOMP_HOOK_DLL(dll_210_func_60A8) void dll_210_func_60A8_hook(Object *self, Obj
     }
 }
 
-extern void dll_210_func_363C(Object* player, Player_Data* arg1, Gfx** arg2, Mtx** arg3, Vertex** arg4);
-extern void dll_210_func_3B40(Object* player, Gfx** arg1, Mtx** arg2, Vertex** arg3, Triangle** arg4);
-extern void dll_210_func_8EA4(Object* player, Player_Data* arg1, Object* vehicle, Gfx** arg3, Mtx** arg4, Vertex** arg5, Triangle** arg6, s32 arg7);
-
 /** 
   * Stores the player's hand coords in the player's print function, while model matrices are readable. 
   * Coords only stored while the player's carrying Tricky's toy ball, since that's what they're used for.
@@ -2801,7 +2901,7 @@ void player_get_hand_coords(Vec3f* v) {
 
 /** Option to always play as Fox instead of Sabre */
 RECOMP_HOOK_DLL(dll_210_control) void play_as_fox(Object* self) {
-    u8 config = recomp_get_config_u32("play_as_fox");
+    u8 config = configs_GetPlayAsFoxMode();
 
     if (!self || (self->id != OBJ_Sabre)) {
         return;
@@ -2954,7 +3054,34 @@ RECOMP_PATCH s32 dll_210_func_BA38(Object* player, ObjFSA_Data* fsa, f32 arg2) {
     case 8:
         return -0x29;
     case 18:
-        return 0x29;
+        //@recomp: check if the nearby pushblock is actually pushable (TODO: tidy this up, maybe by adding a GetState export to WCPushBlock?)
+        {
+            typedef struct {
+            /*000*/    DLL27_Data unk0;   //Unused: probably DLL27_Data
+            /*260*/    Object* levelCtrl; //WCLevelControl
+            /*264*/    f32 limitX;
+            /*268*/    f32 limitZ;
+            /*26C*/    u32 soundHandle;
+            /*270*/    s16 gridX;
+            /*272*/    s16 gridZ;
+            /*274*/    u8 state;
+            /*275*/    u8 moveDirection;
+            /*276*/    u8 puzzlePieceID;  //The pushblock's identifier, used by WCLevelControl to quickly store which puzzle element is in each grid cell
+            /*277*/    u8 collidedType;
+            } WCPushBlock_Data;
+
+            #define WCPushBlock_STATE_1_Pushable 1
+
+            WCPushBlock_Data* pushblockData;
+            Object* pushblock = v1objdata->unk680.unk28;
+            if (pushblock && pushblock->id == OBJ_WCPushBlock) {
+                pushblockData = pushblock->data;
+                if (pushblockData->state != WCPushBlock_STATE_1_Pushable) {
+                    return 0;
+                }
+            }
+        }
+        return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Push_Block_Away);
     case 9:
         return -0xB;
     case 10:
@@ -3222,4 +3349,1091 @@ RECOMP_HOOK_DLL(dll_210_func_D788) void dll_210_func_D788_hook(Object* self, Obj
     if (fsa->enteredAnimState != 0 && objdata->unk868 != NULL) {
         recomp_player_dropHeldObj(self, objdata);
     }
+}
+
+/** @recomp: keep track of whether player is still holding back on stick after turning on rope 
+            (to prevent going into a direction-changing loop) */
+static u8 stillHoldingBackAfterTurn = FALSE;
+
+/**  
+  *  PLAYER_ASTATE_Rope_Climb_Start
+  *  - Some setup for preventing turning around rapidly while holding back on the control stick. 
+  */
+RECOMP_PATCH s32 dll_210_func_16648(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
+    Player_Data* objdata = player->data;
+    s32 pad;
+    Vec3f sp7C;
+    Vec3f sp70;
+    f32 animTickDelta;
+    f32 temp_fa1;
+    f32 var_fv0;
+    s16 pad_sp62;
+    s16 sp60;
+    ModelInstance* modelInstance = player->modelInsts[player->modelInstIdx];
+    s32 pad2;
+    Vec3f sp4C;
+    u8 animArg;
+    /* RECOMP */
+    u8 cameraRelativeControls = configs_RopeMoveMode();
+
+    //@recomp: when using tank controls, check if the player starts off the rope jump while already holding back on the stick
+    if (cameraRelativeControls == ROPE_MOVE_DEFAULT) {
+        if (fsa->yAnalogInput >= -5.0f) {
+            stillHoldingBackAfterTurn = FALSE;
+        } else {
+            stillHoldingBackAfterTurn = TRUE;
+        }
+    }
+
+    {
+        s32 nextState = dll_210_func_EFB4(player, fsa, updateRate);
+        if (nextState) { return nextState; }
+    }
+
+    // @fake
+    if ((_bss_200 && _bss_200) && _bss_200) {}
+    _bss_202 = _bss_200;
+    animArg = 0;
+
+    switch (_bss_200) {
+    case 0:
+        if (fsa->unk33A != 0) {
+            player->globalPosition.x = objdata->unk7EC.x;
+            player->globalPosition.y = objdata->unk7EC.y;
+            player->globalPosition.z = objdata->unk7EC.z;
+            camInverseTransformPointByObject(player->globalPosition.x, player->globalPosition.y, player->globalPosition.z, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z, player->parent);
+            objAnimSet(player, _data_69C[1], 0.0f, 1);
+            fsa->animTickDelta = 0.01f;
+            _bss_202 = _bss_200 = 1;
+            mod_func_8001A3FC(modelInstance, 0, 0, 0.0f, player->srt.scale, &sp7C, &sp60);
+            player->srt.transl.y -= sp7C.f[1];
+            temp_fa1 = (_bss_1B0[2] + (objdata->unk6B0.unk0.y - objdata->unk7EC.y));
+            player->velocity.y = sqrtf(-temp_fa1 * -5.6f);
+            player->velocity.y = sqrtf(-temp_fa1 * -0.34f);
+            sp4C.f[0] = _bss_1F8[0] * objdata->unk6B0.unkC.x;
+            sp4C.f[1] = _bss_1F8[0] * objdata->unk6B0.unkC.y;
+            sp4C.f[2] = _bss_1F8[0] * objdata->unk6B0.unkC.z;
+            sp70.f[0] = objdata->unk6B0.unk1C.x + sp4C.x;
+            sp70.f[1] = objdata->unk6B0.unk1C.y + sp4C.y;
+            sp70.f[2] = objdata->unk6B0.unk1C.z + sp4C.z;
+            fsa->unk2EC.f[0] = sp70.f[0] - player->srt.transl.x;
+            fsa->unk2EC.f[1] = 0.0f;
+            fsa->unk2EC.f[2] = sp70.f[2] - player->srt.transl.z;
+            _bss_204 = player->srt.transl.x;
+            _bss_208 = player->srt.transl.z;
+        } else {
+            player->velocity.y = 0.0f;
+            gDLL_18_objfsa->vtbl->func10(player, fsa, updateRate, 0.1f);
+        }
+        break;
+    case 1:
+        temp_fa1 = _bss_1B0[2] + objdata->unk6B0.unk0.y;
+        player->velocity.y += -0.17f * updateRate;
+        var_fv0 = (objdata->unk7EC.y - objdata->unk6B0.unk0.z) / (temp_fa1 - objdata->unk6B0.unk0.z);
+        if (var_fv0 < 0.0f) {
+            var_fv0 = 0.0f;
+        } else if (var_fv0 > 1.0f) {
+            var_fv0 = 1.0f;
+        }
+        player->srt.transl.x = (fsa->unk2EC.f[0] * var_fv0) + _bss_204;
+        player->srt.transl.z = (fsa->unk2EC.f[2] * var_fv0) + _bss_208;
+        if ((temp_fa1 - 1.0f) <= objdata->unk7EC.y) {
+            if (objdata->unk848 == 0) {
+                objdata->unk848 = dll_amSfx->Play(player, SOUND_768_Rope_Climb, MAX_VOLUME, NULL, NULL, 0, NULL);
+                dll_amSfx->SetPitch(objdata->unk848, (mathRnd(-15, 15) / 100.0f) + 1.0f);
+            }
+            _bss_200 = 7;
+            animArg = 1;
+            animTickDelta = 0.035f;
+            objAnimSet(player, 16, 0.0f, 1);
+            fsa->animTickDelta = 0.035f;
+            player->srt.transl.x = objdata->unk6B0.unk1C.x;
+            player->srt.transl.y = objdata->unk6B0.unk1C.y;
+            player->srt.transl.z = objdata->unk6B0.unk1C.z;
+            player->velocity.y = 0.0f;
+        }
+        break;
+    case 7:
+    case 8:
+        if (fsa->unk33A != 0) {
+            player->globalPosition.x = objdata->unk7EC.x;
+            player->globalPosition.y = objdata->unk7EC.y;
+            player->globalPosition.z = objdata->unk7EC.z;
+            camInverseTransformPointByObject(player->globalPosition.x, player->globalPosition.y, player->globalPosition.z, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z, player->parent);
+            dll_210_func_7260(player, objdata);
+            objAnimSet(player, _data_6C0[0], 0.0f, 1);
+            return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Rope_Climb);
+        }
+        break;
+    case 2:
+        if (fsa->unk33A != 0) {
+            if (fsa->yAnalogInput > 5.0f) {
+                player->globalPosition.x = objdata->unk7EC.x;
+                player->globalPosition.y = objdata->unk7EC.y;
+                player->globalPosition.z = objdata->unk7EC.z;
+                camInverseTransformPointByObject(player->globalPosition.x, player->globalPosition.y, player->globalPosition.z, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z, player->parent);
+                dll_210_func_7260(player, objdata);
+                objAnimSet(player, _data_6C0[0], 0.0f, 1);
+                return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Rope_Climb);
+            }
+            if (fsa->yAnalogInput < -5.0f) {
+                return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Rope_Climb_End);
+            }
+            _bss_200 = 3;
+            animTickDelta = 0.008f;
+        }
+        break;
+    case 3:
+        if (fsa->yAnalogInput > 5.0f) {
+            player->globalPosition.x = objdata->unk7EC.x;
+            player->globalPosition.y = objdata->unk7EC.y;
+            player->globalPosition.z = objdata->unk7EC.z;
+            camInverseTransformPointByObject(player->globalPosition.x, player->globalPosition.y, player->globalPosition.z, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z, player->parent);
+            dll_210_func_7260(player, objdata);
+            objAnimSet(player, _data_6C0[0], 0.0f, 1);
+            return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Rope_Climb);
+        }
+        if (fsa->yAnalogInput < -5.0f) {
+            return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Rope_Climb_End);
+        }
+        break;
+    default:
+        _bss_200 = 0;
+        animTickDelta = 0.029f;
+        fsa->unk2F8 = objdata->unk6B0.unk54 - player->srt.yaw;
+        if (objdata->unk6B0.unk45 == 0) {
+            fsa->unk2F8 += M_180_DEGREES;
+        }
+        if (fsa->unk2F8 > M_180_DEGREES) {
+            fsa->unk2F8 += -(M_360_DEGREES - 1);
+        }
+        if (fsa->unk2F8 < -M_180_DEGREES) {
+            fsa->unk2F8 += (M_360_DEGREES - 1);
+        }
+        fsa->unk2A0 = 0.0f;
+        break;
+    }
+
+    if (_bss_202 != _bss_200) {
+        objAnimSet(player, _data_69C[_bss_200], 0.0f, animArg);
+        fsa->animTickDelta = animTickDelta;
+    }
+
+    dll_210_func_7260(player, objdata);
+
+    return 0;
+}
+
+// #define DEBUG_NEW_ROPE_CONTROLS
+
+/**  
+  *  PLAYER_ASTATE_Rope_Climb
+  *  - Add optional camera-relative rope control modes, alongside the existing tank-style controls.
+  *  - Optionally prevent turning around rapidly while holding back on the control stick (with the original tank-style controls). 
+  */
+RECOMP_PATCH s32 dll_210_func_16EB4(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
+    f32 stickY;
+    f32 animProgress;
+    f32 animTickDelta;
+    Vec3f sp80;
+    Vec3f sp74;
+    ModelInstance* modelInstance;
+    Player_Data* objData;
+    s16 pad_sp6A;
+    s16 sp68;
+    f32 x;
+    f32 y;
+    f32 z;
+    Object* rope;
+    /* RECOMP */
+    u8 cameraRelativeControls = configs_RopeMoveMode();
+    f32 cameraRelativeY;
+    Camera* cam;
+    Vec3f camToPlayer;
+    static s32 facingAngle = 0;
+    static s32 moveInitialStickAngle = 0;
+    static s8 stickPositionChangedSignificantly = TRUE;
+    static f32 sin;
+    static f32 cos;
+    s32 moveCurrentStickAngle;
+
+    objData = player->data;
+
+    //@recomp: optional camera-relative rope controls
+    if (cameraRelativeControls && (fsa->xAnalogInput || fsa->yAnalogInput)) {
+        cam = camGetMain();
+        if (cam) {
+            //When using "initial" camera-relative controls, check if the stick angle changed significantly from the 
+            //direction it was initially held in. If so, recalculate the basis angle for the camera-relative controls
+            if (cameraRelativeControls == ROPE_MOVE_CAMERA_RELATIVE_INITIAL && stickPositionChangedSignificantly == FALSE) {
+                moveCurrentStickAngle = mathAtan2f(fsa->xAnalogInput/70.0f, fsa->yAnalogInput/70.0f);
+                moveCurrentStickAngle -= moveInitialStickAngle;
+                CIRCLE_WRAP(moveCurrentStickAngle);
+                if (moveCurrentStickAngle < 0) {
+                    moveCurrentStickAngle = -moveCurrentStickAngle;
+                }
+#ifdef DEBUG_NEW_ROPE_CONTROLS
+                diPrintf("initialAngleDelta: %4x\n", moveCurrentStickAngle);
+#endif
+
+                if (moveCurrentStickAngle > M_20_DEGREES) { //40 degree cone around initial direction counts as same direction
+                    stickPositionChangedSignificantly = TRUE;
+                }
+            }
+
+            //Transform the stick controls relative to the camera
+            if (cameraRelativeControls == ROPE_MOVE_CAMERA_RELATIVE_CURRENT || stickPositionChangedSignificantly) {
+#ifdef DEBUG_NEW_ROPE_CONTROLS
+                if (cameraRelativeControls == ROPE_MOVE_CAMERA_RELATIVE_INITIAL) {
+                    diPrintf("ROPE CONTROLS: Recalculating angular basis\n");
+                }
+#endif
+                camToPlayer.x = player->globalPosition.x - cam->tx;
+                camToPlayer.z = player->globalPosition.z - cam->tz;
+                vec3Normalize(&camToPlayer);
+                facingAngle = mathAtan2f(camToPlayer.x, camToPlayer.z) - player->srt.yaw;
+                CIRCLE_WRAP(facingAngle);
+                sin = Sinf(facingAngle);
+                cos = Cosf(facingAngle);
+            }
+
+            cameraRelativeY = -(sin * fsa->xAnalogInput + cos * fsa->yAnalogInput);
+
+#ifdef DEBUG_NEW_ROPE_CONTROLS
+            diPrintf("cameraRelativeY: %f\n\n", &cameraRelativeY);
+#endif
+        } else {
+            cameraRelativeY = fsa->yAnalogInput;
+        }
+    } else {
+        cameraRelativeY = fsa->yAnalogInput;
+    }
+
+
+    //@recomp: allow player to turn around another time after they stop holding back on the stick
+    if (cameraRelativeY >= -5.0f) {
+        stillHoldingBackAfterTurn = FALSE;
+    } 
+
+    //@recomp: when using "initial" camera-relative controls, recalculate angular basis when the stick goes close to neutral
+    if (cameraRelativeY < 5.0f) {
+        stickPositionChangedSignificantly = TRUE;
+    }
+
+    if (fsa->enteredAnimState) {
+        if ((player->curModAnimId == _data_6C0[0]) || (player->curModAnimId == _data_6C8[0])) {
+            _bss_200 = 8;
+        } else {
+            _bss_200 = 9;
+        }
+
+        // @fake
+        if ((s32)&player->srt.transl.x) {}
+        if ((s32)&player->srt.transl.y) {}
+        if ((s32)&player->srt.transl.z) {}
+    }
+
+    {
+        s32 nextState = dll_210_func_EFB4(player, fsa, updateRate);
+        if (nextState) { return nextState; }
+    }
+
+    x = player->srt.transl.x;
+    y = player->srt.transl.y;
+    z = player->srt.transl.z;
+    player->velocity.y = 0.0f;
+
+    //@recomp: when using camera-relative controls, give an extra margin of error for reaching top speed
+    if (cameraRelativeControls) {
+        stickY = cameraRelativeY / 40.0f;
+    } else {
+        stickY = cameraRelativeY / 60.0f;
+    }
+
+    if (stickY < 0.0f) {
+        stickY = -stickY;
+    }
+    if (stickY < 0.1f) {
+        stickY = 0.1f;
+    }
+    // @fake
+    if (!objData) {}
+    if (stickY > 0.8f) {
+        stickY = 0.8f;
+    }
+
+#ifdef DEBUG_NEW_ROPE_CONTROLS
+    if (cameraRelativeY > 5.0f) {
+        diPrintf("Rope move speed: %d\n", (s32)(stickY / 0.008f));
+    }
+#endif
+
+    modelInstance = player->modelInsts[player->modelInstIdx];
+    animProgress = 0.0f;
+    animTickDelta = fsa->animTickDelta;
+    _bss_202 = _bss_200;
+
+    switch (_bss_200) {
+    case 8:
+    case 9:
+    case 12:
+    case 13:
+        rope = objData->unk6B0.unk38;
+        if (rope) { //@recomp: null check
+            dll_DFropenode(rope)->func8(rope, objData->unk6B0.unk48, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z);
+        }
+        player->curModAnimIdLayered = -1;
+        animTickDelta = 0.0f;
+        if (_bss_200 & 1) {
+            _bss_200 = 1;
+        } else {
+            _bss_200 = 0;
+        }
+        break;
+    case 6:
+    case 7:
+    case 10:
+    case 11:
+        return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Rope_Climb_End);
+    case 4:
+    case 5:
+        rope = objData->unk6B0.unk38;
+        if (rope) { //@recomp: null check
+            dll_DFropenode(rope)->func8(rope, objData->unk6B0.unk48, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z);
+        }
+
+        if (cameraRelativeY > 5.0f) {
+            objAnimSetProgress(player, 0.0f);
+        } else if (cameraRelativeY < -5.0f) {
+            objAnimSetProgress(player, 0.0f);
+        } else if ((fsa->unk310 & A_BUTTON) && (mainGetBits(BIT_Player_Rope_Controls_No_Letting_Go) == FALSE)) {
+            objAnimSet(player, 18, 0.0f, 1);
+            fsa->animTickDelta = 0.2f;
+            fsa->unk278 = 0.0f;
+            player->velocity.y = 0.0f;
+            return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Rope_Climb_End);
+        } else {
+            break;
+        }
+    default:
+        if (player->animProgress == 0.0f) {
+            if (cameraRelativeY > 5.0f) {
+                //@recomp: store initial stick angle when moving
+                if (cameraRelativeControls == ROPE_MOVE_CAMERA_RELATIVE_INITIAL && stickPositionChangedSignificantly == TRUE) {
+                    moveInitialStickAngle = mathAtan2f(fsa->xAnalogInput/70.0f, fsa->yAnalogInput/70.0f);
+                    stickPositionChangedSignificantly = FALSE;
+                }
+
+                if (((objData->unk6B0.unk48 < 0.3f) && (objData->unk6B0.unk45 == 1)) || ((objData->unk6B0.unk48 > 6.7f) && (objData->unk6B0.unk45 == 0))) {
+                    objAnimSet(player, 18, 0.0f, 1);
+                    fsa->animTickDelta = 0.2f;
+                    fsa->unk278 = 0.0f;
+                    player->velocity.y = 0.0f;
+                    return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Rope_Climb_End);
+                }
+
+                animTickDelta = (stickY * 0.033999998f) + 0.015f;
+                if (_bss_200 >= 2) {
+                    if (_bss_200 & 1) {
+                        _bss_200 = 1;
+                    } else {
+                        _bss_200 = 0;
+                    }
+                }
+            } else if (cameraRelativeY < -5.0f
+                && (configs_RopesTurnOnce() == FALSE || !stillHoldingBackAfterTurn) //@recomp: optionally prevent rapidly changing direction on rope
+            ) {
+                //@recomp: track that the player is holding back on the stick
+                stillHoldingBackAfterTurn = TRUE;
+
+                pad_sp6A = objData->unk6B0.unk45;
+                objData->unk6B0.unk45 = pad_sp6A == 0;
+                objData->unk6B0.unk50 = -objData->unk6B0.unk50;
+                player->srt.yaw += M_180_DEGREES;
+                animProgress = 0.99f;
+                animTickDelta = -((stickY * 0.013000001f) + 0.015f);
+                if (_bss_200 & 1) {
+                    _bss_200 = 2;
+                } else {
+                    _bss_200 = 3;
+                }
+            } else if (objAnim_func_80024E2C(player) == 0) {
+                animTickDelta = 0.01f;
+                if (((_bss_200 & 1) != FALSE) && (_bss_200 != 5)) {
+                    _bss_200 = 5;
+                } else if (((_bss_200 & 1) == FALSE) && (_bss_200 != 4)) {
+                    _bss_200 = 4;
+                }
+                break;
+            }
+        }
+
+        if (player->animProgress == 1.0f) {
+            if (cameraRelativeY < -5.0f
+                && (configs_RopesTurnOnce() == FALSE || !stillHoldingBackAfterTurn) //@recomp: optionally prevent rapidly changing direction on rope
+            ) {
+                //@recomp: track that the player is holding back on the stick
+                stillHoldingBackAfterTurn = TRUE;
+
+                pad_sp6A = objData->unk6B0.unk45;
+                objData->unk6B0.unk45 = pad_sp6A == 0;
+                objData->unk6B0.unk50 = -objData->unk6B0.unk50;
+                player->srt.yaw += M_180_DEGREES;
+                animTickDelta = -((stickY * 0.01f) + 0.025f);
+                if (_bss_200 < 2) {
+                    _bss_200 += 2;
+                    animProgress = 0.99f;
+                }
+            } else {
+                animTickDelta = 0.0f;
+                if (_bss_200 < 2) {
+                    _bss_200 ^= 1;
+                    animProgress = 0.0f;
+                }
+                rope = objData->unk6B0.unk38;
+                if (rope) { //@recomp: null check
+                    dll_DFropenode(rope)->func9(rope, &objData->unk6B0.unk4C, objData->unk6B0.unk50);
+                }
+                objData->unk6B0.unk48 = objData->unk6B0.unk4C;
+                player->animProgress = 0.0f;
+            }
+        }
+
+        if (fsa->unk308 & 1) {
+            objData->unk848 = dll_amSfx->Play(player, SOUND_768_Rope_Climb, mathRnd(0x32, MAX_VOLUME), NULL, NULL, 0, NULL);
+            dll_amSfx->SetPitch(objData->unk848, (mathRnd(-15, 15) / 100.0f) + 1.0f);
+        }
+
+        if (animTickDelta < 0.0f) {
+            animTickDelta = -((stickY * 0.013000001f) + 0.015f);
+        } else if (animTickDelta > 0.0f) {
+            animTickDelta = (stickY * 0.033999998f) + 0.015f;
+        }
+
+        rope = objData->unk6B0.unk38;
+        if (rope) { //@recomp: null check
+            stickY = objData->unk6B0.unk4C;
+            dll_DFropenode(rope)->func8(rope, objData->unk6B0.unk48, &player->srt.transl.x, &player->srt.transl.y, &player->srt.transl.z);
+            dll_DFropenode(rope)->func9(rope, &stickY, objData->unk6B0.unk50 * player->animProgress);
+            dll_DFropenode(rope)->func8(rope, stickY, &x, &y, &z);
+            dll_DFropenode(rope)->func10(rope, stickY, 1.0f);
+        }
+        break;
+    }
+
+    gDLL_2_Camera->vtbl->reposition_player(x, y, z);
+    fsa->animTickDelta = animTickDelta;
+
+    if (_bss_202 != _bss_200) {
+        objAnimSet(player, _data_6B0[_bss_200], animProgress, 1);
+        if ((_bss_200 < 2) && (objData->unk6B0.unk46 == 0)) {
+            mod_func_8001A3FC(modelInstance, 0, 0, 0.0f, player->srt.scale, &sp80, &sp68);
+            mod_func_8001A3FC(modelInstance, 0, 0, 1.0f, player->srt.scale, &sp74, &sp68);
+            objData->unk6B0.unk28.x = sp74.f[0] - sp80.f[0];
+            objData->unk6B0.unk28.z = sp74.f[2] - sp80.f[2];
+            objData->unk6B0.unk50 = sqrtf(SQ(objData->unk6B0.unk28.x) + SQ(objData->unk6B0.unk28.z));
+            if (objData->unk6B0.unk45 == 1) {
+                objData->unk6B0.unk50 = -objData->unk6B0.unk50;
+            }
+            objData->unk6B0.unk46 = 1;
+        }
+    }
+
+    dll_210_func_7260(player, player->data);
+
+    return 0;
+}
+
+/**  
+  *  PLAYER_ASTATE_Rope_Climb_End
+  *  - Fix player model warping upwards when letting go of ropes. 
+  */
+RECOMP_PATCH s32 dll_210_func_178A0(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
+    /* @recomp: snap player's height back where it should be
+        The rope anims have Krystal/Sabre hanging with their hands at around [0,0,0] in their objectSpace coords,
+        and they pop back to having their feet around [0,0,0] when letting go. The rope climb start behaviour accounts for this,
+        but the rope drop behaviour doesn't - so previously the player appeared to teleport up when letting go!) */
+    player->srt.transl.y -= 30.0f;
+
+    dll_210_func_7260(player, player->data);
+
+    return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Falling);
+}
+
+/**
+  * PLAYER_ASTATE_Wall_Clambering_Climb_Over
+  * - Don't change back to CamNormal if a StaticCamera is currently active (only in Discovery Falls for now, until more testing is done)
+  */
+RECOMP_PATCH s32 dll_210_func_11C60(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
+    Player_Data* objData;
+    Vec3f jointCoords;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 tempY;
+    s32 nextState;
+    s16 pad;
+    s16 sp48;
+    u32 soundHandle;
+
+    objData = player->data;
+
+    if (fsa->unk308 & 0x80) {
+        soundHandle = dll_amSfx->Play(player, _data_4D8[objData->unk430.unk2], mathRnd(0x5A, MAX_VOLUME), NULL, NULL, 0, NULL);
+        dll_amSfx->SetPitch(soundHandle, (mathRnd(-100, 100) * 0.001f) + 1.0f);
+    }
+
+    if (fsa->enteredAnimState) {
+
+        //@recomp: don't exit out of StaticCameras (just in Discovery Falls for now - TODO: check if safe elsewhere!) 
+        if (playerUtil_doesStaticCameraHavePriority(player)) {
+#ifdef DEBUG_PRIORITISE_STATIC_CAMERA
+            recomp_printf("StaticCamera active, skipping top-of-climb camera change.\n");
+#endif
+        } else {
+            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 60, Cam_Ease_All);
+        }
+
+        dll_amSfx->Play(player, objData->unk3B8[mathRnd(10, 14)], MAX_VOLUME, NULL, NULL, 0, NULL);
+        objAnimSet(player, _data_5DC[1], 0.0f, 1);
+        objAnimSetBlend(player, _data_5E0[0], 0);
+        fsa->animTickDelta = 0.012f;
+        mod_func_8001A3FC(player->modelInsts[player->modelInstIdx], 0, 0, 1.0f, player->srt.scale, &jointCoords, &sp48);
+        objData->unk430.unk18.y = jointCoords.f[2] * objData->unk430.unk24.x;
+        objData->unk430.unk18.z = jointCoords.f[2] * objData->unk430.unk24.z;
+        player->srt.transl.y = objData->unk430.unk4;
+        fsa->unk270 = PLAYER_ASTATE_Wall_Clambering_Climb_Over;
+        fsa->animExitAction = dll_210_func_12514;
+    }
+
+    {
+        s32 nextState = dll_210_func_EFB4(player, fsa, updateRate);
+        if (nextState) { return nextState; }
+    }
+
+    player->velocity.y = 0.0f;
+
+    objAnim_func_80024DD0(player, 0, 1, objData->unk430.unk5C);
+    if (player->animProgress > 0.99f) {
+        player->globalPosition.x = objData->unk7EC.x;
+        player->globalPosition.z = objData->unk7EC.z;
+        camInverseTransformPointByObject(player->globalPosition.x, 0.0f, player->globalPosition.z, &player->srt.transl.x, &tempY, &player->srt.transl.z, player->parent);
+        dll_210_func_7260(player, objData);
+        objAnimSet(player, objData->modAnims[0], 0.0f, 1);
+        return FSA_NEXTSTATE_ASYNC(PLAYER_ASTATE_Standing);
+    }
+
+    x = player->srt.transl.x + (objData->unk430.unk18.y * player->animProgress);
+    y = player->srt.transl.y - (objData->unk430.unk18.x * (1.0f - player->animProgress));
+    z = player->srt.transl.z + (objData->unk430.unk18.z * player->animProgress);
+    gDLL_2_Camera->vtbl->reposition_player(x, y, z);
+    shadowsSetCustomObjPos(player, x, y, z);
+    dll_210_func_7260(player, objData);
+
+    return 0;
+}
+
+/**
+  * PLAYER_ASTATE_Wall_Clambering_Drop_Down
+  * - Don't change back to CamNormal if a StaticCamera is currently active (only in Discovery Falls for now, until more testing is done)
+  */
+RECOMP_PATCH s32 dll_210_func_1209C(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
+    Player_Data* objData;
+    Vec3f jointCoords;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 tempY;
+    s32 nextState;
+    s16 pad;
+    s16 sp48;
+    u32 soundHandle;
+
+    objData = player->data;
+
+    if (!(fsa->unk4.unk25C & 0x10) && (fsa->unk4.underwaterDist > 5.0f)) {
+        return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_31);
+    }
+
+    if (fsa->unk308 & 1) {
+        dll_amSfx->Play(player, objData->unk3B8[mathRnd(10, 14)], MAX_VOLUME, NULL, NULL, 0, NULL);
+    }
+
+    if (fsa->unk308 & 0x80) {
+        soundHandle = dll_amSfx->Play(player, _data_4D8[objData->unk430.unk2], mathRnd(0x5A, MAX_VOLUME), NULL, NULL, 0, NULL);
+        dll_amSfx->SetPitch(soundHandle, (mathRnd(-100, 100) * 0.001f) + 1.0f);
+    }
+
+    if (fsa->enteredAnimState) {
+
+        //@recomp: don't exit out of StaticCameras (just in Discovery Falls for now - TODO: check if safe elsewhere!) 
+        if (playerUtil_doesStaticCameraHavePriority(player)) {
+#ifdef DEBUG_PRIORITISE_STATIC_CAMERA
+            recomp_printf("StaticCamera active, skipping end-of-climb camera change.\n");
+#endif
+        } else {
+            gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 60, Cam_Ease_All);
+        }
+
+        objAnimSet(player, _data_5E0[1], 0.0f, 1);
+        objAnimSetBlend(player, _data_5E4[0], 0);
+        fsa->animTickDelta = 0.015f;
+        mod_func_8001A3FC(player->modelInsts[player->modelInstIdx], 0, 0, 1.0f, player->srt.scale, &jointCoords, &sp48);
+        objData->unk430.unk18.y = jointCoords.f[2] * objData->unk430.unk24.x;
+        objData->unk430.unk18.z = jointCoords.f[2] * objData->unk430.unk24.z;
+        player->srt.transl.y = objData->unk430.unk8;
+        fsa->unk270 = PLAYER_ASTATE_Wall_Clambering_Drop_Down;
+        fsa->animExitAction = dll_210_func_12514;
+    }
+
+    {
+        s32 nextState = dll_210_func_EFB4(player, fsa, updateRate);
+        if (nextState != 0) { return nextState; }
+    }
+
+    player->velocity.y = 0.0f;
+
+    objAnim_func_80024DD0(player, 0, 1, objData->unk430.unk5C);
+    if (player->animProgress > 0.99f) {
+        player->globalPosition.x = objData->unk7EC.x;
+        player->globalPosition.z = objData->unk7EC.z;
+        camInverseTransformPointByObject(player->globalPosition.x, 0.0f, player->globalPosition.z, &player->srt.transl.x, &tempY, &player->srt.transl.z, player->parent);
+        dll_210_func_7260(player, objData);
+        objAnimSet(player, objData->modAnims[0], 0.0f, 1);
+        return FSA_NEXTSTATE_ASYNC(PLAYER_ASTATE_Standing);
+    }
+
+    x = player->srt.transl.x + (objData->unk430.unk18.y * player->animProgress);
+    y = player->srt.transl.y - (objData->unk430.unk18.x * (1.0f - player->animProgress));
+    z = player->srt.transl.z + (objData->unk430.unk18.z * player->animProgress);
+    gDLL_2_Camera->vtbl->reposition_player(x, y, z);
+    shadowsSetCustomObjPos(player, x, y, z);
+    dll_210_func_7260(player, objData);
+
+    return 0;
+}
+
+/**
+  * PLAYER_ASTATE_Ladder_Climbing
+  * - Don't change back to CamNormal if a StaticCamera is currently active (only in Discovery Falls for now, until more testing is done)
+  */
+RECOMP_PATCH s32 dll_210_func_F690(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
+    f32 stickY;
+    f32 animProgress;
+    f32 animTickDelta;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 tempY;
+    Vec3f sp78;
+    Vec3f sp6C;
+    Player_Data* objData;
+    f32 temp_fa0;
+    ModelInstance* modelInstance;
+    s16 var_v1;
+    f32 temp_fv1;
+    s16 pad_sp56;
+    s16 sp54;
+
+    objData = player->data;
+    
+    if (fsa->enteredAnimState) {
+        objData->unk8A9 = 1;
+        if ((player->curModAnimId == _data_5B0[0]) || (player->curModAnimId == _data_5B8[0])) {
+            _bss_200 = 8;
+        } else {
+            _bss_200 = 9;
+        }
+        fsa->unk270 = PLAYER_ASTATE_Falling;
+        fsa->animExitAction = dll_210_func_12514;
+    }
+    
+    {
+        s32 nextState = dll_210_func_EFB4(player, fsa, updateRate);
+        if (nextState) { return nextState; }
+    }
+    
+    if ((fsa->unk4.underwaterDist > 25.0f) && (fsa->unk4.floorDist < 100.0f)) {
+        return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Swim_Treading_In_Place);
+    }
+    
+    player->velocity.y = 0.0f;
+    stickY = fsa->yAnalogInput / 60.0f;
+    if (stickY < 0.0f) {
+        stickY = -stickY;
+    }
+    if (stickY < 0.1f) {
+        stickY = 0.1f;
+    }
+    if (stickY > 1.0f) {
+        stickY = 1.0f;
+    }
+    
+    modelInstance = player->modelInsts[player->modelInstIdx];
+    animProgress = 0.0f;
+    animTickDelta = fsa->animTickDelta;
+    _bss_202 = _bss_200;
+    
+    if (fsa->unk308 & 1) {
+        dll_amSfx->Play(player, SOUND_B1C_Ladder_Climb_A, MAX_VOLUME, NULL, NULL, 0, NULL);
+    }
+    
+    switch (_bss_200) {
+    case 8:
+    case 9:
+    case 12:
+    case 13:
+        player->srt.transl.y = objData->unk3CC.unk10;
+        player->curModAnimIdLayered = -1;
+        objData->unk3CC.unk2 = 0;
+        objData->unk3CC.unk14 = objData->unk3CC.unk10;
+        animTickDelta = 0.0f;
+        if (_bss_200 & 1) {
+            _bss_200 = 1;
+        } else {
+            _bss_200 = 0;
+        }
+        break;
+    case 6:
+    case 7:
+        if (fsa->unk308 & 0x80) {
+            dll_amSfx->Play(player, objData->unk3B8[mathRnd(10, 14)], MAX_VOLUME, NULL, NULL, 0, NULL);
+        }
+        
+        if (fsa->unk33A) {
+            player->srt.transl.y = objData->unk3CC.unk4;
+        } else {
+            mod_func_8001A3FC(modelInstance, 0, 0, 0, player->srt.scale, &sp78, &sp54);
+            mod_func_8001A3FC(modelInstance, 0, 0, 1, player->srt.scale, &sp6C, &sp54);
+            temp_fv1 = sp78.y + _bss_204;
+            temp_fa0 = _bss_208 - (sp6C.y - sp78.y);
+            player->srt.transl.y = ((temp_fa0 - temp_fv1) * player->animProgress) + _bss_204;
+        }
+        /* fallthrough */
+    case 10:
+    case 11:
+        if (fsa->unk33A != 0) {
+            player->globalPosition.x = objData->unk7EC.x;
+            player->globalPosition.z = objData->unk7EC.z;
+            camInverseTransformPointByObject(player->globalPosition.x, 0.0f, player->globalPosition.z, 
+                                             &player->srt.transl.x, &tempY, &player->srt.transl.z, 
+                                             player->parent);
+            dll_210_func_7260(player, objData);
+            objAnimSet(player, *objData->modAnims, 0.0f, 1);
+            return -1;
+        }
+        break;
+    case 4:
+    case 5:
+        if (fsa->yAnalogInput > 5.0f) {
+            goto label1; label1: ;
+            objAnimSetProgress(player, 0.0f);
+        } else if (fsa->yAnalogInput < -5.0f) {
+            goto label2; label2: ;
+            objAnimSetProgress(player, 0.0f);
+        } else {
+        
+            if ((fsa->unk310 & A_BUTTON) && (objData->unk3CC.unk0 >= 4)) {
+                return FSA_NEXTSTATE_ASYNC(PLAYER_ASTATE_Ladder_Slide_Down);
+            } else {
+                break;
+            }
+        }
+        /* fallthrough */
+    default:
+        if (fsa->unk308 & 0x80) {
+            dll_amSfx->Play(player, SOUND_B1D_Ladder_Climb_B, MAX_VOLUME, NULL, NULL, 0, NULL);
+        }
+        
+        if ((fsa->unk310 & A_BUTTON) && (objData->unk3CC.unk0 >= 4)) {
+            return FSA_NEXTSTATE_ASYNC(PLAYER_ASTATE_Ladder_Slide_Down);
+        }
+        
+        if (player->animProgress == 1.0f) {
+            if (fsa->yAnalogInput < -5.0f) {
+                objData->unk3CC.unk2 = 0;
+                animTickDelta = -((stickY * 0.01f) + 0.025f);
+                if (_bss_200 < 2) {
+                    _bss_200 += 2;
+                    animProgress = 0.99f;
+                }
+            } else {
+                objData->unk3CC.unk0 += 1;
+                objData->unk3CC.unk2 = 1;
+                animTickDelta = 0.0f;
+                if (_bss_200 < 2) {
+                    _bss_200 ^= 1;
+                }
+                objData->unk3CC.unk14 = player->srt.transl.y + objData->unk3CC.unk1C;
+                objData->unk3CC.unk10 = objData->unk3CC.unk8 + (objData->unk3CC.unk0 * objData->unk3CC.unkC);
+                player->srt.transl.y = objData->unk3CC.unk14;
+            }
+        }
+        
+        if (player->animProgress == 0.0f) {
+            if (fsa->yAnalogInput > 5.0f) {
+                objData->unk3CC.unk2 = 1;
+                animProgress = 0.0f;
+                if (objData->unk3CC.unk0 >= (objData->unk3CC.unk1 - 3)) {
+                    animTickDelta = 0.011f;
+                    if (_bss_200 & 1) {
+                        _bss_200 = 7;
+                    } else {
+                        _bss_200 = 6;
+                    }
+                    _bss_204 = player->srt.transl.y;
+                    _bss_208 = *_bss_1B0 + objData->unk3CC.unk4;
+
+                    //@recomp: don't exit out of StaticCameras (just in Discovery Falls for now - TODO: check if safe elsewhere!) 
+                    if (playerUtil_doesStaticCameraHavePriority(player)) {
+#ifdef DEBUG_PRIORITISE_STATIC_CAMERA
+                        recomp_printf("StaticCamera active, skipping ladder climb camera change.\n");
+#endif
+                    } else {
+                        gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 30, Cam_Ease_All);
+                    }
+
+                    break;
+                }
+                animTickDelta = (stickY * 0.012f) + 0.025f;
+                if (_bss_200 >= 2) {
+                    if (_bss_200 & 1) {
+                        _bss_200 = 1;
+                    } else {
+                        _bss_200 = 0;
+                    }
+                }
+            } else if (fsa->yAnalogInput < -5.0f) {
+                objData->unk3CC.unk2 = 0;
+                objData->unk3CC.unk0 -= 1;
+                if (objData->unk3CC.unk0 <= 0) {
+                    animProgress = 0.0f;
+                    animTickDelta = 0.016f;
+                    if (_bss_200 & 1) {
+                        _bss_200 = 0xB;
+                    } else {
+                        _bss_200 = 0xA;
+                    }
+
+                    //@recomp: don't exit out of StaticCameras (just in Discovery Falls for now - TODO: check if safe elsewhere!) 
+                    if (playerUtil_doesStaticCameraHavePriority(player)) {
+#ifdef DEBUG_PRIORITISE_STATIC_CAMERA
+                        recomp_printf("StaticCamera active, skipping ladder camera change.\n");
+#endif
+                    } else {
+                        gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 30, Cam_Ease_All);
+                    }
+
+                    player->srt.transl.y = objData->unk3CC.unk8;
+                    break;
+                }
+                animProgress = 0.99f;
+                if (_bss_200 & 1) {
+                    _bss_200 = 2;
+                } else {
+                    _bss_200 = 3;
+                }
+                animTickDelta = -((stickY * 0.01f) + 0.025f);
+                objData->unk3CC.unk10 = objData->unk3CC.unk8 + (objData->unk3CC.unk0 * objData->unk3CC.unkC);
+                player->srt.transl.y = objData->unk3CC.unk14 = player->srt.transl.y - objData->unk3CC.unk1C;
+            } else {
+                if (objAnim_func_80024E2C(player) == 0) {
+                    animProgress = 0.0f;
+                    animTickDelta = 0.01f;
+                    if ((_bss_200 & 1) && (_bss_200 != 5)) {
+                        _bss_200 = 5;
+                    } else if (((_bss_200 & 1) == 0) && (_bss_200 != 4)) {
+                        _bss_200 = 4;
+                    }
+                    break;
+                }
+            }
+        }
+        
+        if (animTickDelta < 0.0f) {
+            animTickDelta = -((stickY * 0.01f) + 0.025f);
+        } else if (animTickDelta > 0.0f) {
+            animTickDelta = (stickY * 0.012f) + 0.025f;
+        }
+        
+        if (objData->unk3CC.unk2 != 0) {
+            player->srt.transl.y = objData->unk3CC.unk14 + ((objData->unk3CC.unk10 - objData->unk3CC.unk14) * player->animProgress);
+        } else {
+            player->srt.transl.y = objData->unk3CC.unk14 + ((objData->unk3CC.unk10 - objData->unk3CC.unk14) * (1.0f - player->animProgress));
+        }
+        
+        break;
+    }
+
+    fsa->animTickDelta = animTickDelta;
+    
+    if (_bss_202 != _bss_200) {
+        objAnimSet(player, _data_5A0[_bss_200], animProgress, 1);
+        if ((_bss_200 < 2) && (objData->unk3CC.unk3 == 0)) {
+            mod_func_8001A3FC(modelInstance, 0, 0, 0, player->srt.scale, &sp78, &sp54);
+            mod_func_8001A3FC(modelInstance, 0, 0, 1, player->srt.scale, &sp6C, &sp54);
+            objData->unk3CC.unk1C = sp6C.f[1] - sp78.f[1];
+            objData->unk3CC.unk3 = 1;
+        }
+    }
+    
+    x = player->srt.transl.x;
+    y = player->srt.transl.y;
+    z = player->srt.transl.z;
+    
+    switch (_bss_200) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+        y = (objData->unk3CC.unk8 + ((objData->unk3CC.unk0 + 1) * objData->unk3CC.unkC));
+        y = player->srt.transl.y + ((y - player->srt.transl.y) * player->animProgress);
+        break;
+    case 10:
+    case 11:
+        x = player->srt.transl.x + ((objData->unk7EC.x - player->srt.transl.x) * player->animProgress);
+        y = player->srt.transl.y + ((objData->unk3CC.unk10 - player->srt.transl.y) * (1.0f - player->animProgress));
+        z = player->srt.transl.z + ((objData->unk7EC.z - player->srt.transl.z) * player->animProgress);
+        break;
+    case 6:
+    case 7:
+        x = player->srt.transl.x + ((objData->unk7EC.x - player->srt.transl.x) * player->animProgress);
+        y = player->srt.transl.y + ((objData->unk3CC.unk4 - player->srt.transl.y) * player->animProgress);
+        z = player->srt.transl.z + ((objData->unk7EC.z - player->srt.transl.z) * player->animProgress);
+        break;
+    default:
+        y = player->srt.transl.y;
+        break;
+    }
+    
+    gDLL_2_Camera->vtbl->reposition_player(x, y, z);
+    shadowsSetCustomObjPos(player, x, y, z);
+    dll_210_func_7260(player, objData);
+    
+    return 0;
+}
+
+/**
+  * PLAYER_ASTATE_Ladder_Slide_Down
+  * - Don't change back to CamNormal if a StaticCamera is currently active (only in Discovery Falls for now, until more testing is done)
+  */
+RECOMP_PATCH s32 dll_210_func_1034C(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
+    static f32 _bss_38;
+    f32 sp6C;
+    Player_Data* objData;
+    f32 temp_fv0;
+    f32 velocityY;
+    f32 tempY;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 dy;
+
+    objData = player->data;
+
+    if (fsa->enteredAnimState) {
+        _bss_38 = 0.0f;
+        objAnimSet(player, 0x35, 0.0f, 1U);
+        fsa->animTickDelta = 0.025f;
+        objData->unk3CC.unk1C = player->srt.transl.y;
+        player->srt.transl.y = objData->unk7EC.y;
+        dll_210_func_7260(player, objData);
+        fsa->unk270 = PLAYER_ASTATE_Falling;
+    }
+
+    if (!(fsa->unk4.unk25C & 0x10) && (fsa->unk4.underwaterDist > 5.0f)) {
+        return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_31);
+    }
+
+    fsa->unk4.mode = 2;
+    fsa->flags |= 0x200000;
+    
+    switch (player->curModAnimId) {
+    case 0x35:
+        if (fsa->unk33A) {
+            objAnimSet(player, 0x36, 0.0f, 0);
+            fsa->animTickDelta = 0.025f;
+        }
+        /* fallthrough */
+    case 0x36:
+        sp6C = -_bss_38 * 10.0f;
+        if (fsa->unk308 & 1) {
+            dll_amSfx->Play(player, SOUND_769_Whoosh_Ladder_Slide, MAX_VOLUME, NULL, NULL, 0, NULL);
+        }
+        dy = player->srt.transl.y - (objData->unk3CC.unk8 + 32.0f);
+        if (dy < 0.0f) {
+            dy = 0.0f;
+        }
+        if (dy < sp6C) {
+            temp_fv0 = SQ(_bss_38) / (2.0f * sp6C);
+            velocityY = -sqrtf(2.0f * (temp_fv0) * dy);
+            player->velocity.y = velocityY;
+            if (velocityY >= -0.01f) {
+                objAnimSet(player, 0x37, 0.0f, 1);
+
+                //@recomp: don't exit out of StaticCameras (just in Discovery Falls for now - TODO: check if safe elsewhere!) 
+                if (playerUtil_doesStaticCameraHavePriority(player)) {
+#ifdef DEBUG_PRIORITISE_STATIC_CAMERA
+                    recomp_printf("StaticCamera active, skipping ladder slide camera change.\n");
+#endif
+                } else {
+                    gDLL_2_Camera->vtbl->change_camera_module(DLL_ID_CAMNORMAL, FALSE, 1, 0, NULL, 0, Cam_Ease_All);
+                }
+
+                fsa->animTickDelta = 0.02f;
+                objData->unk3CC.unk1C = player->srt.transl.y;
+                player->srt.transl.y = objData->unk3CC.unk8;
+                dll_210_func_7260(player, objData);
+                player->velocity.y = 0.0f;
+            }
+        } else {
+            if (player->velocity.y > -3.0f) {
+                player->velocity.y = player->velocity.y - (0.05f * updateRate);
+            }
+            if (player->velocity.y < -3.0f) {
+                player->velocity.y = -3.0f;
+            }
+            if (player->velocity.y < _bss_38) {
+                _bss_38 = player->velocity.y;
+            }
+        }
+        break;
+    case 0x37:
+        if (fsa->unk308 & 1) {
+            dll_amSfx->Play(player, (u16) objData->unk898[objAnim_func_80025CD4((s32) fsa->unk4.unk68.unk50[0])], MAX_VOLUME, NULL, NULL, 0, NULL);
+        }
+
+        if (fsa->unk33A) {
+            player->globalPosition.x = objData->unk7EC.x;
+            player->globalPosition.z = objData->unk7EC.z;
+            camInverseTransformPointByObject(player->globalPosition.x, 0.0f, player->globalPosition.z, &player->srt.transl.x, &tempY, &player->srt.transl.z, player->parent);
+            dll_210_func_7260(player, objData);
+            objAnimSet(player, objData->modAnims[0], 0.0f, 1);
+            return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Standing);
+        }
+        break;
+    }
+
+    x = player->srt.transl.x;
+    y = player->srt.transl.y;
+    z = player->srt.transl.z;
+
+    switch (player->curModAnimId) {
+        default:
+            y = player->srt.transl.y;
+            break;
+        case 0x35:
+            y = objData->unk3CC.unk1C + ((player->srt.transl.y - objData->unk3CC.unk1C) * player->animProgress);
+            break;
+        case 0x37:
+            x = player->srt.transl.x + ((objData->unk7EC.x - player->srt.transl.x) * player->animProgress);
+            y = player->srt.transl.y + ((objData->unk3CC.unk1C - player->srt.transl.y) * (1.0f - player->animProgress));
+            z = player->srt.transl.z + ((objData->unk7EC.z - player->srt.transl.z) * player->animProgress);
+            break;
+    }
+
+    gDLL_2_Camera->vtbl->reposition_player(x, y, z);
+    shadowsSetCustomObjPos(player, x, y, z);
+
+    return 0;
 }

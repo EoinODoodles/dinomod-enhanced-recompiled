@@ -1,0 +1,53 @@
+# WCMoonTempleDoor 
+# A copy of ObjSeq 0x3BB, but moving down instead of up.
+# The Sun Door's side of the temple has a slope directly above the Sun Door, so it can safely be raised.
+# The Moon Door just has a flat walkway above it though, so it sticks up through the ground nonsensically when raised.
+# This sequence addresses that, having the Moon Door sink into the ground instead!
+# The Moon Door's model only includes the door's top face (and not the bottom), so this seems to have been Rare's intention.
+
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x1000
+  objectID: 0xFFFF # Self (WCMoonTempleDoo)
+
+curves:
+# Curve 0
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 399 } # SETDURATION @ 0
+  - { type: 3, delay: 6, params: 0x0 } # OVERRIDE @ 0
+  - { type: 2, delay: 4, params: 0x446 } # ANIM @ 6
+  - { type: 11, delay: 4, params: 1 } # CODE @ 10
+  - { code_type: 2, val1: 0x0, val2: 0x1 } # SET (MESSAGE)
+  - { type: 15, delay: 1, params: 0xE89D } # SFX_WITH_DURATION @ 14
+  - { type: 127, delay: 86, params: 0x3E } # PARAM @ 14
+  - { type: 15, delay: 1, params: 0xE89D } # SFX_WITH_DURATION @ 100
+  - { type: 127, delay: 60, params: 0x3B } # PARAM @ 100
+  - { type: 6, delay: 10, params: 0xE89E } # SFX @ 160
+  - { type: 11, delay: 11, params: 1 } # CODE @ 170
+  - { code_type: 2, val1: 0x0, val2: 0x2 } # SET (MESSAGE)
+  - { type: 15, delay: 1, params: 0xE89D } # SFX_WITH_DURATION @ 181
+  - { type: 127, delay: 79, params: 0x39 } # PARAM @ 181
+  - { type: 15, delay: 1, params: 0xE89D } # SFX_WITH_DURATION @ 260
+  - { type: 127, delay: 71, params: 0x43 } # PARAM @ 260
+  - { type: 6, delay: 9, params: 0xE89E } # SFX @ 331
+  - { type: 11, delay: 59, params: 1 } # CODE @ 340
+  - { code_type: 1, val1: 0x0, val2: 0x2 } # JUMPTOTIME
+  - { type: 11, delay: 0, params: 1 } # CODE @ 399
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # TRANSLATE_Z
+  - { channel: 11, time: 10, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 11, time: 80, value: -13.5, interp: 0, weight: 0 }
+  - { channel: 11, time: 100, value: -13.5, interp: 1, weight: 0 }
+  - { channel: 11, time: 160, value: 15.107, interp: 1, weight: 0 }
+  - { channel: 11, time: 180, value: 15.107, interp: 1, weight: 8 }
+  - { channel: 11, time: 240, value: -13.5, interp: 1, weight: 0 }
+  - { channel: 11, time: 260, value: -13.5, interp: 0, weight: 0 }
+  - { channel: 11, time: 330, value: 0.0, interp: 0, weight: 0 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 100, value: -7.450580596923828e-09, interp: 1, weight: 0 }
+  - { channel: 12, time: 160, value: -74.409, interp: 1, weight: 8 }
+  - { channel: 12, time: 180, value: -74.409, interp: 1, weight: 0 }
+  - { channel: 12, time: 240, value: 0.0, interp: 0, weight: 0 }

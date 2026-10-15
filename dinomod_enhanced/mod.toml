@@ -320,6 +320,18 @@ options = [ "Off", "On" ]
 default = "On"
 
 [[manifest.config_options]]
+id = "timer_fractions"
+name = "Timers: Show Fractions"
+description = '''
+The UI countdown that appears during timed challenges normally only displays the remaining seconds. However, its code turns out to also be printing the remaining time down to 60ths of a second, but it ends up invisible because it's drawn outside the box.
+
+Enabling this option displays the fractional portion too, if you prefer it!
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "Off"
+
+[[manifest.config_options]]
 id = "log_a_button"
 name = "Log: Rowing Controls"
 description = '''
@@ -331,17 +343,98 @@ default = "Tap"
 
 [[manifest.config_options]]
 id = "log_rolling"
-name = "Log: Rolling"
+name = "Log: Roll Controls"
 description = '''
-Whether the roll action while riding a log is enabled.
+Which option to use for the rolling action while riding a log.
 
-The December 2000 prototype ROM contains two implementations of the rideable log (one broken due to bugs and one that works). Dinomod Enhanced replaces all instances of the older broken version of the log with the new one that was meant for a specific part of BlackWater Canyon. However, the BlackWater Canyon log includes a roll ability that, presumably, wasn't meant to be used in other areas.
+The December 2000 prototype ROM contains two implementations of the rideable log (one broken due to bugs and one that works). Dinomod Enhanced replaces all instances of the older broken version of the log with the new one that was meant for a specific part of BlackWater Canyon. However, the BlackWater Canyon log includes an extra roll ability that presumably wasn't meant to be used in other areas like Cape Claw and Discovery Falls.
 
-In practice, pressing A repeatedly to row results in accidentally rolling quite often, so this has been disabled by default to better align with the log gameplay intent of areas like Cape Claw and Discovery Falls. Rolling can be re-enabled with this option, though it has no use in the current build.
+In practice, tapping A to paddle forward often results in accidentally rolling the log, which can make them frustrating to control. To address this, this config provides these control modes:
+
+- Off
+  Logs can't roll. Rolling has no practical use in the prototype, so gameplay is unaffected.
+
+- On
+  The original unmodified behaviour. While tilting the stick to the side, the log rolls when double-tapping A.
+
+- On (Tilt Back) [Recommended]
+  Improved rolling controls! While tilting *down* and to the side on the stick, the log rolls when double-tapping A.
 '''
 type = "Enum"
-options = [ "Disabled", "Enabled" ]
-default = "Disabled"
+options = [ "Off", "On", "On (Tilt Back)" ]
+default = "On (Tilt Back)"
+
+[[manifest.config_options]]
+id = "log_rolling_cooldown"
+name = "Log: Roll Cooldown"
+description = '''
+Which option to use for the rolling action while riding a log.
+
+In the unmodified prototype there's no cooldown on the logs' rolling ability, so if you rapidly chain together multiple A button double-taps you'll whirl through the water at preposterous speeds!
+
+This can look a bit unpolished/silly, so some alternate options have been provided for the rolling cooldown:
+
+- None
+  The original unmodified behaviour. Do a barrel roll to your heart's content!
+
+- Quick [Recommended]
+  You can roll again once the roll animation has nearly finished.
+
+- Full
+  You can roll again once the roll animation has fully finished.
+'''
+type = "Enum"
+options = [ "None", "Quick", "Full" ]
+default = "Quick"
+
+[[manifest.config_options]]
+id = "log_z_camera_follow"
+name = "Log: Z Camera Follow"
+description = '''
+The camera follows you in a relaxed way when riding the log, where if you steer sharply you'll end up pointing back towards the camera, eventually crossing over its focal axis and spinning forward in frame again.
+
+This is perfect for taking in the game's lovely environments at your leisure, but what if (as one does) you wanted to really lock in while steering around? Pressing Z recentres the camera behind you, but it only does it once. You'd have to keep tapping Z if you wanted the camera to stick close behind you.
+
+That's where this config comes in! With this enabled, the camera will stay behind you while holding Z, so you can concentrate on paddling to pole position! (There's currently no racing section involving the logs sadly, but it's nice to imagine anyway.)
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "ropes_camera_relative"
+name = "Ropes: Camera Relative Controls"
+description = '''
+The prototype uses tank-style controls when clinging from a rope: tilting back on the control stick causes you to turn through 180 degrees and face the opposite direction, and holding forward causes you to shimmy forward hand-over-hand along the rope.
+
+With this config option, you can instead use camera-relative controls for the ropes if you prefer! Here are the modes:
+
+- Off
+  Use the original tank-style controls.
+
+- On (Initial) [Recommended]
+  Controls are relative to the camera at the moment you first tilt the stick to move. If the camera swings around but you're still holding roughly the same initial stick direction, you'll continue moving forward. Or if you move the stick to a significantly different position, the movement direction will be updated.
+
+- On (Current)
+  Controls are always relative to the current camera view.
+'''
+type = "Enum"
+options = [ "Off", "On (Initial)", "On (Current)" ]
+default = "Off"
+
+[[manifest.config_options]]
+id = "ropes_turn_once"
+name = "Ropes: Turn Once"
+description = '''
+When clinging from a rope, tilting back on the control stick causes the player to turn through 180 degrees and face the opposite direction.
+
+If you keep holding the control stick back in the unmodified prototype, the player will continue turning around rapidly, which can be a little disorientating.
+
+With this config option enabled, the player will instead only turn around once when holding back on the stick. This only applies to the original tank-style controls.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
 
 [[manifest.config_options]]
 id = "spell_aim_fire_lock"
@@ -512,7 +605,7 @@ default = "Off"
 
 [[manifest.config_options]]
 id = "vampirebat_config"
-name = "Vampire Bat: Battling"
+name = "Vampire Bats: Battling"
 description = '''
 Vampire Bats are intangible in the unmodified prototype. They can't be attacked, and they clip through Krystal/Sabre's model when flying at them. The bats can sometimes be a nuisance too, since their Z-targetting Lock Icon can take priority over other nearby targets.
 
@@ -526,6 +619,124 @@ Alternatively, these options can be used if you'd prefer not to fight the bats:
 type = "Enum"
 options = [ "Off (Ignore Player)", "Off (Follow Player)", "On" ]
 default = "On"
+
+[[manifest.config_options]]
+id = "log_end_fx"
+name = "Log: Ripple Effects"
+description = '''
+There are two versions of the log in the December 2000 Prototype: DFlog (created for Discovery Falls) and BWLog (created for BlackWater Canyon). BWLog is the more complete of the two so it's been used throughout the patched version of the game.
+
+While the logs are relatively similar - bugs aside - DFlog has some unique water effects that aren't found in BWLog! Ripples emanate from its ends as it drifts through the water. If you'd like to use these effects, this config can be enabled.
+
+Note that the effects are currently disabled while you're in levels featuring choppy waters (BlackWater Canyon and Diamond Bay), since the effects' omission in BWlog suggests Rare only intended for them to appear when in calm waters. This may be refined in future so the effect only switches off when passing through those levels' rapids, rather than the level as a whole.
+
+The ripples can look quite visually intense at times, so a "reduced" option has been provided if you'd prefer a gentler version of the effect.
+'''
+type = "Enum"
+options = [ "Off", "On (Reduced)", "On (Intense)" ]
+default = "On (Reduced)"
+
+[[manifest.config_options]]
+id = "dfmoondoor"
+name = "Discovery Falls: MMP Door"
+description = '''
+Dinosaur Planet's prototype contains an unused "DFmoondoor" object meant for the cave exit at the end of the tunnel between Discovery Falls and Moon Mountain Pass. Its behaviour is complete and it functions correctly when placed in the game world!
+
+If you'd like to see the door, this config can be enabled. Since there's unfortunately no way to know exactly when Rare intended for it to open, a few possibilities have been covered:
+
+- Off
+The door remains unused.
+
+- Immediate
+The door opens as soon as you reach it.
+
+- Spirit 1 (Test of Combat)
+The door opens on approach after exploring Discovery Falls and obtaining the 1st Spirit.
+
+- Moon Mountain Pass Key
+The door opens on approach after obtaining the key to the SharpClaw outpost.
+
+The door doesn't really affect progression regardless of which you pick, since with or without it there's no way to venture into Moon Mountain Pass proper until you collect the SharpClaw outpost's key.
+
+NOTE: if you change this config's door opening condition while standing in front of the door, you'll need to back away and reapproach it before it'll open.
+'''
+type = "Enum"
+options = [ "Off", "Immediate", "Spirit 1", "MMP Key" ]
+default = "Spirit 1"
+
+[[manifest.config_options]]
+id = "df_foodbag_demo"
+name = "Foodbag Demo"
+description = '''
+While exploring Discovery Falls you'll gain an important item for your quest: the foodbag!
+
+The cutscene that introduces this item uses a lot of deliberately off-centre camera framing, leaving a margin of empty negative space at the left of screen. Krystal even glances directly at this space towards the end of the cutscene! This seems to suggest that Rare planned to show a demo of the inventory during this sequence, similar to Tricky's sidekick commands tutorial.
+
+No such demo exists in the prototype's data sadly, but enabling this config adds a custom-animated inventory demo to the sequence! Or you can leave it off if you'd prefer to see the sequence without any UI elements.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "dfmole_dig_fix"
+name = "Mole: Dig Spot Fixes"
+description = '''
+Hidden away in one of Discovery Falls' caves, Krystal encounters the greatest discovery of all: a funny little mole! This curious creature helps excavate some nearby dig spots, but they can sometimes get stuck and spend a long time trying to find the wall.
+
+Switching on this config option enables a redesigned version of the dig behaviour, which should hopefully alleviate any wall-walking troubles.
+
+Or, if you believe the only things about this mole that need fixing are the hearts of those who can't accept them in all their silliness (and you'd be correct): you can leave this option off!
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "dfmole_burrow_effects"
+name = "Mole: Burrow Effects"
+description = '''
+Hidden away in one of Discovery Falls' caves, Krystal encounters the greatest discovery of all: a funny little mole!
+
+In the original prototype the mole's burrowing animations are silent and don't use any particle effects.
+
+This config option adds some, based on those used by Tricky!
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "rope_baddie_edits"
+name = "Rope Baddies: Combat Edits"
+description = '''
+While shimmying your way high over Discovery Falls you'll soon encounter Rope Baddies: funny serpentine dinosaurs with a very territorial attitute to the community jungle gym the HighTops had installed.
+
+This config option applies some small edits to their combat:
+
+- Their damaging hitbox only becomes active during the actual attack part of their combat animations.
+
+- Their attacks have a slightly slower wind-up, and they won't attack until you're fully on the rope.
+
+- After dropping down from a rope, they'll continue pursuing you for a moment instead of immediately losing interest. This gives a chance to see some of their extra battle animations! These aren't strictly unused, but they could be difficult to encounter otherwise.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "dfwhirlpool_assist"
+name = "Whirlpool Cave: Barrel Assist"
+description = '''
+One of Discovery Falls' puzzles involves dropping an explosive barrel into swirling waters and shooting it just as it passes in front of a destructible wall.
+
+This challenge has a reputation for being very difficult, especially appearing so early on in the game! 
+
+If you'd like a way of managing its difficulty, this config option can be enabled. Barrels will drift out towards the wall crack as they circle the whirlpool, eventually coming to a halt in range of it.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "Off"
 
 [[manifest.config_options]]
 id = "dim_tent_cinders"
@@ -558,11 +769,60 @@ Enabling this config adds some sound design to them! Here are the options:
 
 - On (Blast Only): A cannon fire sound is added.
 - On (Full): Machinery sounds and CannonClaw voice clips are added too. 
-
 '''
 type = "Enum"
 options = [ "Off", "On (Blast Only)", "On (Full)" ]
 default = "On (Full)"
+
+[[manifest.config_options]]
+id = "wc_pressure_switch_refill"
+name = "Walled City: Pressure Switch QOL"
+description = '''
+Act 1 of Walled City features two timed challenges which start when standing on Sun/Moon-themed pressure switches.
+
+In the unmodified prototype you're locked into one of the challenges as soon as it begins. You can't retry it until its timer fully runs out, which can lead to a lot of standing around if you began the challenge at a time of day where it's impossible to succeed.
+
+This setting adds some quality-of-life features to the switches: topping the timer back up to 60 seconds while you're still standing on the switch, and letting you swap between the Sun/Moon challenges if you step on the opposite switch while a challenge is already active.
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "wc_pressure_switch_ignore_projectiles"
+name = "Walled City: Pressure Switch Restrictions"
+description = '''
+Act 1 of Walled City features two timed challenges which start when standing on Sun/Moon-themed pressure switches.
+
+In the unmodified prototype it's possible to activate the switches with projectile attacks, letting you skip the whole challenge.
+
+Enabling this config option restricts what objects can activate the switches, having them ignore projectiles. Or you can leave it off if you'd prefer having a crafty way of succeeding at the challenge!
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "wc_beacon_flames"
+name = "Walled City: Beacon Flames"
+description = '''
+Act 1 of Walled City features two beacons that must be lit by the player. The beacons change colour and emit smoke effects when lit, but they don't create any flame effects. This option adds some!
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "wc_sun_temple_lift_rail_design"
+name = "Walled City: Sun-Themed Lift"
+description = '''
+Walled City's Moon Temple features an ornate blue pattern along the sides of its lift's rails. The Sun Temple lacks an equivalent pattern, instead using a plain stone texture.
+
+If you'd like the Sun Temple to use a sun-themed version of that pattern, this option can be enabled. (Suggested by jeebs2kx!)
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "Off"
 
 [[manifest.config_options]]
 id = "cmdmenu_icons_fox"
@@ -583,7 +843,6 @@ Dinomod Enhanced uses those surviving Sabre models to restore/recreate Sabre's g
 type = "Enum"
 options = [ "Off", "On" ]
 default = "On"
-
 
 [[manifest.config_options]]
 id = "play_as_fox"

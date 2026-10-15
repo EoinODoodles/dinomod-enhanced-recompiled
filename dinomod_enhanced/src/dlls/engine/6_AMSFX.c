@@ -1,41 +1,37 @@
-#include "PR/os.h"
-#include "PR/ultratypes.h"
 #include "common_objsetups.h"
+#include "configs.h"
+#include "custom_gamebits.h"
+#include "math_util.h"
 #include "modding.h"
+#include "object_util.h"
 #include "recomputils.h"
 #include "recompconfig.h"
 
 #include "old_pickup_sfx_bank.h"
 
-#include "game/gamebits.h"
-#include "game/objects/object_id.h"
+#include "PR/os.h"
+#include "PR/ultratypes.h"
 #include "libnaudio/n_libaudio.h"
 #include "libnaudio/n_sndplayer.h"
 #include "mp3/mp3.h"
+#include "dll.h"
+#include "game/gamebits.h"
+#include "game/objects/object.h"
+#include "game/objects/object_id.h"
 #include "sys/acache.h"
-#include "sys/pi.h"
-#include "sys/main.h"
-#include "sys/map.h"
-#include "sys/mpeg.h"
 #include "sys/asset.h"
 #include "sys/dll.h"
 #include "sys/pi.h"
+#include "sys/main.h"
+#include "sys/map.h"
 #include "sys/memory.h"
-#include "dll.h"
+#include "sys/mpeg.h"
 #include "sys/objects.h"
 #include "types.h"
 
-enum RecompPickupJingle {
-    RECOMP_PICKUP_JINGLE_OLD_A,
-    RECOMP_PICKUP_JINGLE_OLD_B,
-    RECOMP_PICKUP_JINGLE_NEW
-};
-
-static u32 dinomod_pickup_jingle(void) {
-    return recomp_get_config_u32("pickup_jingle");
-}
-
 #include "recomp/dlls/engine/6_AMSFX_recomp.h"
+
+// #define DEBUG_SOUNDS
 
 #define IS_MP3 0x8000
 #define PITCH_DEFAULT 100
@@ -122,22 +118,34 @@ enum SoundFlags {
 
 /** Changes it so Garunda Te doesn't say "12" FrostWeeds if the total needed has changed */
 static void recomp_sound_remap_garunda_te_frostweeds(u16 soundID, SoundDef* soundEntry){
-    s32 frostWeedsMax = recomp_get_config_u32("garunda_te_frostweeds_override");
-
     //Don't replace the MP3 if the FrostWeed goal hasn't changed
-    if (frostWeedsMax == 12){
+    if (configs_GetFrostWeedMax() == 12){
         return;
     }
 
     soundEntry->bankAndClipID = SOUND(1033, MP3);
 }
 
-static void recomp_intercept_soundIDs(u16 soundID, SoundDef* soundEntry, ALBank **bank) {
+static void recomp_intercept_soundIDs(Object* obj, u16 soundID, SoundDef* soundEntry, ALBank **bank) {
     u32 pickupJingleConfig;
+
+#ifdef DEBUG_SOUNDS
+    if (obj && obj->def) {
+        if (obj->controlNo == OBJCONTROL_AnimObj) {
+            AnimObj_Data* animData = obj->data;
+            recomp_printf("PLAY SOUND: %0x [%s (Override)]\n", soundID, (animData->actor && animData->actor->def) ? animData->actor->def->name : "");
+        } else {
+            recomp_printf("PLAY SOUND: %0x [%s]\n", soundID, obj->def->name);
+        }
+    } else {
+        recomp_printf("PLAY SOUND: %0x\n", soundID);
+    }
+#endif
+
     switch (soundID){
         case SOUND_B8A_FirstTimeItemPickup:
             // @recomp: Replace item pickup jingle with the old version (original patch by nuggs)
-            pickupJingleConfig = dinomod_pickup_jingle();
+            pickupJingleConfig = configs_GetPickupJingleMode();
             if (pickupJingleConfig != RECOMP_PICKUP_JINGLE_NEW) {
                 *bank = recomp_oldPickupSfxBank;
                 soundEntry->bankAndClipID = pickupJingleConfig == RECOMP_PICKUP_JINGLE_OLD_A ? 1 : 2;
@@ -177,7 +185,7 @@ RECOMP_PATCH u32 amSfx_Play(Object* obj, u16 soundID, u8 volume, u32* soundHandl
 
     //@recomp: intercept sound calls and edit as needed
     //recomp_printf("AMSFX: play sound #%d (%s)\n", soundID, soundEntry.unk0 & 0x8000 ? "MP3" : "WAV");
-    recomp_intercept_soundIDs(soundID, &soundDef, &bank);
+    recomp_intercept_soundIDs(obj, soundID, &soundDef, &bank);
 
     //Bail if sound's clipID is 0
     if (!(soundDef.bankAndClipID & 0x7FFF)) {
@@ -237,6 +245,66 @@ RECOMP_PATCH u32 amSfx_Play(Object* obj, u16 soundID, u8 volume, u32* soundHandl
     return handle;
 }
 
+/* Use regular 3D distance for sound emitters (TODO: experimental, investigate! Not fully sure it's a bug) */
+RECOMP_PATCH s32 amSfx_FindEmittersInRange(Object* listener, s32 distance, s32 minVolume, Object** foundObjs, s32 foundObjsMax) {
+    s32 outCount;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 listenerX;
+    f32 listenerY;
+    f32 listenerZ;
+    f32 sourceX;
+    f32 sourceY;
+    f32 sourceZ;
+    s32 i;
+    Object* soundSource;
+
+    if (distance != -1) {
+        distance *= distance;
+    }
+
+    outCount = 0;
+    for (i = 1; i < (sSndSlotsLen + 1); i++) {
+        if ((sSndSlots[i].sndpHandle == 0) || (sSndSlots[i].sndpHandle == (sndstate*)-1)) {
+            continue;
+        }
+        soundSource = sSndSlots[i].source;
+        if (soundSource == NULL) {
+            continue;
+        }
+        if ((minVolume != -1) && (sSndSlots[i].volume < minVolume)) {
+            continue;
+        }
+        if (distance != -1) {
+            camGetObjectChildPosition(listener, &listenerX, &listenerY, &listenerZ);
+            camGetObjectChildPosition(soundSource, &sourceX, &sourceY, &sourceZ);
+            dx = listenerX - sourceX;
+            dy = listenerY - sourceY;
+            dz = listenerZ - sourceZ;
+
+            // if (distance < (SQ(dx) + SQ(dy) + (dz * dy))) { //@bug? Shouldn't this be SQ(dz) at the end?
+
+            //@recomp: try using regular 3D distance (unsure if the dz*dy was a mistake or they had some reason for it!)
+            if (distance < (SQ(dx) + SQ(dy) + SQ(dz))) { 
+                continue;
+            }
+        }
+        foundObjs[outCount++] = sSndSlots[i].source;
+        if (outCount == foundObjsMax) {
+            break;
+        }
+    }
+
+    return outCount;
+}
+
+/**
+  * - Run even if there are no WaterFallSpray objects 
+  * - Handle fading out when no more sprays exist rather than abruptly stopping
+  * - Fix framerate dependencies on volume fades
+  * - Add option to temporarily reduce waterfalls' max volume via a gamebit (TODO: maybe rework to use the AMSFX waterfall flags?)
+  */
 RECOMP_PATCH void amSfx_WaterFallsControl(void) {
     Object* player;
     s32 i;
@@ -264,12 +332,14 @@ RECOMP_PATCH void amSfx_WaterFallsControl(void) {
     for (i = 0; i < sWaterFallSprayCount; i++) {
         distance = vec3Distance(camera + 1, &sWaterFallSprays[i].pos);
         if (distance < sWaterFallSprays[i].unkC) {
-            lowVolume += MAX_VOLUME - (u8)((u32)((distance / sWaterFallSprays[i].unkC) * MAX_VOLUME_F));
+            lowVolume += MAX_VOLUME - (u8)((distance / sWaterFallSprays[i].unkC) * MAX_VOLUME_F);
         }
         if (distance < sWaterFallSprays[i].unkE) {
-            highVolume += MAX_VOLUME - (u8)((u32)((distance / sWaterFallSprays[i].unkE) * MAX_VOLUME_F));
+            highVolume += MAX_VOLUME - (u8)((distance / sWaterFallSprays[i].unkE) * MAX_VOLUME_F);
         }
     }
+
+    //Reduce waterfalls' volume if flagged
     if (sWaterfallFlags & AMSFX_WATERFALLS_LOWER_HIGH) {
         highVolume >>= 1;
     }
@@ -282,12 +352,26 @@ RECOMP_PATCH void amSfx_WaterFallsControl(void) {
     if (sWaterfallFlags & AMSFX_WATERFALLS_LOWER_LOW2) {
         lowVolume >>= 1;
     }
+
+    // @recomp: reduce waterfalls' max volume via a gamebit if needed 
+    //(TODO: maybe rework as a custom ObjSeq command that calls `dll_amSfx->WaterFallsSetFlags`?)
+    if (mainGetBits(DINOMOD_BIT_970_AMSFX_Waterfalls_Reduce_Max_Volume)) {
+        if (highVolume > VOLUME_PERCENT(50)) {
+            highVolume = VOLUME_PERCENT(50);
+        }
+        if (lowVolume > VOLUME_PERCENT(50)) {
+            lowVolume = VOLUME_PERCENT(50);
+        }
+    }
+
+    //Clamp max volume
     if (highVolume > MAX_VOLUME) {
         highVolume = MAX_VOLUME;
     }
     if (lowVolume > MAX_VOLUME) {
         lowVolume = MAX_VOLUME;
     }
+
     // @recomp: Partially rewrite to handle fading out when no more sprays exist rather than abruptly stopping
     if (lowVolume == 0 && sWaterfallLowVolume == 0) {
         if (sWaterfallLowHandle != 0) {
@@ -296,17 +380,22 @@ RECOMP_PATCH void amSfx_WaterFallsControl(void) {
         }
     } else {
         if (sWaterfallLowHandle == 0) {
-            sWaterfallLowVolume = 1;
-            amSfx_Play(NULL, SOUND_986_Waterfall_Low_Loop, sWaterfallLowVolume, &sWaterfallLowHandle, "game/amsfx.c", 1016, "");
+            sWaterfallLowVolume = 2; //@recomp: fix framerate dependency
+            amSfx_Play(NULL, SOUND_986_Waterfall_Low_Loop, sWaterfallLowVolume / 2, &sWaterfallLowHandle, "game/amsfx.c", 1016, "");
         }
+
         // @bug: framerate dependent
-        if (lowVolume < sWaterfallLowVolume) {
-            sWaterfallLowVolume -= 1;
+        if (lowVolume * 2 < sWaterfallLowVolume) {
+            // sWaterfallLowVolume -= 1;
+            sWaterfallLowVolume = UINT_SAFE_SUBTRACT(sWaterfallLowVolume, gUpdateRate); //@recomp: fix framerate dependency
         } else {
-            sWaterfallLowVolume += 1;
+            // sWaterfallLowVolume += 1;
+            sWaterfallLowVolume = UINT_SAFE_ADD(sWaterfallLowVolume, gUpdateRate, 0xFF); //@recomp: fix framerate dependency
         }
-        amSfx_SetVol(sWaterfallLowHandle, sWaterfallLowVolume);
+
+        amSfx_SetVol(sWaterfallLowHandle, sWaterfallLowVolume / 2); //@recomp: fix framerate dependency
     }
+
     if (highVolume == 0 && sWaterfallHighVolume == 0) {
         if (sWaterfallHighHandle != 0) {
             amSfx_Stop(sWaterfallHighHandle);
@@ -314,16 +403,20 @@ RECOMP_PATCH void amSfx_WaterFallsControl(void) {
         }
     } else {
         if (sWaterfallHighHandle == 0) {
-            sWaterfallHighVolume = 1;
-            amSfx_Play(NULL, SOUND_987_Waterfall_High_Loop, sWaterfallHighVolume, &sWaterfallHighHandle, "game/amsfx.c", 1036, "");
+            sWaterfallHighVolume = 2; //@recomp: fix framerate dependency
+            amSfx_Play(NULL, SOUND_987_Waterfall_High_Loop, sWaterfallHighVolume / 2, &sWaterfallHighHandle, "game/amsfx.c", 1036, "");
         }
+
         // @bug: framerate dependent
-        if (highVolume < sWaterfallHighVolume) {
-            sWaterfallHighVolume -= 1;
+        if (highVolume * 2 < sWaterfallHighVolume) {
+            // sWaterfallHighVolume -= 1;
+            sWaterfallHighVolume = UINT_SAFE_SUBTRACT(sWaterfallHighVolume, gUpdateRate); //@recomp: fix framerate dependency
         } else {
-            sWaterfallHighVolume += 1;
+            // sWaterfallHighVolume += 1;
+            sWaterfallHighVolume = UINT_SAFE_ADD(sWaterfallHighVolume, gUpdateRate, 0xFF); //@recomp: fix framerate dependency
         }
-        amSfx_SetVol(sWaterfallHighHandle, sWaterfallHighVolume);
+
+        amSfx_SetVol(sWaterfallHighHandle, sWaterfallHighVolume / 2); //@recomp: fix framerate dependency
     }
 }
 

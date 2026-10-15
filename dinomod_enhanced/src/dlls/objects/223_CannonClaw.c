@@ -31,13 +31,6 @@
 
 // #define DEBUG_CANNON_CLAW
 
-//TEMPORARY DEFINES
-#define SOUND_411_SharpClaw_Laughing 0x411
-#define SOUND_4D0_SharpClaw_Grunt 0x4D0
-#define SOUND_4D1_SharpClaw_Growl 0x4D1
-#define SOUND_5BC_SharpClaw_Laughing 0x5BC
-//END OF TEMPORARY DEFINES
-
 #define VANISH_TIME_SWITCH 1.8f
 #define VANISH_TIME_FX_END 2.0f
 #define VANISH_TIME_FINISHED 5.5f

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PR/ultratypes.h"
+
 typedef enum {
     BOOTCONFIG_Default_Skip_Rolling_Demo,
     BOOTCONFIG_Restore_Rolling_Demo,
@@ -12,6 +14,11 @@ typedef enum {
 } GametextFlavor;
 
 typedef enum {
+    UPCOMING_SUBTITLE_TRANS_VANILLA,
+    UPCOMING_SUBTITLE_TRANS_INVISIBLE,
+} UpcomingSubtitleTransparencyOption;
+
+typedef enum {
     DPAD_OFF,
     DPAD_ON_CBUTTONS_ON,
     DPAD_ON_CBUTTONS_OFF
@@ -22,6 +29,8 @@ typedef enum {
     POPUP_CONFIG_EXPANDED,                      //Show pop-up when collecting other items
     POPUP_CONFIG_OVERRIDE_TUTORIAL_ON_REPEAT    //Also show pop-up for Bridge Gears/Shiny Nuggets' tutorial box after the first time they're collected
 } InfoPopupModes;
+
+#define INFO_POPUP_DURATION 300
 
 typedef enum {
     ACTIVEICON_DEFAULT, //Unedited behaviour, Sidekick Command icon clashes with inventory when open
@@ -40,6 +49,51 @@ typedef enum {
     BUTTON_TAPPING_ASSIST_AUTO,      //Character pushes automatically
 } ButtonTappingAssistModes;
 
+typedef enum  {
+    RECOMP_SPELL_AIM_FIRE_LOCK_OFF,
+    RECOMP_SPELL_AIM_FIRE_LOCK_ON
+} RecompSpellAimFireLockOption;
+
+typedef enum {
+    RECOMP_LOG_ROWING_TAP,
+    RECOMP_LOG_ROWING_HOLD
+} RecompLogAButtonMode;
+
+typedef enum { 
+    RECOMP_LOG_ROLL_DISABLED,               //No log rolling
+    RECOMP_LOG_ROLL_ENABLED,                //Roll when double-tapping A (original unmodified behaviour), easy to activate accidentally when paddling 
+    RECOMP_LOG_ROLL_WHEN_TILTING_BACK       //Roll when double-tapping A while tilting back on the control stick
+} RecompLogRollModes;
+
+typedef enum { 
+    RECOMP_LOG_COOLDOWN_NONE,               //No cooldown between log rolling (original unmodified behaviour)
+    RECOMP_LOG_COOLDOWN_QUICK,              //You can roll again once the roll animation has nearly finished.
+    RECOMP_LOG_COOLDOWN_FULL                //You can roll again once the roll animation has fully finished.
+} RecompLogRollCooldowns;
+
+typedef enum { 
+    RECOMP_LOG_RIPPLES_NONE,               //BWlog doesn't create ripples
+    RECOMP_LOG_RIPPLES_REDUCED,            //DFlog's ripple effects are added to BWlog (and their intensity is slightly reduced)
+    RECOMP_LOG_RIPPLES_INTENSE             //DFlog's ripple effects are added to BWlog (and they can be quite intense!)
+} RecompLogRippleModes;
+
+typedef enum {
+    ROPE_MOVE_DEFAULT,                      //The original tank-style rope controls.
+    ROPE_MOVE_CAMERA_RELATIVE_INITIAL,      //Camera-relative rope controls, based around the moment you first tilt the stick to move. Moving the stick to a significantly different position will update the camera-based direction.
+    ROPE_MOVE_CAMERA_RELATIVE_CURRENT       //Camera-relative rope controls, always relative to the current viewing angle.
+} RopeMoveModes;
+
+typedef enum {
+    RECOMP_PICKUP_JINGLE_OLD_A,
+    RECOMP_PICKUP_JINGLE_OLD_B,
+    RECOMP_PICKUP_JINGLE_NEW
+} RecompPickupJingle;
+
+typedef enum {
+    KT_RECOMP_VANILLA,
+    KT_RECOMP_ENHANCED
+} KTRecompMode;
+
 // Configs for the DIMTents' unused burnt model
 typedef enum {
     DIM_TENT_CINDERS_OFF,           //DIMTents just disappear as usual
@@ -53,7 +107,6 @@ typedef enum {
     DIM_CANNON_SFX_ON_BASIC,   //A cannon blast is played when firing
     DIM_CANNON_SFX_ON_FULL     //Lots more machinery sounds and CannonClaw voice clips are added too
 } DIMCannonSounds;
-#define DIMCannonSounds_Config "dim_cannon_sounds"
 
 // Configs for VampireBat's battle modes
 typedef enum {
@@ -61,11 +114,89 @@ typedef enum {
     VAMPIREBAT_BATTLE_OFF_FOLLOW,   //Bats can't be harmed, and they flutter harmlessly around the player
     VAMPIREBAT_BATTLE_ON            //Bats can be battled
 } VampireBat_BattleMode;
-#define VampireBat_Config "vampirebat_config"
+
+// Configs for DFmoondoor
+typedef enum {
+    DFMOONDOOR_MODE_OFF,            //DFmoondoor remains unused
+    DFMOONDOOR_MODE_ON_IMMEDIATE,   //Opens as soon as you reach it
+    DFMOONDOOR_MODE_ON_SPIRIT_1,    //Opens on approach after completing Discovery Falls
+    DFMOONDOOR_MODE_ON_MMP_KEY,     //Opens on approach when revisiting with the key to MMP
+} DFMoonDoor_Mode;
 
 typedef enum {
     PLAY_AS_SABRE_WITH_FOX_AS_ILLUSION,     //Play as Sabre, aside from Illusion Spell (which shows Fox as a little swapped homage to the prototype's behaviour)
     PLAY_AS_FOX_ALWAYS                      //Play as Fox regardless of Illusion Spell
 } PlayAsFoxModes;
 
-#define INFO_POPUP_DURATION 300
+/* GENERAL */
+BootConfigs configs_GetBootUpMode(void);
+
+/* TEXT */
+GametextFlavor configs_GetGametextFlavour(void);
+_Bool configs_GetGametextUseExtraDescriptions(void);
+_Bool configs_GetHideUpcomingSubtitles(void);
+
+/* AUDIO */
+RecompPickupJingle configs_GetPickupJingleMode(void);
+
+/* CONTROLS */
+ButtonTappingAssistModes configs_GetButtonTapMode(void);
+_Bool configs_GetSpellAimFireLock(void);
+_Bool configs_LogCanHoldA(void);
+RecompLogRollModes configs_LogRollMode(void);
+RecompLogRollCooldowns configs_LogRollCooldown(void);
+_Bool configs_LogFollowZ(void);
+_Bool configs_RopesTurnOnce(void);
+RopeMoveModes configs_RopeMoveMode(void);
+
+/* GAMEPLAY / QUALITY-OF-LIFE */
+_Bool configs_GetSidekickToyPreventZoomies(void);
+u32 configs_GetFrostWeedMax(void);
+_Bool configs_GetFrostWeedTwigsConfig(void);
+_Bool configs_GetDFWhirlpoolAssist(void);
+_Bool configs_GetWCPressureSwitchQOL(void);
+_Bool configs_GetIceBlastCostReduced(void);
+
+/* UI */
+_Bool configs_GetInventoryNewControls(void);
+CmdmenuDPadModes configs_GetInventoryDPadMode(void);
+_Bool configs_GetIconGoldSilverKeys(void);
+_Bool configs_GetIconFirefly(void);
+_Bool configs_GetIconEnergyEggs(void);
+_Bool configs_GetIconFox(void);
+_Bool configs_GetStackShinyNuggets(void);
+
+ActiveIconModes configs_GetUIActiveIconOverlapMode(void);
+_Bool configs_GetUIActiveIconFade(void);
+
+_Bool configs_GetSidekickMeterShowOverFood(void);
+_Bool configs_GetSidekickMeterHideRedFood(void);
+
+_Bool configs_GetItemInfoPopupFixVisuals(void);
+InfoPopupModes configs_GetItemInfoPopupMode(void);
+
+_Bool configs_GetMenuTimerFractionConfig(void);
+
+/* GRAPHICS */
+_Bool configs_GetSixtyFPS(void);
+_Bool configs_GetHideDefaultFXEmits(void);
+RecompLogRippleModes configs_GetLogEndpointFXMode(void);
+
+/* MISC */
+_Bool configs_GetMagicGemReflectBounce(void);
+u32 configs_GetMushroomDanceChance(void);
+_Bool configs_GetRedMushroomsEnhanced(void);
+_Bool configs_GetPurpleMushrooms(void);
+VampireBat_BattleMode configs_GetVampireBatMode(void);
+DFMoonDoor_Mode configs_GetDFMoonDoorMode(void);
+_Bool configs_GetFoodbagDemo(void);
+_Bool configs_GetMoleDigFix(void);
+_Bool configs_GetMoleBurrowEffects(void);
+_Bool configs_GetRopeBaddieCombatEdits(void);
+DIMCannonSounds configs_GetDIMCannonSoundMode(void);
+DIMTentModes configs_GetDIMTentMode(void);
+_Bool configs_GetWCPressureSwitchIgnoreProjectiles(void);
+_Bool configs_GetWCBeaconFlames(void);
+_Bool configs_GetWCSunTempleLiftRailDesign(void);
+_Bool configs_GetKTEnhanced(void);
+PlayAsFoxModes configs_GetPlayAsFoxMode(void);

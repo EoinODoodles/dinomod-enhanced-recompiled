@@ -177,7 +177,7 @@ static s32 minimap_print_custom(Gfx **gdl, s32 arg1) {
     }
 
     //@recomp: fade out if cmdmenu item info pop-up should appear
-    if (recomp_get_config_u32("cmdmenu_info_popup_fix") &&
+    if (configs_GetItemInfoPopupFixVisuals() &&
         cmdmenu_info_popup_is_visible()
     ) {
         sOpacity -= 0x10 * gUpdateRate;

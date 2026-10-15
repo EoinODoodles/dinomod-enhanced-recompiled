@@ -1,3 +1,4 @@
+#include "configs.h"
 #include "math_util.h"
 #include "modding.h"
 #include "player_util.h"
@@ -93,7 +94,7 @@ extern int SHrocketmushroom_is_player_far_away(Object* self);
 
 /** Handles switching the plant/mushroom config mid-gameplay */
 static void handle_config_change(Object* self) {
-    u8 enabled = recomp_get_config_u32("shrocketmushroom_purple");
+    u8 enabled = configs_GetPurpleMushrooms();
     SHrocketmushroom_Data_Extended* objData;
 
     if (enabled && (self->modelInstIdx != 1)) {

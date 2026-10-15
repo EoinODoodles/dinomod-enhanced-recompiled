@@ -26,9 +26,9 @@ FILE,3
 19 "MINE KEY| DarkIce Mines"
 20 "FORCEFIELD SPELL| Protect yourself"
 21 "GRENADE SPELL| Launch a grenade"
-22 "SMALL FOOD BAG| This bag can hold up to| 10 pieces per food"
-23 "MEDIUM FOOD BAG| This bag can hold up to| 10 pieces per food"
-24 "LARGE FOOD BAG| This bag can hold up to| 10 pieces per food"
+22 "SMALL FOOD BAG| This bag can hold up to| 10 pieces of food"
+23 "MEDIUM FOOD BAG| This bag can hold up to| 20 pieces of food"
+24 "LARGE FOOD BAG| This bag can hold up to| 30 pieces of food"
 25 "SILVER CELL KEY| DarkIce Mines 2"
 26 "HORN OF TRUTH| Summon the SnowHorn"
 27 "SUN STONE| Walled City"
@@ -61,7 +61,7 @@ FILE,3
 54 "RED BEAN| Restores your energy"
 55 "BROWN BEAN| Restores 1/4 a unit of energy"
 56 "BLUE BEAN| Restores your energy"
-57 "EAT LATER| Food only goes into your bag"
+57 "EAT LATER| Only eat food when there's no| room left in your food bag"
 58 "EAT NOW| Food only goes into your bag| when you have full energy"
 59 "PORTAL SPELL| Opens spatial walkways"
 60 "ICE BLAST SPELL| Fires a column of ice"
@@ -2864,7 +2864,8 @@ FILE,714
 240 "WILLOW GROVE"
 
 FILE,715
-
+240 "WALLED"
+240 "CITY"
 
 LANG,1
 

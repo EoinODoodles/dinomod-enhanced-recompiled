@@ -25,8 +25,9 @@
 #include "dll.h"
 #include "dlls/objects/common/sidekick.h"
 #include "dlls/objects/210_player.h"
-
 #include "dlls/objects/325_trigger.h"
+
+#include "trigger_object_macros.h"
 
 #include "recomp/dlls/objects/325_trigger_recomp.h"
 
@@ -57,6 +58,98 @@ extern void trigger_func_29C0(u16 localID, Object *activator, s8 dir, s32 activa
 
 extern void trigger_curve_setup(Object *self, Trigger_Setup *setup);
 extern void trigger_curve_update(Object *self, Object *activator);
+
+extern ModelInstance *sPointModel;
+extern ModelInstance *sPlaneModel;
+
+extern s16 sPointModelRefCount;
+extern s16 sPlaneModelRefCount;
+
+/** 
+  * MusicalProgrammer's custom TriggerPlane logic for optionally checking if a gamebit *isn't* set.
+  * It's been split out here as a function of its own, so more Trigger Objects can use this logic.
+  *
+  * TODO: TriggerPlanes can check gamebit 0, which has been preserved here since I'm unsure 
+  * if it's safe to remove it. Would it be safe to only ever check "conditionBitFlagID > 0"?
+  */
+static void trigger_checkConditionGamebit(s32* b_allBitsSet, s16 conditionBitFlagID, u8 checkGamebitZero) {
+    #define CHECK_IF_GAMEBIT_UNSET 0x4000
+
+    *b_allBitsSet = TRUE;
+    
+    if (conditionBitFlagID > (checkGamebitZero ? -1 : 0)) {
+        if (conditionBitFlagID & CHECK_IF_GAMEBIT_UNSET) {
+            if (mainGetBits(conditionBitFlagID & ~CHECK_IF_GAMEBIT_UNSET)) {
+                *b_allBitsSet = FALSE;
+            }
+        } else {
+            if (mainGetBits(conditionBitFlagID) == 0) {
+                *b_allBitsSet = FALSE;
+            }
+        }
+    }
+}
+
+RECOMP_PATCH void trigger_point_setup(Object* self, Trigger_Setup* setup) {
+    Trigger_Data* objdata;
+    ModelInstance* modelInstance;
+    Model* model;
+    Vtx* vertex;
+    u8 _stack_pad[4];
+    f32 x,y,z;
+    f32 radius;
+    f32 modelRadius;
+
+    if (sPointModel == NULL) {
+        sPointModel = modLoadModel(85, 0);
+        sPointModelRefCount = 1;
+    } else {
+        sPointModelRefCount += 1;
+    }
+
+    objdata = (Trigger_Data*)self->data;
+    radius = setup->sizeX << 1;
+    objdata->radiusSquared = radius * radius;
+
+    self->srt.roll = 0;
+    self->srt.pitch = 0;
+    self->srt.yaw = setup->rotationY << 8;
+
+    modelInstance = sPointModel;
+    model = modelInstance->model;
+    vertex = &model->vertices[1];
+    x = vertex->v.ob[0];
+    y = vertex->v.ob[1];
+    z = vertex->v.ob[2];
+    modelRadius = sqrtf(SQ(x) + SQ(y) + SQ(z));
+    
+    self->srt.scale = radius / modelRadius;
+
+    //@recomp: support conditionBitFlagIDs[0]
+    objdata->conditionBitFlagIDs[0] = setup->conditionBitFlagIDs[0];
+}
+
+RECOMP_PATCH void trigger_cylinder_setup(Object* self, Trigger_Setup* setup) {
+    Trigger_Data* objdata;
+
+    objdata = (Trigger_Data*)self->data;
+    objdata->radiusSquared = setup->sizeX << 1;
+    objdata->radiusSquared *= objdata->radiusSquared;
+
+    //@recomp: support conditionBitFlagIDs[0]
+    objdata->conditionBitFlagIDs[0] = setup->conditionBitFlagIDs[0];
+}
+
+RECOMP_PATCH void trigger_area_setup(Object *self, Trigger_Setup *setup) {
+    Trigger_Data* objdata = self->data; //@recomp
+
+    self->srt.yaw = setup->rotationY << 8;
+    self->srt.pitch = setup->rotationX << 8;
+    self->srt.roll = 0;
+
+    //@recomp: support conditionBitFlagIDs[0]
+    objdata->conditionBitFlagIDs[0] = setup->conditionBitFlagIDs[0];
+}
 
 RECOMP_PATCH void trigger_control(Object* self) {
     Trigger_Data* objdata;
@@ -169,29 +262,25 @@ RECOMP_PATCH void trigger_control(Object* self) {
         
         switch (setup->base.objId) {
         case OBJ_TriggerPoint:
-            if (b_foundActivatorObj) {
+            // @recomp: support conditionBitFlags[0]
+            trigger_checkConditionGamebit(&b_allBitsSet, objdata->conditionBitFlagIDs[0], FALSE);
+
+            if (b_allBitsSet && b_foundActivatorObj) {
                 trigger_point_update(self, activatorObj);
             }
             break;
         case OBJ_TriggerCylinder:
-            if (b_foundActivatorObj) {
+            // @recomp: support conditionBitFlags[0]
+            trigger_checkConditionGamebit(&b_allBitsSet, objdata->conditionBitFlagIDs[0], FALSE);
+
+            if (b_allBitsSet && b_foundActivatorObj) {
                 trigger_cylinder_update(self, activatorObj);
             }
             break;
         case OBJ_TriggerPlane:
-            b_allBitsSet = TRUE;
-            if (objdata->conditionBitFlagIDs[0] >= 0) {
-                // @recomp: Dino Mod condition bit extension for checking unset flags (originally by MusicalProgrammer)
-                if (objdata->conditionBitFlagIDs[0] & 0x4000) {
-                    if (mainGetBits(objdata->conditionBitFlagIDs[0] & ~0x4000) != 0) {
-                        b_allBitsSet = FALSE;
-                    }
-                } else {
-                    if (mainGetBits(objdata->conditionBitFlagIDs[0]) == 0) {
-                        b_allBitsSet = FALSE;
-                    }
-                }
-            }
+            // @recomp: support checking if conditionBitFlags[0] is *unset* (added by MusicalProgrammer)
+            trigger_checkConditionGamebit(&b_allBitsSet, objdata->conditionBitFlagIDs[0], TRUE);
+
             if (b_allBitsSet && b_foundActivatorObj) {
                 trigger_plane_update(self, activatorObj);
             }
@@ -203,7 +292,10 @@ RECOMP_PATCH void trigger_control(Object* self) {
             }
             break;
         case OBJ_TriggerArea:
-            if (b_foundActivatorObj) {
+            // @recomp: support conditionBitFlags[0]
+            trigger_checkConditionGamebit(&b_allBitsSet, objdata->conditionBitFlagIDs[0], FALSE);
+
+            if (b_allBitsSet && b_foundActivatorObj) {
                 trigger_area_update(self, activatorObj);
             }
             break;
@@ -571,7 +663,20 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             break;
         case TRG_CMD_SAVE_POINT:
             // "Trigger [%d], Save Point\n" (default.dol)
-            gDLL_29_Gplay->vtbl->savepoint(&self->srt.transl, (self->srt.yaw >> 8), cmd->param2, mapGetLayer());
+
+            //@recomp: add option to reverse saved yaw (so one TriggerPlane can save opposite directions on enter/exit savepoint commands)
+            {
+                //TODO: could try using dir var to adjust the yaw automatically! Need to test on all existing SavePoint Trigger objects
+                s32 angle = self->srt.yaw;
+                if (cmd->paramCombined & ROTATE_CHECKPOINT_YAW_180) {
+                    angle += M_180_DEGREES;
+                    CIRCLE_WRAP(angle);
+                }
+                
+                //@recomp: fix yaw accidentally getting shifted from angle16->angle8 twice 
+                //(Gplay savepoint func expects angle16 for the yaw arg, then shifts to angle8 when storing yaw in save data)
+                gDLL_29_Gplay->vtbl->savepoint(&self->srt.transl, angle, cmd->param2, mapGetLayer());
+            }
             break;
         case TRG_CMD_MAP_LAYER:
             // @recomp: Dino Mod trigger mapLayer command extension (originally by MusicalProgrammer)
@@ -588,10 +693,20 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             }
             break;
         case TRG_CMD_RESTART:
-            switch (cmd->param1) {
+            switch (cmd->param1 & 0x7F) { //@recomp: mask off uppermost bit
             case 0:
                 // "Restart Set [%d]\n"
-                gDLL_29_Gplay->vtbl->restart_set(&self->srt.transl, self->srt.yaw, mapGetLayer());
+
+                //@recomp: add option to reverse saved yaw (so one TriggerPlane can save opposite directions on enter/exit restartpoint commands)
+                {
+                    //TODO: could try using dir var to adjust the yaw automatically! Need to test on all existing RestartPoint Trigger objects
+                    s32 angle = self->srt.yaw;
+                    if (cmd->paramCombined & ROTATE_CHECKPOINT_YAW_180) {
+                        angle += M_180_DEGREES;
+                        CIRCLE_WRAP(angle);
+                    }
+                    gDLL_29_Gplay->vtbl->restart_set(&self->srt.transl, angle, mapGetLayer());
+                }
                 break;
             case 1:
                 // "Restart Clear [%d]\n"

@@ -1,0 +1,241 @@
+#pragma once
+
+#include "PR/gbi.h"
+#include "types.h"
+#include "dlls/engine/29_gplay.h"
+#include "dlls/objects/325_trigger.h"
+
+/* TRANSFORMS */
+
+#define TRIGGER_YAW(degrees) ((u8)((float)degrees*0x10/90.0f + 0.5f)) //Yaw for TriggerPlanes etc. (other axes use DEGREES_TO_ANGLE8)
+#define TRIGGER_SCALE(scaleFloat) ((u8)(scaleFloat*0x10 + 0.5f))
+
+
+/* COMMANDS */
+
+//A shortcut for emptying out one of a Trigger Object's command slots
+#define EMPTY_TRIGGER_COMMAND(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = 0;\
+    (triggerObject)->commands[cmdSlot].id = 0;\
+    (triggerObject)->commands[cmdSlot].paramCombined = 0;
+
+
+/* COMMANDS: OBJECT GROUPS */
+
+//A shortcut for switching on an objectGroup when entering a Trigger Object
+#define ENTER_OBJGROUP_ON(groupID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_ENABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlot].paramCombined = groupID;
+
+//A shortcut for switching off an objectGroup when entering a Trigger Object
+#define ENTER_OBJGROUP_OFF(groupID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_DISABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlot].paramCombined = groupID;
+
+//A shortcut for switching on an objectGroup when exiting a Trigger Object
+#define EXIT_OBJGROUP_ON(groupID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_ENABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlot].paramCombined = groupID;
+
+//A shortcut for switching off an objectGroup when exiting a Trigger Object
+#define EXIT_OBJGROUP_OFF(groupID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_DISABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlot].paramCombined = groupID;
+
+//A quick way to add directionally specific ObjectGroup on/off commands to Trigger Objects (enter: on, exit: off)
+#define DIRECTIONAL_OBJGROUP_TOGGLE(groupID, triggerObject, cmdSlotIn, cmdSlotOut)\
+    ENTER_OBJGROUP_ON(groupID, triggerObject, cmdSlotIn)\
+    EXIT_OBJGROUP_OFF(groupID, triggerObject, cmdSlotOut);
+
+//A quick way to add directionally specific ObjectGroup off/on commands to Trigger Objects (enter: off, exit: on)
+#define DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(groupID, triggerObject, cmdSlotIn, cmdSlotOut)\
+    ENTER_OBJGROUP_OFF(groupID, triggerObject, cmdSlotIn)\
+    EXIT_OBJGROUP_ON(groupID, triggerObject, cmdSlotOut);
+
+
+/* COMMANDS: WORLD OBJECT GROUPS */
+
+//A shortcut for switching on a worldObjectGroup when entering a Trigger Object
+#define ENTER_WORLD_OBJGROUP_ON(groupID, mapID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_WORLD_ENABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlot].param1 = groupID;\
+    (triggerObject)->commands[cmdSlot].param2 = mapID;
+
+//A shortcut for switching off a worldObjectGroup when entering a Trigger Object
+#define ENTER_WORLD_OBJGROUP_OFF(groupID, mapID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_WORLD_DISABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlot].param1 = groupID;\
+    (triggerObject)->commands[cmdSlot].param2 = mapID;
+
+//A shortcut for switching on a worldObjectGroup when exiting a Trigger Object
+#define EXIT_WORLD_OBJGROUP_ON(groupID, mapID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_WORLD_ENABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlot].param1 = groupID;\
+    (triggerObject)->commands[cmdSlot].param2 = mapID;
+
+//A shortcut for switching off a worldObjectGroup when exiting a Trigger Object
+#define EXIT_WORLD_OBJGROUP_OFF(groupID, mapID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_WORLD_DISABLE_OBJ_GROUP;\
+    (triggerObject)->commands[cmdSlot].param1 = groupID;\
+    (triggerObject)->commands[cmdSlot].param2 = mapID;
+
+//A quick way to add directionally specific World ObjectGroup on/off commands to Trigger Objects (enter: on, exit: off)
+#define DIRECTIONAL_WORLD_OBJGROUP_TOGGLE(groupID, mapID, triggerObject, cmdSlotIn, cmdSlotOut)\
+    ENTER_WORLD_OBJGROUP_ON(groupID, mapID, triggerObject, cmdSlotIn)\
+    EXIT_WORLD_OBJGROUP_OFF(groupID, mapID, triggerObject, cmdSlotOut);
+
+//A quick way to add directionally specific World ObjectGroup off/on commands to Trigger Objects (enter: off, exit: on)
+#define DIRECTIONAL_WORLD_OBJGROUP_TOGGLE_REVERSE(groupID, mapID, triggerObject, cmdSlotIn, cmdSlotOut)\
+    ENTER_WORLD_OBJGROUP_OFF(groupID, mapID, triggerObject, cmdSlotIn)\
+    EXIT_WORLD_OBJGROUP_ON(groupID, mapID, triggerObject, cmdSlotOut);
+
+    
+/* COMMANDS: GAMEBITS */
+#define TRG_GAMEBIT_ON(gamebit) ((gamebit & 0x3FFF) | (1 << 14))
+#define TRG_GAMEBIT_OFF(gamebit) (gamebit & 0x3FFF)
+#define TRG_GAMEBIT(gamebit, enable) ((gamebit & 0x3FFF) | ((enable == TRUE) << 14))
+
+//A shortcut for setting a gamebit value when entering a Trigger Object
+#define ENTER_GAMEBIT(gamebit, enable, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_BITS;\
+    (triggerObject)->commands[cmdSlot].paramCombined = TRG_GAMEBIT(gamebit, enable);
+
+//A shortcut for setting a gamebit value when exiting a Trigger Object
+#define EXIT_GAMEBIT(gamebit, enable, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_BITS;\
+    (triggerObject)->commands[cmdSlot].paramCombined = TRG_GAMEBIT(gamebit, enable);
+
+
+/* COMMANDS: MUSIC ACTION */
+
+//A shortcut for playing a music track when entering a Trigger Object (NOTE: music play on exit not supported by Trigger Objects)
+#define ENTER_PLAY_MUSIC(musicID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_MUSIC_ACTION;\
+    (triggerObject)->commands[cmdSlot].paramCombined = musicID;
+
+//A shortcut for stopping a music track when exiting a Trigger Object (NOTE: music stop on enter not supported by Trigger Objects)
+#define EXIT_STOP_MUSIC(musicID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_MUSIC_ACTION;\
+    (triggerObject)->commands[cmdSlot].paramCombined = musicID;
+
+
+/* COMMANDS: SOUND */
+
+//A shortcut for playing a non-looping sound when entering a Trigger Object (NOTE: sound play on exit not supported by Trigger Objects)
+#define ENTER_PLAY_SOUND(soundID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_SOUND;\
+    (triggerObject)->commands[cmdSlot].paramCombined = soundID;
+
+//A shortcut for playing a looping sound when entering a Trigger Object, and stopping the loop on exiting the object
+#define ENTER_PLAY_LOOPING_SOUND(soundID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER | CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_SOUND;\
+    (triggerObject)->commands[cmdSlot].paramCombined = soundID;
+
+    
+/* COMMANDS: CAMERA ACTION */
+
+//A shortcut for applying a CameraAction when entering a Trigger Object
+#define ENTER_CAMERAACTION(cameraMode, cameraActionIdx, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_CAMERA_ACTION;\
+    (triggerObject)->commands[cmdSlot].param1 = cameraMode;\
+    (triggerObject)->commands[cmdSlot].param2 = cameraActionIdx;
+
+//A shortcut for applying a CameraAction when exiting a Trigger Object
+#define EXIT_CAMERAACTION(cameraMode, cameraActionIdx, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_CAMERA_ACTION;\
+    (triggerObject)->commands[cmdSlot].param1 = cameraMode;\
+    (triggerObject)->commands[cmdSlot].param2 = cameraActionIdx;
+
+
+/* COMMANDS: KYTE FLIGHT PATH */
+
+//A shortcut for setting Kyte's flight group when entering a Trigger Object
+#define ENTER_KYTE_FLIGHT_GROUP(flightGroupID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_KYTE_FLIGHT_GROUP;\
+    (triggerObject)->commands[cmdSlot].paramCombined = flightGroupID;
+
+//A shortcut for setting Kyte's flight group when exiting a Trigger Object
+#define EXIT_KYTE_FLIGHT_GROUP(flightGroupID, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_KYTE_FLIGHT_GROUP;\
+    (triggerObject)->commands[cmdSlot].paramCombined = flightGroupID;
+
+
+/* COMMANDS: SAVE POINT */
+
+#define ROTATE_CHECKPOINT_YAW_180 0x8000
+
+//A shortcut for staging save data (and setting a restart point if there is none) when entering a Trigger Object
+#define ENTER_SET_SAVEPOINT(includeMapData, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_SAVE_POINT;\
+    (triggerObject)->commands[cmdSlot].paramCombined = (includeMapData ? 0 : GPLAY_SAVEPOINT_SkipMapSave);
+
+//A shortcut for staging save data (and setting a restart point if there is none) when exiting a Trigger Object
+#define EXIT_SET_SAVEPOINT(includeMapData, triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_SAVE_POINT;\
+    (triggerObject)->commands[cmdSlot].paramCombined = (includeMapData ? 0 : GPLAY_SAVEPOINT_SkipMapSave) | ROTATE_CHECKPOINT_YAW_180;
+
+    
+/* COMMANDS: RESTART POINT */
+
+//SET
+
+//A shortcut for staging a restart point when entering a Trigger Object
+#define ENTER_SET_RESTARTPOINT(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_RESTART;\
+    (triggerObject)->commands[cmdSlot].paramCombined = 0;
+
+//A shortcut for staging a restart point when exiting a Trigger Object
+#define EXIT_SET_RESTARTPOINT(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_RESTART;\
+    (triggerObject)->commands[cmdSlot].paramCombined = ROTATE_CHECKPOINT_YAW_180;
+
+//CLEAR
+
+//A shortcut for clearing the restart point when entering a Trigger Object
+#define ENTER_CLEAR_RESTARTPOINT(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_RESTART;\
+    (triggerObject)->commands[cmdSlot].paramCombined = 1;
+
+//A shortcut for clearing the restart point when exiting a Trigger Object
+#define EXIT_CLEAR_RESTARTPOINT(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_RESTART;\
+    (triggerObject)->commands[cmdSlot].paramCombined = 1;
+
+//GOTO
+
+//A shortcut for activating the restart point when entering a Trigger Object
+#define ENTER_GOTO_RESTARTPOINT(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_RESTART;\
+    (triggerObject)->commands[cmdSlot].paramCombined = 2;
+
+//A shortcut for activating the restart point when exiting a Trigger Object
+#define EXIT_GOTO_RESTARTPOINT(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_RESTART;\
+    (triggerObject)->commands[cmdSlot].paramCombined = 2;
+

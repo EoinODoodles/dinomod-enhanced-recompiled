@@ -1,7 +1,8 @@
-#include "recomputils.h"
-#include "modding.h"
-#include "recompconfig.h"
 #include "dll_util.h"
+#include "modding.h"
+#include "player_util.h"
+#include "recompconfig.h"
+#include "recomputils.h"
 
 #include "PR/gbi.h"
 #include "PR/ultratypes.h"
@@ -330,30 +331,6 @@ RECOMP_PATCH void credits_draw(Gfx** gdl, Mtx** mtx, Vertex** vtx) {
     fontWindowDraw(gdl, 0, 0, 1);
 }
 
-/* Counts how many frames have elapsed without an important sequence playing (one that takes over player control) */
-static void credits_count_frames_without_sequence(void) {
-    Object* player = objGetPlayer();
-    if (!player) {
-        return;
-    }
-
-    //Check if the player Object isn't involved in a sequence
-    if ((player->stateFlags & OBJSTATE_IN_SEQ) == FALSE) {
-
-        //If the player control is unlocked, assume there isn't an important sequence playing
-        Player_Data* playerData = player->data;
-        if (playerData && !(playerData->flags & 0x200000)) {
-            rsCreditsFramesWithoutSequence += gUpdateRate;
-            return;
-        }
-    }
-    
-    //Otherwise, assume an important sequence is playing
-    if (rsCreditsFramesWithoutSequence) {
-        rsCreditsFramesWithoutSequence = 0;
-    }
-}
-
 /** Restore credits when exiting pause menu */
 RECOMP_CALLBACK("*", recomp_on_game_tick_start) void restoreCredits() {
     u8 previousMenu = menuGetPrevious();
@@ -371,7 +348,11 @@ RECOMP_CALLBACK("*", recomp_on_game_tick_start) void restoreCredits() {
 
     //Track how long the credits have been playing outside of a sequence
     if ((rsCreditsRestoredFrame > 0) && (currentMenu != MENU_PAUSE)) {
-        credits_count_frames_without_sequence();
+        if (playerUtil_isImportantSequencePlaying()) {
+            rsCreditsFramesWithoutSequence = 0;
+        } else {
+            rsCreditsFramesWithoutSequence += gUpdateRate;
+        }
     }
 
     // End the credits if they've been playing too long outside of a sequence (i.e. persisting into gameplay)
