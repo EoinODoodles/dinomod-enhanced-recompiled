@@ -11,7 +11,7 @@
 #include "sys/print.h"
 
 #include "objects/419_DFdockpoint.h"
-#include "objects/793_BWLog.h"
+#include "objects/793_BWlog.h"
 
 #include "recomp/dlls/objects/419_DFdockpoint_recomp.h"
 
