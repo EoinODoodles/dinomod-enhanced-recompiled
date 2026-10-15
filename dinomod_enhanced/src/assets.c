@@ -5255,7 +5255,7 @@ static void discovery_falls_modifications(void) {
                     .objId = OBJ_LODAnimator,
                     .loadFlags = OBJSETUP_LOAD_CAMERA,
                     .fadeFlags = OBJSETUP_FADE_CAMERA,
-                    .loadDistance = FADE_DISTANCE(960),
+                    .loadDistance = FADE_DISTANCE(1350),
                     .fadeDistance = 50
                 },
                 COORDS_SETUP(-590, 509, -657),
