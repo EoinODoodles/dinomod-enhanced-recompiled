@@ -208,6 +208,11 @@ _Bool configs_GetSixtyFPS(void) {
     return recomp_get_config_u32("sixty_fps_mode") != 0;
 }
 
+/* Checks whether to use fancier Krazoa Spirit glow effects (more accurate camera-facing calculation, moving with pupil animation, and a basic occlusion check) */
+_Bool configs_GetSpiritGlows(void) {
+    return recomp_get_config_u32("spirit_glows_enhanced") != 0;
+}
+
 /* Checks whether to hide default FXEmits (misconfigured ones that flash up for a frame and then disappear). */
 _Bool configs_GetHideDefaultFXEmits(void) {
     return recomp_get_config_u32("fxemit_hide_default") != 0;

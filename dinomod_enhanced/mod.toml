@@ -507,6 +507,22 @@ options = [ "Vanilla", "Enhanced" ]
 default = "Enhanced"
 
 [[manifest.config_options]]
+id = "spirit_glows_enhanced"
+name = "Spirit Glows: Enhanced"
+description = '''
+After completing a Krazoa Shrine, the player character's eyes and pendant will glow until they bring the Krazoa Spirit to Warlock Mountain.
+
+The December 2000 Prototype uses a basic direction check to decide whether or not to draw this eye glow effect, which doesn't account for the character's posing and can sometimes end up being drawn through the opposite side of their head!
+
+If you enable this config, a slightly fancier calculation will instead be used to figure out whether each eye is facing towards/away from the camera, improving the accuracy of when the particles are drawn.
+
+And as a bonus: it also causes the glows to move with the character's pupil animation, and a basic occlusion check is added too!
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
 id = "fxemit_hide_default"
 name = "FXEmit: Hide Debug Flashes"
 description = '''

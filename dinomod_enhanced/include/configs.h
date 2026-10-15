@@ -179,6 +179,7 @@ _Bool configs_GetMenuTimerFractionConfig(void);
 
 /* GRAPHICS */
 _Bool configs_GetSixtyFPS(void);
+_Bool configs_GetSpiritGlows(void);
 _Bool configs_GetHideDefaultFXEmits(void);
 RecompLogRippleModes configs_GetLogEndpointFXMode(void);
 
