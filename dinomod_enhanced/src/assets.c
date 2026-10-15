@@ -3345,7 +3345,7 @@ static void swapstone_hollow_additions(void) {
             .unk2D = 0,
             .unk2E = 0x40,
             .unk2F = -1,
-            .type24.activeBit = -1,
+            .type24.activeBit = NO_GAMEBIT,
             .type24.usedBit = BIT_14 // disable after woken up
         };
 
@@ -7495,17 +7495,17 @@ static void inside_galleon_modifications(void) {
         CurveSetup* curve;
 
         curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A3E), NULL);
-        curve->type22.activeBit = -1;
+        curve->type22.activeBit = NO_GAMEBIT;
         curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A3F), NULL);
-        curve->type22.activeBit = -1;
+        curve->type22.activeBit = NO_GAMEBIT;
         curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A40), NULL);
-        curve->type22.activeBit = -1;
+        curve->type22.activeBit = NO_GAMEBIT;
         curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A46), NULL);
-        curve->type22.activeBit = -1;
+        curve->type22.activeBit = NO_GAMEBIT;
         curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A4A), NULL);
-        curve->type22.activeBit = -1;
+        curve->type22.activeBit = NO_GAMEBIT;
         curve = reasset_map_objects_get(crfGalleon, reasset_base_id(0x31A4C), NULL);
-        curve->type22.activeBit = -1;
+        curve->type22.activeBit = NO_GAMEBIT;
     }
 }
 
