@@ -68,10 +68,11 @@ RECOMP_PATCH void ECSHCup_obj_Control(Object* self) {
 
     player = objGetPlayer();
     
-    if (dShrine == NULL){
+    //@recomp: add validation checks to the Shrine ref
+    if (dShrine == NULL || dShrine->stateFlags & OBJSTATE_DESTROYED){
         dShrine = objGetNearestTypeTo(OBJTYPE_13, self, &objectDistance);
     }
-    if (dShrine == NULL){
+    if (dShrine == NULL || dShrine->stateFlags & OBJSTATE_DESTROYED){
         return;
     }
     
