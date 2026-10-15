@@ -11,6 +11,7 @@
 
 #include "core/mp3/mp3.h"
 #include "core/main.h"
+#include "engine/29_gplay_dinomod.h"
 #include "engine/78_credits.h"
 
 extern GameState *gGplayState;
@@ -174,4 +175,12 @@ RECOMP_PATCH void mainUnpause(void) {
 
     //@recomp: unpause MP3s as well
     mp3UnpauseIfPaused();
+}
+
+/** 
+ * Handle gplay goto restartpoint/savepoint at the end of the tick instead of when it's first requested.
+ * See the gplay patch for more info.
+ */
+RECOMP_HOOK("mainHandleMapChange") void dinomod_handle_deferred_gplay_goto(void) {
+    dinomod_gplay_handle_goto();
 }

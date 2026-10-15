@@ -1,10 +1,12 @@
-#include "configs.h"
 #include "modding.h"
-#include "common_objsetups.h"
 #include "recompconfig.h"
 #include "recomputils.h"
 
+#include "common_objsetups.h"
+#include "configs.h"
+
 #include "dll.h"
+#include "dlls/engine/2_camcontrol.h"
 #include "dlls/objects/210_player.h"
 #include "game/gamebits.h"
 #include "game/objects/object.h"
@@ -50,6 +52,14 @@ typedef struct {
 extern void camstatic_setupEase(Cam* cam, Vec3f* staticCamCoords, s32 goalYaw, s32 goalPitch, s32 goalRoll, f32 goalFov);
 extern s32 camstatic_ease(Cam* cam, u8 flags);
 extern Object* camstatic_findStaticCamera(f32 x, f32 y, f32 z, s32 cameraID, s32 controlNo);
+
+RECOMP_HOOK_DLL(camstatic_func_278) void camstatic_func_278_hook(Cam* cam) {
+    // @recomp: If the static camera object unloads, switch back to the normal camera instead of referencing a dangling pointer
+    if (sState->obj == NULL || (sState->obj->stateFlags & OBJSTATE_DESTROYED)) {
+        sState->obj = NULL;
+        sState->cameraLost = TRUE;
+    }
+}
 
 /* Add option to aim at player's centre rather than their origin. */
 RECOMP_PATCH void camstatic_func_18(Cam* cam, s32 arg1, CamStatic_Params* data) {

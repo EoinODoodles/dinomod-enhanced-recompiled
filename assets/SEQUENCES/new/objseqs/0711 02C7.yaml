@@ -1,0 +1,332 @@
+# Treasure robot minigame fail cutscene.
+# DINOMOD: To avoid crashes, Krystal is no longer teleported to the right side treasure room
+#          entrance and now just retains her current position (otherwise every trigger along
+#          the way gets activated causing a lot of issues...).
+#          Additionally, the final awkward shot of the right side treasure room entrance is
+#          cut out (the cutscene just fades out and ends early).
+#          TODO: This edit is kind of a hack job
+
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x0
+  objectID: 0xFFFF # Self (CFseqobject)
+# Actor 1
+- uid: 0x0
+  settings: 0x9000
+  objectID: 0xFFFE # Camera
+# Actor 2
+- uid: 0x0
+  settings: 0x9000
+  objectID: 0x12 # generalscales
+# Actor 3
+- uid: 0x0
+  settings: 0xD000
+  objectID: 0xCE # CFScalesGalleon
+# Actor 4
+- uid: 0x0
+  settings: 0xD000
+  objectID: 0xE4 # CFCloudBaby
+# Actor 5
+- uid: 0x0
+  settings: 0xD000
+  objectID: 0x2A3 # CFSupTreasureCh
+# Actor 6
+- uid: 0x0
+  settings: 0xD700 # DINOMOD: changed to not override pos/rot
+  objectID: 0x1F # Krystal
+
+curves:
+# Curve 0
+- events:
+  - { type: 0, delay: 0, params: 4 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 828 } # SETDURATION @ 4
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 4
+  # DINOMOD: Restart sooner
+  - { type: 0, delay: 0, params: 698 } # SETTIME @ 4
+  - { type: 11, delay: 13, params: 1 } # CODE @ 815
+  - { code_type: 6, val1: 0x20, val2: 0x0 } # 6 (RESTART_GOTO)
+  - { type: 11, delay: 0, params: 1 } # CODE @ 828
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+# Curve 1
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 828 } # SETDURATION @ 0
+  - { type: 11, delay: 20, params: 1 } # CODE @ 0
+  - { code_type: 6, val1: 0xE, val2: 0x12 } # 6 (14)
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 20
+  - { type: 1, delay: 1, params: 0x0 } # MOVEMODE @ 20
+  - { type: 11, delay: 0, params: 1 } # CODE @ 21
+  - { code_type: 6, val1: 0xF, val2: 0x7D } # 6 (15)
+  # DINOMOD: fade out earlier
+  - { type: 0, delay: 0, params: 474 } # SETTIME @ 21
+  # DINOMOD: modified delay
+  - { type: 11, delay: 177, params: 1 } # CODE @ 651
+  - { code_type: 6, val1: 0xE, val2: 0x5F } # 6 (14)
+  # DINOMOD: don't start a fade back in
+  #- { type: 11, delay: 4, params: 1 } # CODE @ 824
+  #- { code_type: 6, val1: 0xF, val2: 0x1E } # 6 (15)
+  - { type: 11, delay: 0, params: 1 } # CODE @ 828
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ROTATE_Z
+  - { channel: 6, time: 205, value: -11.291399002075195, interp: 2, weight: 0 }
+  - { channel: 6, time: 435, value: 0.0, interp: 2, weight: 0 }
+    # ROTATE_Y
+  - { channel: 7, time: 205, value: 22.35173797607422, interp: 2, weight: 56 }
+  - { channel: 7, time: 435, value: -149.145263671875, interp: 2, weight: 56 }
+  - { channel: 7, time: 448, value: -286.23211669921875, interp: 0, weight: 0 }
+  - { channel: 7, time: 671, value: -286.355224609375, interp: 2, weight: 0 }
+  #- { channel: 7, time: 674, value: -450.2748718261719, interp: 0, weight: 60 }
+    # ROTATE_X
+  - { channel: 8, time: 205, value: 28.80072784423828, interp: 2, weight: 56 }
+  - { channel: 8, time: 435, value: -28.79523468017578, interp: 2, weight: 0 }
+  - { channel: 8, time: 448, value: -4.191294193267822, interp: 0, weight: 0 }
+  - { channel: 8, time: 671, value: -2.828986406326294, interp: 2, weight: 0 }
+  #- { channel: 8, time: 674, value: -4.526378154754639, interp: 0, weight: 60 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 205, value: -97.1021728515625, interp: 2, weight: 0 }
+  - { channel: 11, time: 350, value: -178.8795928955078, interp: 0, weight: 0 }
+  - { channel: 11, time: 435, value: -211.26400756835938, interp: 2, weight: 59 }
+  - { channel: 11, time: 448, value: -28.282852172851562, interp: 0, weight: 0 }
+  - { channel: 11, time: 671, value: -28.428913116455078, interp: 2, weight: 0 }
+  #- { channel: 11, time: 674, value: 807.7415771484375, interp: 0, weight: 4 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 205, value: 52.9001350402832, interp: 2, weight: 8 }
+  - { channel: 12, time: 435, value: 116.0999984741211, interp: 2, weight: 0 }
+  - { channel: 12, time: 448, value: 58.099998474121094, interp: 0, weight: 0 }
+  - { channel: 12, time: 671, value: 58.099998474121094, interp: 2, weight: 0 }
+  #- { channel: 12, time: 674, value: -61.900001525878906, interp: 0, weight: 60 }
+    # TRANSLATE_X
+  - { channel: 13, time: 205, value: -283.6181945800781, interp: 2, weight: 56 }
+  - { channel: 13, time: 435, value: -319.892578125, interp: 2, weight: 0 }
+  - { channel: 13, time: 448, value: 580.9636840820312, interp: 0, weight: 0 }
+  - { channel: 13, time: 671, value: 585.20263671875, interp: 2, weight: 0 }
+  #- { channel: 13, time: 674, value: 1211.7867431640625, interp: 0, weight: 4 }
+    # FIELD_OF_VIEW
+  - { channel: 14, time: 205, value: 76.93681335449219, interp: 2, weight: 56 }
+  - { channel: 14, time: 435, value: 61.0, interp: 2, weight: 0 }
+# Curve 2
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 828 } # SETDURATION @ 0
+  - { type: 3, delay: 19, params: 0x0 } # OVERRIDE @ 0
+  - { type: 1, delay: 0, params: 0x0 } # MOVEMODE @ 19
+  - { type: 2, delay: 135, params: 0x1 } # ANIM @ 19
+  - { type: 1, delay: 0, params: 0x0 } # MOVEMODE @ 154
+  - { type: 2, delay: 72, params: 0x21 } # ANIM @ 154
+  - { type: 2, delay: 31, params: 0x5015 } # ANIM @ 226
+  - { type: 15, delay: 1, params: 0xE60C } # SFX_WITH_DURATION @ 257
+  - { type: 127, delay: 114, params: 0x94 } # PARAM @ 257
+  - { type: 2, delay: 0, params: 0x16 } # ANIM @ 371
+  - { type: 0, delay: 0, params: 828 } # SETTIME @ 371
+  - { type: 11, delay: 0, params: 1 } # CODE @ 828
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # HEAD_ROTATE_X
+  - { channel: 1, time: 255, value: -0.011885643005371094, interp: 0, weight: 0 }
+  - { channel: 1, time: 265, value: 10.69942855834961, interp: 0, weight: 0 }
+  - { channel: 1, time: 272, value: -0.011885643005371094, interp: 0, weight: 0 }
+  - { channel: 1, time: 277, value: 6.421172142028809, interp: 0, weight: 0 }
+  - { channel: 1, time: 286, value: -0.011885643005371094, interp: 0, weight: 0 }
+  - { channel: 1, time: 291, value: 6.920846462249756, interp: 0, weight: 0 }
+  - { channel: 1, time: 296, value: 0.6511802673339844, interp: 0, weight: 0 }
+  - { channel: 1, time: 307, value: 7.965791702270508, interp: 0, weight: 0 }
+  - { channel: 1, time: 314, value: 1.7911183834075928, interp: 0, weight: 0 }
+  - { channel: 1, time: 325, value: 8.725749969482422, interp: 0, weight: 0 }
+  - { channel: 1, time: 333, value: 2.1710994243621826, interp: 0, weight: 0 }
+  - { channel: 1, time: 342, value: 9.960684776306152, interp: 0, weight: 0 }
+  - { channel: 1, time: 351, value: 3.0260543823242188, interp: 0, weight: 0 }
+  - { channel: 1, time: 360, value: 9.390715599060059, interp: 0, weight: 0 }
+  - { channel: 1, time: 369, value: 5.685912609100342, interp: 0, weight: 0 }
+  - { channel: 1, time: 382, value: 7.585811614990234, interp: 0, weight: 0 }
+  - { channel: 1, time: 444, value: -0.013784408569335938, interp: 0, weight: 0 }
+    # ROTATE_Y
+  - { channel: 7, time: 24, value: -176.53216552734375, interp: 0, weight: 0 }
+    # ANIM_SPEED
+  - { channel: 9, time: 371, value: 10.92251205444336, interp: 0, weight: 0 }
+  - { channel: 9, time: 420, value: 22.985198974609375, interp: 0, weight: 0 }
+    # ANIM_BLEND_SPEED
+  - { channel: 10, time: 193, value: 12.622161865234375, interp: 0, weight: 0 }
+  - { channel: 10, time: 233, value: -1.14080810546875, interp: 0, weight: 0 }
+  - { channel: 10, time: 381, value: 13.790495872497559, interp: 0, weight: 0 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 10, value: -221.53631591796875, interp: 0, weight: 10 }
+  - { channel: 11, time: 164, value: -146.83673095703125, interp: 1, weight: 10 }
+  - { channel: 11, time: 350, value: -146.83700561523438, interp: 0, weight: 0 }
+  - { channel: 11, time: 676, value: -493.06298828125, interp: 0, weight: 52 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 226, value: 42.63311004638672, interp: 0, weight: 0 }
+  - { channel: 12, time: 258, value: 40.53655242919922, interp: 0, weight: 0 }
+    # TRANSLATE_X
+  - { channel: 13, time: 280, value: -286.149169921875, interp: 0, weight: 0 }
+    # JAW
+  - { channel: 17, time: 260, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 262, value: -12.159637451171875, interp: 0, weight: 60 }
+  - { channel: 17, time: 267, value: -13.159637451171875, interp: 0, weight: 0 }
+  - { channel: 17, time: 268, value: -2.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 273, value: -3.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 275, value: -9.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 279, value: -9.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 281, value: -2.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 288, value: -1.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 290, value: -9.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 294, value: -4.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 308, value: -9.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 309, value: -5.0, interp: 0, weight: 14 }
+  - { channel: 17, time: 320, value: -3.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 322, value: -9.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 326, value: -9.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 327, value: -5.0, interp: 0, weight: 10 }
+  - { channel: 17, time: 337, value: -2.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 341, value: -9.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 343, value: -9.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 344, value: -4.0, interp: 0, weight: 14 }
+  - { channel: 17, time: 356, value: -1.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 360, value: -11.032550811767578, interp: 0, weight: 0 }
+  - { channel: 17, time: 362, value: -3.0, interp: 0, weight: 6 }
+  - { channel: 17, time: 375, value: 0.0, interp: 0, weight: 0 }
+  - { channel: 17, time: 376, value: -11.173819541931152, interp: 0, weight: 61 }
+  - { channel: 17, time: 381, value: -12.173819541931152, interp: 0, weight: 0 }
+  - { channel: 17, time: 424, value: 0.03518247604370117, interp: 0, weight: 0 }
+# Curve 3
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 828 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 0, delay: 0, params: 828 } # SETTIME @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 828
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # TRANSLATE_Z
+  - { channel: 11, time: 350, value: -106.10466003417969, interp: 0, weight: 0 }
+  - { channel: 11, time: 676, value: -452.33099365234375, interp: 0, weight: 52 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 236, value: -75.87211608886719, interp: 0, weight: 0 }
+    # TRANSLATE_X
+  - { channel: 13, time: 236, value: -379.7792663574219, interp: 0, weight: 8 }
+# Curve 4
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 828 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 2, delay: 206, params: 0x107 } # ANIM @ 0
+  - { type: 2, delay: 169, params: 0x105 } # ANIM @ 206
+  - { type: 2, delay: 0, params: 0x106 } # ANIM @ 375
+  - { type: 0, delay: 0, params: 828 } # SETTIME @ 375
+  - { type: 11, delay: 0, params: 1 } # CODE @ 828
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # HEAD_ROTATE_Z
+  - { channel: 0, time: 97, value: -35.65230178833008, interp: 0, weight: 0 }
+  - { channel: 0, time: 139, value: 0.38006591796875, interp: 0, weight: 8 }
+  - { channel: 0, time: 199, value: 10.3890380859375, interp: 0, weight: 0 }
+  - { channel: 0, time: 384, value: 8.38726806640625, interp: 0, weight: 0 }
+  - { channel: 0, time: 425, value: -13.632497787475586, interp: 0, weight: 56 }
+  - { channel: 0, time: 499, value: -18.42059326171875, interp: 0, weight: 0 }
+    # HEAD_ROTATE_X
+  - { channel: 1, time: 95, value: -31.648700714111328, interp: 0, weight: 0 }
+  - { channel: 1, time: 131, value: 6.385445594787598, interp: 0, weight: 8 }
+  - { channel: 1, time: 274, value: 28.242897033691406, interp: 0, weight: 0 }
+  - { channel: 1, time: 364, value: -8.276366233825684, interp: 0, weight: 0 }
+    # HEAD_ROTATE_Y
+  - { channel: 2, time: 177, value: -0.16094970703125, interp: 0, weight: 0 }
+  - { channel: 2, time: 196, value: 22.1563720703125, interp: 0, weight: 8 }
+  - { channel: 2, time: 284, value: 34.32942581176758, interp: 0, weight: 0 }
+  - { channel: 2, time: 328, value: -44.79562759399414, interp: 0, weight: 0 }
+  - { channel: 2, time: 362, value: 5.925537109375, interp: 0, weight: 0 }
+  - { channel: 2, time: 428, value: -14.362933158874512, interp: 0, weight: 0 }
+    # ROTATE_Y
+  - { channel: 7, time: 206, value: 36.08881759643555, interp: 0, weight: 0 }
+    # ANIM_SPEED
+  - { channel: 9, time: 194, value: 14.219337463378906, interp: 0, weight: 0 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 206, value: -106.70165252685547, interp: 0, weight: 0 }
+  - { channel: 11, time: 216, value: -105.89006805419922, interp: 0, weight: 0 }
+  - { channel: 11, time: 222, value: -106.56144714355469, interp: 0, weight: 56 }
+  - { channel: 11, time: 227, value: -109.23836517333984, interp: 0, weight: 56 }
+  - { channel: 11, time: 236, value: -118.98033905029297, interp: 0, weight: 56 }
+  - { channel: 11, time: 247, value: -120.82658386230469, interp: 0, weight: 56 }
+  - { channel: 11, time: 250, value: -121.32371520996094, interp: 0, weight: 56 }
+  - { channel: 11, time: 267, value: -124.69403076171875, interp: 0, weight: 0 }
+  - { channel: 11, time: 271, value: -124.23746490478516, interp: 0, weight: 8 }
+  - { channel: 11, time: 278, value: -123.17481231689453, interp: 0, weight: 0 }
+  - { channel: 11, time: 281, value: -123.56816864013672, interp: 0, weight: 56 }
+  - { channel: 11, time: 304, value: -124.5746841430664, interp: 0, weight: 0 }
+  - { channel: 11, time: 323, value: -123.59851837158203, interp: 0, weight: 0 }
+  - { channel: 11, time: 350, value: -124.51654815673828, interp: 0, weight: 0 }
+  - { channel: 11, time: 676, value: -470.7430114746094, interp: 0, weight: 52 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 206, value: 45.308494567871094, interp: 0, weight: 0 }
+  - { channel: 12, time: 216, value: 47.876922607421875, interp: 0, weight: 8 }
+  - { channel: 12, time: 222, value: 54.886940002441406, interp: 0, weight: 8 }
+  - { channel: 12, time: 227, value: 64.9540023803711, interp: 0, weight: 8 }
+  - { channel: 12, time: 236, value: 81.84192657470703, interp: 0, weight: 8 }
+  - { channel: 12, time: 247, value: 91.26237487792969, interp: 0, weight: 8 }
+  - { channel: 12, time: 250, value: 91.62871551513672, interp: 0, weight: 0 }
+  - { channel: 12, time: 267, value: 89.35572052001953, interp: 0, weight: 56 }
+  - { channel: 12, time: 271, value: 88.73526763916016, interp: 0, weight: 56 }
+  - { channel: 12, time: 278, value: 86.80839538574219, interp: 0, weight: 0 }
+  - { channel: 12, time: 281, value: 87.30839538574219, interp: 0, weight: 8 }
+  - { channel: 12, time: 304, value: 87.3454360961914, interp: 0, weight: 0 }
+  - { channel: 12, time: 323, value: 87.33354949951172, interp: 0, weight: 56 }
+  - { channel: 12, time: 350, value: 87.30839538574219, interp: 0, weight: 0 }
+    # TRANSLATE_X
+  - { channel: 13, time: 206, value: -288.0420837402344, interp: 0, weight: 0 }
+  - { channel: 13, time: 216, value: -284.11163330078125, interp: 0, weight: 8 }
+  - { channel: 13, time: 222, value: -282.6251220703125, interp: 0, weight: 0 }
+  - { channel: 13, time: 227, value: -284.1100158691406, interp: 0, weight: 56 }
+  - { channel: 13, time: 236, value: -284.35565185546875, interp: 0, weight: 56 }
+  - { channel: 13, time: 247, value: -288.35491943359375, interp: 0, weight: 56 }
+  - { channel: 13, time: 250, value: -289.95849609375, interp: 0, weight: 56 }
+  - { channel: 13, time: 267, value: -291.0300598144531, interp: 0, weight: 56 }
+  - { channel: 13, time: 271, value: -291.138427734375, interp: 0, weight: 0 }
+  - { channel: 13, time: 278, value: -291.1087951660156, interp: 0, weight: 8 }
+  - { channel: 13, time: 281, value: -290.2534484863281, interp: 0, weight: 0 }
+  - { channel: 13, time: 304, value: -290.6523132324219, interp: 0, weight: 0 }
+  - { channel: 13, time: 323, value: -289.9904479980469, interp: 0, weight: 0 }
+  - { channel: 13, time: 350, value: -290.2766418457031, interp: 0, weight: 0 }
+# Curve 5
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 828 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 0, delay: 0, params: 828 } # SETTIME @ 0
+  - { type: 11, delay: 0, params: 1 } # CODE @ 828
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # HEAD_ROTATE_X
+  - { channel: 1, time: 40, value: -96.46907806396484, interp: 0, weight: 0 }
+  - { channel: 1, time: 129, value: 0.0, interp: 0, weight: 0 }
+    # ROTATE_Y
+  - { channel: 7, time: 13, value: -35.13623809814453, interp: 0, weight: 0 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 350, value: -109.23706817626953, interp: 0, weight: 0 }
+  - { channel: 11, time: 676, value: -455.4630126953125, interp: 0, weight: 52 }
+    # TRANSLATE_Y
+  - { channel: 12, time: 9, value: 40.20619201660156, interp: 0, weight: 0 }
+    # TRANSLATE_X
+  - { channel: 13, time: 22, value: -291.3614196777344, interp: 0, weight: 0 }
+# Curve 6
+# DINOMOD: Don't move/animate player
+- events:
+  - { type: 0, delay: 0, params: 23 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 828 } # SETDURATION @ 23
+  - { type: 3, delay: 34, params: 0x0 } # OVERRIDE @ 23
+  # - { type: 2, delay: 2, params: 0x0 } # ANIM @ 57
+  # - { type: 7, delay: 0, params: 0x0 } # GROUND_MODE @ 59
+  - { type: 0, delay: 0, params: 828 } # SETTIME @ 59
+  - { type: 11, delay: 0, params: 1 } # CODE @ 828
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
+  keyframes:
+    # ROTATE_Y
+  #- { channel: 7, time: 745, value: -94.77484130859375, interp: 0, weight: 60 }
+    # ROTATE_X
+  #- { channel: 8, time: 745, value: 0.0, interp: 0, weight: 4 }
+    # ANIM_SPEED
+  #- { channel: 9, time: 120, value: 20.313953399658203, interp: 0, weight: 0 }
+    # TRANSLATE_Z
+  #- { channel: 11, time: 745, value: 806.552001953125, interp: 0, weight: 4 }
+    # TRANSLATE_X
+  #- { channel: 13, time: 745, value: 1366.102783203125, interp: 0, weight: 4 }

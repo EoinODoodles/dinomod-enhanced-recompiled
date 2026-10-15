@@ -344,7 +344,7 @@ FILE,49
 5236 -119 "I have been given powers that you can only dream of."
 
 FILE,50
-3078 -243 "You'll have to catch them and get the SpellStone."
+3078 -243 "You'll have to catch them and get the SpellStone!"
 
 FILE,51
 2319 -55 "What are those flying things?"

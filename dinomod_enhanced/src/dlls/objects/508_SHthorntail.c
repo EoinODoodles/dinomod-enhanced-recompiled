@@ -335,6 +335,8 @@ RECOMP_PATCH void SHthorntail_commonControl(Object* self, SHthorntail_Data* objd
 
     objdata->flags &= ~THORNTAILFLAG_Walking;
     if (self->unkAF & ARROW_FLAG_1_Interacted) {
+        // @recomp: correctly disable A button for remainder of tick
+        joyDisableButtons(0, A_BUTTON);
         gDLL_3_Animation->vtbl->start_obj_sequence(objdata->talkSeqs[objdata->nextSeq], self, -1);
         if (objdata->flags & THORNTAILFLAG_RotateTalkSeqs) {
             objdata->nextSeq++;
