@@ -2722,7 +2722,15 @@ static void cmdmenu_print_custom(Gfx** gdl, Mtx** mtxs, Vertex** vtxs) {
     //Draw Spell reticle when aiming (@bug: x coord not adjusted in widescreen)
     if (((DLL_210_Player*)player->dll)->vtbl->func77(player, &screenX, &screenY)) {
         texAnimateTexture(sCrosshairTex, &sCrosshairAnimRenderFlags, &sCrosshairAnimProgress);
-        
+
+        //@recomp: make sure sCrosshairAnimProgress' value is in bounds
+        //(trying to avoid an uncommon bug where the reticle texture stops animating)
+        if (sCrosshairAnimProgress > sCrosshairTex->animDuration) {
+            sCrosshairAnimProgress %= sCrosshairTex->animDuration;
+        } else if (sCrosshairAnimProgress < 0) {
+            sCrosshairAnimProgress += sCrosshairTex->animDuration * (-(sCrosshairAnimProgress / sCrosshairTex->animDuration) + 1);
+        }
+
         #ifdef DINOMOD_ROM_PATCH
         {
             if (D_8008C890) {
