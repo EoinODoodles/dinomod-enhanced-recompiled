@@ -640,7 +640,7 @@ static OcclusionData rsOcclusionData;
 
 /* Checks if the centre of the player's head is occluded, in a similar way to Rare's code for the Lanterns etc.
  * TODO: maybe revisit and try to refine this so there's a separate occlusion check for each eye? */
-static void custom_modelfx_checkHeadOcclusion(Object* self, Vec3f* coords) {
+static void custom_modelfx_checkHeadOcclusion(Object* character, Vec3f* coords) {
 #ifdef DINOMOD_ROM_PATCH
     #define DEPTH_CHECK_INVERVAL 60
 #else
@@ -687,7 +687,7 @@ static void custom_modelfx_checkHeadOcclusion(Object* self, Vec3f* coords) {
     point.z = coords->z - gWorldZ;
     camProjectPoint(point.x, point.y, point.z, &projected.x, &projected.y, &projected.z);
     camClipToScreen(projected.x, projected.y, projected.z, &screenX, &screenY, NULL);
-    zDepthOcclude = viObjDepth(screenX, screenY, self);
+    zDepthOcclude = viObjDepth(screenX, screenY, character);
 
     //Use the last nonzero obj depth value
     if (zDepthOcclude == 0) {
@@ -700,7 +700,7 @@ static void custom_modelfx_checkHeadOcclusion(Object* self, Vec3f* coords) {
         return;
     }
 
-    camGetVec3ToCameraNormalized(self->srt.transl.x, self->srt.transl.y, self->srt.transl.z, &uView.x, &uView.y, &uView.z);
+    camGetVec3ToCameraNormalized(character->globalPosition.x, character->globalPosition.y, character->globalPosition.z, &uView.x, &uView.y, &uView.z);
     camProjectPoint(point.x += (uView.x * 20.0f), point.y += (uView.y * 20.0f), point.z += (uView.z * 20.0f), &projected.x, &projected.y, &projected.z);
     camClipToScreen(projected.x, projected.y, projected.z, NULL, NULL, &zDepth);
 
@@ -829,8 +829,14 @@ static void modelfx_spiritEyesCustom(Gfx** gdl, Mtx** mtxs, Object* character) {
             mathMtxXFMF(jointMatrix,
                             fxTransform.transl.x, fxTransform.transl.y, fxTransform.transl.z, 
                             &fxTransform.transl.x, &fxTransform.transl.y, &fxTransform.transl.z);
-            fxTransform.transl.x += gWorldX;
-            fxTransform.transl.z += gWorldZ;
+            if (character->parent == NULL || character->parent->stateFlags & OBJSTATE_DESTROYED) {
+                fxTransform.transl.x += gWorldX;
+                fxTransform.transl.z += gWorldZ;
+            } else {
+                fxTransform.transl.x += character->parent->globalPosition.x;
+                fxTransform.transl.y += character->parent->globalPosition.y;
+                fxTransform.transl.z += character->parent->globalPosition.z;
+            }
 
             //Occlusion checks break down when very close to the camera, so do a distance check
             if (vec3DistanceSquared(&camera->srt.transl, &fxTransform.transl) > SQ(19)) {
@@ -919,8 +925,14 @@ static void modelfx_spiritEyesCustom(Gfx** gdl, Mtx** mtxs, Object* character) {
         mathMtxXFMF(jointMatrix,
                         fxTransform.transl.x, fxTransform.transl.y, fxTransform.transl.z, 
                         &fxTransform.transl.x, &fxTransform.transl.y, &fxTransform.transl.z);
-        fxTransform.transl.x += gWorldX;
-        fxTransform.transl.z += gWorldZ;
+        if (character->parent == NULL || character->parent->stateFlags & OBJSTATE_DESTROYED) {
+            fxTransform.transl.x += gWorldX;
+            fxTransform.transl.z += gWorldZ;
+        } else {
+            fxTransform.transl.x += character->parent->globalPosition.x;
+            fxTransform.transl.y += character->parent->globalPosition.y;
+            fxTransform.transl.z += character->parent->globalPosition.z;
+        }
 
 #ifdef EDIT_GLOWS
         if (i == 0) {
@@ -945,8 +957,14 @@ static void modelfx_spiritEyesCustom(Gfx** gdl, Mtx** mtxs, Object* character) {
         mathMtxXFMF(jointMatrix,
                         eyeDirection.x, eyeDirection.y, eyeDirection.z, 
                         &eyeDirection.x, &eyeDirection.y, &eyeDirection.z);
-        eyeDirection.x += gWorldX;
-        eyeDirection.z += gWorldZ;
+        if (character->parent == NULL || character->parent->stateFlags & OBJSTATE_DESTROYED) {
+            eyeDirection.x += gWorldX;
+            eyeDirection.z += gWorldZ;
+        } else {
+            eyeDirection.x += character->parent->globalPosition.x;
+            eyeDirection.y += character->parent->globalPosition.y;
+            eyeDirection.z += character->parent->globalPosition.z;
+        }
 
         VECTOR_SUBTRACT(eyeDirection, fxTransform.transl, eyeDirection)
         vec3Normalize(&eyeDirection);
@@ -985,7 +1003,7 @@ static void modelfx_spiritEyesCustom(Gfx** gdl, Mtx** mtxs, Object* character) {
 
         //Get camera-to-character vector
         Vec3f cameraToCharacter;
-        VECTOR_SUBTRACT(player->srt.transl, camera->srt.transl, cameraToCharacter)
+        VECTOR_SUBTRACT(player->globalPosition, camera->srt.transl, cameraToCharacter)
 
         //Get character direction vector (pointing along objectSpace -Z)
         Vec3f characterDirection = {0.0f, 0.0f, -1.0f};
@@ -1025,8 +1043,14 @@ static void modelfx_spiritEyesCustom(Gfx** gdl, Mtx** mtxs, Object* character) {
         mathMtxXFMF(jointMatrix, 
                         fxTransform.transl.x, fxTransform.transl.y, fxTransform.transl.z, 
                         &fxTransform.transl.x, &fxTransform.transl.y, &fxTransform.transl.z);
-        fxTransform.transl.x += gWorldX;
-        fxTransform.transl.z += gWorldZ;
+        if (character->parent == NULL || character->parent->stateFlags & OBJSTATE_DESTROYED) {
+            fxTransform.transl.x += gWorldX;
+            fxTransform.transl.z += gWorldZ;
+        } else {
+            fxTransform.transl.x += character->parent->globalPosition.x;
+            fxTransform.transl.y += character->parent->globalPosition.y;
+            fxTransform.transl.z += character->parent->globalPosition.z;
+        }
         
         //Add character speed (stops pendant glow particles' later frames from clipping through character's back when running forwards into screen)
         //@recomp: blend this in as camera moves behind character

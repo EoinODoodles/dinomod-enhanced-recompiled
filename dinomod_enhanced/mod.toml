@@ -516,7 +516,7 @@ The December 2000 Prototype uses a basic direction check to decide whether or no
 
 If you enable this config, a slightly fancier calculation will instead be used to figure out whether each eye is facing towards/away from the camera, improving the accuracy of when the particles are drawn.
 
-And as a bonus: it also causes the glows to move with the character's pupil animation, and a basic occlusion check is added too!
+And as a bonus: the enhanced effect also animates the eye glows' position so they follow the character's pupil movements! The effect also now works while the player's standing on "mobile map" objects (e.g. the Galleon), and a basic occlusion check is added too!
 '''
 type = "Enum"
 options = [ "Off", "On" ]
