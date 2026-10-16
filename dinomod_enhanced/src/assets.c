@@ -2448,43 +2448,71 @@ static void walled_city_modifications(void) {
             }
         }
 
-        //Remove HITS around Central Temple's Krazoa Shrine transporter when risen (fixing a bug where you'd climb over them on your way into the transporter)
+        //Central Temple - Shrine Transporter Chamber
         {
-            #define TRANSPORTER_CHAMBER_HITS_ANIMATOR 0x54
-            #define TRANSPORTER_CHAMBER_HITS_LINE_BASE 32
-
-            //Add animatorID to relevant lines
+            //Remove HITS around Central Temple's Krazoa Shrine transporter when risen (fixing a bug where you'd climb over them on your way into the transporter)
             {
-                TrackLine* line;
-                ReAssetID blockIDCentralTempleMiddle = reasset_base_id(610 - wcBlocksBase);
+                #define TRANSPORTER_CHAMBER_HITS_ANIMATOR 0x54
+                #define TRANSPORTER_CHAMBER_HITS_LINE_BASE 32
 
-                for (u32 i = 0; i < 4; i++) {
-                    line = reasset_hits_get(wcTrkblk, blockIDCentralTempleMiddle, 
-                    reasset_base_id(TRANSPORTER_CHAMBER_HITS_LINE_BASE + i));
+                //Add animatorID to relevant lines
+                {
+                    TrackLine* line;
+                    ReAssetID blockIDCentralTempleMiddle = reasset_base_id(610 - wcBlocksBase);
 
-                    line->animatorID = TRANSPORTER_CHAMBER_HITS_ANIMATOR;
+                    for (u32 i = 0; i < 4; i++) {
+                        line = reasset_hits_get(wcTrkblk, blockIDCentralTempleMiddle, 
+                        reasset_base_id(TRANSPORTER_CHAMBER_HITS_LINE_BASE + i));
+
+                        line->animatorID = TRANSPORTER_CHAMBER_HITS_ANIMATOR;
+                    }
+                }
+            
+                //Add HitAnimator for removing these lines
+                {
+                    HitAnimator_Setup hitA = {
+                        .base = {
+                            .objId = OBJ_HitAnimator,
+                            .actExclusions1 = 0,
+                            .loadFlags = OBJSETUP_LOAD_MAIN,
+                            .fadeFlags = OBJSETUP_FADE_CAMERA,
+                            .loadDistance = 200,
+                            .fadeDistance = 200,
+                            .x = 959.000,
+                            .y = -413.000,
+                            .z = -4799.000
+                        },
+                        .gamebitActivate = BIT_WC_Transporter_Chamber_Opened,
+                        .mode = HITANIMATOR_MODE_HITS_OFF,
+                        .hitsAnimatorID = TRANSPORTER_CHAMBER_HITS_ANIMATOR
+                    };
+                    reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
                 }
             }
-        
-            //Add HitAnimator for removing these lines
+
+            //Add a TriggerPlane that starts Walled City's music when leaving the transporter chamber (after returning from the Shrine)
             {
-                HitAnimator_Setup hitA = {
+                Trigger_Setup plane = {
                     .base = {
-                        .objId = OBJ_HitAnimator,
-                        .actExclusions1 = 0,
+                        .objId = OBJ_TriggerPlane,
+                        .actExclusions1 = MAP_ACT(1),
                         .loadFlags = OBJSETUP_LOAD_MAIN,
                         .fadeFlags = OBJSETUP_FADE_CAMERA,
-                        .loadDistance = 200,
-                        .fadeDistance = 200,
-                        .x = 959.000,
-                        .y = -413.000,
-                        .z = -4799.000
+                        .loadDistance = FADE_DISTANCE(320),
+                        .fadeDistance = FADE_DISTANCE(320),
                     },
-                    .gamebitActivate = BIT_WC_Transporter_Chamber_Opened,
-                    .mode = HITANIMATOR_MODE_HITS_OFF,
-                    .hitsAnimatorID = TRANSPORTER_CHAMBER_HITS_ANIMATOR
+                    COORDS_SETUP(961, -490, -4909),
+                    .rotationY = TRIGGER_YAW(0),
+                    .rotationX = DEGREES_TO_ANGLE8(0),
+                    .sizeX = TRIGGER_SCALE(0.57),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = BIT_WC_Transporter_Chamber_Opened,
+                    .bitFlagID = NO_GAMEBIT
                 };
-                reasset_map_objects_set(walledCity, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+                ENTER_PLAY_MUSIC(0x80, &plane, 0);
+                reasset_map_objects_set(walledCity, 
+                    reasset_auto_id(dinomodNs), &plane, sizeof(plane));
             }
         }
     }
