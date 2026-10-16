@@ -2669,6 +2669,21 @@ static void warlock_mountain_modifications(void) {
         WL_seqpoint_Setup* spirit7Seqpoint = reasset_map_objects_get(wm, reasset_base_id(0x45661), NULL);
         spirit7Seqpoint->triggeredBit = -1;
     }
+
+    //Ensure that the Warp Crystal draws above nearby wall torches when collected 
+    //(The modgfx flames will still draw over them though, but at least this is an improvement!)
+    {
+        ReAssetID objectIndex;
+
+        reasset_object_indices_get(
+            reasset_base_id(OBJ_WL_WallTorch), 
+            &objectIndex
+        );
+
+        //Remove forced transparent draw order from the torch model, since it's opaque anyway
+        ObjDef* torch = reasset_objects_get(objectIndex, NULL);
+        torch->flags &= ~OBJDEF_FORCE_TRANSPARENT_DRAW_ORDER;
+    }
 }
 
 static void dragon_rock_upper_modifications(void) {
