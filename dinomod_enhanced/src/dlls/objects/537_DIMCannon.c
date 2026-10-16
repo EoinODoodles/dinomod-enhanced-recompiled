@@ -192,20 +192,12 @@ RECOMP_HOOK_DLL(DIMCannon_animCallback) void printCannonStateAnimCallback(Object
 
 /* Checks whether a cannon fire sound should be used */
 static s32 DIMCannon_configUseBasicSounds(void) {
-    if (configs_GetDIMCannonSoundMode() >= DIM_CANNON_SFX_ON_BASIC) {
-        return TRUE;
-    } else {
-        return FALSE;
-    }
+    return configs_GetDIMCannonSoundMode() >= DIM_CANNON_SFX_ON_BASIC;
 }
 
 /* Checks whether extra cannon sound design should be used (machinery sounds, CannonClaw voices, etc.) */
 static s32 DIMCannon_configUseFancySounds(void) {
-    if (configs_GetDIMCannonSoundMode() == DIM_CANNON_SFX_ON_FULL) {
-        return TRUE;
-    } else {
-        return FALSE;
-    }
+    return configs_GetDIMCannonSoundMode() == DIM_CANNON_SFX_ON_FULL;
 }
 
 /* Attempts to find any nearby DIMCannonCover object, and stores a reference to it. */
@@ -650,14 +642,18 @@ RECOMP_PATCH void DIMCannon_obj_Control(Object* self) {
     Object* player;
     Object* sidekick;
     f32 animSpeed;
-    u32 distracted;
     Object* cannonPtr;
-
-    objSetup = (DIMCannon_Setup*)self->setup;
-    sidekick = objGetSidekick();
     
     if (self->id == OBJ_DIMCannonBall) {
         DIMCannon_tickCannonBall(self);
+        return;
+    }
+
+    objSetup = (DIMCannon_Setup*)self->setup;
+    sidekick = objGetSidekick();
+    player = objGetPlayer();
+
+    if (player == NULL) {
         return;
     }
     
@@ -682,27 +678,22 @@ RECOMP_PATCH void DIMCannon_obj_Control(Object* self) {
     DIMCannon_reverseAimSoundBuildup(self);
 
     //Handle being distracted
-    distracted = FALSE;
     if (sidekick != NULL) {
         objData->distracted = ((DLL_ISidekick*)sidekick->dll)->vtbl->Func24(sidekick);
         if (objData->state != DIMCannon_STATE_6_Retreated_into_Silo) {
             ((DLL_ISidekick*)sidekick->dll)->vtbl->EnableCommand(sidekick, Sidekick_Command_INDEX_2_Distract);
-        } else {
-            distracted = objData->distracted;
-            if (distracted) {
-                ((DLL_ISidekick*)sidekick->dll)->vtbl->Func21(sidekick, 0, NULL);
-                distracted = objData->distracted = FALSE;
-            }
+        } else if (objData->distracted) {
+            ((DLL_ISidekick*)sidekick->dll)->vtbl->Func21(sidekick, 0, NULL);
+            objData->distracted = FALSE;
         }
     } else {
-        objData->distracted = distracted;
+        objData->distracted = FALSE;
     }
     
     //Choose the CannonClaw's target (pick the sidekick when distracted, or else the player - if they're not on a vehicle)
-    if ((distracted = objData->distracted)) {
+    if (objData->distracted) {
         objData->targetObj = sidekick;
     } else {
-        player = objGetPlayer();
         if (((DLL_210_Player*)player->dll)->vtbl->get_vehicle(player)) {
             objData->targetObj = NULL;
         } else {
@@ -1286,7 +1277,7 @@ RECOMP_PATCH void DIMCannon_tickCannonBall(Object* self) {
 }
 
 /* Extend DIMCannon_Data struct */
-RECOMP_PATCH s32 DIMCannon_obj_GetDataSize(Object* self, s32 offsetAddr) {
+RECOMP_PATCH u32 DIMCannon_obj_GetDataSize(Object* self, u32 offsetAddr) {
     if (self->id == OBJ_DIMCannonBall) {
         return sizeof(DIMCannonBall_Data);
     } else {
