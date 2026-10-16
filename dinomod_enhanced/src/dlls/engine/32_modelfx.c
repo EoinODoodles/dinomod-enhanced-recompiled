@@ -23,6 +23,7 @@
 #include "recomp/dlls/objects/210_player_recomp.h"
 
 // #define DEBUG_EYE_GLOW
+// #define DEBUG_OCCLUSION
 // #define EDIT_GLOWS
 
 #ifdef EDIT_GLOWS
@@ -623,8 +624,6 @@ RECOMP_HOOK_DLL(dll_210_print) void eyeEdit_animOverridePupils(Object* player, G
     eyeEdit_updatePupils();
 }
 #endif
-
-#define DEBUG_OCCLUSION
 
 typedef struct {
     u8 flags;
