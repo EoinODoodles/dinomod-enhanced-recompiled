@@ -45,6 +45,15 @@
 // #define DEBUG_PRIORITISE_STATIC_CAMERA
 // #define DEBUG_BACKWARDS_LOG
 
+//TEMPORARY DEFINES
+#define SOUND_227_Thud 0x227
+
+#define Player_MODANIM_C1 0xC1
+#define Player_MODANIM_C3 0xC3
+#define Player_MODANIM_C5 0xC5
+#define Player_MODANIM_450 0x450
+//END OF TEMPORARY DEFINES
+
 extern f32 _data_C[];
 extern u8 _data_14[4];
 extern s16 _data_18[2];
@@ -4293,3 +4302,77 @@ RECOMP_PATCH s32 dll_210_func_1034C(Object* player, ObjFSA_Data* fsa, f32 update
 
     return 0;
 }
+
+/**
+  * PLAYER_ASTATE_Hurt_Knocked_Down
+  *
+  * - Fix a bug where a soundID was accidentally used as a sound array index, causing random sounds to play when hitting the floor.
+  */
+RECOMP_PATCH s32 dll_210_func_1C620(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
+    f32 lateralSpeed;
+    s32 yawDiff;
+    Player_Data* objdata;
+
+    objdata = player->data;
+
+    switch (player->curModAnimId) {
+        case Player_MODANIM_450:
+            fsa->animTickDelta = 0.02f;
+            if ((player->velocity.f[1] < 1.0f) && (fsa->unk4.unk25C & 0x10)) {
+                //@recomp: use SOUND_227_Thud directly
+                dll_amSfx->Play(player, SOUND_227_Thud, MAX_VOLUME, NULL, NULL, 0, NULL);
+                objAnimSet(player, Player_MODANIM_C3, 0.0f, 0);
+            }
+            lateralSpeed = SQ(player->velocity.x) + SQ(player->velocity.z);
+            if (lateralSpeed > 1.0f) {
+                yawDiff = mathAtan2f(player->velocity.x, player->velocity.z) - (player->srt.yaw & 0xFFFF);
+                CIRCLE_WRAP(yawDiff)
+                player->srt.yaw += (yawDiff * (s32) updateRate) >> 3;
+            }
+            break;
+        case Player_MODANIM_C1:
+            fsa->animTickDelta = 0.05f;
+            if ((player->velocity.f[1] < 1.0f) && (fsa->unk4.unk25C & 0x10)) {
+                //@recomp: use SOUND_227_Thud directly
+                dll_amSfx->Play(player, SOUND_227_Thud, MAX_VOLUME, NULL, NULL, 0, NULL);
+                objAnimSet(player, Player_MODANIM_C3, 0.0f, 0);
+            }
+            lateralSpeed = SQ(player->velocity.x) + SQ(player->velocity.z);
+            if (lateralSpeed > 1.0f) {
+                yawDiff = mathAtan2f(player->velocity.x, player->velocity.z) - (player->srt.yaw & 0xFFFF);
+                CIRCLE_WRAP(yawDiff)
+                player->srt.yaw += (yawDiff * (s32) updateRate) >> 3;
+            }
+            break;
+        case Player_MODANIM_C3:
+            fsa->animTickDelta = 0.05f;
+            if (fsa->unk33A) {
+                if (objdata->stats->health > 0) {
+                    objAnimSet(player, Player_MODANIM_C5, 0.0f, 0);
+                } else {
+                    dll_210_func_9F1C(player, FALSE);
+                    return FSA_NEXTSTATE_ASYNC(PLAYER_ASTATE_78);
+                }
+            }
+            player->velocity.x = 0.0f;
+            player->velocity.z = 0.0f;
+            break;
+        case Player_MODANIM_C5:
+            fsa->animTickDelta = 0.01f;
+            if (fsa->unk33A) {
+                return FSA_NEXTSTATE_ASYNC(PLAYER_ASTATE_Standing);
+            }
+            break;
+        default:
+            objAnimSet(player, Player_MODANIM_C1, 0.0f, 0);
+            break;
+    }
+
+    fsa->unk340 |= 2;
+
+    player->velocity.f[0] *= 0.96f;
+    player->velocity.f[2] *= 0.96f;
+
+    return 0;
+}
+
