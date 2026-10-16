@@ -150,9 +150,9 @@ typedef enum {
 } NWtricky_Demo_Flags;
 
 /** Allow more controller inputs during tutorial (for inventory's optional D-pad controls/new controls) */
-RECOMP_PATCH int NWtricky_animCallback(Object *self, Object *animObj, AnimObj_Data *animObjData, s8 arg3) {
-    NWtricky_Data *objdata;
-    Object *tricky;
+RECOMP_PATCH int NWtricky_animCallback(Object* self, Object* animObj, AnimObj_Data* animObjData, s8 prevCallbackValue) {
+    NWtricky_Data* objdata;
+    Object* tricky;
     s32 i;
     s32 buttonMask;
     /* RECOMP */
@@ -165,13 +165,16 @@ RECOMP_PATCH int NWtricky_animCallback(Object *self, Object *animObj, AnimObj_Da
     if ((animObjData->time < 60) && (objdata->doneDemo & NWtricky_DEMO_Flag_Finished)) {
         objdata->doneDemo = 0;
     }
-
-    //@recomp: Close the inventory if it's open at the beginning of the sequence (since this can mess up what the simulated presses do!)
+    //@recomp: Beginning-of-sequence cleanup
     if ((objdata->doneDemo & NWtricky_DEMO_Flag_Closed_Inventory_at_Start) == FALSE) {
         objdata->doneDemo &= ~NWtricky_DEMO_Flag_Finished;
         objdata->doneDemo |= NWtricky_DEMO_Flag_Closed_Inventory_at_Start;
-
+        
+        //Close the inventory if it's open at the beginning of the sequence (since this can mess up what the simulated presses do!)
         cmdmenu_InventoryCloseInstantly();
+
+        //Ensure the sidekick commands menu is unlocked
+        mainSetBits(BIT_Tricky_Unlocked_Sidekick_Commands, TRUE);
     }
 
     if ((objdata->doneDemo & NWtricky_DEMO_Flag_Finished) == FALSE) {//@recomp: use this as a flags field
