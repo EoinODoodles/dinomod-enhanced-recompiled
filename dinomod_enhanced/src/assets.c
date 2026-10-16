@@ -1905,7 +1905,7 @@ static void walled_city_modifications(void) {
                     };
 
                     for (u32 i = 0; i < ARRAYCOUNT(lines); i++) {
-                        reasset_hits_set(wcTrkblk, reasset_base_id(590 - wcBlocksBase), reasset_auto_id(8 + i), REASSET_BASE_NAMESPACE, &lines[i]);
+                        reasset_hits_set(wcTrkblk, reasset_base_id(590 - wcBlocksBase), reasset_base_id(8 + i), REASSET_BASE_NAMESPACE, &lines[i]);
                     }
 
                     //Add a HitAnimator for the line leading into the temple
@@ -1942,7 +1942,7 @@ static void walled_city_modifications(void) {
                         .animatorID = TEMPLE_ENTRANCE_ANIMATORID
                     };
                     reasset_hits_set(wcTrkblk, reasset_base_id(590 - wcBlocksBase), 
-                    reasset_auto_id(11), REASSET_BASE_NAMESPACE, &line);
+                    reasset_base_id(11), REASSET_BASE_NAMESPACE, &line);
 
                     //Add a HitAnimator for the line
                     {
@@ -2222,7 +2222,7 @@ static void walled_city_modifications(void) {
                     };
 
                     for (u32 i = 0; i < ARRAYCOUNT(lines); i++) {
-                        reasset_hits_set(wcTrkblk, reasset_base_id(629 - wcBlocksBase), reasset_auto_id(8 + i), REASSET_BASE_NAMESPACE, &lines[i]);
+                        reasset_hits_set(wcTrkblk, reasset_base_id(629 - wcBlocksBase), reasset_base_id(8 + i), REASSET_BASE_NAMESPACE, &lines[i]);
                     }
 
                     //Add a HitAnimator for the line leading into the temple
@@ -2258,7 +2258,7 @@ static void walled_city_modifications(void) {
                         .animatorID = TEMPLE_ENTRANCE_ANIMATORID 
                     };
                     reasset_hits_set(wcTrkblk, reasset_base_id(629 - wcBlocksBase), 
-                    reasset_auto_id(11), REASSET_BASE_NAMESPACE, &line);
+                    reasset_base_id(10), REASSET_BASE_NAMESPACE, &line);
 
                     //Add a HitAnimator for the line
                     {
@@ -2667,7 +2667,7 @@ static void warlock_mountain_modifications(void) {
     // for this anyway for recomp.
     {
         WL_seqpoint_Setup* spirit7Seqpoint = reasset_map_objects_get(wm, reasset_base_id(0x45661), NULL);
-        spirit7Seqpoint->triggeredBit = -1;
+        spirit7Seqpoint->triggeredBit = NO_GAMEBIT;
     }
 
     //Ensure that the Warp Crystal draws above nearby wall torches when collected 
