@@ -3,9 +3,9 @@
 
 #include "common.h"
 #include "dlls/objects/210_player.h"
+#include "sys/print.h"
 
 #include "recomp/dlls/objects/305_PortalSpellDoor_recomp.h"
-#include "sys/print.h"
 
 typedef struct {
     ObjSetup base;
