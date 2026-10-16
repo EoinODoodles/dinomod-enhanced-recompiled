@@ -19,7 +19,7 @@ typedef struct {
     u8 doneDemo;
     u8 demoState;
     f32 timer;
-    SidekickStats *sidekickStats;
+    SidekickStats* sidekickStats;
 } NWtricky_Data;
 
 typedef enum {
@@ -50,12 +50,12 @@ typedef struct {
   * - Ensure Tricky's sidekick commands are unlocked if his tutorial cutscene is skipped 
   * - Add a null check for Tricky's Toy's GroundAnimator object.
   */
-RECOMP_PATCH void NWtricky_obj_Control(Object *self) {
-    NWtricky_Data *objdata;
-    Object *tricky;
-    Object *player;
-    Object *trickyballGroundAnimator;
-    GroundAnimator_Setup *gaSetup;
+RECOMP_PATCH void NWtricky_obj_Control(Object* self) {
+    NWtricky_Data* objdata;
+    Object* tricky;
+    Object* player;
+    Object* trickyballGroundAnimator;
+    GroundAnimator_Setup* gaSetup;
 
     objdata = self->data;
     tricky = objGetSidekick();
@@ -165,6 +165,7 @@ RECOMP_PATCH int NWtricky_animCallback(Object* self, Object* animObj, AnimObj_Da
     if ((animObjData->time < 60) && (objdata->doneDemo & NWtricky_DEMO_Flag_Finished)) {
         objdata->doneDemo = 0;
     }
+
     //@recomp: Beginning-of-sequence cleanup
     if ((objdata->doneDemo & NWtricky_DEMO_Flag_Closed_Inventory_at_Start) == FALSE) {
         objdata->doneDemo &= ~NWtricky_DEMO_Flag_Finished;
