@@ -11,6 +11,7 @@
 #include "game/gamebits.h"
 #include "sys/map_enums.h"
 #include "sys/main.h"
+#include "sys/menu.h"
 
 static _Bool recomp_sSavepointGotoRequested = FALSE;
 static _Bool recomp_sRestartPointGotoRequested = FALSE;
@@ -168,11 +169,18 @@ void dinomod_gplay_handle_goto(void) {
         // do real gplay_start_loaded_game
         bcopy(&sSavegame->asSave, &sState.save, sizeof(Savegame));
         gplay_start_game();
+        // Note: We must force a menu DLL swap here, normally this only happens at the end of a menu DLL
+        //       update call but because gplay_start_game sets the menu and we defer it until the end
+        //       of the tick, the previous menu will end up running for one tick after the save loads
+        //       which can cause some bad side effects.
+        menuDoMenuSwap();
     } else if (recomp_sRestartPointGotoRequested) {
         // do real gplay_restart_goto
         if (sRestartSave != NULL) {
             bcopy(sRestartSave, &sState.save, sizeof(Savegame));
             gplay_start_game();
+            // See above note for why this is called here
+            menuDoMenuSwap();
         } else {
             // restore default.dol printf
             recomp_eprintf("WARNING gplay : Restart Point Not Set \n");
