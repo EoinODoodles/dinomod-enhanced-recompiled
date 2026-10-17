@@ -2450,6 +2450,12 @@ static void walled_city_modifications(void) {
 
         //Central Temple - Shrine Transporter Chamber
         {
+            //Fix a bug where the Shrine Transporter Chamber would appear to be raised if the block reloaded after the XYZAnimator initially animated it
+            {
+                XYZAnimator_Setup* xyzAnim = GET_MAPS_OBJECT(walledCity, 0x000417b5);
+                xyzAnim->options = XYZAnimator_OPTION_Reanimate_on_Block_Reload;
+            }
+
             //Remove HITS around Central Temple's Krazoa Shrine transporter when risen (fixing a bug where you'd climb over them on your way into the transporter)
             {
                 #define TRANSPORTER_CHAMBER_HITS_ANIMATOR 0x54

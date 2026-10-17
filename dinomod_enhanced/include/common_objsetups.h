@@ -75,6 +75,33 @@ typedef enum {
 } AlphaAnimator_CustomFlags;
 
 typedef struct {
+/*00*/ ObjSetup base;
+/*18*/ s16 gamebitActivate;    //Gamebit to begin the animation
+/*1A*/ s16 gamebitFinished;    //Gamebit to set once the animation's finished
+/*1C*/ s16 initDisplacementX;  //Initial position
+/*1E*/ s16 initDisplacementY;  //Initial position
+/*20*/ s16 initDisplacementZ;  //Initial position
+/*22*/ s16 endDisplacementX;   //Goal position
+/*24*/ s16 endDisplacementY;   //Goal position
+/*26*/ s16 endDisplacementZ;   //Goal position
+/*28*/ s8 animatorID;          //Shape animator tag
+/*29*/ s8 speedX;              //Interpolation speed (in tenths of a worldSpace unit)
+/*2A*/ s8 speedY;              //Interpolation speed (in tenths of a worldSpace unit)
+/*2B*/ s8 speedZ;              //Interpolation speed (in tenths of a worldSpace unit)
+/*2C*/ u8 mode;                //`XYZAnimator_Modes`
+/*2D*/ u8 options;             //@recomp: repurpose padding
+/*2E*/ u16 goalRadius;         //For `XYZAnimator_MODE_3_Radial_Falloff_Set_Gamebit`
+} XYZAnimator_Setup;
+
+/* Custom options */
+typedef enum {
+    // Reapply animation when the Block reloads after previously being animated 
+    // (used to fix a bug where Walled City's secret transporter chamber stays at its raised position on
+    // subsequent Block loads, after the XYZAnimator animated it when the Block was previously loaded.)
+    XYZAnimator_OPTION_Reanimate_on_Block_Reload = 1 
+} XYZAnimator_Options;
+
+typedef struct {
     ObjSetup base;
     s8 loopStartFrame;   //Frame to loop back to after reaching endFrame (only when looping)
     s8 materialIndex;    //Index within object's local Blocks model's materials (the frame of the material's texture animation will be manipulated)
