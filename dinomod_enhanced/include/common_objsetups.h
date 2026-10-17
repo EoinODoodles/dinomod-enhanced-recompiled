@@ -93,6 +93,14 @@ typedef struct {
 /*2E*/ u16 goalRadius;         //For `XYZAnimator_MODE_3_Radial_Falloff_Set_Gamebit`
 } XYZAnimator_Setup;
 
+typedef enum {
+    XYZAnimator_MODE_0_Oneshot_and_Set_Gamebit,     //Interpolate to the goal, and set gamebitFinished
+    XYZAnimator_MODE_1_Oneshot,                     //Interpolate to the goal
+    XYZAnimator_MODE_2_Reversible_Set_Gamebit,      //Interpolate to/from the goal, and set gamebitFinished
+    XYZAnimator_MODE_3_Radial_Falloff_Set_Gamebit,  //Animate vertices within an expanding radius, and set gamebitFinished
+    XYZAnimator_MODE_4_Oneshot_and_Set_Gamebit_No_Initial_Update //Interpolate to the goal, and set gamebitFinished (without updating the vertices during initialisation)
+} XYZAnimator_Modes;
+
 /* Custom options */
 typedef enum {
     // Reapply animation when the Block reloads after previously being animated 
