@@ -1942,7 +1942,7 @@ static void walled_city_modifications(void) {
                         .animatorID = TEMPLE_ENTRANCE_ANIMATORID
                     };
                     reasset_hits_set(wcTrkblk, reasset_base_id(590 - wcBlocksBase), 
-                    reasset_base_id(11), REASSET_BASE_NAMESPACE, &line);
+                    reasset_base_id(10), REASSET_BASE_NAMESPACE, &line);
 
                     //Add a HitAnimator for the line
                     {
