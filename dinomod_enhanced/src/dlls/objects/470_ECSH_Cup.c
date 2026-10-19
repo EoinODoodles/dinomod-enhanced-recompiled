@@ -27,7 +27,7 @@
 
 #define SINK_DISTANCE 50.0f
 
-/*0x0*/ static Object* dShrine = NULL; //ECSH_Shrine object
+/*0x0*/ extern Object* dShrine; //ECSH_Shrine object
 
 typedef struct {
     ObjSetup base;
