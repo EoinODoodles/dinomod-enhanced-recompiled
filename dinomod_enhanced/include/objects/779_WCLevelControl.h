@@ -11,5 +11,6 @@ enum WC_CustomObjectGroups {
     WC_OBJGROUP_Moon_Passageway_Door,
     WC_OBJGROUP_Sun_Passageway,
     WC_OBJGROUP_Moon_Passageway,
-    WC_OBJGROUP_Outskirts
+    WC_OBJGROUP_Outskirts,
+    WC_OBJGROUP_Shrine_Transporter_Chamber
 };

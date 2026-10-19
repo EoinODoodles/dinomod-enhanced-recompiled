@@ -2540,6 +2540,43 @@ static void walled_city_modifications(void) {
                 reasset_map_objects_set(walledCity, 
                     reasset_auto_id(dinomodNs), &plane, sizeof(plane));
             }
+
+            //Add a TriggerPlane that loads/unloads the Objects inside the Transporter chamber
+            {
+                Trigger_Setup plane = {
+                    .base = {
+                        .objId = OBJ_TriggerPlane,
+                        .actExclusions1 = MAP_ACT(1),
+                        .loadFlags = OBJSETUP_LOAD_MAIN,
+                        .fadeFlags = OBJSETUP_FADE_CAMERA,
+                        .loadDistance = FADE_DISTANCE(640),
+                        .fadeDistance = FADE_DISTANCE(640),
+                    },
+                    COORDS_SETUP(959, -545, -4799),
+                    .rotationY = TRIGGER_YAW(0),
+                    .rotationX = DEGREES_TO_ANGLE8(90),
+                    .sizeX = TRIGGER_SCALE(2.8),
+                    .sizeY = 0x10,
+                    .sizeZ = 0x10,
+                    .conditionBitFlagIDs[0] = BIT_WC_Transporter_Chamber_Opened,
+                    .bitFlagID = NO_GAMEBIT
+                };
+                DIRECTIONAL_OBJGROUP_TOGGLE(WC_OBJGROUP_Shrine_Transporter_Chamber, &plane, 0, 1);
+                reasset_map_objects_set(walledCity, 
+                    reasset_auto_id(dinomodNs), &plane, sizeof(plane));
+            }
+
+            //Move the crate into the Shrine Transporter Chamber objGroup, 
+            //so its LockIcon doesn't show up before the chamber's raised
+            {
+                ObjSetup* crate = GET_MAPS_OBJECT(walledCity, 0x00041124);
+                crate->loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP;
+                crate->mapObjGroup = WC_OBJGROUP_Shrine_Transporter_Chamber;
+                
+                //Increase fade distance too (it used to be small enough to fade out during the warp sequence!)
+                crate->fadeFlags = OBJSETUP_FADE_CAMERA;
+                crate->fadeDistance = FADE_DISTANCE(305);
+            }
         }
     }
 
