@@ -2695,6 +2695,8 @@ static void warlock_mountain_platform_modifications(void) {
 
 static void warlock_mountain_modifications(void) {
     ReAssetID wm = reasset_base_id(MAP_WARLOCK_MOUNTAIN);
+    ReAssetID wmTrkblk = reasset_base_id(15);
+    int wmBlocksBase = 438;
 
     // Clear triggered bit field from dinomod WL_seqpoint for spirit 7. This bit won't get set anyway due
     // to the seq warp changing the map before WL_seqpoint gets a chance to set it. We've changed the bit
@@ -2717,6 +2719,23 @@ static void warlock_mountain_modifications(void) {
         //Remove forced transparent draw order from the torch model, since it's opaque anyway
         ObjDef* torch = reasset_objects_get(objectIndex, NULL);
         torch->flags &= ~OBJDEF_FORCE_TRANSPARENT_DRAW_ORDER;
+    }
+
+    // HITS Edits - Krystal Side 
+    {
+        //Randorn Hall Antechamber
+        {
+            TrackLine* line;
+            ReAssetID blockIDRandornHallAntechamber = reasset_base_id(441 - wmBlocksBase);
+
+            //Fix not being able to clamber up onto the ledge to the left of the big door
+            {
+                line = reasset_hits_get(wmTrkblk, blockIDRandornHallAntechamber, 
+                    reasset_base_id(5));
+
+                line->settingsB = HITS_Clamber_Up;
+            }
+        }
     }
 }
 
