@@ -39,6 +39,13 @@ typedef enum {
 /*0x3C*/ extern Texture *dTexture;
 /*0x40*/ extern Object *dShrine;
 
+/* Resets the cup indices to their initial state */
+static void ECSHshrine_resetCups(Object* self, ECSHshrine_Data* objData) {
+    for (u8 i = 0; i < 6; i++) {
+        dCupSlots[i] = i;
+    }
+}
+
 /* Fix framerate dependencies */
 RECOMP_PATCH void ECSHshrine_obj_Control(Object* self) {
     ECSHshrine_Data* objdata = self->data;
@@ -350,7 +357,7 @@ RECOMP_PATCH void ECSHshrine_obj_Control(Object* self) {
         break;
     case ECShrine_STATE_Test_Successful:
         //Check if player has Spirit #2 (Diamond Bay: Test of Strength) @bug?: should check for Spirit #4?
-        if (((DLL_210_Player*)player->dll)->vtbl->get_spirit_bits(player, PLAYER_SPIRIT_2) != 0) {
+        if (((DLL_210_Player*)player->dll)->vtbl->get_spirit_bits(player, PLAYER_SPIRIT_4) != 0) { //@recomp: change to Spirit 4
             objdata->musCorridorVol = 1;
             gDLL_5_AMSEQ->vtbl->play_ex(3, 0x2C, 0x50, (u8) objdata->musCorridorVol, 0);
             objdata->musCorridorVolSpeed = 1;
@@ -397,6 +404,9 @@ RECOMP_PATCH void ECSHshrine_obj_Control(Object* self) {
         modGfxDLL = dllLoad(DLL_ID_122, 1);
         objdata->modGfxCircle = modGfxDLL->vtbl->Spawn(self, 2, NULL, 0x402, -1, NULL);
         dllFree(modGfxDLL);
+
+        //@recomp: reset cup indices (fixes a bug where the test accidentally becomes harder after you fail)
+        ECSHshrine_resetCups(self, objdata);
         break;
     case ECShrine_STATE_Finished:
         break;

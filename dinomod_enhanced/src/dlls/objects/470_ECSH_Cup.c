@@ -65,6 +65,7 @@ RECOMP_PATCH void ECSHCup_obj_Control(Object* self) {
     Object* player;
     /* RECOMP */
     u8 state;
+    u8 prevShrineState;
 
     player = objGetPlayer();
     
@@ -80,9 +81,18 @@ RECOMP_PATCH void ECSHCup_obj_Control(Object* self) {
     ((DLL_469_ECSHshrine*)dShrine->dll)->vtbl->GetMinigameState(states, &cupWithSpirit);
     
     //@recomp: store shrine state
+    prevShrineState = objData->shrineState;
     objData->shrineState = states[0];
     objData->state = states[1];
     state = objData->state;
+
+    // @recomp: reset to home position when the test is failed
+    // (fixes a bug where the test accidentally becomes harder after you fail)
+    if (prevShrineState != objData->shrineState && objData->shrineState == ECShrine_STATE_Test_Failure) {
+        self->srt.transl.x = objData->home.x;
+        self->srt.transl.z = objData->home.z;
+        dll_ECSHshrine(dShrine)->SetCupCoords(objData->cupIndex, self->srt.transl.x, self->srt.transl.z);
+    }
 
     //@recomp: return early when still underground
     if (objData->shrineState < ECShrine_STATE_Cup_Game_Start) {
@@ -111,6 +121,18 @@ RECOMP_PATCH void ECSHCup_obj_Control(Object* self) {
         objData->bobTimer = 100;
     }
     self->srt.transl.y += 0.09f * objData->bobSpeed * gUpdateRateF * 0.5f; //@recomp: fix framerate dependency
+    
+    //@recomp: reverse if maximum y is exceeded 
+    //(avoids a bug where a cup can sometimes float just out of reach)
+    #define MAX_Y 52.579922f
+    if (self->srt.transl.y > MAX_Y) {
+        self->srt.transl.y = MAX_Y;
+
+        if (objData->bobSpeed > 0) {
+            objData->bobSpeed *= -1;
+        }
+        objData->bobTimer = 100;
+    }
 
     if (objData->cupIndex == cupWithSpirit){
     }
@@ -208,8 +230,11 @@ RECOMP_PATCH void ECSHCup_obj_Control(Object* self) {
 
         objData->speedX = (goal.x - self->srt.transl.x) / 12.0f;
         objData->speedZ = (goal.z - self->srt.transl.z) / 12.0f;
-        objData->home.x = self->srt.transl.x;
-        objData->home.z = self->srt.transl.z;
+
+        //@recomp: don't overwrite home position
+        // objData->home.x = self->srt.transl.x;
+        // objData->home.z = self->srt.transl.z;
+
         objData->prevState = state;
     } else if ((state == Cup_STATE_Stopped) && (state != objData->prevState)) {
         objData->speedX = 0.0f;
