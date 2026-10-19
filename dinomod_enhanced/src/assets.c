@@ -151,6 +151,8 @@ INCBIN(block1098, "inc/blocks_1098_WC_boss_corner_se.bin");
 INCBIN(block1099, "inc/blocks_1099_WC_boss_east_corridor_south.bin");
 INCBIN(block1100, "inc/blocks_1100_WC_boss_east_corridor_north.bin");
 INCBIN(block1101, "inc/blocks_1101_WC_boss_corner_ne.bin");
+INCBIN(block207, "inc/blocks_0207_DFPT_top_lift_entrance.bin");
+INCBIN(block772, "inc/blocks_0772_DFPT_bottom_central_hall.bin");
 
 INCBIN(tex0_kiosk_gold_key,             "inc/tex0_kiosk_gold_key.bin");
 INCBIN(tex0_kiosk_silver_key,           "inc/tex0_kiosk_silver_key_custom.bin");
@@ -197,6 +199,7 @@ INCBIN(models_wcgeneraldoor,      "inc/models_0959_WCGeneralDoor.bin");
 INCBIN(models_wcsuntemplelift,    "inc/models_0957_WCSunTempleLift.bin");
 INCBIN(models_wcmoontemplelift,   "inc/models_0958_WCMoonTempleLift.bin");
 INCBIN(models_wcsuntempleswitch,  "inc/models_0964_WCSunTempleSwitch.bin");
+INCBIN(models_dfpt_lift1,         "inc/models_0364_DFPLift1.bin");
 
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 #define MODELS_REPLACE_BASE(modelID, file) (reasset_models_set(reasset_base_id(modelID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
@@ -6828,6 +6831,91 @@ static void add_wctrex_hit_spheres(void) {
     recomp_free(data);
 }
 
+static void dfp_modifications(void) {
+    ReAssetID dfpTop = reasset_base_id(MAP_DESERT_FORCE_POINT_TEMPLE_TOP);
+    ReAssetID dfpBottom = reasset_base_id(MAP_DESERT_FORCE_POINT_TEMPLE_BOTTOM);
+    ReAssetID dfpTopTrkblk = reasset_base_id(6);
+    ReAssetID dfpBottomTrkblk = reasset_base_id(28);
+    int dfpTopBlocksBase = 205;
+    int dfpBottomBlocksBase = 761;
+    
+    //BLOCKS edits
+    {
+        //Top
+        BLOCKS_REPLACE_BASE(dfpTopTrkblk, dfpTopBlocksBase, 207, block207); //Align lift vertices exactly octagonally
+
+        //Bottom
+        BLOCKS_REPLACE_BASE(dfpBottomTrkblk, dfpBottomBlocksBase, 772, block772); //Align lift vertices exactly octagonally
+    }
+
+    //MODELS edits
+    {
+        MODELS_REPLACE_BASE(364, models_dfpt_lift1); //Align lift vertices exactly octagonally
+    }
+
+    //Align DFPLift1 at the exact centre of the tunnel
+    {
+        ObjSetup* lift = GET_MAPS_OBJECT(dfpTop, 0x00033ea7);
+        lift->x = 318;
+        lift->z = -1569;
+    }
+
+    //Exactly align the two torches beside the lower lift station
+    {
+        ObjSetup* torch;
+        
+        torch = GET_MAPS_OBJECT(dfpBottom, 0x00033a1c);
+        torch->x = 372;
+        torch->z = -877;
+        
+        torch = GET_MAPS_OBJECT(dfpBottom, 0x00033a20);
+        torch->x = 265;
+        torch->z = -877;
+    }
+
+    //Improve the hop onto the lift when it's at its lower position
+    {
+        #define LIFT_HOP_ANIMATORID 50
+
+        //Edit HITS
+        {
+            TrackLine* line;
+            ReAssetID blockIDLiftHall = reasset_base_id(772 - dfpBottomBlocksBase);
+
+            for (u32 i = 0; i < 6; i++) {
+                line = reasset_hits_get(dfpBottomTrkblk, blockIDLiftHall, 
+                reasset_base_id(12 + i));
+
+                //Give the hop lines solidity, so they activate more reliably
+                line->settingsB &= ~TrackLine_SETTINGB_Nonsolid;
+
+                //Give them an animatorID too, so they can be switched off when the lift isn't at the bottom
+                line->animatorID = LIFT_HOP_ANIMATORID;
+            }
+        }
+        
+        //Add HitAnimator 
+        // (TODO: might be unnecessary, since with DFPLift1 now working by sequences
+        // there should be no way to end up in DFPBottom with the lift raised?)
+        {
+            HitAnimator_Setup hitA = {
+                .base = {
+                    .objId = OBJ_HitAnimator,
+                    .loadFlags = OBJSETUP_LOAD_MAIN,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .loadDistance = 30,
+                    .fadeDistance = 30,
+                },
+                COORDS_SETUP(318, -1414, -929),
+                .gamebitActivate = DINOMOD_BIT_976_DFPT_Lift_Lowered,
+                .mode = HITANIMATOR_MODE_HITS_ON,
+                .hitsAnimatorID = LIFT_HOP_ANIMATORID
+            };
+            reasset_map_objects_set(dfpBottom, reasset_auto_id(dinomodNs), &hitA, sizeof(hitA));
+        }
+    }
+}
+
 static void vfp_modifications(void) {
     ReAssetID vfp = reasset_base_id(MAP_VOLCANO_FORCE_POINT_TEMPLE);
     
@@ -7676,6 +7764,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     discovery_falls_hit_edits();
     darkice_mines_modifications();
     diamond_bay_modifications();
+    dfp_modifications();
     vfp_modifications();
     moon_mountain_pass_modifications();
     golden_plains_modifications();

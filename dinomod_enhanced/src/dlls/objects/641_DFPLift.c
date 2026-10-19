@@ -1,13 +1,21 @@
 #include "modding.h"
 #include "recomputils.h"
 
+#include "custom_gamebits.h"
 #include "custom_object_ids.h"
 
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
+#include "sys/gfx/animseq.h"
 #include "sys/main.h"
 #include "sys/objects.h"
 #include "dll.h"
+
+//TEMPORARY DEFINES
+#define DFPLift_obj_Setup DFPLift_setup
+#define DFPLift_obj_Control DFPLift_control
+#define DFPLift_animCallback DFPLift_func_91C
+//END OF TEMPORARY DEFINES
 
 typedef struct {
 /*0x00*/ ObjSetup base;
@@ -53,9 +61,9 @@ enum LiftSeq {
 
 #include "recomp/dlls/objects/641_DFPLift_recomp.h"
 
-extern int DFPLift_func_91C(Object *a0, Object *a1, AnimObj_Data *a2, s8 a3);
+extern int DFPLift_animCallback(Object* self, Object* animObj, AnimObj_Data* st, s8 prevCallbackValue);
 
-static f32 dinomod_get_lift_down(Object *self) {
+static f32 dinomod_getLiftDown(Object *self) {
     // @recomp: Use different 'down' value for the custom KPLift1 object
     if (self->id == OBJ_KPLift1) {
         return 900.0f;
@@ -64,12 +72,21 @@ static f32 dinomod_get_lift_down(Object *self) {
     }
 }
 
-RECOMP_PATCH void DFPLift_setup(Object *self, DFPLift_Setup *setup, s32 a2) {
-    DFPLift_Data *objdata;
+/* Updates a gamebit tracking whether DFPT's lift is lowered (for a HitAnimator) */
+static void DFPLift_updateLoweredGamebit(Object* self, Object* animObj, AnimObj_Data* animData) {
+    DFPLift_Setup* objSetup = (DFPLift_Setup*)self->setup;
 
-    objdata = (DFPLift_Data*)self->data;
+    if (self->srt.transl.y > (objSetup->base.y - dinomod_getLiftDown(self))) {
+        mainSetBits(DINOMOD_BIT_976_DFPT_Lift_Lowered, FALSE);
+    } else {
+        mainSetBits(DINOMOD_BIT_976_DFPT_Lift_Lowered, TRUE);
+    }
+}
 
-    self->animCallback = DFPLift_func_91C;
+RECOMP_PATCH void DFPLift_obj_Setup(Object* self, DFPLift_Setup* setup, s32 reset) {
+    DFPLift_Data* objdata = self->data;
+
+    self->animCallback = DFPLift_animCallback;
     self->srt.yaw = setup->rotation * 256;
 
     objdata->state = LIFT_STATE_INIT;
@@ -79,19 +96,22 @@ RECOMP_PATCH void DFPLift_setup(Object *self, DFPLift_Setup *setup, s32 a2) {
     objdata->alreadyEnabled = setup->alreadyEnabled;
 
     // @recomp: Get LIFT_DOWN depending on object ID
-    self->srt.transl.y -= dinomod_get_lift_down(self);
+    self->srt.transl.y -= dinomod_getLiftDown(self);
     self->stateFlags |= OBJSTATE_UPDATE_DISABLED;
 
     if (self->id == OBJ_DFPLift1) {
         // @recomp: Hijack field for use in custom control func
         objdata->alreadyEnabled = mainGetBits(objdata->gamebitActivated);
         // @recomp: Shift DFP lift down a little
-        self->srt.transl.y -= 8.0f;
+        self->srt.transl.y -= 4.0f;
+
+        // @recomp: Keep track of whether the lift is lowered
+        mainSetBits(DINOMOD_BIT_976_DFPT_Lift_Lowered, TRUE);
     }
 }
 
 // @recomp: Custom DFP lift implementation that uses seqs to move
-static void custom_dfplift_control(Object *self) {
+static void custom_dfplift_control(Object* self) {
     DFPLift_Setup* setup;
     DFPLift_Data* objdata;
     Object* player;
@@ -137,7 +157,7 @@ static void custom_dfplift_control(Object *self) {
                 objdata->playerOnLift = FALSE;
             }
         } else {
-            if (self->srt.transl.y > (setup->base.y - dinomod_get_lift_down(self))) {
+            if (self->srt.transl.y > (setup->base.y - dinomod_getLiftDown(self))) {
                 // at top
                 if (playerDist < 58.0f) {
                     // player entered lift, go down
@@ -168,7 +188,7 @@ static void custom_dfplift_control(Object *self) {
     }
 }
 
-RECOMP_PATCH void DFPLift_control(Object* self) {
+RECOMP_PATCH void DFPLift_obj_Control(Object* self) {
     DFPLift_Setup* setup;
     DFPLift_Data* objdata;
     Object* player;
@@ -244,7 +264,7 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
                         objdata->playerOnLift = TRUE;
                     }
                 // @recomp: Get LIFT_DOWN depending on object ID
-                } else if (self->srt.transl.y == (setup->base.y - dinomod_get_lift_down(self))) {
+                } else if (self->srt.transl.y == (setup->base.y - dinomod_getLiftDown(self))) {
                     // at bottom, start going up
                     objdata->state = LIFT_STATE_GO_UP;
                     if (objdata->soundHandle == 0) {
@@ -271,11 +291,11 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
     case LIFT_STATE_GO_DOWN:
         // going down
         // @recomp: Get LIFT_DOWN depending on object ID
-        if ((setup->base.y - dinomod_get_lift_down(self)) < self->srt.transl.y) {
+        if ((setup->base.y - dinomod_getLiftDown(self)) < self->srt.transl.y) {
             self->srt.transl.y -= gUpdateRateF;
-            if (self->srt.transl.y <= (setup->base.y - dinomod_get_lift_down(self))) {
+            if (self->srt.transl.y <= (setup->base.y - dinomod_getLiftDown(self))) {
                 // reached bottom
-                self->srt.transl.y = (setup->base.y - dinomod_get_lift_down(self));
+                self->srt.transl.y = (setup->base.y - dinomod_getLiftDown(self));
                 objdata->state = LIFT_STATE_STOPPED;
                 if (objdata->soundHandle != 0) {
                     dll_amSfx->Stop(objdata->soundHandle);
@@ -333,8 +353,13 @@ RECOMP_PATCH void DFPLift_control(Object* self) {
 }
 
 // @recomp: Custom anim callback to toggle lift SFX via seq
-RECOMP_PATCH int DFPLift_func_91C(Object *self, Object *animObj, AnimObj_Data *st, s8 a3) {
+RECOMP_PATCH int DFPLift_animCallback(Object* self, Object* animObj, AnimObj_Data* st, s8 prevCallbackValue) {
     DFPLift_Data* objdata = (DFPLift_Data*)self->data;
+
+    //Update DFPLift1's "lowered" gamebit at the end of each sequence
+    if (self->id == OBJ_DFPLift1 && st->unkF4 == NULL) {
+        st->unkF4 = DFPLift_updateLoweredGamebit;
+    }
 
     for (s32 i = 0; i < st->messageCount; i++) {
         switch (st->messages[i]) {

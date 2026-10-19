@@ -93,8 +93,8 @@ typedef enum {
     DINOMOD_BIT_973_DF_Opened_Door_to_MMP = 0x973,  // len:1 group:1 (For the unused door blocking the route to MMP)
     DINOMOD_BIT_974_DF_Query_Open_Door_to_MMP = 0x974,  // len:1 group:1 (Set when passing through a TriggerPlane in front of DFmoondoor - causes DFlevelcontrol to check whether the door should open)
     DINOMOD_BIT_975_DF_Kyte_Can_Fly_Through_Door_to_MMP = 0x975,  // len:1 group:1
+    DINOMOD_BIT_976_DFPT_Lift_Lowered = 0x976,  // len:1 group:1
     /* More placeholders */
-    DINOMOD_BIT_976_Placeholder = 0x976,  // len:1 group:1
     DINOMOD_BIT_977_Placeholder = 0x977,  // len:1 group:1
     DINOMOD_BIT_978_Placeholder = 0x978,  // len:1 group:1
     DINOMOD_BIT_979_Placeholder = 0x979,  // len:1 group:1

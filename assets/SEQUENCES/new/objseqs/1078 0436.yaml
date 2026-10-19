@@ -1,4 +1,4 @@
-# DFPLift (going up)
+# DFPLift (going up with Krystal)
 # Added messages to toggle lift hum SFX, use Krystal's cutscene model
 
 actors:
@@ -83,7 +83,11 @@ curves:
   - { channel: 12, time: 360, value: 1221.7969970703125, interp: 0, weight: 2 }
   - { channel: 12, time: 438, value: 1317.050048828125, interp: 1, weight: 8 }
   - { channel: 12, time: 450, value: 1317.050048828125, interp: 0, weight: 8 }
-  - { channel: 12, time: 574, value: 1317.050048828125, interp: 0, weight: 4 }
+
+    #@recomp: drop down slightly to ground level after stepping off lift
+  - { channel: 12, time: 540, value: 1317.050048828125, interp: 0, weight: 0 }
+  - { channel: 12, time: 550, value: 1313.050048828125, interp: 2, weight: 0 }
+  - { channel: 12, time: 574, value: 1313.050048828125, interp: 0, weight: 4 }
     # TRANSLATE_X
   - { channel: 13, time: 0, value: 0.016666840761899948, interp: 0, weight: 8 }
   - { channel: 13, time: 450, value: 0.016666840761899948, interp: 0, weight: 0 }
