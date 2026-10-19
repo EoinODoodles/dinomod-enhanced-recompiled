@@ -2496,6 +2496,23 @@ static void walled_city_modifications(void) {
                 }
             }
 
+            //Fix a bug where the edges of the Transporter pad were just high enough to warp you backwards awkwardly
+            {
+                TrackLine* line;
+                ReAssetID blockIDCentralTempleMiddle = reasset_base_id(610 - wcBlocksBase);
+
+                for (u32 i = 0; i < 8; i++) {
+                    line = reasset_hits_get(wcTrkblk, blockIDCentralTempleMiddle, 
+                    reasset_base_id(10 + i));
+
+                    //Give the Transporter pad "hop" lines solidity, to prevent the back-warping
+                    line->settingsB &= ~TrackLine_SETTINGB_Nonsolid;
+
+                    //Ensure they're all at the same height too (one wasn't and it wouldn't activate as a result!)
+                    line->Ay = line->By = -490;
+                }
+            }
+
             //Add a TriggerPlane that starts Walled City's music when leaving the transporter chamber (after returning from the Shrine)
             {
                 Trigger_Setup plane = {

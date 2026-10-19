@@ -51,6 +51,7 @@
 #define Player_MODANIM_C1 0xC1
 #define Player_MODANIM_C3 0xC3
 #define Player_MODANIM_C5 0xC5
+#define Player_MODANIM_426_Hop 0x426
 #define Player_MODANIM_450 0x450
 //END OF TEMPORARY DEFINES
 
@@ -98,6 +99,7 @@ extern void dll_210_func_A024(Object* player, ObjFSA_Data* objdata);
 extern void dll_210_func_B4C8(Object* player, ObjFSA_Data *fsa);
 extern s32 dll_210_func_BA38(Object* player, ObjFSA_Data* fsa, f32 arg2);
 extern s32 dll_210_func_C1F4(Object* player, ObjFSA_Data* fsa, f32 arg2);
+extern void dll_210_func_D510(ObjFSA_Data* fsa, f32 updateRate);
 extern s32 dll_210_func_EFB4(Object* player, ObjFSA_Data* fsa, f32 arg2);
 extern void dll_210_func_14B70(Object* arg0, ObjFSA_Data *arg1);
 extern void dll_210_func_18DB0(Object* obj, ObjFSA_Data* fsa);
@@ -1145,6 +1147,48 @@ RECOMP_PATCH s32 dll_210_func_B73C(Object* player, ObjFSA_Data* fsa, f32 arg2) {
         objdata->unk868 = NULL;
     }
     
+    return 0;
+}
+
+/**
+  * PLAYER_ASTATE_Hop
+  *
+  * - Fix an issue where the player's lateral velocity could be halted during the hop.
+  */
+RECOMP_PATCH s32 dll_210_func_C264(Object* player, ObjFSA_Data* fsa, f32 updateRate) {
+    #define HOP_LATERAL_SPEED 0.72f
+    #define HOP_INTO_WALK_THRESHOLD 0.42000002f
+
+    fsa->flags |= OBJFSA_FLAG_200000;
+    fsa->unk27C = 0.0f;
+    
+    dll_210_func_D510(fsa, updateRate);
+
+    if (player->curModAnimId == Player_MODANIM_426_Hop) {
+        if (player->animProgress > 0.95f) {
+            if ((fsa->prevAnalogInputPower >= HOP_INTO_WALK_THRESHOLD) && (fsa->analogInputPower >= HOP_INTO_WALK_THRESHOLD) && (_data_6FC[0] <= fsa->speed)) {
+                if (fsa->unk328 < 90) {
+                    return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Walking);
+                } else {
+                    return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Standing);
+                }
+            } else {
+                return FSA_NEXTSTATE_SYNC(PLAYER_ASTATE_Standing);
+            }
+        } else {
+            // @recomp: maintain lateral speed (so you don't get stuck hopping on the spot
+            // without moving forward, usually because a solid HITS line reset the speed)
+            fsa->unk278 = HOP_LATERAL_SPEED;
+        }
+    } else {
+        player->velocity.y = 2.6f;
+        fsa->unk278 = HOP_LATERAL_SPEED;
+        fsa->animTickDelta = 0.026f;
+        objAnimSet(player, Player_MODANIM_426_Hop, 0.0f, 0);
+    }
+
+    player->velocity.y -= 0.15f;
+
     return 0;
 }
 
