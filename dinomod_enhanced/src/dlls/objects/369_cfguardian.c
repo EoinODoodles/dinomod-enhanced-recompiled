@@ -11,6 +11,7 @@
 #include "game/objects/object_id.h"
 #include "sys/main.h"
 #include "sys/map_enums.h"
+#include "sys/math.h"
 #include "sys/objects.h"
 #include "sys/objprint.h"
 #include "sys/objtype.h"
@@ -202,6 +203,13 @@ RECOMP_PATCH void CFGuardian_obj_Setup(Object* self, CFGuardian_Setup* setup, s3
         }
         // @recomp: Don't return to windlift state if we already exited it
         if (mainGetBits(BIT_CRF_Prison_Guardian_Exited_WindLift) != 0) {
+            // @recomp: The moved objsetup pos doesn't save yaw. If we exited the windlift, we'll be facing the wrong
+            //          way when loaded back in, so flip around.
+            if (self->mapID == MAP_CLOUDRUNNER_DUNGEON) {
+                s32 angle = self->srt.yaw + M_180_DEGREES;
+                CIRCLE_WRAP(angle);
+                self->srt.yaw = angle;
+            }
             if (mainGetBits(BIT_CF_Floor_Destroyed) != 0) {
                 objdata->state = CFGUARDIAN_STATE_Courtyard_WaitingForCloudBaby;
                 // @recomp: Due to other changes below, it's possible for this bit to still be set at this point. We only want
@@ -346,10 +354,7 @@ RECOMP_PATCH s32 CFGuardian_control(Object* self) {
                         var_fa0 = -(objdata->walkTarget.transl.y - self->srt.transl.y);
                     }
                     if (var_fa0 < 150.0f) {
-                        // @recomp: Don't become liftable again once exited, otherwise the windlift will constantly
-                        //          try to lift the guardian while they attempt to walk away. This objtype isn't
-                        //          needed again after this point.
-                        //objAddObjectType(self, OBJTYPE_WindLiftable);
+                        objAddObjectType(self, OBJTYPE_WindLiftable);
                         objdata->state = CFGUARDIAN_STATE_LeavingWindLift;
                         objAnimSet(self, CFGUARDIAN_MODANIM_Walk, 0, 0);
                     }
@@ -428,6 +433,12 @@ RECOMP_PATCH s32 CFGuardian_control(Object* self) {
             if (!(objdata->flags & CFGUARDIAN_FLAG_WalkToTarget) && (sStateAnimMap[objdata->state] != CFGUARDIAN_MODANIM_Idle)) {
                 STUBBED_PRINTF(" Stand ");
                 ((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func9(15, &objdata->walkTarget);
+                // @recomp: Flip yaw 180 to face the correct direction
+                {
+                    s32 angle = objdata->walkTarget.yaw + M_180_DEGREES;
+                    CIRCLE_WRAP(angle);
+                    objdata->walkTarget.yaw = angle;
+                }
                 objdata->flags |= (CFGUARDIAN_FLAG_WalkToTarget | CFGUARDIAN_FLAG_1);
                 sStateAnimMap[objdata->state] = CFGUARDIAN_MODANIM_Idle;
             }
@@ -441,6 +452,12 @@ RECOMP_PATCH s32 CFGuardian_control(Object* self) {
                 objdata->talkState = CFGUARDIAN_TALK_SpokenTo;
                 objdata->flags |= (CFGUARDIAN_FLAG_WalkToTarget | CFGUARDIAN_FLAG_1);
                 ((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func7(14, &objdata->walkTarget);
+                // @recomp: Flip yaw 180 to face the correct direction
+                {
+                    s32 angle = objdata->walkTarget.yaw + M_180_DEGREES;
+                    CIRCLE_WRAP(angle);
+                    objdata->walkTarget.yaw = angle;
+                }
                 sStateAnimMap[objdata->state] = CFGUARDIAN_MODANIM_14;
             }
         }
@@ -473,6 +490,12 @@ RECOMP_PATCH s32 CFGuardian_control(Object* self) {
             if (!(objdata->flags & CFGUARDIAN_FLAG_WalkToTarget) && (sStateAnimMap[objdata->state] != CFGUARDIAN_MODANIM_Idle)) {
                 STUBBED_PRINTF(" Stand ");
                 ((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func9(15, &objdata->walkTarget);
+                // @recomp: Flip yaw 180 to face the correct direction
+                {
+                    s32 angle = objdata->walkTarget.yaw + M_180_DEGREES;
+                    CIRCLE_WRAP(angle);
+                    objdata->walkTarget.yaw = angle;
+                }
                 objdata->flags |= (CFGUARDIAN_FLAG_WalkToTarget | CFGUARDIAN_FLAG_1);
                 sStateAnimMap[objdata->state] = CFGUARDIAN_MODANIM_Idle;
             }
@@ -486,6 +509,12 @@ RECOMP_PATCH s32 CFGuardian_control(Object* self) {
                 objdata->talkState = CFGUARDIAN_TALK_SpokenTo;
                 objdata->flags |= (CFGUARDIAN_FLAG_WalkToTarget | CFGUARDIAN_FLAG_1);
                 ((DLL_53_movelib*)gTempDLLInsts[1])->vtbl->func7(14, &objdata->walkTarget);
+                // @recomp: Flip yaw 180 to face the correct direction
+                {
+                    s32 angle = objdata->walkTarget.yaw + M_180_DEGREES;
+                    CIRCLE_WRAP(angle);
+                    objdata->walkTarget.yaw = angle;
+                }
                 sStateAnimMap[objdata->state] = CFGUARDIAN_MODANIM_14;
             }
         }
@@ -555,6 +584,11 @@ RECOMP_PATCH s32 CFGuardian_control(Object* self) {
         switch (mesgID) {
         case 15:
             // enter windlift
+            // @recomp: Don't enter windlift state if we're leaving it, otherwise the guardian will rapidly flip
+            //          between being lifted and landing as they exit
+            if (objdata->state >= CFGUARDIAN_STATE_LeavingWindLift) {
+                break;
+            }
             STUBBED_PRINTF(" Guardian In Elevatoe "); // guessed location
             objdata->state = CFGUARDIAN_STATE_InWindLift;
             objAnimSet(self, CFGUARDIAN_MODANIM_Floating, 0, 0);
@@ -648,40 +682,5 @@ RECOMP_PATCH s32 CFGuardian_control(Object* self) {
     }
     // @recomp: Moved
     //mapSaveObject(self->setup, self->mapID, self->srt.transl.x, self->srt.transl.y, self->srt.transl.z);
-    return 0;
-}
-
-RECOMP_PATCH s32 CFGuardian_walkTo(Object* self, SRT* target, f32 speed, f32* animChange) {
-    f32 dirX;
-    f32 dirY;
-    f32 dirZ;
-    f32 dist;
-    s16 angle;
-    s32 _pad;
-
-    if (target == NULL) {
-        return 0;
-    }
-    dirX = target->transl.x - self->srt.transl.x;
-    dirY = target->transl.y - self->srt.transl.y;
-    dirZ = target->transl.z - self->srt.transl.z;
-    dist = sqrtf(SQ(dirX) + SQ(dirY) + SQ(dirZ));
-    if (dist < (speed * 5.0f)) {
-        return 1;
-    }
-    guNormalize(&dirX, &dirY, &dirZ);
-    self->velocity.x = dirX * speed * gUpdateRateF;
-    self->velocity.y = dirY * speed * gUpdateRateF;
-    self->velocity.z = dirZ * speed * gUpdateRateF;
-    // @recomp: Don't flip angle. I'm not sure why this was done but it makes the guardian face
-    //          the wrong angle when in the courtyard...
-    angle = (target->yaw - (self->srt.yaw & 0xFFFF))/* + 0x8000*/;
-    CIRCLE_WRAP(angle);
-    self->srt.yaw += ((((f32) angle + 0.5f) * (speed * gUpdateRateF)) / dist);
-    objMove(self, self->velocity.x, self->velocity.y, self->velocity.z);
-    if (self->curModAnimId != CFGUARDIAN_MODANIM_Walk) {
-        objAnimSet(self, CFGUARDIAN_MODANIM_Walk, 0.0f, 0);
-    }
-    objGetAnimChange(self, speed, animChange);
     return 0;
 }

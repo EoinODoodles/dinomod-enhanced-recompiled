@@ -1,0 +1,49 @@
+actors:
+# Actor 0
+- uid: 0x0
+  settings: 0x1000
+  objectID: 0xFFFF # Self (CFPowerLock)
+# Actor 1
+- uid: 0x0
+  settings: 0x5000
+  objectID: 0x1F # Krystal
+
+curves:
+# Curve 0
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 126 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 11, delay: 58, params: 1 } # CODE @ 0
+  - { code_type: 6, val1: 0x17, val2: 0x0 } # 6 (SET_MODEL)
+  # DINOMOD: set message 1 to signal that the door should open (driven by the seq now)
+  - { type: 11, delay: 0, params: 1 } # CODE @ 6
+  - { code_type: 2, val1: 0x0, val2: 0x1 } # SET (MESSAGE)
+  - { type: 11, delay: 68, params: 1 } # CODE @ 58
+  - { code_type: 6, val1: 0x17, val2: 0x1 } # 6 (SET_MODEL)
+  - { type: 11, delay: 0, params: 1 } # CODE @ 126
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (END)
+  keyframes:
+    # ANIM_SPEED
+  - { channel: 9, time: 0, value: 21.5, interp: 0, weight: 0 }
+# Curve 1
+- events:
+  - { type: 0, delay: 0, params: 0 } # SETTIME @ 0
+  - { type: -1, delay: 0, params: 109 } # SETDURATION @ 0
+  - { type: 3, delay: 0, params: 0x0 } # OVERRIDE @ 0
+  - { type: 7, delay: 5, params: 0x0 } # GROUND_MODE @ 0
+  - { type: 2, delay: 31, params: 0x1109 } # ANIM @ 5
+  - { type: 6, delay: 73, params: 0xE1CA } # SFX @ 36
+  - { type: 11, delay: 0, params: 1 } # CODE @ 109
+  - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (END)
+  keyframes:
+    # ROTATE_Y
+  - { channel: 7, time: 2, value: 91.40428161621094, interp: 0, weight: 56 }
+    # ANIM_SPEED
+  - { channel: 9, time: 2, value: 21.5, interp: 0, weight: 0 }
+    # ANIM_BLEND_SPEED
+  - { channel: 10, time: 6, value: 20.00298309326172, interp: 0, weight: 0 }
+    # TRANSLATE_Z
+  - { channel: 11, time: 31, value: 5.911960601806641, interp: 0, weight: 0 }
+    # TRANSLATE_X
+  - { channel: 13, time: 41, value: 22.162500381469727, interp: 0, weight: 0 }

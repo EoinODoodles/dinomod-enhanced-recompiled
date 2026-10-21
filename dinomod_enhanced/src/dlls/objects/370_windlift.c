@@ -4,6 +4,7 @@
 #include "sys/objects.h"
 #include "sys/objmsg.h"
 #include "sys/print.h"
+#include "dll.h"
 
 #include "recomp/dlls/objects/370_WindLift_recomp.h"
 
@@ -52,6 +53,13 @@ RECOMP_HOOK_DLL(WindLift_obj_Free) void WindLift_obj_Free_hook(Object* self, s32
             s32 mesgArg = (1 << 12) | (((slot->unk10 & 0xE0) >> 4) << 8) | objdata->windLiftID;
             objSendMesg(obj, 0x10, self, (void* ) (mesgArg));
         }
+    }
+
+    // @recomp: Fade out windlift ambience if the object unloads before this happens naturally
+    if (objdata->unk170_0 != 0) {
+        Object* player = objGetPlayer();
+        gDLL_5_AMSEQ2->vtbl->set(player, 0x128, NULL, 0, NULL);
+        objdata->unk170_0 = 0;
     }
 }
 

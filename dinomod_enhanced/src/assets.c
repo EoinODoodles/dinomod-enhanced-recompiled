@@ -41,6 +41,7 @@
 #include "game/objects/object_id.h"
 #include "game/gamebits.h"
 #include "macros.h"
+#include "sys/gfx/animseq.h"
 #include "sys/curves.h"
 #include "sys/pi.h"
 #include "sys/map.h"
@@ -7227,38 +7228,6 @@ static void crf_modifications(void) {
         reasset_map_objects_set(crfDungeon, reasset_auto_id(dinomodNs), &magicPlant, sizeof(magicPlant));
     }
 
-    // The SeqObj for the wind lift power cutscene uses its position as a savepoint at the end of the seq.
-    // This savepoint starts the player high up in the windlift but the windlift doesn't know that the player entered
-    // it, leading to the player just falling all the way down.
-    // So, add a trigger plane below the savepoint to set the "player in windlift" bit before they get too far.
-    {
-        Trigger_Setup trigger = {
-            .base = {
-                .objId = OBJ_TriggerPlane,
-                .loadFlags = OBJSETUP_LOAD_MAIN,
-                .fadeFlags = OBJSETUP_FADE_CAMERA,
-                .loadDistance = 32,
-                .fadeDistance = 0,
-                .x = -1392.371f,
-                .y = 1839.185f - 1.0f,
-                .z = 1193.804f
-            },
-            .commands = {
-                {
-                    .condition = CMD_COND_OUT | CMD_COND_RE_EXIT,
-                    .id = TRG_CMD_BITS,
-                    .paramCombined = ((TriggerCommand_Bits_1_Set << 14) | BIT_CRF_WindLift1_PlayerInside)
-                }
-            },
-            .sizeX = 12,
-            .rotationX = (M_90_DEGREES >> 8),
-            .bitFlagID = -1,
-            .conditionBitFlagIDs = {-1, -1, -1, -1}
-        };
-
-        reasset_map_objects_set(crf, reasset_auto_id(dinomodNs), &trigger, sizeof(trigger));
-    }
-
     // Remove the door to the throne room from an objgroup so it doesn't unload as you walk by it
     {
         ObjSetup* mainSlideDoor = reasset_map_objects_get(crf, reasset_base_id(0x2C47), NULL);
@@ -7485,6 +7454,160 @@ static void crf_modifications(void) {
         trigger->commands[3].id = TRG_CMD_MAP_LAYER;
         trigger->commands[3].param1 = 0;
         trigger->commands[3].param2 = 0;
+    }
+
+    {
+        // Sync power room door opening with seq animation
+        UseObj_Setup* powerlock = reasset_map_objects_get(crf, reasset_base_id(0x324AF), NULL);
+        powerlock->flags |= USEOBJ_SeqControlsUsedBit;
+
+        // Add pre-existing anim objects for the power room crystals. The other patches that change how the power
+        // bases preempt require these to existing ahead of time (unlike vanilla where the seq creates them).
+        AnimObj_Setup crystal = {
+            .base = {
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 70,
+                .fadeDistance = 70
+            },
+            .sequenceIdBitfield = -1,
+            .unk1A = -1
+        };
+
+        // Red
+        crystal.base.objId = OBJ_CFPowerCrystal_Anim1;
+        crystal.base.x = -1775.27f;
+        crystal.base.y = 1824.0f;
+        crystal.base.z = -1043.50f;
+        reasset_map_objects_set(crf, reasset_auto_id(dinomodNs), &crystal, sizeof(crystal));
+
+        // Green
+        crystal.base.objId = OBJ_CFPowerCrystal_Anim2;
+        crystal.base.x = -1549.22f;
+        crystal.base.y = 1824.0f;
+        crystal.base.z = -1134.05f;
+        reasset_map_objects_set(crf, reasset_auto_id(dinomodNs), &crystal, sizeof(crystal));
+
+        // Blue
+        crystal.base.objId = OBJ_CFPowerCrystal_Anim3;
+        crystal.base.x = -1459.61f;
+        crystal.base.y = 1824.0f;
+        crystal.base.z = -908.76f;
+        reasset_map_objects_set(crf, reasset_auto_id(dinomodNs), &crystal, sizeof(crystal));
+    }
+
+    // Update trigger on Galleon dock plank to toggle CRF/GuardClaw music when leaving/entering the Galleon
+    {
+        Trigger_Setup* trigger = reasset_map_objects_get(crf, reasset_base_id(0x42B61), NULL);
+        trigger->commands[2].id = TRG_CMD_MUSIC_ACTION;
+        trigger->commands[2].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;
+        trigger->commands[2].paramCombined = 16;
+
+        trigger->commands[3].id = TRG_CMD_MUSIC_ACTION;
+        trigger->commands[3].condition = CMD_COND_IN | CMD_COND_RE_ENTER;
+        trigger->commands[3].paramCombined = 306;
+    }
+
+    // Stop Galleon GuardClaw from toggling music, this is handled by a trigger now
+    {
+        Baddie_Setup* guardClaw = reasset_map_objects_get(crf, reasset_base_id(0x31A34), NULL);
+        guardClaw->unk2B |= 0x20; // don't toggle music
+    }
+
+    // Stop treasure room GuardClaw from toggling music. Flipping between the two music tracks sounds really
+    // awkward around that area and his DLL will not restore the music after he is defeated by the tunnel debris.
+    {
+        Baddie_Setup* guardClaw = reasset_map_objects_get(crfTreasure, reasset_base_id(0x31B83), NULL);
+        guardClaw->unk2B |= 0x20; // don't toggle music
+    }
+
+    // Move trigger point that restores envfx when leaving the galleon interior so it actually activates
+    // before the camera flips around to view the world (normally the player has to move forward a bit before
+    // it will actually activate, leaving the sky blank until then).
+    {
+        ObjSetup* trigPoint = reasset_map_objects_get(crf, reasset_base_id(0x42778), NULL);
+        trigPoint->z = 597.511f;
+    }
+
+    // Fix inside light trigger command on the way out of the power room (so inside light is turned off)
+    {
+        Trigger_Setup* trigger = reasset_map_objects_get(crf, reasset_base_id(0x324A1), NULL);
+        trigger->commands[1].param2 = 0;
+    }
+
+    // Kill CRF entrance music when going back to MMP
+    {
+        Trigger_Setup* trigger = reasset_map_objects_get(crf, reasset_base_id(0xA6A), NULL);
+        trigger->commands[6].id = TRG_CMD_MUSIC_ACTION;
+        trigger->commands[6].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;
+        trigger->commands[6].paramCombined = 184;
+    }
+
+    // Flip yaw of start node to the Guardian's path to the race area. The guardian adds 180 degrees to all
+    // of these values, so they need to be backwards in the actual curve. The other Guardian paths are already like this.
+    {
+        CurveSetup* curve = reasset_map_objects_get(crf, reasset_base_id(0x30975), NULL);
+        curve->unk2C = 0x9A;
+    }
+
+    // Add trigger to dungeon exit that correctly toggles the inside light state
+    {
+        Trigger_Setup trigger = {
+            .base = {
+                .objId = OBJ_TriggerPlane,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 14,
+                .fadeDistance = 0,
+                .x = -1585.2f,
+                .y = 1866.0f,
+                .z = 1087.5f
+            },
+            .commands = {
+                {
+                    .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
+                    .id = TRG_CMD_TRACK,
+                    .param1 = 6, // lightSetInside
+                    .param2 = 0
+                },
+                {
+                    .condition = CMD_COND_OUT | CMD_COND_RE_EXIT,
+                    .id = TRG_CMD_TRACK,
+                    .param1 = 6, // lightSetInside
+                    .param2 = 1
+                }
+            },
+            .sizeX = 8,
+            .sizeY = 16,
+            .sizeZ = 16,
+            .rotationX = 0,
+            .rotationY = 0,
+            .bitFlagID = -1,
+            .conditionBitFlagIDs = {-1, -1, -1, -1}
+        };
+
+        reasset_map_objects_set(crf, reasset_auto_id(dinomodNs), &trigger, sizeof(trigger));
+    }
+
+    // Update trigger in entrance to race area to toggle inside light
+    {
+        Trigger_Setup* trigger = reasset_map_objects_get(crf, reasset_base_id(0x429C5), NULL);
+        trigger->commands[2].id = TRG_CMD_TRACK;
+        trigger->commands[2].condition = CMD_COND_IN | CMD_COND_RE_ENTER;
+        trigger->commands[2].param1 = 6; // lightSetInside
+        trigger->commands[2].param2 = 1;
+
+        trigger->commands[3].id = TRG_CMD_TRACK;
+        trigger->commands[3].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;
+        trigger->commands[3].param1 = 6; // lightSetInside
+        trigger->commands[3].param2 = 0;
+    }
+
+    // Shrink one of the triggers in the right-side treasure entrance. It's too big and can be
+    // triggered before the treasure doors are open.
+    {
+        Trigger_Setup* trigger = reasset_map_objects_get(crf, reasset_base_id(0x31D9D), NULL);
+        trigger->sizeX = 6;
     }
 }
 
