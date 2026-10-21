@@ -154,6 +154,7 @@ INCBIN(block1100, "inc/blocks_1100_WC_boss_east_corridor_north.bin");
 INCBIN(block1101, "inc/blocks_1101_WC_boss_corner_ne.bin");
 INCBIN(block207, "inc/blocks_0207_DFPT_top_lift_entrance.bin");
 INCBIN(block772, "inc/blocks_0772_DFPT_bottom_central_hall.bin");
+INCBIN(block651, "inc/blocks_0651_SC_discovery_falls_entrance_pond.bin");
 
 INCBIN(tex0_kiosk_gold_key,             "inc/tex0_kiosk_gold_key.bin");
 INCBIN(tex0_kiosk_silver_key,           "inc/tex0_kiosk_silver_key_custom.bin");
@@ -4250,7 +4251,12 @@ static void diamond_bay_modifications(void) {
 static void swapstone_circle_modifications(void) {
     ReAssetID swapStoneCircle = reasset_base_id(MAP_SWAPSTONE_CIRCLE);
     ReAssetID scTrkblk = reasset_base_id(21);
-    int scfBlocksBase = 637;
+    int scBlocksBase = 637;
+
+    //BLOCKS
+    {
+        BLOCKS_REPLACE_BASE(scTrkblk, scBlocksBase, 651, block651); //Fix UV issue just outside Discovery Falls
+    }
 
     //Crawl to Discovery Falls
     {
@@ -4265,7 +4271,7 @@ static void swapstone_circle_modifications(void) {
     //Add texscrolls so Discovery Falls' initial area's water isn't static while crawling in
     {
         TexScroll2_Setup texScrollData[] = {
-            { COORDS_SETUP(-162.777, 160.360, 2949.891), .textureIndex = 0,    .blendTextureIndex = 0x14, .uSpeedB = -1, .vSpeedB = -1, .uSpeedA = 0, .vSpeedA = -3 }, //water
+            { COORDS_SETUP(-162.777, 160.360, 2949.891), .textureIndex = 36,   .blendTextureIndex = 0x14, .uSpeedB = -1, .vSpeedB = -1, .uSpeedA = 0, .vSpeedA = -3 }, //water (use lower falls' water texture)
             { COORDS_SETUP(-149.724, 163.000, 2635.210), .textureIndex = 1,    .blendTextureIndex = 3,    .uSpeedB =  0, .vSpeedB =  0, .uSpeedA = 0, .vSpeedA =  5 }, //waterfall
             { COORDS_SETUP(-146.172, 261.784, 2613.801), .textureIndex = 0x17, .blendTextureIndex = 0x14, .uSpeedB = -1, .vSpeedB = -1, .uSpeedA = 0, .vSpeedA = -5 }, //foam
         };
