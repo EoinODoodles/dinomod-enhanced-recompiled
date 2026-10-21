@@ -4531,6 +4531,25 @@ static void discovery_falls_modifications(void) {
             plane->sizeX = TRIGGER_SCALE(1.7f); //Increase size just in case you might pass over it when noclipping
             DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(DF_ObjGroup1_Entrance_Magic_Plant_Basin, plane, 4, 5);
         }
+
+        //Add LOD for the small piece of the Lower Falls visible from the crawlspace
+        {
+            LODAnimator_Setup lod = {
+                .base = {
+                    .objId = OBJ_LODAnimator,
+                    .loadFlags = OBJSETUP_LOAD_IN_MAP_OBJGROUP,
+                    .fadeFlags = OBJSETUP_FADE_CAMERA,
+                    .mapObjGroup = DF_ObjGroup1_Entrance_Magic_Plant_Basin,
+                    .fadeDistance = 50
+                },
+                COORDS_SETUP(877.578, 289.378, 546.314),
+                .animatorID = 10,
+                .gridOffsetZ = +1,
+                .options = LODAnimator_OPTION_2_Update_Shapes_on_Local_Block_Load
+            };
+            reasset_map_objects_set(discoveryFalls, 
+                reasset_auto_id(dinomodNs), &lod, sizeof(lod));
+        }
     }
 
     //Kyte's rope fastening sequences
