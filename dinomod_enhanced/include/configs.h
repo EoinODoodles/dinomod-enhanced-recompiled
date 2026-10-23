@@ -138,6 +138,7 @@ _Bool configs_GetHideUpcomingSubtitles(void);
 
 /* AUDIO */
 RecompPickupJingle configs_GetPickupJingleMode(void);
+_Bool configs_GetSnowHornWastesHarp(void);
 
 /* CONTROLS */
 ButtonTappingAssistModes configs_GetButtonTapMode(void);

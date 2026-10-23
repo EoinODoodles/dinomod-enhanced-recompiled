@@ -93,6 +93,24 @@ options = [ "Old (variant A)", "Old (variant B)", "New" ]
 default = "Old (variant B)"
 
 [[manifest.config_options]]
+id = "music_snowhorn_wastes_harp"
+name = "Music: SnowHorn Wastes - Harp"
+description = '''
+The prototype's version of SnowHorn Wastes' theme features a low snare roll at the end of its intro, which was changed into a harp trill when the game was adapted into Star Fox Adventures. Enabling this config option edits the track's intro so it sounds like the SFA rendition, if you prefer!
+
+[NOTE: the game must be relaunched for this config's changes to take effect]
+
+As a bit of background: some of the prototype's music tracks occasionally featured instrument ID mix-ups that must have slipped through as the game's instrument table was being revised over time. The Waterfall Cave's theme in DarkIce Mines initially featured an oddly spooky tremolo synth in the prototype for example, though we know it was supposed to be pizzicato strings based on how it sounded in the One Hour Footage and Star Fox Adventures!
+
+Unlike other examples of instrument ID differences, it's a little more unclear whether the snare roll in SnowHorn Wastes' intro is a mistake or just an earlier compositional choice. Getting the harp to sound like the later version also required pitching up all of its notes by an octave, which suggests the difference is more intentional than just a mismapped ID.
+
+In any case, the option to hear it with the harp is available here!
+'''
+type = "Enum"
+options = [ "Off", "On" ]
+default = "On"
+
+[[manifest.config_options]]
 id = "button_tap_modes"
 name = "Accessibility: Button Tapping"
 description = '''

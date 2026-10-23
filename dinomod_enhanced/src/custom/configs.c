@@ -50,6 +50,11 @@ RecompPickupJingle configs_GetPickupJingleMode(void) {
     return recomp_get_config_u32("pickup_jingle");
 }
 
+/* Checks whether to change SnowHorn Wastes' intro snare roll into a harp trill (like in SFA) */
+_Bool configs_GetSnowHornWastesHarp(void) {
+    return recomp_get_config_u32("music_snowhorn_wastes_harp") != 0;
+}
+
 
 /* CONTROLS */
 

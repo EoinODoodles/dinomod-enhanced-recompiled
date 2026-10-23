@@ -3891,6 +3891,72 @@ static void music_actions_patch(void) {
     action140->seqID = 66;
 }
 
+/* Various small edits to the music tracks' MIDI data */
+static void music_patch(void) {
+    u8* bin;
+    u32* tab;
+    u32 audioBinSize;
+    u32 audioTabSize;
+    ALSeqFile* midiTable;
+    ALSeqData* midis;
+    // u16 midiCount;
+
+    //Get AUDIO.bin, .tab
+    {
+        audioBinSize = reasset_fst_get_file_size(AUDIO_BIN);
+        audioTabSize = reasset_fst_get_file_size(AUDIO_TAB);
+        
+        bin = recomp_alloc(audioBinSize);
+        tab = recomp_alloc(audioTabSize);
+
+        reasset_fst_read_from_file(AUDIO_BIN, bin, 0, audioBinSize);
+        reasset_fst_read_from_file(AUDIO_TAB, tab, 0, audioTabSize);
+    }
+
+    //Get music offsets
+    {   
+        midiTable = (ALSeqFile*)(bin + tab[1]);
+        // midiCount = midiTable->seqCount;
+        midis = midiTable->seqArray;
+    }
+    
+    //Optionally patch SnowHorn Wastes' MIDI
+    if (configs_GetSnowHornWastesHarp()) {
+        #define SNOWHORN_WASTES_MUSICID 0x3A
+
+        //Get a pointer to the music's MIDI data
+        u32 songOffset = tab[1] + (u32)midis[SNOWHORN_WASTES_MUSICID].offset;
+        u32 songLength = midis[SNOWHORN_WASTES_MUSICID].len;
+        u8* song = bin + songOffset;
+        u32* channelOffsets = (u32*)song;
+
+        //Get channel 7: Low Snare roll (changed to harp in SFA), then Bianzhong afterwards
+        u8* channel7 = song + channelOffsets[7];
+        
+        //Change Low Snare to Harp
+        channel7[9] = 83;
+
+        //Bring the harp part up an octave so it's in the same register as in SFA 
+        //(having to do this suggests this isn't just an instrumentID mixup, and the roll may have just been
+        // an intentional composition difference at this point. But the option to update it is here anyway!)
+        for (u32 i = 0; i < 34; i++) {
+            channel7[0x1B + i*4] += 12; //12 semitones per octave
+        }
+
+        //Increase the harp's base volume, so it isn't too quiet
+        channel7[0x11] = 0x7F;
+
+        //Increase the harp's reverb, so it doesn't sound too tinny
+        channel7[0x17] = 80;
+    }
+
+    //Update AUDIO.bin
+    reasset_fst_set(AUDIO_BIN, bin, audioBinSize);
+
+    recomp_free(bin);
+    recomp_free(tab);
+}
+
 static void darkice_mines_modifications(void) {
     ReAssetID dim1MapID = reasset_base_id(MAP_DARK_ICE_MINES_1);
     ReAssetID dim2MapID = reasset_base_id(MAP_DARK_ICE_MINES_2);
@@ -7929,6 +7995,7 @@ static void sabre_seqjoints_patch(void) {
 
 REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     music_actions_patch();
+    music_patch();
     sabre_seqjoints_patch();
     collectables_animobj_patch();
     cmdmenu_icons_patch();
