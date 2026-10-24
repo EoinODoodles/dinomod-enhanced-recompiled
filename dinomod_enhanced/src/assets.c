@@ -212,6 +212,8 @@ INCBIN(models_dfpt_lift1,         "inc/models_0364_DFPLift1.bin");
     INCBIN(fst_assets_##filename##_##ext, "assets/" #filename "."#ext); \
     reasset_fst_set_static(fileID, fst_assets_##filename##_##ext, fst_assets_##filename##_##ext##_end - fst_assets_##filename##_##ext);
 
+static void music_patch(void);
+
 REASSET_ON_FST_SET_LOW_PRIORITY void dinomod_on_reasset_fst_set(void) {
     INCFST(AMAP_BIN, AMAP, bin)
     INCFST(AMAP_TAB, AMAP, tab)
@@ -223,6 +225,7 @@ REASSET_ON_FST_SET_LOW_PRIORITY void dinomod_on_reasset_fst_set(void) {
     INCFST(ANIMCURVES_TAB, ANIMCURVES, tab)
 
     INCFST(AUDIO_BIN, AUDIO, bin)
+    music_patch();
 
     INCFST(BITTABLE_BIN, BITTABLE, bin)
 
@@ -7995,7 +7998,6 @@ static void sabre_seqjoints_patch(void) {
 
 REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     music_actions_patch();
-    music_patch();
     sabre_seqjoints_patch();
     collectables_animobj_patch();
     cmdmenu_icons_patch();
