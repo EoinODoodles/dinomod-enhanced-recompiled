@@ -520,7 +520,6 @@ RECOMP_PATCH void EWTrobotpatrol_obj_Print(Object* self, Gfx** gdl, Mtx** mtxs, 
         beamShadow->tr.y = beam->srt.transl.y;
         beamShadow->tr.z = beam->srt.transl.z;
         beamShadow->flags |= OBJ_SHADOW_FLAG_FADE_OUT; // this results in the shadow never appearing
-        beamShadow->flags &= ~OBJ_SHADOW_FLAG_ENABLED; // @recomp: just hide the shadow for real
         beamShadow->r = beamShadowR;
         beamShadow->g = beamShadowG;
         beamShadow->b = beamShadowB;
@@ -877,4 +876,72 @@ RECOMP_PATCH void EWTrobotpatrol_curveMove(Object* self, EWTrobotpatrol_Data* ob
         zDiff = self->srt.transl.z - destNode->pos.z;
         objdata->destDist = sqrtf(SQ(xDiff) + SQ(zDiff));
     }
+}
+
+RECOMP_PATCH void EWTrobotpatrol_initBeam(Object* self, EWTrobotpatrol_Data* objdata, EWTrobotpatrol_Beam* beam) {
+    ObjSetup* beamSetup;
+    SRT beamProjRot;
+    LightAction laction;
+    ObjectShadow* beamShadow;
+    Object* beamObj;
+
+    beamSetup = objAllocSetup(sizeof(ObjSetup), OBJ_RobotBeam);
+    beamSetup->loadFlags = OBJSETUP_LOAD_CAMERA;
+    beamSetup->fadeFlags = OBJSETUP_FADE_CAMERA;
+    beamSetup->loadDistance = 120;
+    beamSetup->fadeDistance = 120;
+    beamSetup->quarterSize = sizeof(ObjSetup) / 4; // @recomp: fix size
+    beamSetup->objId = OBJ_RobotBeam;
+    beamObj = objSetupObject(beamSetup, OBJINIT_STANDALONE | OBJINIT_FLAG4, -1, -1, self->parent);
+    beamObj->srt.transl.x = self->srt.transl.x;
+    beamObj->srt.transl.y = self->srt.transl.y;
+    beamObj->srt.transl.z = self->srt.transl.z;
+    camGetObjectChildPosition(beamObj, 
+        &beamObj->globalPosition.x, 
+        &beamObj->globalPosition.y, 
+        &beamObj->globalPosition.z);
+    beamProjRot.yaw = self->def->pAttachPoints->rot.x;
+    beamProjRot.pitch = self->def->pAttachPoints->rot.y;
+    beamProjRot.roll = self->def->pAttachPoints->rot.z;
+    beam->dir.x = 0.0f;
+    beam->dir.y = 1.0f;
+    beam->dir.z = 0.0f;
+    mathRotateRPY(&beamProjRot, beam->dir.f);
+    beamShadow = beamObj->shadow;
+    if (beamShadow != NULL) {
+        beamShadow->flags |= (OBJ_SHADOW_FLAG_100 | OBJ_SHADOW_FLAG_CUSTOM_COLOR 
+            | OBJ_SHADOW_FLAG_CUSTOM_OBJ_POS | OBJ_SHADOW_FLAG_CUSTOM_DIR);
+        beamShadow->dir.x = beam->dir.x;
+        beamShadow->dir.y = beam->dir.y;
+        beamShadow->dir.z = beam->dir.z;
+        beamShadow->r = 255;
+        beamShadow->g = 255;
+        beamShadow->b = 255;
+        beamShadow->a = 60;
+
+        // @recomp: disable shadow, this gets hidden anyway but in a janky way
+        beamShadow->flags &= ~OBJ_SHADOW_FLAG_ENABLED;
+    }
+    beam->obj = beamObj;
+    bzero(&laction, sizeof(LightAction));
+    laction.unk12 = 0x15;
+    laction.unk19 = 0xFF;
+    laction.unk1a = 0xFF;
+    laction.unk18 = 0;
+    laction.unk10 = 0xFFFE;
+    laction.unk1c = 1;
+    laction.unk4 = 0;
+    laction.unk6 = -0xA;
+    laction.unk8 = 0;
+    laction.unka = 0x46;
+    laction.unkC = 0xA;
+    laction.unk1d = 0xFF;
+    laction.unk22 = 2;
+    laction.unk1f = 0xF;
+    laction.unk20 = 8;
+    laction.unk0 = 0;
+    dll_newlfx->DoAction(self, self, &laction, 0, 0, 0);
+    beam->unk1A = self->unkD6;
+    beam->yawTarget = 0;
+    beam->yaw = 0;
 }

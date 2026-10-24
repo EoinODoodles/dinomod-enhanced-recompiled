@@ -7703,6 +7703,64 @@ static void crf_modifications(void) {
         Trigger_Setup* trigger = reasset_map_objects_get(crf, reasset_base_id(0x31D9D), NULL);
         trigger->sizeX = 6;
     }
+
+    // Split out trigger command that sets up the Scales/Queen courtyard cutscene to prevent this bit being re-set
+    // if the player re-enters CRF after this cutscene already played. Otherwise, some cutscene objects will appear
+    // in the courtyard when they aren't supposed to.
+    // TODO: there's more that needs to be done to make CRF "safe" to re-enter, this change might not be the best solution
+    {
+        Trigger_Setup trigger = {
+            .base = {
+                .objId = OBJ_TriggerPlane,
+                .loadFlags = OBJSETUP_LOAD_MAIN,
+                .fadeFlags = OBJSETUP_FADE_CAMERA,
+                .loadDistance = 21,
+                .fadeDistance = 0,
+                .x = 169.1f,
+                .y = 1498.58f,
+                .z = -201.24f
+            },
+            .commands = {
+                {
+                    .condition = CMD_COND_IN | CMD_COND_RE_ENTER,
+                    .id = TRG_CMD_BITS,
+                    .paramCombined = ((TriggerCommand_Bits_1_Set << 14) | BIT_CRF_Scales_And_Queen_In_Courtyard)
+                }
+            },
+            .sizeX = 17,
+            .sizeY = 16,
+            .sizeZ = 16,
+            .rotationX = 0,
+            .rotationY = 7,
+            .bitFlagID = -1,
+            .conditionBitFlagIDs = {0x4000 | BIT_Played_Seq_0041_Scales_Kills_The_Queen, -1, -1, -1}
+        };
+
+        reasset_map_objects_set(crf, reasset_auto_id(dinomodNs), &trigger, sizeof(trigger));
+
+        Trigger_Setup* existingTrigger = reasset_map_objects_get(crf, reasset_base_id(0x2C85), NULL);
+        bzero(&existingTrigger->commands[1], sizeof(existingTrigger->commands[1])); // remove bit 0xA2 set
+    }
+
+    // Increase size of trigger in CRF entrance so the player can't walk around it (sets Kyte's flight group)
+    {
+        Trigger_Setup* trigger = reasset_map_objects_get(crf, reasset_base_id(0x31822), NULL);
+        trigger->sizeX = 16;
+    }
+
+    // Remove incorrect flight group commands on CRF entrance trigger (these try to set groups 2/3 which don't exist here,
+    // preventing Kyte from entering the stairwell group set by another nearby trigger).
+    {
+        Trigger_Setup* trigger = reasset_map_objects_get(crf, reasset_base_id(0x3CA), NULL);
+        bzero(&trigger->commands[2], sizeof(trigger->commands[2]));
+        bzero(&trigger->commands[3], sizeof(trigger->commands[3]));
+    }
+
+    // Fix load flag of CRF entrance stairwell stealth region effectbox (so it's actually loaded when the player stands there)
+    {
+        ObjSetup* effectbox = reasset_map_objects_get(crf, reasset_base_id(0x8CF), NULL);
+        effectbox->loadFlags = OBJSETUP_LOAD_MAIN;
+    }
 }
 
 static void crf_race_modifications(void) {
