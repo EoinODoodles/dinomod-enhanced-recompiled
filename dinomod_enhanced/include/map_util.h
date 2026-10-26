@@ -39,24 +39,26 @@ union { //height can be treated as a single s16 value, using the uppermost bit o
 /*12*/    s16 pad;
 } TrackLine;
 
+// Official names in square brackets (from default.dol)
 typedef enum {
-    HITS_1 = 1,          //Usually used for invisible walls, whether for Baddies, vehicles, or the player
-    HITS_Precipice = 2,  //Cling to ledge when walking over line (can drop off)
-    HITS_Wall_Climb = 3, //Other settings determine if player can drop off bottom/clamber over top
-    HITS_Jump = 4,       //Always jump when passing line (no dangling off precipice) - smaller jump at low approach speeds
-    HITS_Jump_or_Precipice = 5, //Jump/dangle off ledge, depending on approach speed
-    HITS_Clamber_Up = 6, //Step up when approached from the ground, or ledge grab when approached mid-jump
-    HITS_7 = 7,
-    HITS_8 = 8,
-    HITS_9 = 9,
-    HITS_Ladder = 10,
-    HITS_11 = 11,
-    HITS_Stairs = 12, //Stairs? (Unimplemented, but can be found enclosing the steps in SH/Walled City's gateway)
-    HITS_13 = 13,
-    HITS_Crawl = 14, //Requires a crawlspace curve network too, or the player will warp to the world origin (NOTE: seems to stop working with `TrackLine_SETTINGB_Nonsolid` applied)
-    HITS_Hop = 15,   //A little skip/hop up (used rarely, like around Walled City's Shrine transporter) (NOTE: seems to stop working with `TrackLine_SETTINGB_Nonsolid` applied)
-    HITS_Swim_Clamber_Ashore = 16,
-    HITS_Precipice_No_Letting_Go = 17 //Like HITS_Precipice, but you can't drop off
+    HITS_1 = 1,                     //[Norm] Usually used for invisible walls, whether for Baddies, vehicles, or the player
+    HITS_Precipice = 2,             //[Drop] Cling to ledge when walking over line (can drop off)
+    HITS_Wall_Climb = 3,            //[Wall] Other settings determine if player can drop off bottom/clamber over top
+    HITS_Jump = 4,                  //[Jump] Always jump when passing line (no dangling off precipice) - smaller jump at low approach speeds
+    HITS_Jump_or_Precipice = 5,     //[Jump Drop] Jump/dangle off ledge, depending on approach speed
+    HITS_Clamber_Up = 6,            //[Ledge] Step up when approached from the ground, or ledge grab when approached mid-jump
+    HITS_7 = 7,                     //N/A
+    HITS_8 = 8,                     //[Cold Water]
+    HITS_9 = 9,                     //N/A
+    HITS_Ladder = 10,               //[Ladder]
+    HITS_11 = 11,                   //[Push Pull]
+    HITS_Stairs = 12,               //[Steps] (Unimplemented, but can be found enclosing the stairs in SH/Walled City's gateway)
+    HITS_13 = 13,                   //[Boundary]
+    HITS_Crawl = 14,                //[Crawl] Requires a crawlspace curve network too, or the player will warp to the world origin (NOTE: seems to stop working with `TrackLine_SETTINGB_Nonsolid` applied)
+    HITS_Hop = 15,                  //[Hop] A little skip/hop up (used rarely, like around Walled City's Shrine transporter) (NOTE: seems to stop working with `TrackLine_SETTINGB_Nonsolid` applied)
+    HITS_Swim_Clamber_Ashore = 16,  //[Water Ledge]
+    HITS_Precipice_No_Letting_Go = 17, //[Drop2] Like HITS_Precipice, but you can't drop off
+    HITS_18 = 18                    //[Push Shove]
 } PlayerHitsTypes; //Player HITS actions (lower 6 bits of TrackLine settingsB)
 
 typedef enum {
