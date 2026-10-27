@@ -202,6 +202,7 @@ INCBIN(models_wcsuntemplelift,    "inc/models_0957_WCSunTempleLift.bin");
 INCBIN(models_wcmoontemplelift,   "inc/models_0958_WCMoonTempleLift.bin");
 INCBIN(models_wcsuntempleswitch,  "inc/models_0964_WCSunTempleSwitch.bin");
 INCBIN(models_dfpt_lift1,         "inc/models_0364_DFPLift1.bin");
+INCBIN(models_shadowhunter,       "inc/models_0136_ShadowHunter_repaired.bin");
 
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 #define MODELS_REPLACE_BASE(modelID, file) (reasset_models_set(reasset_base_id(modelID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
@@ -7994,6 +7995,24 @@ static void inside_galleon_modifications(void) {
     }
 }
 
+static void blackwater_canyon_modifications(void) {
+    //Update the ShadowHunter model to use rustyspottedcat's custom textures
+    {
+        /*  
+            Model and Tex1 changes:
+            TEX1/3665 is now used by the eyelid material
+            TEX1/3666 is left as a placeholder for a future pupil material
+            TEX1/3667 is now used by the back-of-head material
+            TEX1/3668 is now used by the tail material
+            TEX1/3669 is now used by the thigh material
+
+            Thigh vertices' UVs have been updated to account for the change in texture dimensions (44x44 -> 32x64)
+            Eyelid vertices' UVs have been updated to account for the change in texture dimensions (64x32 -> 32x64)
+        */
+        MODELS_REPLACE_BASE(136, models_shadowhunter);
+    }
+}
+
 REASSET_ON_SET_LOW_PRIORITY void dinomod_reasset_on_set(void) {
     custom_objects();
     custom_dlls();
@@ -8083,6 +8102,7 @@ REASSET_ON_MODIFY_LOW_PRIORITY void dinomod_reasset_on_modify(void) {
     // golden_plains_fuel_modifications();
     walled_city_modifications();
     add_wctrex_hit_spheres();
+    blackwater_canyon_modifications();
     dragon_rock_upper_modifications();
     dragon_rock_bottom_modifications();
     dfsh_modifications();
