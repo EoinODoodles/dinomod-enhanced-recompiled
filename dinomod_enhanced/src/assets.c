@@ -29,6 +29,7 @@
 #include "objects/781_WCPressureSwitch.h"
 #include "trigger_object_macros.h"
 
+#include "PR/libaudio.h"
 #include "PR/ultratypes.h"
 #include "dlls/objects/common/collectable.h"
 #include "dlls/engine/29_gplay.h"
@@ -3952,6 +3953,74 @@ static void music_patch(void) {
 
         //Increase the harp's reverb, so it doesn't sound too tinny
         channel7[0x17] = 80;
+    }
+
+    //Discovery Falls
+    {
+        #define DISCOVERY_FALLS_MUSICID 0x3F
+
+        //Get a pointer to the music's MIDI data
+        u32 songOffset = tab[1] + (u32)midis[DISCOVERY_FALLS_MUSICID].offset;
+        u8* song = bin + songOffset;
+        u32* channelOffsets = (u32*)song;
+
+        //Fixes an issue where channel 5 of Discovery Falls (Triangle -> Choir Ahhs -> Triangle) plays for 1 bar less
+        //than the rest of the main outdoor piece's channels before looping, which caused it to gradually desync and 
+        //create a more and more noticeable "round" effect each time the music loops.
+        {
+            u8* channel5 = song + channelOffsets[5];
+
+            u8 patch[] = {
+                0x95, //Note events
+
+                //One full bar of the triangle part
+                //(so the pattern can be replayed with 1 repeat instead of 2, 
+                //freeing some space for an extra bar at the end)
+                0x48, 0x30, 0x44, 0x56,                             //C6
+                0x48, 0x30, 0x44, 0x60,                             //C6 
+                0x30, 0x30, 0x81, 0x24, 0x81, 0x40,          //C5
+                0x48, 0x30, 0x44, 0x60,                         //C6 
+                0x48, 0x30, 0x44, 0x60,                         //C6 
+                0x30, 0x30, 0x82, 0x04, 0x82, 0x20,         //C5
+                0x48, 0x30, 0x81, 0x24, 0x81, 0x40,   //C6 
+                0x30, 0x30, 0x44, 0x60,                               //C5
+                0x48, 0x30, 0x44, 0x60,                         //C6
+                0x48, 0x30, 0x44, 0x60,                         //C6 
+                0x30, 0x30, 0x81, 0x24, 0x81, 0x4A,         //C5
+                
+                //Repeat Codes
+                0xFE, 0x00, 0x34, 0x34,     //Bar 2 (After the Choir Ahhs)
+                0xFE, 0x00, 0x38, 0x34,     //Bar 3 
+                0xFE, 0x00, 0x3C, 0x34,     //Bar 4 
+                0xFE, 0x00, 0x40, 0x34,     //Bar 5 
+                0xFE, 0x00, 0x44, 0x34,     //Bar 6 
+                0xFE, 0x00, 0x48, 0x34,     //Bar 7 
+                0xFE, 0x00, 0x4C, 0x34,     //Bar 8 
+                0xFE, 0x00, 0x50, 0x34,     //Bar 9 
+                0xFE, 0x00, 0x54, 0x34,     //Bar 10 
+                0xFE, 0x00, 0x58, 0x34,     //Bar 11
+                0xFE, 0x00, 0x5C, 0x34,     //Bar 12
+                0xFE, 0x00, 0x60, 0x34,    //Bar 13
+                0xFE, 0x00, 0x64, 0x34, //Bar 14
+                0xFE, 0x00, 0x68, 0x32, //Bar 15 (New! Fixes the desync on loops)
+
+                //Shorter timeOffset of 192 before the loop (which is why we read 2 fewer bytes in the last repeat above)
+                0x81, 0x40, //Should ensure it's still properly synced after the loop
+
+                //Loop End
+                0xFF, 0x2D, 0xFF, 0xFF, 0x00, 0x00, 0x01, 0x34, 0x00, 
+            
+                //Channel End (Unused since it loops forever, but here for consistency)
+                0xFF, 0x2F,
+
+                //Padding
+                0x0 
+            };
+
+            for (u32 i = 0; i < ARRAYCOUNT(patch); i++) {
+                song[0xD6F + i] = patch[i];
+            }
+        }
     }
 
     //Update AUDIO.bin
