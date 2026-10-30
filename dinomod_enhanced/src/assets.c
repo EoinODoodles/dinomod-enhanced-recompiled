@@ -3627,6 +3627,21 @@ static void swapstone_hollow_modifications(void) {
         Trigger_Setup* plane = GET_MAPS_OBJECT(sHollow, 0x40B75);
         DIRECTIONAL_OBJGROUP_TOGGLE_REVERSE(6, plane, 1, 2);
     }
+
+    //Handle unloading/loading Tricky at the tree hollow entrance to SwapStone Hollow Well
+    {
+        //Unload Tricky when entering/exiting SwapStone Hollow Well from the surface
+        {
+            Trigger_Setup* plane = GET_MAPS_OBJECT(sHollow, 0x000019A7);
+            BIDIRECTIONAL_SIDEKICK_UNLOAD(plane, 2);
+        }
+
+        //Edit the SideLoad near the tree stump, so it can reload Tricky after previously loading him 
+        {
+            SideLoad_Setup* sideload = GET_MAPS_OBJECT(sHollow, 0x00030DF9);
+            sideload->options = SideLoad_OPTION_Repeatable;
+        }
+    }
 }
 
 static void swapstone_hollow_well_additions(void) {

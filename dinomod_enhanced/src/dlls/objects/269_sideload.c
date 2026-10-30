@@ -1,11 +1,14 @@
 #include "modding.h"
 #include "recomputils.h"
 
+#include "common_objsetups.h"
+
 #include "PR/ultratypes.h"
 #include "game/objects/object_id.h"
 #include "game/objects/object.h"
 #include "game/gamebits.h"
 #include "sys/main.h"
+#include "sys/map.h"
 #include "sys/map_enums.h"
 #include "sys/objects.h"
 #include "sys/objprint.h"
@@ -14,14 +17,12 @@
 
 #include "recomp/dlls/objects/269_sideload_recomp.h"
 
-typedef struct {
-    ObjSetup base;
-    s16 gamebitUnlocked;    //GamebitID determining whether the sidekick is unlocked (i.e. Kyte rescued)
-    u8 sidekickIndex;       //Whether this should load Tricky/Kyte (see `SideLoad_Indices`)
-} SideLoad_Setup;
+//TEMPORARY DEFINES
+#define sideload_obj_Control sideload_control
+//END OF TEMPORARY DEFINES
 
 typedef struct {
-    u8 loaded;              //Boolean: whether the sidekick has been loaded by the SideLoad object
+    u8 loaded;              //Boolean: whether the sidekick has been loaded by this SideLoad object
 } SideLoad_Data;
 
 typedef enum {
@@ -29,7 +30,7 @@ typedef enum {
     Sidekick_Index_Kyte
 } SideLoad_Indices;
 
-RECOMP_PATCH void sideload_control(Object* self) {
+RECOMP_PATCH void sideload_obj_Control(Object* self) {
     SideLoad_Data* objData = self->data;
     SideLoad_Setup* objSetup = (SideLoad_Setup*)self->setup;
     s16 dSidekickObjIDs[] = {OBJ_Tricky, OBJ_Kyte};
@@ -38,25 +39,49 @@ RECOMP_PATCH void sideload_control(Object* self) {
     Object* sidekick;
     
     //@recomp: store player and sidekick for additional checks
-    if ((player = objGetPlayer()) == NULL) {
+    player = objGetPlayer();
+    if (player == NULL) {
         return;
     }
     sidekick = objGetSidekick();
 
-    //@recomp: add a special case for SwapStone Hollow, 
-    //stopping Tricky from loading and falling into the well via the surface's SideLoad object
+    /* @recomp: add a special case for SwapStone Hollow, 
+       stopping Tricky from loading and falling into the well via the surface's SideLoad objects.
+
+       TODO: maybe rework this as general-purpose new options/features for the sideload?
+       Could have an optional player minY and/or maxY, and an optional player mapID filter! 
+       This would require extending the objSetup (maybe with a new controlNo too), so it might
+       be easiest to implement as a new Object entirely ("SideLoadPlus"?) 
+       */
     if (self->mapID == MAP_SWAPSTONE_HOLLOW) {
-        if ((player->srt.transl.y < -845.0f) && (mainGetBits(BIT_Tricky_Learned_Flame) == FALSE)) {
-            if (sidekick) {
-                objFreeObject(sidekick);
-            }
+        #define SWAPSTONE_WELL_Y -845.0f
+
+        //Don't load the sidekick if the player's yCoords are at well height
+        if ((self->globalPosition.y >= SWAPSTONE_WELL_Y) && (player->srt.transl.y < SWAPSTONE_WELL_Y)) {
+            return;
+        }
+
+        //Don't load the sidekick if the player's mapID is in the well
+        if (mapWorldXZToMapID(player->globalPosition.x, player->globalPosition.z) == MAP_SWAPSTONE_HOLLOW_2) {
             return;
         }
     }
 
-    if ((sidekick == FALSE) && (objData->loaded == FALSE) && 
-        ((gamebit = objSetup->gamebitUnlocked, gamebit == NO_GAMEBIT) || mainGetBits(gamebit))
+    //Return if the sidekick is currently loaded
+    if (sidekick) {
+        return;
+    }
+    
+    //Do nothing more if the object loaded the sidekick previously
+    if (objData->loaded && 
+        (objSetup->options & SideLoad_OPTION_Repeatable) == FALSE //@recomp: add a way to continue loading the sidekick
     ) {
+        return;
+    }
+
+    //Load the sidekick if they're unlocked (or no unlock gamebit is specified)
+    gamebit = objSetup->gamebitUnlocked;
+    if ((gamebit == NO_GAMEBIT) || mainGetBits(gamebit)) {
         objData->loaded = TRUE;
         objLoadSidekick(self, dSidekickObjIDs[objSetup->sidekickIndex]);
     }

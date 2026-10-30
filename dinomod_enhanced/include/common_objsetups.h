@@ -288,7 +288,13 @@ typedef struct {
     ObjSetup base;
     s16 gamebitUnlocked;    //GamebitID determining whether the sidekick is unlocked (i.e. Kyte rescued)
     u8 sidekickIndex;       //Whether this should load Tricky/Kyte (see `SideLoad_Indices`)
+    /* RECOMP */
+    u8 options;             //`SideLoad_Options`
 } SideLoad_Setup;
+
+typedef enum {
+    SideLoad_OPTION_Repeatable = 1 //If the sidekick unloads after being loaded by this SideLoad object, the SideLoad can reload them
+} SideLoad_Options;
 
 typedef struct {
     ObjSetup base;

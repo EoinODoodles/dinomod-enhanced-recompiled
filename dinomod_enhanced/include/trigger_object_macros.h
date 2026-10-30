@@ -239,3 +239,51 @@
     (triggerObject)->commands[cmdSlot].id = TRG_CMD_RESTART;\
     (triggerObject)->commands[cmdSlot].paramCombined = 2;
 
+    
+/* COMMANDS: SIDEKICK */
+
+//AUTO-HEEL
+
+//A shortcut for calling the sidekick over when entering a Trigger Object
+#define ENTER_SIDEKICK_AUTO_HEEL(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_SIDEKICK;\
+    (triggerObject)->commands[cmdSlot].param1 = 0;\
+    (triggerObject)->commands[cmdSlot].param2 = 0;
+
+//A shortcut for calling the sidekick over when exiting a Trigger Object
+#define EXIT_SIDEKICK_AUTO_HEEL(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_SIDEKICK;\
+    (triggerObject)->commands[cmdSlot].param1 = 0;\
+    (triggerObject)->commands[cmdSlot].param2 = 0;
+
+//A shortcut for calling the sidekick over when entering/exiting a Trigger Object
+#define BIDIRECTIONAL_SIDEKICK_AUTO_HEEL(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_SIDEKICK;\
+    (triggerObject)->commands[cmdSlot].param1 = 0;\
+    (triggerObject)->commands[cmdSlot].param2 = 0;
+
+//UNLOAD
+
+//A shortcut for unloading the sidekick when entering a Trigger Object
+#define ENTER_SIDEKICK_UNLOAD(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_RE_ENTER;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_SIDEKICK;\
+    (triggerObject)->commands[cmdSlot].param1 = 1;\
+    (triggerObject)->commands[cmdSlot].param2 = 0;
+
+//A shortcut for unloading the sidekick when exiting a Trigger Object
+#define EXIT_SIDEKICK_UNLOAD(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_OUT | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_SIDEKICK;\
+    (triggerObject)->commands[cmdSlot].param1 = 1;\
+    (triggerObject)->commands[cmdSlot].param2 = 0;
+
+//A shortcut for unloading the sidekick when entering/exiting a Trigger Object
+#define BIDIRECTIONAL_SIDEKICK_UNLOAD(triggerObject, cmdSlot)\
+    (triggerObject)->commands[cmdSlot].condition = CMD_COND_IN | CMD_COND_OUT | CMD_COND_RE_ENTER | CMD_COND_RE_EXIT;\
+    (triggerObject)->commands[cmdSlot].id = TRG_CMD_SIDEKICK;\
+    (triggerObject)->commands[cmdSlot].param1 = 1;\
+    (triggerObject)->commands[cmdSlot].param2 = 0;
