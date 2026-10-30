@@ -93,7 +93,7 @@ typedef struct {
 /*14*/ s16 beamTexV;
 /*16*/ s16 yaw;
 /*18*/ s16 yawTarget;
-/*1A*/ u8 unk1A;
+/*1A*/ u8 lfxSlot;
 /*1B*/ u8 unk1B; // unused
 /*1C*/ u8 colorPulseDir;
 } EWTrobotpatrol_Beam;
@@ -442,18 +442,18 @@ RECOMP_PATCH void EWTrobotpatrol_obj_Print(Object* self, Gfx** gdl, Mtx** mtxs, 
     u8 alertR;
     u8 alertG;
     u8 alertB;
-    u8 savedAmbientR;
-    u8 savedAmbientG;
-    u8 savedAmbientB;
+    u8 savedSkylightR;
+    u8 savedSkylightG;
+    u8 savedSkylightB;
     ObjectShadow* beamShadow;
     Vec3f sp48;
     s32 _pad2;
-    u8 ambientR;
-    u8 ambientG;
-    u8 ambientB;
+    u8 skylightR;
+    u8 skylightG;
+    u8 skylightB;
     Vec3f* beamDir;
 
-    lightGetAmbient(&ambientR, &ambientG, &ambientB);
+    lightGetSkyLight(&skylightR, &skylightG, &skylightB);
     objdata = self->data;
     modelInst = self->modelInsts[self->modelInstIdx];
     if (visibility != 0) {
@@ -548,19 +548,19 @@ RECOMP_PATCH void EWTrobotpatrol_obj_Print(Object* self, Gfx** gdl, Mtx** mtxs, 
             }
         }
         // ? Was this originally trying to apply the shadow color to the beam model itself?
-        savedAmbientR = ambientR;
-        savedAmbientG = ambientG;
-        savedAmbientB = ambientB;
-        ambientR = beamShadowR;
-        ambientG = beamShadowG;
-        ambientB = beamShadowB;
+        savedSkylightR = skylightR;
+        savedSkylightG = skylightG;
+        savedSkylightB = skylightB;
+        skylightR = beamShadowR;
+        skylightG = beamShadowG;
+        skylightB = beamShadowB;
         // @recomp: Apply shadow color to beam model
         objprintSetBlendColor(beamShadowR, beamShadowG, beamShadowB, 255);
         // Draw beam
         objprintDrawModel(beam, gdl, mtxs, (Vertex**)vtxs, (Triangle**)pols, 1.0f);
-        ambientR = savedAmbientR;
-        ambientG = savedAmbientG;
-        ambientB = savedAmbientB;
+        skylightR = savedSkylightR;
+        skylightG = savedSkylightG;
+        skylightB = savedSkylightB;
         // Mark beam model matrices as no longer live (why?)
         beam->modelInsts[beam->modelInstIdx]->unk34 &= ~0x8;
     }
@@ -745,7 +745,7 @@ RECOMP_PATCH void EWTrobotpatrol_gunPrint(Object* self, ModelInstance* modelInst
         gun->shouldShoot = 0;
     }
     texRenderReset();
-    lightAmbientDL(gdl);
+    lightSkyLightDL(gdl);
 }
 
 RECOMP_PATCH s32 EWTrobotpatrol_aimRaycast(Vec3f* barrelPos, Vec3f* aimPoint, Vec3f* fireAtPoint, Vec3f* a3, Object* target) {
@@ -924,24 +924,24 @@ RECOMP_PATCH void EWTrobotpatrol_initBeam(Object* self, EWTrobotpatrol_Data* obj
     }
     beam->obj = beamObj;
     bzero(&laction, sizeof(LightAction));
-    laction.unk12 = 0x15;
-    laction.unk19 = 0xFF;
-    laction.unk1a = 0xFF;
-    laction.unk18 = 0;
-    laction.unk10 = 0xFFFE;
+    laction.flags = 0x15;
+    laction.g2 = 0xFF;
+    laction.b2 = 0xFF;
+    laction.r2 = 0;
+    laction.slot = 0xFFFE;
     laction.unk1c = 1;
-    laction.unk4 = 0;
-    laction.unk6 = -0xA;
-    laction.unk8 = 0;
+    laction.x = 0;
+    laction.y = -10;
+    laction.z = 0;
     laction.unka = 0x46;
     laction.unkC = 0xA;
-    laction.unk1d = 0xFF;
-    laction.unk22 = 2;
-    laction.unk1f = 0xF;
-    laction.unk20 = 8;
-    laction.unk0 = 0;
+    laction.max = 255;
+    laction.speed = 2;
+    laction.maxRange = 15;
+    laction.minRange = 8;
+    laction.timer = 0;
     dll_newlfx->DoAction(self, self, &laction, 0, 0, 0);
-    beam->unk1A = self->unkD6;
+    beam->lfxSlot = self->unkD6;
     beam->yawTarget = 0;
     beam->yaw = 0;
 }
