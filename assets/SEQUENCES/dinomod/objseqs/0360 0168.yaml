@@ -87,10 +87,10 @@ curves:
   - { type: 2, delay: 170, params: 0x321 } # ANIM @ 4098
   - { type: 2, delay: 73, params: 0x30E } # ANIM @ 4268
 
-  # Clear "DINOMOD_BIT_971_AMSFX_Waterfalls_Half_Volume"
+  # Clear "DINOMOD_BIT_970_AMSFX_Waterfalls_Half_Volume"
   - { type: 0, delay: 0, params: 4340 } # SETTIME @ 4340
   - { type: 13, delay: 0, params: 0xC000 } # ENVFX (CLEAR_BIT)
-  - { type: 127, delay: 0, params: 0x971 } # PARAM
+  - { type: 127, delay: 0, params: 0x970 } # PARAM
 
   - { type: 11, delay: 0, params: 1 } # CODE @ 4341
   - { code_type: 6, val1: 0x0, val2: 0x0 } # 6 (0)
