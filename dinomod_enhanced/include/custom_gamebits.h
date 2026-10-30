@@ -87,7 +87,7 @@ typedef enum {
     DINOMOD_BIT_96D_CamClimb_Shorter_Ease = 0x96D,  // len:1 group:1 (Temporarily use only the second half of the usual camera ease, helpful for ladders that are close to walls)
     DINOMOD_BIT_96E_CamClimb_Skip_Ease = 0x96E,     // len:1 group:1 (Temporarily skip the camera ease entirely when climbing, helpful for ladders that are close to walls)
     DINOMOD_BIT_96F_Vehicle_Skip_Mount_Animation = 0x96F,  // len:1 group:1 (Skips the next vehicle mounting animation)
-    DINOMOD_BIT_970_AMSFX_Waterfalls_Reduce_Max_Volume = 0x970,  // len:1 group:1 (Temporarily reduces the max volume of `amSfx_WaterFallsControl`'s waterfall sounds, to avoid them drowning out the dialogue in Discovery Falls' HighTop cutscene)
+    DINOMOD_BIT_970_AMSFX_Waterfalls_Reduce_Max_Volume = 0x970,  // len:1 group:0 (Temporarily reduces the max volume of `amSfx_WaterFallsControl`'s waterfall sounds, to avoid them drowning out the dialogue in Discovery Falls' HighTop cutscene)
     DINOMOD_BIT_971_BWLog_In_Choppy_Waters = 0x971,  // len:1 group:1 (Temporarily disables the DFlog-style effects intended for riding the log in calm waters)
     DINOMOD_BIT_972_DF_Open_Door_to_MMP = 0x972,  // len:1 group:1 (For the unused door blocking the route to MMP)
     DINOMOD_BIT_973_DF_Opened_Door_to_MMP = 0x973,  // len:1 group:1 (For the unused door blocking the route to MMP)
