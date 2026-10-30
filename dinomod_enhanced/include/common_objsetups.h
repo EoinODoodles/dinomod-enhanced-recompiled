@@ -1,16 +1,17 @@
 #pragma once
 
 #include "game/objects/object.h"
-#include "dlls/engine/90_camstatic.h"
-
-typedef struct {
-    ObjSetup base;
-    s16 gamebitActivate; //gamebitID to check before animating
-    u8 enableFlag1;      //unknown purpose
-    u8 blocksAnimatorID; //when animating Blocks model Shapes
-    u8 mode;             //decides which behaviour to use: removing/adding HITS lines, removing/adding Blocks Shapes, fading in/out Blocks Shapes
-    u8 hitsAnimatorID;   //when animating HITS lines
-} HitAnimator_Setup;
+#include "game/objects/setups/18_StaticCamera.h"
+#include "game/objects/setups/32_SideLoad.h"
+#include "game/objects/setups/35_TexScroll.h"
+#include "game/objects/setups/39_Warp.h"
+#include "game/objects/setups/51_Generic.h"
+#include "game/objects/setups/77_AlphaAnimator.h"
+#include "game/objects/setups/96_SfxPlayer.h"
+#include "game/objects/setups/103.h"
+#include "game/objects/setups/105_Exploder.h"
+#include "game/objects/setups/115_KyteTarget.h"
+#include "game/objects/setups/127_WaterFallSpray.h"
 
 typedef enum {
     HitAnimator_Mode_Invert = 1,  //Remove the target when gamebit set (instead of enabling it when gamebit set)
@@ -23,16 +24,6 @@ typedef enum {
 #define HITANIMATOR_MODE_SHAPE_ON hitAnimator_configureModeFlags(FALSE, TRUE, TRUE)  //Shape switched on when gamebit set
 #define HITANIMATOR_MODE_HITS_OFF hitAnimator_configureModeFlags(TRUE, FALSE, FALSE) //Line switched off when gamebit set
 #define HITANIMATOR_MODE_HITS_ON hitAnimator_configureModeFlags(FALSE, FALSE, FALSE) //Line switched on when gamebit set
-
-typedef struct {
-    ObjSetup base;
-    s16 gamebitID;          //gamebit controlling visibility (usually multi-bit, used as a bitfield)
-    u8 animatorID1;         //the animatorID tag of the Block Shapes that will be shown/hidden
-    u8 initialVisibility;   //Boolean
-    u8 bitIndex;            //the index to check on the gamebit bitfield
-    u8 animatorID2;         //up to 3 different animatorIDs can be specified
-    u8 animatorID3;         //up to 3 different animatorIDs can be specified
-} VisAnimator_Setup;
 
 typedef struct {
     ObjSetup base;
@@ -56,7 +47,8 @@ typedef struct {
     u16 fadeRadiusGoal;                     //(For radial mode) End radius of the fade animation
     u16 soundID;                            //Which sound to play (requires sound playing enabled on `objData->flags`)
     u16 soundIDReverse;                     //@recomp: Which sound to play when reversing fade (requires sound playing enabled on `objData->flags`)
-} AlphaAnimator_Setup;
+} AlphaAnimator_Setup_Dinomod;
+_Static_assert(sizeof(AlphaAnimator_Setup_Dinomod) == sizeof(AlphaAnimator_Setup), "Custom AlphaAnimator setup size is incorrect.");
 
 typedef enum {
     AlphaAnimator_MODE_0_Basic_Fade_and_Set_Gamebit, //Fade using a gamebit (and optionally set a secondary gamebit when the fade is complete)
@@ -110,28 +102,9 @@ typedef enum {
 } XYZAnimator_Options;
 
 typedef struct {
-    ObjSetup base;
-    s8 loopStartFrame;   //Frame to loop back to after reaching endFrame (only when looping)
-    s8 materialIndex;    //Index within object's local Blocks model's materials (the frame of the material's texture animation will be manipulated)
-    s16 endFrame;        //End frame of texture animation
-    s16 speed;           //Playback rate when advancing through the texture animation
-    s16 gamebitFinished; //GamebitID to set when end of animation reached (also prevents looping)
-    s16 gamebitPlay;     //GamebitID to query, starting animation
-} TexFrameAnimator_Setup;
-
-typedef struct {
-    ObjSetup base;
-    s16 textureIndex;       //in TABLES.bin subfile #14 ("scroll table")
-    s16 gamebitActivate;    //gamebitID that activates animation (or -1 to skip bit check)
-    s16 unused1C;
-    s8 speedU;              //scroll speed (horizontal)
-    s8 speedV;              //scroll speed (vertical)
-} TexScroll_Setup;
-
-typedef struct {
 /*00*/ ObjSetup base;
 /*18*/ s16 textureIndex;       //Primary material: index in TABLES.bin subfile #14 ("scroll table")
-/*1A*/ s16 gamebitActivate;    //Unused, but instances of this object store a gamebitID here (e.g. 0x95)
+/*1A*/ s16 gamebitActivate;    //gamebitID that activates animation (or -1 to skip bit check)
 /*1C*/ s8 uSpeedB;             //U scroll speed for secondary blend material 
 /*1D*/ s8 vSpeedB;             //V scroll speed for secondary blend material 
 /*1E*/ s8 uSpeedA;             //U scroll speed for primary material              
@@ -140,7 +113,8 @@ typedef struct {
                                //Blend material is used for multitextured scrolling water, etc.
 /* RECOMP */
 /*22*/ u16 options;             //Repurposed padding (see `BlockTexScrollAdd_RecycleOptions`)
-} TexScroll2_Setup;
+} TexScroll2_Setup_Dinomod;
+_Static_assert(sizeof(TexScroll2_Setup_Dinomod) == sizeof(TexScroll_Setup), "Custom TexScroll setup size is incorrect.");
 
 typedef struct {
 /*00*/ ObjSetup base;
@@ -153,7 +127,9 @@ typedef struct {
 /*1E*/ u8 volume;       //Optional volume adjustment (MAX_VOLUME used if 0)
 /*1F*/ s8 pitch;        //Optional pitch adjustment for looped sounds (ignored if 0) (useful for desyncing nearby sources using same sound)
 /*20*/ u8 fadeDuration; //Duration for fading looped sounds
-} SfxPlayer_Setup;
+} SfxPlayer_Setup_Dinomod;
+// TODO: custom SfxPlayer setup struct is too big!
+//_Static_assert(sizeof(SfxPlayer_Setup_Dinomod) == sizeof(SfxPlayer_Setup), "Custom SfxPlayer setup size is incorrect.");
 
 typedef enum {
     SfxPlayer_FLAG_1_Looping_Sound = 1,                //Use this if the sound loops (plays with a soundHandle, and stops it when sound finished) [Has priority over "play at random inside radius" mode]
@@ -165,56 +141,6 @@ typedef enum {
     SfxPlayer_CUSTOMFLAG_40_Play_if_Gamebit_Set_on_Setup = 0x40 //Start out playing a looping sound if its gamebit is already set during setup
 } SfxPlayer_Flags;
 
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s8 activationRange;
-/*19*/ s8 bank;
-/*1A*/ s16 indexInBank;
-/*1C*/ s16 fxRate;
-/*1E*/ s16 toggleGamebit;
-/*20*/ s16 disableGamebit;
-/*22*/ s8 roll;
-/*23*/ s8 pitch;
-/*24*/ s8 yaw;
-/*25*/ s8 rollSpeed;        //animation speed for particle's roll   (0x7F for a slower default speed)
-/*26*/ s8 pitchSpeed;       //animation speed for particle's pitch  (0x7F for a slower default speed)
-/*27*/ s8 yawSpeed;         //animation speed for particle's yaw    (0x7F for a slower default speed)
-/*28*/ u8 flagConfig;       //chooses between 4 partfx flag presets
-/*29*/ u8 interval;         //FXEmit activates repeatedly, at multiples of 100 frames 
-                            //interval = 0 skips interval behaviour, 0xFF disables FXEmit
-/*2A*/ s16 intervalSoundID; //soundID to play during interval activation
-} FXEmit_Setup;
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s16 gamebitHasPlayed; // when gamebit is set, this objseq has played before
-/*1A*/ s16 gamebitPlay;    // when gamebit is set, triggers this seqobj to play
-/*1C*/ u8 yaw;
-/*1D*/ u8 playbackOptions;
-/*1E*/ s8 seqIndex;            //The index of the sequence in the Object.bin entry's sequence list
-/*1F*/ s8 modelInstIdx;        //Choose between 3D models, visible when debugging (usually a clapperboard)
-/*20*/ s16 replayStartTime;
-/*22*/ u16 replayActorMask; // bitfield of which actors are enabled if this seq is replaying
-/*24*/ u8 warpID;              //Optionally warp the player
-} SeqObj_Setup;
-
-typedef enum {
-    SEQOBJ_OPTIONS_None = 0,
-    SEQOBJ_OPTIONS_ManualHasPlayedBit = 1,                      // don't auto update the hasPlayed gamebit
-    SEQOBJ_OPTIONS_ManualHasPlayed_Set_By_SeqCmd = 2,           // gamebitFinished intended to be set via a seqCommand
-    SEQOBJ_OPTIONS_ManualHasPlayed_Dont_Unset_Play_Gamebit = 4, // avoids setting gamebitPlay back to 0 after sequence finishes, when ManualHasPlayedBit is enabled
-    SEQOBJ_OPTIONS_AutoHasPlayed_Set_After_Sequence = 8,        // set gamebitFinished after sequences finishes, instead of immediately
-    SEQOBJ_OPTIONS_HasReplayActorMask = 16                      // if set, more than just the seqobj will be controlled by a replay
-} SeqObj_PlaybackOptions;
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ u8 roll;
-/*19*/ u8 pitch;
-/*1A*/ u8 yaw;
-/*1B*/ u8 scale;
-} SeqProp_Setup;
-
 typedef enum  {
     USEOBJ_HideIfAlreadyUsed = 0x1,
     USEOBJ_SeqControlsUsedBit = 0x4,
@@ -224,20 +150,6 @@ typedef enum  {
     USEOBJ_ReplayIncludeActor3 = 0x40,
     USEOBJ_ReplayIncludeActor4 = 0x80
 } UseObjFlags;
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ u8 yaw;
-/*19*/ u8 pitch;
-/*1A*/ u8 roll;
-/*1B*/ u8 flags;
-/*1C*/ s16 gamebitUsed; // gamebit that says whether this object was already used
-/*1E*/ s16 gamebitRequiredItem; // inventory item required to use this object
-/*20*/ s8 objectSeqIndex;
-/*21*/ s8 modelInstIdx;
-/*22*/ s16 gamebitEnabled; // gamebit that says whether this object is enabled (and can be used)
-/*24*/ s16 replayStartTime; // if not zero, the sequence will be replayed if the object was already used
-} UseObj_Setup;
 
 typedef enum {
     WCUseObj_FLAG_1_Hide_On_Revisit_When_Used = 1,
@@ -249,27 +161,6 @@ typedef enum {
     WCUseObj_FLAG_40_PreemptActors1and2 = 0x40,
     WCUseObj_FLAG_80_PreemptActors1and3 = 0x80
 } WCUseObj_Flags;
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s8 rotation;
-/*19*/ u8 _unk19[0x20 - 0x19];
-/*20*/ s16 gamebitEnabled;
-} DR_EarthCallPad_Setup;
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ u8 yaw;
-/*19*/ u8 roll;
-/*1A*/ u8 halfWidth;  // x dimension (stored halved), centred around origin
-/*1B*/ u8 halfHeight; // y dimension (stored halved), base of box at origin
-/*1C*/ u8 halfLength; // z dimension (stored halved), centred around origin
-/*1D*/ u8 effect;
-/*1E*/ u8 _unk1E;     // Unused, but rarely set to 1 in ROM?
-/*1F*/ u8 gamebitDisableValue;      // disabled if the target gamebit is this value
-/*20*/ s16 gamebitEnable;           // -1 if this effect box is always enabled
-/*22*/ u8 target;                   // see `EffectBox_Targets`
-} EffectBox_Setup;
 
 typedef enum {
     EffectBox_EFFECT_Fall_Reset = 0,        //Puts camera underneath you and causes fall reset
@@ -290,27 +181,12 @@ typedef struct {
     u8 sidekickIndex;       //Whether this should load Tricky/Kyte (see `SideLoad_Indices`)
     /* RECOMP */
     u8 options;             //`SideLoad_Options`
-} SideLoad_Setup;
+} SideLoad_Setup_Dinomod;
+_Static_assert(sizeof(SideLoad_Setup_Dinomod) == sizeof(SideLoad_Setup), "Custom SideLoad setup size is incorrect.");
 
 typedef enum {
     SideLoad_OPTION_Repeatable = 1 //If the sidekick unloads after being loaded by this SideLoad object, the SideLoad can reload them
 } SideLoad_Options;
-
-typedef struct {
-    ObjSetup base;
-    s16 gamebitDug;         //Gamebit to set when Tricky digs up the spot
-    s16 unused1A;      
-    s16 unused1C;
-    s16 magicCaveID;        //Values 3 onwards cause the dig spot to become be a Magic Cave entrance
-    u8 digDepthMax;         //Dig distance (stored at 100x scale)
-    u8 soundIndex;          //Index of the sound to play when digging has finished (0: small secret, 1: big secret)
-    u8 unused22;
-    u8 findCommandRadius;   //Range for Find command to show up in inventory
-    u8 unused24;            
-    u8 animatorID;          //Block shapes with this tag will be animated
-    u8 falloffRadius;       //Vertex influence tapers off with this radius, and it also decides how far Tricky scoots backwards while digging
-    u8 collectableDepth;    //How far down the collectable is buried beneath the dig spot
-} GroundAnimator_Setup;
 
 typedef struct {
 /*00*/ ObjSetup base;
@@ -329,40 +205,8 @@ typedef struct {
 /*RECOMP*/
 // Note: This addition is OK because this setup has a size of 0x28 in the map files.
 /*25*/ u8 invertGamebit; //When set: spray plays when gamebit set (if a gamebit was specified)
-} WaterFallSpray_Setup;
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s8 unk18;
-/*19*/ s8 unk19;
-/*1A*/ s16 unk1A;
-/*1C*/ s16 unk1C;
-/*1E*/ s16 unk1E;
-/*20*/ s16 unk20;
-} DLL506_Setup;
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s16 unk18[8];
-/*28*/ s16 unk28[8];
-/*38*/ u8 unk38;
-/*39*/ u8 unk39;
-/*3A*/ u8 unk3A;
-/*3B*/ u8 unk3B;
-/*3C*/ s16 preemptTime;
-/*3E*/ u8 _unk3E[0x40 - 0x3E];
-/*40*/ s8 unk40[8];
-} NWMultiSeq_Setup;
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s8 rotation; // yaw >> 8
-/*19*/ s8 triggerCondition;
-/*1A*/ s16 triggerRange;
-/*1C*/ s16 seqno; // object seq index
-/*1E*/ s16 conditionBit; // if not -1, bit that determines if the seqpoint is enabled. required value depends on the trigger condition
-/*20*/ s16 triggeredBit; // if not -1, this bit is set to 1 once seqpoint is triggered. prevents re-trigger if bit is already 1
-} WL_seqpoint_Setup;
+} WaterFallSpray_Setup_Dinomod;
+_Static_assert(sizeof(WaterFallSpray_Setup_Dinomod) == sizeof(WaterFallSpray_Setup), "Custom WaterFallSpray setup size is incorrect.");
 
 typedef struct {
 /*00*/ ObjSetup base;
@@ -378,7 +222,8 @@ typedef struct {
 /*1E*/ s8 quarterRange;
 /*20*/ s16 gamebit;
 /*22*/ s16 gamebitDepart;    //departure sequence, using custom mode 5 (@recomp: repurpose padding as new field)
-} WarpPoint_Setup;
+} Warp_Setup_Dinomod;
+_Static_assert(sizeof(Warp_Setup_Dinomod) == sizeof(Warp_Setup), "Custom Warp setup size is incorrect.");
 
 typedef enum {
     WarpPoint_MODE_0, //Play an arrival objSeq (fade in); warp when nearby (fade out) (ignores delay timer)
@@ -395,24 +240,6 @@ typedef enum {
 #define NO_WARP_ID -1
 
 typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ u8 yaw;
-/*19*/ u8 unk19;
-/*1A*/ s8 warpID;
-/*1B*/ u8 unk1B[0x20 - 0x1B];
-/*20*/ s16 gamebit;
-} Transporter_Setup;
-
-typedef struct {
-    ObjSetup base;
-    s16 gamebitShown;
-    s16 unk1A;
-    s16 unk1C;
-    s16 textID;
-    u8 activationRadius;
-} LevelName_Setup;
-
-typedef struct {
     ObjSetup base;
     u8 cameraID;
     u8 speedFactor; //@recomp
@@ -421,27 +248,14 @@ typedef struct {
     s16 yaw;
     s16 pitch;
     s16 roll;
-} StaticCamera_Setup;
+} StaticCamera_Setup_Dinomod;
+_Static_assert(sizeof(StaticCamera_Setup_Dinomod) == sizeof(StaticCamera_Setup), "Custom StaticCamera setup size is incorrect.");
 
 #define CamStatic_FLAG_Aim_at_Player_Centre 0x10
 #define CamStatic_LOOK_AT (CamStatic_FLAG_Aim_Yaw_at_Player | CamStatic_FLAG_Aim_Pitch_at_Player | CamStatic_FLAG_Aim_at_Player_Centre)
 
 //For use in Trigger Object CameraAction commands
 #define CamStatic_PreviousCameraEasesIn 0x80
-
-typedef struct {
-    ObjSetup base;
-    s16 gamebit;            //GamebitID to set when switch is hit
-    s16 resetDelay;         //Number of seconds until the switch resets to its unpressed state (if `Switch_FLAG_Resets_After_Delay` is set)
-    u8 pitch;               //Rotation
-    u8 scale;               //Scale multiplier (0x64 = 100%)
-    u8 modelIndexAndFlags;  //Flags on lowest two bits, modelIndex on upper bits
-    u8 yaw;                 //Rotation
-    u8 tintR;
-    u8 tintG;
-    u8 tintB;
-    u8 enableTint;          //Enable tinting the switch to a different colour
-} ProjectileSwitch_Setup;
 
 typedef enum {
     Switch_FLAG_Can_Be_Toggled_Via_Attacks = 1, //Repeated Projectile Spell hits will toggle the switch's state
@@ -456,7 +270,8 @@ typedef struct {
     u8 yaw;
     s16 _unused1C;
     s16 gamebitDisable; //@recomp: repurpose padding, barrel disappears after this gamebit is set
-} DFBarrel_Setup;
+} DFBarrel_Setup_Dinomod;
+_Static_assert(sizeof(DFBarrel_Setup_Dinomod) == sizeof(Ctrl103_Setup), "Custom DFBarrel setup size is incorrect.");
 
 typedef struct {
     ObjSetup base;
@@ -476,7 +291,9 @@ typedef struct {
     s16 gamebitFinished;
     s16 gamebitExplode;
     u8 options; //@recomp: repurpose padding
+    u8 _unk43[0x48 - 0x43];
 } CFExplodeWall_CustomSetup;
+_Static_assert(sizeof(CFExplodeWall_CustomSetup) == sizeof(Exploder_Setup), "Custom CFExplodeWall setup size is incorrect.");
 
 typedef enum {
     CFExplodeWall_CUSTOMOPTION_Use_Default_Explosion_Sound = 1,
@@ -523,7 +340,8 @@ union {
     }; 
     /*1E*/ u8 flags; //@recomp: use as a general flags field instead of just a Boolean
 };
-} FindKyteObject_Setup;
+} FindKyteObject_Setup_Dinomod;
+_Static_assert(sizeof(FindKyteObject_Setup_Dinomod) == sizeof(KyteTarget_Setup), "Custom FindKyteObject setup size is incorrect.");
 
 typedef enum {
     FindKyteObject_FLAG_1_2D_Distance_Check = 1,
@@ -532,24 +350,15 @@ typedef enum {
     FindKyteObject_FLAG_4_Start_Timeout_When_Kyte_is_Nearby = 4, //Timeout countdown doesn't start until Kyte's within 4x the Find command's range
 } FindKyteObject_Flags;
 
+/* RECOMP - edited version of struct */
 typedef struct {
 /*00*/ ObjSetup base;
-/*18*/ u8 unk18; // unused due to, presumably, missing code. likely the number of robos to spawn 
-/*19*/ u8 numNodes; // set but unused, the dll discovers this count on its own
-/*1A*/ u8 roboFadeDistance;
-/*1B*/ u8 maxSearchTime; // maximum search time (after aggro) divided by 64
-} EWTrobotpatrolB_Setup;
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s8 yaw8;
-} CFGuardian_Setup;
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ u16 regrowthTime;    //The amount of time to spend regrowing (in frames)
-/*1A*/ s8 unused1A;
-/*1B*/ u8 dustIdx;          //The index of the type of MagicDust to create (dMagicDustObjIDs)
-/*1C*/ u8 modelInstIdx;     //The model index to use for the plant (default vs. snowy)
-/*1D*/ u8 yaw;
-} MagicPlant_Setup;
+/*19*/ s8 yaw;
+/*19*/ s8 modelIndex;
+/*1A*/ u8 _unk1A[0x1C - 0x1A];
+/*1C*/ s16 gamebitSlab;     //@recomp: repurpose unused field
+/*1E*/ s16 gamebitLit;
+/*20*/ s16 gamebitRise;
+/*22*/ s16 gamebitSwitch;   //@recomp: repurpose unused field
+} WCBeacon_Setup_Dinomod;
+_Static_assert(sizeof(WCBeacon_Setup_Dinomod) == sizeof(WCBeacon_Setup), "Custom FindKyteObject setup size is incorrect.");

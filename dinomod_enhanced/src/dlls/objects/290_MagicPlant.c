@@ -3,6 +3,7 @@
 
 #include "game/objects/object_id.h"
 #include "game/objects/object.h"
+#include "game/objects/setups/108_MagicPlant.h"
 #include "sys/map.h"
 #include "sys/objlib.h"
 #include "sys/objprint.h"

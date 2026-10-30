@@ -442,7 +442,7 @@ RECOMP_PATCH s32 amSfx_waterFallsFindSprays(void) {
     while (setupListLength > offset && sWaterFallSprayCount < MAX_WATER_FALL_SPRAY) {
         if (setup->objId == OBJ_WaterFallSpray) {
             //@recomp: ignore the WaterFallSpray object if it's switched off via its gamebit
-            WaterFallSpray_Setup* spraySetup = (WaterFallSpray_Setup*)setup;
+            WaterFallSpray_Setup_Dinomod* spraySetup = (WaterFallSpray_Setup_Dinomod*)setup;
             if ((spraySetup->gamebit <= NO_GAMEBIT + 1) || //the WaterFallSpray doesn't use a gamebit, so it's always on
                 (   (spraySetup->invertGamebit && mainGetBits(spraySetup->gamebit))   ||  //switched on when gamebit set
                     (!spraySetup->invertGamebit && !mainGetBits(spraySetup->gamebit))     //switched on when gamebit unset

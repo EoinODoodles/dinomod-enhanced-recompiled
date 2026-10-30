@@ -4,6 +4,7 @@
 #include "PR/ultratypes.h"
 #include "game/objects/object_id.h"
 #include "game/objects/object.h"
+#include "game/objects/setups/103.h"
 #include "game/gamebits.h"
 #include "sys/gfx/animseq.h"
 #include "sys/main.h"
@@ -14,14 +15,6 @@
 #include "objects/779_WCLevelControl.h"
 
 #include "recomp/dlls/objects/339_SeqProp_recomp.h"
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ u8 roll;
-/*19*/ u8 pitch;
-/*1A*/ u8 yaw;
-/*1B*/ u8 scale;
-} SeqProp_Setup;
 
 /* RECOMP */
 typedef struct {
@@ -43,13 +36,13 @@ static int SeqProp_animCallback(Object* self, Object* animObj, AnimObj_Data* ani
     return 0;
 }
 
-RECOMP_PATCH void SeqProp_obj_Setup(Object* self, SeqProp_Setup* setup, s32 reset) {
+RECOMP_PATCH void SeqProp_obj_Setup(Object* self, Ctrl103_Setup* setup, s32 reset) {
     self->srt.roll = setup->roll << 8;
     self->srt.pitch = setup->pitch << 8;
     self->srt.yaw = setup->yaw << 8;
 
-    if (setup->scale != 0) {
-        self->srt.scale = setup->scale / 255.0f;
+    if (setup->setting != 0) {
+        self->srt.scale = setup->setting / 255.0f;
         if (self->srt.scale == 0.0f) {
             self->srt.scale = 1.0f;
         }
@@ -70,16 +63,16 @@ RECOMP_PATCH void SeqProp_obj_Setup(Object* self, SeqProp_Setup* setup, s32 rese
 
 RECOMP_PATCH void SeqProp_obj_Control(Object* self) {
     SeqProp_Data* objData;
-    SeqProp_Setup* objSetup;
+    Ctrl103_Setup* setup;
 
     //@recomp: restore WCSunDoor's scale after its seq preempt has restored its correct position
     if (self->id == OBJ_WCSunDoor) {
         objData = self->data;
-        objSetup = (SeqProp_Setup*)self->setup;
+        setup = (Ctrl103_Setup*)self->setup;
         if (objData && (objData->flags & SeqProp_FLAG_1_Seq_Played) && mainGetBits(BIT_WC_Sun_Temple_Opened)) {
             //Restore scale
-            if (objSetup->scale != 0) {
-                self->srt.scale = objSetup->scale / 255.0f;
+            if (setup->setting != 0) {
+                self->srt.scale = setup->setting / 255.0f;
                 if (self->srt.scale == 0.0f) {
                     self->srt.scale = 1.0f;
                 }

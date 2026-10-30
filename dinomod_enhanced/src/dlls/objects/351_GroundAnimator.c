@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "game/gamebits.h"
+#include "game/objects/setups/78_GroundAnimator.h"
 #include "sys/dll.h"
 #include "sys/gfx/modgfx.h"
 #include "sys/gfx/texture.h"

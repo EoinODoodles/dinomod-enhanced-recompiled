@@ -50,7 +50,7 @@ typedef enum {
 RECOMP_PATCH // offset: 0xAC | func: 1 | export: 1
 void WarpPoint_obj_Control(Object* self) {
     Object* player;
-    WarpPoint_Setup* setup;
+    Warp_Setup_Dinomod* setup;
     WarpPoint_Data* objdata;
     f32 dx;
     f32 dy;
@@ -60,7 +60,7 @@ void WarpPoint_obj_Control(Object* self) {
     f32 sin;
     f32 cos;
 
-    setup = (WarpPoint_Setup*)self->setup;
+    setup = (Warp_Setup_Dinomod*)self->setup;
     objdata = self->data;
     player = objGetPlayer();
 
@@ -269,7 +269,7 @@ void WarpPoint_obj_Control(Object* self) {
 }
 
 RECOMP_PATCH int WarpPoint_animCallback(Object* self, Object* animObj, AnimObj_Data* animObjData, s8 prevCallbackValue) {
-    WarpPoint_Setup* setup = (WarpPoint_Setup*)self->setup;
+    Warp_Setup_Dinomod* setup = (Warp_Setup_Dinomod*)self->setup;
     /* RECOMP */
     WarpPoint_Data* objData = self->data;
 

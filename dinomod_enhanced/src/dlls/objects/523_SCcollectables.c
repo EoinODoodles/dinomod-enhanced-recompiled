@@ -8,11 +8,11 @@
 #include "game/gamebits.h"
 #include "game/objects/object_id.h"
 #include "game/objects/interaction_arrow.h"
+#include "game/objects/setups/6_Collectable.h"
 #include "sys/main.h"
 #include "sys/newshadows.h"
 #include "sys/objects.h"
 #include "sys/objmsg.h"
-#include "dlls/objects/common/collectable.h"
 #include "dlls/objects/523_SCcollectables.h"
 
 #include "recomp/dlls/objects/523_SCcollectables_recomp.h"
@@ -188,15 +188,15 @@ RECOMP_PATCH void SCcollectables_setup(Object* self, Collectable_Setup* objsetup
     objAddObjectType(self, OBJTYPE_Collectable);
     objInitMesgQueue(self, 2);
 
-    self->srt.yaw = objsetup->yaw << 8;
-    self->srt.pitch = objsetup->pitch << 8;
-    self->srt.roll = objsetup->roll << 8;
+    self->srt.yaw = objsetup->yaw8 << 8;
+    self->srt.pitch = objsetup->pitch8 << 8;
+    self->srt.roll = objsetup->roll8 << 8;
     self->srt.scale = self->def->scale;
     self->modelInstIdx = objsetup->modelIdx;
     self->velocity.y = 0.0f;
     
     if (self->objhitInfo) {
-        self->objhitInfo->unk52 = objsetup->objHitsValue;
+        self->objhitInfo->unk52 = objsetup->scale;
     }
     
     objdata->gamebitCount = objsetup->gamebitCount;

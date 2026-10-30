@@ -3,10 +3,10 @@
 
 #include "dlls/engine/54_pickup.h"
 #include "dlls/objects/210_player.h"
-#include "dlls/objects/541_DIMexplosion.h"
 #include "game/objects/interaction_arrow.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
+#include "game/objects/setups/51_Generic.h"
 #include "player_util.h"
 #include "recomputils.h"
 #include "sys/main.h"
@@ -299,11 +299,11 @@ static void SHbarrel_handle_damage(Object* self, SHbarrel_Data* objdata) {
         func_80026940(self, 40);
         func_80026128(self, Damage_Type_Explosion, 4, 0);
         
-        DIMExplosion_Setup* explosion = objAllocSetup(sizeof(DIMExplosion_Setup), OBJ_DIMExplosion);
+        Generic_Setup* explosion = objAllocSetup(sizeof(Generic_Setup), OBJ_DIMExplosion);
         explosion->base.x = self->srt.transl.x;
         explosion->base.y = self->srt.transl.y;
         explosion->base.z = self->srt.transl.z;
-        objSetupObject((ObjSetup*)explosion, OBJINIT_STANDALONE | OBJINIT_FLAG4, self->mapID, -1, self->parent);
+        objSetupObject(&explosion->base, OBJINIT_STANDALONE | OBJINIT_FLAG4, self->mapID, -1, self->parent);
         
         gDLL_17_partfx->vtbl->spawn(self, PARTICLE_355, NULL, 0, -1, NULL);
         gDLL_17_partfx->vtbl->spawn(self, PARTICLE_352, NULL, 0, -1, NULL);

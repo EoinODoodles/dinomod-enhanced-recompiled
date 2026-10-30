@@ -7,13 +7,13 @@
 #include "common.h"
 #include "game/gamebits.h"
 #include "game/objects/object.h"
+#include "game/objects/setups/6_Collectable.h"
 #include "sys/gfx/modgfx.h"
 #include "sys/main.h"
 #include "sys/objanim.h"
 #include "sys/objects.h"
 #include "sys/print.h"
 #include "dlls/engine/6_amsfx.h"
-#include "dlls/objects/common/collectable.h"
 
 #include "recomp/dlls/objects/545_DIMTent_recomp.h"
 
@@ -92,9 +92,9 @@ static void DIMTent_createCog(Object* self, DIMTent_Setup* objSetup, DIMTent_Dat
         cogSetup->gamebitCollected = BIT_DIM_Gear_3;
         cogSetup->gamebitSecondary = NO_GAMEBIT;
         cogSetup->gamebitCount = NO_GAMEBIT;
-        cogSetup->objHitsValue = 5;
-        cogSetup->yaw = self->srt.yaw >> 8;
-        objSetupObject((ObjSetup*)cogSetup, 5, self->mapID, -1, NULL);
+        cogSetup->scale = 5;
+        cogSetup->yaw8 = self->srt.yaw >> 8;
+        objSetupObject(&cogSetup->base, 5, self->mapID, -1, NULL);
         objData->cogCreated = TRUE;
     }
 }

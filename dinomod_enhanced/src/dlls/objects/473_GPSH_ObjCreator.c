@@ -1,10 +1,12 @@
 #include "modding.h"
 
 #include "dlls/engine/6_amsfx.h"
-#include "dlls/objects/475_GPSH_flybaddie.h"
 #include "game/gamebits.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
+#include "game/objects/setups/51_Generic.h"
+#include "game/objects/setups/57_ObjCreator.h"
+#include "game/objects/setups/93_PickObj.h"
 #include "sys/dll.h"
 #include "sys/gfx/modgfx.h"
 #include "sys/main.h"
@@ -15,39 +17,23 @@
 #include "recomp/dlls/objects/473_GPSH_ObjCreator_recomp.h"
 
 typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s8 _unk18[0x1A - 0x18];
-/*1A*/ s16 type;
-/*1C*/ u8 _unk1C[0x1E - 0x1C];
-/*1E*/ s8 rotation; // yaw >> 8
-} GPSH_ObjCreator_Setup;
-
-typedef struct {
 /*0*/ s16 timer;
 /*2*/ s16 timerRate;
 /*4*/ u8 type;
 /*5*/ u8 spawned;
 } GPSH_ObjCreator_Data;
 
-// Shared between GPSHpickobj* objects?
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s8 unk18;
-/*1A*/ s16 unk1A;
-/*1C*/ u8 _unk1C[0x24 - 0x1C];
-} GPSH_PickObj_Setup;
-
 /*0x0*/ extern s16 data_0[6];
 
 RECOMP_PATCH void GPSH_ObjCreator_control(Object* self) {
-    GPSH_ObjCreator_Setup* setup;
-    GPSH_PickObj_Setup* pickObjSetup;
-    GPSH_flybaddie_Setup* flybaddieSetup;
+    ObjCreator_Setup* setup;
+    PickObj_Setup* pickObjSetup;
+    Flybaddie_Setup* flybaddieSetup;
     GPSH_ObjCreator_Data* objdata;
     s32 _pad;
     DLL_IModgfx* modgfx;
 
-    setup = (GPSH_ObjCreator_Setup*)self->setup;
+    setup = (ObjCreator_Setup*)self->setup;
     objdata = self->data;
     // @recomp: Don't let reset bit affect flybaddie creators. The spawn flag for the flybaddies is never cleared by
     //          the shrine so when the reset bit gets set the creator will spawn a flybaddie every game tick causing a crash.
@@ -87,7 +73,7 @@ RECOMP_PATCH void GPSH_ObjCreator_control(Object* self) {
         if (objdata->type != 6) {
             if (objdata->timer <= 0) {
                 // Spawn pickup
-                pickObjSetup = objAllocSetup(sizeof(GPSH_PickObj_Setup), objdata->type + OBJ_GPSHpickobjroot);
+                pickObjSetup = objAllocSetup(sizeof(PickObj_Setup), objdata->type + OBJ_GPSHpickobjroot);
                 objdata->spawned = TRUE;
                 pickObjSetup->base.fadeDistance = 0xFF;
                 pickObjSetup->base.loadFlags = OBJSETUP_LOAD_FLAG20;
@@ -96,9 +82,9 @@ RECOMP_PATCH void GPSH_ObjCreator_control(Object* self) {
                 pickObjSetup->base.y = self->srt.transl.y;
                 pickObjSetup->base.z = self->srt.transl.z;
                 pickObjSetup->base.objId = objdata->type + OBJ_GPSHpickobjroot;
-                pickObjSetup->unk18 = (s8) (self->srt.yaw >> 8);
-                pickObjSetup->unk1A = data_0[objdata->type];
-                objSetupObject((ObjSetup*)pickObjSetup, OBJINIT_FLAG4 | OBJINIT_STANDALONE, self->mapID, -1, self->parent)
+                pickObjSetup->yaw = self->srt.yaw >> 8;
+                pickObjSetup->pickupParam = data_0[objdata->type];
+                objSetupObject(&pickObjSetup->base, OBJINIT_FLAG4 | OBJINIT_STANDALONE, self->mapID, -1, self->parent)
                     ->modelInstIdx = 0;
                 objdata->timer = 100;
                 objdata->timerRate = 0;
@@ -106,7 +92,7 @@ RECOMP_PATCH void GPSH_ObjCreator_control(Object* self) {
         } else {
             if (objdata->timer <= 0) {
                 // Spawn flybaddie
-                flybaddieSetup = objAllocSetup(sizeof(GPSH_flybaddie_Setup), OBJ_GPSH_flybaddie);
+                flybaddieSetup = objAllocSetup(sizeof(Flybaddie_Setup), OBJ_GPSH_flybaddie);
                 flybaddieSetup->base.x = setup->base.x;
                 flybaddieSetup->base.y = setup->base.y + 50.0f;
                 flybaddieSetup->base.z = setup->base.z;
@@ -117,7 +103,7 @@ RECOMP_PATCH void GPSH_ObjCreator_control(Object* self) {
                 flybaddieSetup->base.byte6 = setup->base.byte6;
                 flybaddieSetup->base.fadeDistance = setup->base.fadeDistance;
                 flybaddieSetup->unk1A = -0x3C;
-                objSetupObject((ObjSetup*)flybaddieSetup, OBJINIT_FLAG4 | OBJINIT_STANDALONE, self->mapID, -1, self->parent);
+                objSetupObject(&flybaddieSetup->base, OBJINIT_FLAG4 | OBJINIT_STANDALONE, self->mapID, -1, self->parent);
                 objdata->timer = 100;
                 objdata->timerRate = 0;
             }

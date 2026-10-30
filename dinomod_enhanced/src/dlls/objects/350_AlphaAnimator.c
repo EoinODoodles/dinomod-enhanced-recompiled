@@ -36,7 +36,7 @@ typedef struct {
 
 #define MAX_OPACITY 255
 
-extern void AlphaAnimator_animateVertices(AlphaAnimator_Data* objData, AlphaAnimator_Setup* objSetup, Block* block);
+extern void AlphaAnimator_animateVertices(AlphaAnimator_Data* objData, AlphaAnimator_Setup_Dinomod* objSetup, Block* block);
 extern void AlphaAnimator_calculateAnimatedVertexDistances(Object* self, AlphaAnimator_Data* objData);
 
 /** 
@@ -47,14 +47,14 @@ extern void AlphaAnimator_calculateAnimatedVertexDistances(Object* self, AlphaAn
   */
 RECOMP_PATCH void AlphaAnimator_obj_Control(Object* self) {
     AlphaAnimator_Data* objData;
-    AlphaAnimator_Setup* objSetup;
+    AlphaAnimator_Setup_Dinomod* objSetup;
     Block* block;
     s32 fadeSpeed;
     s32 pad;
     s32 opacityDiff;
     s32 mode;
 
-    objSetup = (AlphaAnimator_Setup*)self->setup;
+    objSetup = (AlphaAnimator_Setup_Dinomod*)self->setup;
     objData = self->data;
     
     mode = GET_MODE(objSetup->flags);
@@ -294,7 +294,7 @@ RECOMP_PATCH void AlphaAnimator_obj_Control(Object* self) {
 }
 
 /* Optionally change render flags at full opacity, to prevent other transparent surfaces being drawn behind the shape */
-RECOMP_PATCH void AlphaAnimator_animateVertices(AlphaAnimator_Data* objData, AlphaAnimator_Setup* objSetup, Block* block) {
+RECOMP_PATCH void AlphaAnimator_animateVertices(AlphaAnimator_Data* objData, AlphaAnimator_Setup_Dinomod* objSetup, Block* block) {
     f32 tOpacity;
     s32 vtxIdx;
     BlockShape* shapes;

@@ -3,6 +3,7 @@
 
 #include "dlls/engine/27.h"
 #include "dlls/objects/782_WCPushBlock.h"
+#include "game/objects/setups/51_Generic.h"
 #include "sys/dll.h"
 #include "sys/objects.h"
 

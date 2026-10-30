@@ -7,6 +7,7 @@
 #include "types.h"
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
+#include "game/objects/setups/Trigger.h"
 #include "game/gamebits.h"
 #include "sys/asset.h"
 #include "sys/camera.h"

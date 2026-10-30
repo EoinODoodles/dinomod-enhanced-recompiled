@@ -80,14 +80,14 @@ RECOMP_PATCH void sfxPlayer_obj_Control(Object* self) {
     #define PLAY_BY_GAMEBIT (SfxPlayer_FLAG_2_Play_if_Gamebit_Set | SfxPlayer_FLAG_4_Play_if_Gamebit_Unset)
     #define PLAY_IF_UNSET ((flags & SfxPlayer_FLAG_4_Play_if_Gamebit_Unset) == SfxPlayer_FLAG_4_Play_if_Gamebit_Unset)
     SfxPlayer_Data* objData;
-    SfxPlayer_Setup* setup;
+    SfxPlayer_Setup_Dinomod* setup;
     u8 gamebitValue;
     f32 playerDistanceSq;
     u8 flags;
     /* RECOMP */
     u8 volume;
 
-    setup = (SfxPlayer_Setup*)self->setup;
+    setup = (SfxPlayer_Setup_Dinomod*)self->setup;
     objData = self->data;
 
     gamebitValue = FALSE;

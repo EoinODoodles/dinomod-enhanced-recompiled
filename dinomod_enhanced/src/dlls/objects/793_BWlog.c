@@ -6,10 +6,10 @@
 
 #include "dlls/objects/common/vehicle.h"
 #include "dlls/objects/210_player.h"
-#include "dlls/objects/418_DFriverflow.h"
 #include "dlls/engine/27.h"
 #include "game/objects/hitbox.h"
 #include "game/objects/object.h"
+#include "game/objects/setups/55_Riverflow.h"
 #include "macros.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
@@ -707,14 +707,14 @@ RECOMP_PATCH void BWlog_findRiverflows(Object* self, BWlog_Data* objdata) {
     for (i = 0; i < objListLength; i++) {
         obj = objList[i];
         // @recomp: Respect riverflow log filter flag (makes BWlog behave correctly in areas where DFLog was originally used)
-        if (((DFriverflow_Setup*)obj->setup)->flags & 1) {
+        if (((Riverflow_Setup*)obj->setup)->flags & 1) {
             for (k = 0; k < 2; k++) {
                 dy = obj->srt.transl.y - objdata->endPoints[k].y;
                 if ((dy <= 200.0f) && (dy >= -200.0f)) {
                     dx = obj->srt.transl.x - objdata->endPoints[k].x;
                     dz = obj->srt.transl.z - objdata->endPoints[k].z;
                     dx = sqrtf(SQ(dx) + SQ(dz));
-                    pushRadius = ((DFriverflow_Setup*)obj->setup)->range * 1.5f;
+                    pushRadius = ((Riverflow_Setup*)obj->setup)->range * 1.5f;
                     if (dx < pushRadius) {
                         dx = ((pushRadius - dx) / pushRadius);
                         dx *= (obj->srt.scale * 10.0f);

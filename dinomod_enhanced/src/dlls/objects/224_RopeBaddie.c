@@ -9,7 +9,6 @@
 #include "dlls/engine/18_objfsa.h"
 #include "dlls/engine/33_BaddieControl.h"
 #include "dlls/objects/210_player.h"
-#include "dlls/objects/221_ChukaChuck.h"
 #include "dlls/objects/420_DFropenode.h"
 #include "game/objects/interaction_arrow.h"
 #include "game/objects/object.h"

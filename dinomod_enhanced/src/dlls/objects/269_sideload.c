@@ -32,7 +32,7 @@ typedef enum {
 
 RECOMP_PATCH void sideload_obj_Control(Object* self) {
     SideLoad_Data* objData = self->data;
-    SideLoad_Setup* objSetup = (SideLoad_Setup*)self->setup;
+    SideLoad_Setup_Dinomod* objSetup = (SideLoad_Setup_Dinomod*)self->setup;
     s16 dSidekickObjIDs[] = {OBJ_Tricky, OBJ_Kyte};
     s16 gamebit;
     Object* player;

@@ -2,12 +2,15 @@
 #include "modding.h"
 #include "recomputils.h"
 
+#include "common_objsetups.h"
+
 #include "dll.h"
 #include "dlls/engine/6_amsfx.h"
 #include "dlls/objects/338_LFXEmitter.h"
 #include "game/gamebits.h"
 #include "game/objects/object_id.h"
 #include "game/objects/object.h"
+#include "game/objects/setups/102_LFXEmitter.h"
 #include "sys/gfx/animseq.h"
 #include "sys/gfx/modgfx.h"
 #include "sys/dll.h"
@@ -18,8 +21,6 @@
 #include "sys/objhits.h"
 #include "sys/print.h"
 #include "sys/rand.h"
-
-#include "objects/780_WCBeacon.h"
 
 #include "recomp/dlls/objects/780_WCBeacon_recomp.h"
 
@@ -47,7 +48,7 @@ typedef enum {
 /* Ensures the beacon's WCSlabDoor gamebit is set when the beacon's lit gamebit is set, 
    and (during setup) ensures the beacon's pressure switch's gamebit isn't set if the beacon is still underground. */
 static void WCBeacon_restoreStateViaGamebits(Object* self) {
-    WCBeacon_Setup* objSetup = (WCBeacon_Setup*)self->setup;
+    WCBeacon_Setup_Dinomod* objSetup = (WCBeacon_Setup_Dinomod*)self->setup;
     WCBeacon_Data* objData = self->data;
 
     if (mainGetBits(objSetup->gamebitLit)) {

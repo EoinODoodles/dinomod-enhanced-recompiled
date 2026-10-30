@@ -9,6 +9,7 @@
 #include "game/objects/object.h"
 #include "game/objects/object_id.h"
 #include "game/objects/interaction_arrow.h"
+#include "game/objects/setups/43_Mushroom.h"
 #include "game/gamebits.h"
 #include "sys/main.h"
 #include "sys/math.h"
@@ -118,7 +119,7 @@ extern f32 dStateAnimSpeeds[];
 
 extern s16 SHmushroom_flee_from_player(Object* self, Object* fleeingFrom, SHmushroom_Data_Extended* objData, f32 distance);
 extern s16 SHmushroom_flee_along_curve(Object* self, Object* fleeingFrom, SHmushroom_Data_Extended* objData, f32 distance);
-extern void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Extended* objData, SHmushroom_Setup* objSetup);
+extern void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Extended* objData, Mushroom_Setup* objSetup);
 
 /**
   * Used during setup: stores the gamebitID for the mushroom's tutorial textbox,
@@ -148,7 +149,7 @@ static void get_tutorial_gamebit_and_animObjID(Object* self, s16* tutorialGamebi
   *
   * (Fixes a softlock where you could be missing mushrooms for Queen EarthWalker)
   */
-static void add_to_inventory(Object* self, SHmushroom_Data_Extended* objData, SHmushroom_Setup* objSetup, Object* player, int showPopup) {
+static void add_to_inventory(Object* self, SHmushroom_Data_Extended* objData, Mushroom_Setup* objSetup, Object* player, int showPopup) {
 	Object* dinoFoodBag;
 	s32 count;
 
@@ -187,7 +188,7 @@ static void add_to_inventory(Object* self, SHmushroom_Data_Extended* objData, SH
 	}
 }
 
-RECOMP_PATCH void SHmushroom_setup(Object* self, SHmushroom_Setup* setup, s32 arg2) {
+RECOMP_PATCH void SHmushroom_setup(Object* self, Mushroom_Setup* setup, s32 arg2) {
 	SHmushroom_Data_Extended* objData;
 	UnkFunc_80024108Struct animInfo;
 	s32 curveEndpoint;
@@ -292,7 +293,7 @@ RECOMP_PATCH void SHmushroom_setup(Object* self, SHmushroom_Setup* setup, s32 ar
 
 RECOMP_PATCH void SHmushroom_control(Object* self) {
 	Object* dinoFoodBag;
-	SHmushroom_Setup* objSetup;
+	Mushroom_Setup* objSetup;
 	s32 i;
 	Object* sidekick;
 	Object* hitBy;
@@ -315,7 +316,7 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 		objFreeObject(self);
 	}
 
-	objSetup = (SHmushroom_Setup*)self->setup;
+	objSetup = (Mushroom_Setup*)self->setup;
 	player = objGetPlayer();
 	sidekick = objGetSidekick();
 
@@ -421,7 +422,7 @@ RECOMP_PATCH void SHmushroom_control(Object* self) {
 	}
 }
 
-RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Extended* objData, SHmushroom_Setup* objSetup) {
+RECOMP_PATCH void SHmushroom_tick_state_machine(Object* self, SHmushroom_Data_Extended* objData, Mushroom_Setup* objSetup) {
 	f32 speed;
 	f32 dx;
 	f32 dz;

@@ -5,7 +5,6 @@
 #include "dll.h"
 #include "dlls/objects/237_WG_PollenCannon.h"
 #include "dlls/objects/260_Pollen.h"
-#include "dlls/objects/261_PollenFragment.h"
 #include "sys/main.h"
 #include "sys/objects.h"
 

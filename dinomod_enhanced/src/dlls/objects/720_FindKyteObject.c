@@ -30,7 +30,7 @@ typedef enum {
 
 RECOMP_PATCH void FindKyteObject_obj_Control(Object* self) {
     CurveSetup* curveSetup;
-    FindKyteObject_Setup* setup;
+    FindKyteObject_Setup_Dinomod* setup;
     Object* kyte;
     Object* player;
     f32 dist;
@@ -38,7 +38,7 @@ RECOMP_PATCH void FindKyteObject_obj_Control(Object* self) {
     FindKyteObject_Data* objdata;
 
     objdata = self->data;
-    setup = (FindKyteObject_Setup*)self->setup;
+    setup = (FindKyteObject_Setup_Dinomod*)self->setup;
 
 #ifdef DEBUG_KYTE_TIMEOUT
     diPrintf("FindKyteObject_obj_Control | state: %d\n", objdata->state);

@@ -7,6 +7,7 @@
 #include "common.h"
 #include "PR/ultratypes.h"
 #include "game/objects/interaction_arrow.h"
+#include "game/objects/setups/115_KyteTarget.h"
 #include "sys/gfx/modgfx.h"
 #include "sys/map_enums.h"
 #include "sys/objects.h"
@@ -110,7 +111,7 @@ static void SCbeacon_handle_flame_sounds(Object* self, SCbeacon_Data_Extended* o
   */
 RECOMP_PATCH void SCbeacon_obj_Control(Object* self) {
     SCbeacon_Data_Extended* objData;
-    SCbeacon_Setup* objSetup;
+    KyteTarget_Setup* objSetup;
     Object* sidekick;
     Object* player;
     u32 playerDistSQ;
@@ -118,7 +119,7 @@ RECOMP_PATCH void SCbeacon_obj_Control(Object* self) {
     u8 playerIsNearby;
 
     objData = self->data;
-    objSetup = (SCbeacon_Setup*)self->setup;
+    objSetup = (KyteTarget_Setup*)self->setup;
     player = objGetPlayer();
 
     #if DEBUG_BEACON 
@@ -129,7 +130,7 @@ RECOMP_PATCH void SCbeacon_obj_Control(Object* self) {
     #endif
 
     playerDistSQ = vec3DistanceXZSquared(&player->globalPosition, &self->globalPosition);
-    interactRangeSQ = SQ(objSetup->playerRange);
+    interactRangeSQ = SQ(objSetup->commandRange);
     playerIsNearby = (playerDistSQ <= interactRangeSQ);
     
     objData->flags &= ~SCbeacon_FLAG_Emit_Light;
@@ -166,7 +167,7 @@ RECOMP_PATCH void SCbeacon_obj_Control(Object* self) {
 
             //Check if Flame command was selected
             if (gDLL_1_cmdmenu->vtbl->was_this_item_used(Sidekick_Command_INDEX_4_Flame)) {
-                mainSetBits(BIT_Kyte_Flight_Curve, objSetup->kyteCurveID);
+                mainSetBits(BIT_Kyte_Flight_Curve, objSetup->flightGroup);
             }
         }
 
@@ -227,7 +228,7 @@ RECOMP_PATCH void SCbeacon_obj_Control(Object* self) {
 
             //Check if Flame command was selected
             if (gDLL_1_cmdmenu->vtbl->was_this_item_used(Sidekick_Command_INDEX_4_Flame)) {
-                mainSetBits(BIT_Kyte_Flight_Curve, objSetup->kyteCurveID);
+                mainSetBits(BIT_Kyte_Flight_Curve, objSetup->flightGroup);
             }
         }
         break;
@@ -331,13 +332,13 @@ RECOMP_PATCH int SCbeacon_KyteTarget_Interact(Object* self, s32 finishLighting) 
 /** Use soundHandles when playing flame loops */
 RECOMP_PATCH void SCbeacon_attempt_to_light(Object* self) {
     s32 pad;
-    SCbeacon_Setup* objSetup;
+    KyteTarget_Setup* objSetup;
     DLL_IModgfx* modGfxDLL;
     CurveSetup* curveSetup;
     SCbeacon_Data_Extended* objData;
 
     objData = self->data;
-    objSetup = (SCbeacon_Setup*)self->setup;
+    objSetup = (KyteTarget_Setup*)self->setup;
     
     if (mainGetBits(objData->gamebitTwigs)) {
         //Play burning sound loops (@recomp: use soundHandles)
@@ -355,7 +356,7 @@ RECOMP_PATCH void SCbeacon_attempt_to_light(Object* self) {
         objData->state = SCbeacon_STATE_Lit;
 
         //Set Kyte curve gamebit
-        objData->kyteCurve = gDLL_25->vtbl->func_2BC4(self, objSetup->kyteCurveID);
+        objData->kyteCurve = gDLL_25->vtbl->func_2BC4(self, objSetup->flightGroup);
         if (objData->kyteCurve->type22.usedBit != NO_GAMEBIT) {
             mainSetBits(objData->kyteCurve->type22.usedBit, 1);
         }
@@ -370,13 +371,13 @@ RECOMP_PATCH int SCbeacon_anim_callback(Object* self, Object* override, AnimObj_
     u8 playerIsNearby;
     Object* player;
     Object* sidekick;
-    SCbeacon_Setup* objSetup;
+    KyteTarget_Setup* objSetup;
     u32 interactRangeSQ;
     u32 playerDistanceSQ;
 
     player = objGetPlayer();
     objData = self->data;
-    objSetup = (SCbeacon_Setup*)self->setup;
+    objSetup = (KyteTarget_Setup*)self->setup;
     
     //@recomp: check state to tell which sequence is playing (don't add twigs during Kyte's Flame sequence)
     if (objData->state != SCbeacon_STATE_Lighting){
@@ -384,7 +385,7 @@ RECOMP_PATCH int SCbeacon_anim_callback(Object* self, Object* override, AnimObj_
     }
     
     playerDistanceSQ = vec3DistanceXZSquared(&player->globalPosition, &self->globalPosition);
-    interactRangeSQ = SQ(objSetup->playerRange);
+    interactRangeSQ = SQ(objSetup->commandRange);
     playerIsNearby = (playerDistanceSQ <= interactRangeSQ);
 
     switch (objData->state) {

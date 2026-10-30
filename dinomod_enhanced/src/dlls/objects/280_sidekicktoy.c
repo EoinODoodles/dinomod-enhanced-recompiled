@@ -11,6 +11,7 @@
 #include "game/objects/object.h"
 #include "game/objects/interaction_arrow.h"
 #include "game/objects/object_id.h"
+#include "game/objects/setups/55_Riverflow.h"
 #include "string_util.h"
 #include "sys/main.h"
 #include "sys/math.h"
@@ -21,7 +22,6 @@
 #include "dll.h"
 #include "dlls/engine/6_amsfx.h"
 #include "dlls/objects/210_player.h"
-#include "dlls/objects/418_DFriverflow.h"
 
 #include "recomp/dlls/objects/280_SidekickBall_recomp.h"
 
@@ -149,14 +149,14 @@ static void ball_handle_river_flow(Object* self) {
     pushDivisor = 0;
     for (i = 0; i < objCount; i++) {
         flow = riverflows[i];
-        if (((DFriverflow_Setup*)flow->setup)->flags & 2) {
+        if (((Riverflow_Setup*)flow->setup)->flags & 2) {
             pushDivisor = 1;
             distance = flow->srt.transl.f[1] - self->srt.transl.f[1];
             if (200.0f >= distance && distance >= -200.0f) {
                 dx = flow->srt.transl.x - self->srt.transl.x;
                 dz = flow->srt.transl.z - self->srt.transl.z;
                 distance = sqrtf(SQ(dx) + SQ(dz));
-                range = (u8)((DFriverflow_Setup*)flow->setup)->range * 1.5f;
+                range = (u8)((Riverflow_Setup*)flow->setup)->range * 1.5f;
                 if (distance < range) {
                     strength = (range - distance) / range;
                     strength *= flow->srt.scale * 10.0f;

@@ -7,6 +7,7 @@
 
 #include "dll.h"
 #include "dlls/engine/2_camcontrol.h"
+#include "dlls/engine/90_camstatic.h"
 #include "dlls/objects/210_player.h"
 #include "game/gamebits.h"
 #include "game/objects/object.h"
@@ -212,7 +213,7 @@ RECOMP_PATCH s32 camstatic_ease(Cam* cam, u8 flags) {
     f32 tValue;
     f32 speed;
     /* RECOMP */
-    StaticCamera_Setup* objSetup;
+    StaticCamera_Setup_Dinomod* objSetup;
     f32 speedFactor = 0;
 
     sState->goalX = cam->srt.transl.x;
@@ -239,7 +240,7 @@ RECOMP_PATCH s32 camstatic_ease(Cam* cam, u8 flags) {
 
     //@recomp: add option to adjust ease speed
     if (sState->obj) {
-        objSetup = (StaticCamera_Setup*)sState->obj->setup;
+        objSetup = (StaticCamera_Setup_Dinomod*)sState->obj->setup;
         if (objSetup && objSetup->speedFactor != 0) {
             speedFactor = objSetup->speedFactor/64.0f;
         }

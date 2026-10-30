@@ -34,7 +34,6 @@
 #include "dlls/objects/common/foodbag.h"
 #include "dlls/objects/common/dinocaller.h"
 #include "dlls/objects/210_player.h"
-#include "dlls/objects/277_iceblast.h"
 #include "dlls/objects/420_DFropenode.h"
 
 #include "objects/793_BWlog.h"

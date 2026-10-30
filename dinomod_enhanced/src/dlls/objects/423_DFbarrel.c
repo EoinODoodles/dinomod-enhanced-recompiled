@@ -10,8 +10,8 @@
 #include "PR/os.h"
 #include "common.h"
 #include "dlls/objects/210_player.h"
-#include "dlls/objects/418_DFriverflow.h"
 #include "game/objects/interaction_arrow.h"
+#include "game/objects/setups/55_Riverflow.h"
 #include "sys/joypad.h"
 #include "sys/main.h"
 #include "sys/map_enums.h"
@@ -40,7 +40,7 @@ typedef enum {
 
 extern void DFbarrel_handleDamage(Object* self);
 
-RECOMP_PATCH void DFbarrel_obj_Setup(Object* self, DFBarrel_Setup* objSetup, s32 reset) {
+RECOMP_PATCH void DFbarrel_obj_Setup(Object* self, DFBarrel_Setup_Dinomod* objSetup, s32 reset) {
     objAddObjectType(self, OBJTYPE_Barrel);
     self->srt.yaw = objSetup->yaw << 8;
     self->stateFlags |= OBJSTATE_UPDATE_DISABLED;
@@ -122,7 +122,7 @@ RECOMP_PATCH void DFbarrel_handleMovement(Object* self) {
                 dz = riverFlow->srt.transl.z - self->srt.transl.z;
                 delta = sqrtf(SQ(delta) + SQ(dz));
                 
-                range = ((DFriverflow_Setup*)riverFlow->setup)->range * 1.5f;
+                range = ((Riverflow_Setup*)riverFlow->setup)->range * 1.5f;
                 if (delta < range) {
                     delta = (range - delta) / range;
                     delta *= riverFlow->srt.scale * 10.0f;

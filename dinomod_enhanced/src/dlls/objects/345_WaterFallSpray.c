@@ -8,13 +8,6 @@
 
 #include "recomp/dlls/objects/345_WaterFallSpray_recomp.h"
 
-typedef enum {
-    WaterFallSpray_FLAG_Big_Mist_Cloud = 0x1,
-    WaterFallSpray_FLAG_Falling_Droplets = 0x2,
-    WaterFallSpray_FLAG_Small_Mist_Cloud = 0x4,
-    WaterFallSpray_FLAG_Mist_Jet = 0x8
-} WaterFallSpray_Flags;
-
 enum AMSFXWaterFallsFlags {
     // The follow flags cut the volume of the high or low waterfall sfx in half for each flag set.
     AMSFX_WATERFALLS_LOWER_HIGH = 0x1,
@@ -35,7 +28,7 @@ typedef struct {
   * WaterFallSprays' sounds are toggled too when state changes, fixing bugs like 
   * the waterfall in Cape Claw continuing to emit sound even after Kyte pulls the nearby lever. 
   */
-static void WaterFallSpray_check_if_enabled(Object *self, WaterFallSpray_Setup* objSetup) {
+static void WaterFallSpray_check_if_enabled(Object *self, WaterFallSpray_Setup_Dinomod* objSetup) {
     WaterFallSpray_Data* objData = self->data;
     if (!objSetup || !objData) {
         return;
@@ -75,7 +68,7 @@ static void WaterFallSpray_check_if_enabled(Object *self, WaterFallSpray_Setup* 
     }
 }
 
-RECOMP_PATCH void WaterFallSpray_setup(Object *self, WaterFallSpray_Setup *setup, s32 reset) {
+RECOMP_PATCH void WaterFallSpray_setup(Object *self, WaterFallSpray_Setup_Dinomod *setup, s32 reset) {
     WaterFallSpray_Data* objData = self->data;
 
     self->srt.roll = setup->roll << 8;
@@ -95,12 +88,12 @@ RECOMP_PATCH void WaterFallSpray_control(Object *self) {
     f32 dx;
     f32 dy;
     s16 i;
-    WaterFallSpray_Setup *setup;
+    WaterFallSpray_Setup_Dinomod *setup;
     SRT srt;
     /* RECOMP */
     WaterFallSpray_Data* objData = self->data;
 
-    setup = (WaterFallSpray_Setup *)self->setup;
+    setup = (WaterFallSpray_Setup_Dinomod *)self->setup;
     player = objGetPlayer();
     if (!player){
         return;

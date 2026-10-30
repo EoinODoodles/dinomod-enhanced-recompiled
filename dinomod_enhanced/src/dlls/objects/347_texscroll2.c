@@ -19,7 +19,7 @@ typedef struct {
 
 RECOMP_PATCH void TexScroll2_setupTextureScrolling(Object* self, TexScroll2_Data* objData) {
     Block* block;
-    TexScroll2_Setup* objSetup;
+    TexScroll2_Setup_Dinomod* objSetup;
     Texture* texture;
     Texture* textureBlended;
     s32 textureCount;
@@ -31,7 +31,7 @@ RECOMP_PATCH void TexScroll2_setupTextureScrolling(Object* self, TexScroll2_Data
     s32 heightB;
     s32* scrollTable;
 
-    objSetup = (TexScroll2_Setup*)self->setup;
+    objSetup = (TexScroll2_Setup_Dinomod*)self->setup;
 
     //Get object's local Block
     block = mapGetBlockByIndex(mapWorldCoordsToBlockIndex(self->srt.transl.x, self->srt.transl.y, self->srt.transl.z));

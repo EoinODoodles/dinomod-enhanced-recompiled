@@ -5,10 +5,11 @@
 
 #include "dlls/engine/27.h"
 #include "dlls/engine/53_movelib.h"
-#include "dlls/objects/common/collectable.h"
 #include "game/gamebits.h"
 #include "game/objects/interaction_arrow.h"
 #include "game/objects/object_id.h"
+#include "game/objects/setups/6_Collectable.h"
+#include "game/objects/setups/51_Generic.h"
 #include "sys/main.h"
 #include "sys/map_enums.h"
 #include "sys/math.h"
@@ -150,7 +151,7 @@ extern s32 CFGuardian_mapLookup(CFGuardianMapStruct* map, s32 key, s32 mapLength
 extern s32 CFGuardian_doModAnimSfx(Object* self, UnkFunc_80024108Struct* animState, u16* sounds);
 extern void CFGuardian_func_25AC(Object* self, UnkCurvesStruct* arg1, s32 arg2, s32 arg3, f32 arg4);;
 
-RECOMP_PATCH void CFGuardian_obj_Setup(Object* self, CFGuardian_Setup* setup, s32 reset) {
+RECOMP_PATCH void CFGuardian_obj_Setup(Object* self, Generic_Setup* setup, s32 reset) {
     CFGuardian_Data* objdata;
     s32 _pad;
     s32 _pad2;
@@ -183,7 +184,7 @@ RECOMP_PATCH void CFGuardian_obj_Setup(Object* self, CFGuardian_Setup* setup, s3
             break;
         }
         self->animCallback = (AnimationCallback)CFGuardian_animCallback;
-        self->srt.yaw = setup->yaw8 << 8;
+        self->srt.yaw = setup->yaw << 8;
         objdata->windLiftState = 0;
         objdata->unk908 = 6;
         objdata->flags = 0;

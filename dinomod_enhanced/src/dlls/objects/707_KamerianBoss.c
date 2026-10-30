@@ -4,7 +4,6 @@
 #include "PR/gbi.h"
 #include "dlls/engine/53_movelib.h"
 #include "dlls/objects/210_player.h"
-#include "dlls/objects/332_FXEmit.h"
 #include "game/objects/object.h"
 #include "recomputils.h"
 #include "sys/gfx/model.h"

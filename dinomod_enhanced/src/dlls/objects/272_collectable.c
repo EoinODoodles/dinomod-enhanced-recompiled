@@ -7,7 +7,6 @@
 #include "PR/os.h"
 #include "common.h"
 #include "dll.h"
-#include "dlls/objects/common/collectable.h"
 #include "dlls/objects/common/foodbag.h"
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/272_collectable.h"
@@ -15,6 +14,7 @@
 #include "game/gametexts_ui.h"
 #include "game/objects/object_id.h"
 #include "game/objects/interaction_arrow.h"
+#include "game/objects/setups/6_Collectable.h"
 #include "macros.h"
 #include "sys/gfx/animseq.h"
 #include "sys/main.h"
@@ -46,7 +46,7 @@ typedef struct {
     f32 interactionRadius;
     f32 timerDestroy;           //Countdown after receiving collection message from sender
     s8 sidekickArgBase;         //Base arg value used for sidekick-related collectables
-    u8 objHitsValue;
+    u8 unk11;
     u8 unused12;
     u8 pause;                   //Control function ends early when this is set
     s16 gamebitCollected;       //Set when collected: collectable vanishes when set
@@ -374,9 +374,9 @@ RECOMP_PATCH void collectable_setup(Object* self, Collectable_Setup* objSetup, s
     objAddObjectType(self, OBJTYPE_Collectable);
     objInitMesgQueue(self, 2);
 
-    self->srt.yaw = objSetup->yaw << 8;
-    self->srt.pitch = objSetup->pitch << 8;
-    self->srt.roll = objSetup->roll << 8;
+    self->srt.yaw = objSetup->yaw8 << 8;
+    self->srt.pitch = objSetup->pitch8 << 8;
+    self->srt.roll = objSetup->roll8 << 8;
     self->srt.scale = self->def->scale;
 
     self->animCallback = (void*)&collectable_anim_callback;
@@ -384,8 +384,8 @@ RECOMP_PATCH void collectable_setup(Object* self, Collectable_Setup* objSetup, s
     self->stateFlags |= OBJSTATE_UPDATE_DISABLED;
 
     objData->sidekickArgBase = objSetup->messageArgBase;
-    objData->objHitsValue = objSetup->objHitsValue;
-    objData->pause = FALSE;
+    objData->unk11 = objSetup->scale;
+    objData->pause = 0;
     objData->areaValue = -2;
     objData->moving = 0;
     objData->delayCollect = 60;
