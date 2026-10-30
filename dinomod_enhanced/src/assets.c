@@ -3844,14 +3844,12 @@ static void swapstone_hollow_well_modifications(void) {
             line = reasset_hits_get(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge1);
             line->settingsA = 0;
             line->settingsB = TrackLine_SETTINGB_Nonsolid | HITS_Precipice;
-            reasset_hits_set(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge1, REASSET_BASE_NAMESPACE, &line);
             
             //Line 51
             ReAssetID hitsVineTopEdge2 = reasset_base_id(51);
             line = reasset_hits_get(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge2);
             line->settingsA = 0;
             line->settingsB = TrackLine_SETTINGB_Nonsolid | HITS_Precipice;
-            reasset_hits_set(shWellTrkblk, blockIDLilyPondClimb, hitsVineTopEdge2, REASSET_BASE_NAMESPACE, &line);
         }
 
         //Add HITS lines so you can jump from the central island in the stalactite cave
