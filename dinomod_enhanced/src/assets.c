@@ -220,6 +220,7 @@ INCBIN(models_wcmoontemplelift,   "inc/models_0958_WCMoonTempleLift.bin");
 INCBIN(models_wcsuntempleswitch,  "inc/models_0964_WCSunTempleSwitch.bin");
 INCBIN(models_dfpt_lift1,         "inc/models_0364_DFPLift1.bin");
 INCBIN(models_shadowhunter,       "inc/models_0136_ShadowHunter_repaired.bin");
+INCBIN(models_lightfoot_chief,    "inc/models_0202_LightFoot_Chief_repaired.bin");
 
 #define BLOCKS_REPLACE_BASE(trkblk, trkblkBaseID, blockID, file) (reasset_blocks_set(trkblk, reasset_base_id(blockID - trkblkBaseID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
 #define MODELS_REPLACE_BASE(modelID, file) (reasset_models_set(reasset_base_id(modelID), REASSET_BASE_NAMESPACE, file, file##_end  - file))
@@ -4456,6 +4457,12 @@ static void swapstone_circle_modifications(void) {
                 reasset_auto_id(dinomodNs), scroll, sizeof(TexScroll_Setup)
             );
         }
+    }
+
+    //Fix occasional vertex tearing problems in the LightFoot Chief's model data
+    //(There was a buggy extra triangle inside his jaw being drawn 10 times, after an extra G_RDPPIPESYNC command)
+    {
+        MODELS_REPLACE_BASE(202, models_lightfoot_chief);
     }
 }
 
