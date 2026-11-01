@@ -4459,8 +4459,8 @@ static void swapstone_circle_modifications(void) {
         }
     }
 
-    //Fix occasional vertex tearing problems in the LightFoot Chief's model data
-    //(There was a buggy extra triangle inside his jaw being drawn 10 times, after an extra G_RDPPIPESYNC command)
+    //Fix unnecessary hidden polygons in the LightFoot Chief's model data
+    //(There was a buggy extra triangle inside his jaw that was being drawn 10 times)
     {
         MODELS_REPLACE_BASE(202, models_lightfoot_chief);
     }
