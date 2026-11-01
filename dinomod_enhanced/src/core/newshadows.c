@@ -3,6 +3,7 @@
 #include "sys/gfx/textable.h"
 #include "sys/memory.h"
 #include "sys/newshadows.h"
+#include "sys/objects.h"
 #include "sys/shadowtex.h"
 
 extern f32 D_800B97E0[24];
@@ -17,6 +18,8 @@ extern Vtx *D_800BB160[2];
 extern Vec3f *D_800BB168[2];
 
 extern Texture* D_800BB190;
+
+extern s8 D_80092BE8;
 
 RECOMP_PATCH void shadowsInit(void) {
     void *temp_v0;
@@ -98,4 +101,32 @@ RECOMP_PATCH void shadowsInit(void) {
     D_800B9840[23] = 55.0f;
     shadowtexInit();
     D_800BB190 = texLoadTexture(TEXTABLE_D8);
+}
+
+/** 
+ * After swapping shadow buffers, clear the shadow DL pointer in each object that is now stale.
+ * In some cases, an object's model will be drawn without the object's shadow being updated first resulting
+ * in the objprint code trying to draw the shadow with the stale pointer, resulting in some messed up gfx.
+ *
+ * This issue usually happens when an object fails the track visibility check but otherwise goes on to draw
+ * its model (the player DLL can do this during cutscenes).
+ *
+ * This fixes some notable bugs:
+ * - Chief LightFoot's "tooth" getting stretched down to his foot during the SC beacon intro cutscene.
+ * - An orange MagicPlant fx getting attached to Tricky's face briefly during the SnowHorn Wastes hotspring cutscene.
+ */
+RECOMP_HOOK_RETURN("shadows_func_8004DABC") void shadows_func_8004DABC_ret_hook(void) {
+    s32 numObjs;
+    Object** objects = objGetObjects(NULL, &numObjs);
+
+    for (s32 i = 0; i < numObjs; i++) {
+        Object* obj = objects[i];
+        if (obj->shadow != NULL && obj->def != NULL) {
+            // Note: For "box shadow" types, only clear the display list pointer if D_80092BE8 is set. These
+            //       types of shadows are not always recalculated.
+            if (obj->def->shadowType != OBJ_SHADOW_BOX || D_80092BE8 != 0) {
+                obj->shadow->gdl = NULL;
+            }
+        }
+    }
 }
