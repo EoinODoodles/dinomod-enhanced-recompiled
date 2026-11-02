@@ -4462,7 +4462,9 @@ static void swapstone_circle_modifications(void) {
     //Fix unnecessary hidden polygons in the LightFoot Chief's model data
     //(There was a buggy extra triangle inside his jaw that was being drawn 10 times)
     {
-        MODELS_REPLACE_BASE(202, models_lightfoot_chief);
+        //Commented out for now, because the hidden polygons are kind of an entertaining obscure detail, 
+        //plus they no longer cause problems anyway with the stale object shadow DL bug fixed!
+        //MODELS_REPLACE_BASE(202, models_lightfoot_chief);
     }
 }
 
