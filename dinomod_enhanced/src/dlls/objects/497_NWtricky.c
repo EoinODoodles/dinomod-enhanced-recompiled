@@ -6,6 +6,7 @@
 #include "common.h"
 #include "game/gametexts.h"
 #include "macros.h"
+#include "sys/gfx/animseq.h"
 #include "sys/main.h"
 #include "sys/print.h"
 #include "dlls/objects/common/sidekick.h"
@@ -45,6 +46,11 @@ typedef struct {
 
 // Time for Tricky to offer hint
 #define NWTRICKY_INVERVAL_OFFER_HINT 2000.0f
+
+typedef enum {
+    NWtricky_DEMO_Flag_Finished = 1,
+    NWtricky_DEMO_Flag_Closed_Inventory_at_Start = 2
+} NWtricky_Demo_Flags;
 
 /** 
   * - Ensure Tricky's sidekick commands are unlocked if his tutorial cutscene is skipped 
@@ -92,16 +98,6 @@ RECOMP_PATCH void NWtricky_obj_Control(Object* self) {
         break;
 
     case STATE_2_Learning_Sidekick_Commands:
-        //@recomp: make sure Heel and Find are unlocked (allows skipping Tricky's sequence)
-        if (!objdata->doneDemo && cmdmenu_is_button_override_active()) {
-            mainSetBits(BIT_Tricky_Unlocked_Sidekick_Commands, TRUE);
-
-            //Clear tutorial's cmdmenu button overrides
-            gDLL_1_cmdmenu->vtbl->set_buttons_override(CMDMENU_CLEAR_BUTTONS_OVERRIDE);
-
-            objdata->doneDemo = TRUE;
-        }
-
         objdata->timer += gUpdateRateF;
         if (objdata->timer >= NWTRICKY_INVERVAL_OFFER_HINT) {
             if (mainGetBits(BIT_4E3) == 0xFF) {
@@ -144,10 +140,18 @@ RECOMP_PATCH void NWtricky_obj_Control(Object* self) {
     }
 }
 
-typedef enum {
-    NWtricky_DEMO_Flag_Finished = 1,
-    NWtricky_DEMO_Flag_Closed_Inventory_at_Start = 2
-} NWtricky_Demo_Flags;
+/** Sets sidekick command-related state at the end of the sequence, just in case it was skipped */
+static void NWtricky_animEndCallback(Object* self, Object* animObj, AnimObj_Data* animObjData) {
+    NWtricky_Data* objdata = self->data;
+
+    //Unlock sidekick commands
+    mainSetBits(BIT_Tricky_Unlocked_Sidekick_Commands, TRUE);
+
+    //Clear tutorial's cmdmenu button overrides
+    gDLL_1_cmdmenu->vtbl->set_buttons_override(CMDMENU_CLEAR_BUTTONS_OVERRIDE);
+
+    objdata->doneDemo |= NWtricky_DEMO_Flag_Finished;
+}
 
 /** Allow more controller inputs during tutorial (for inventory's optional D-pad controls/new controls) */
 RECOMP_PATCH int NWtricky_animCallback(Object* self, Object* animObj, AnimObj_Data* animObjData, s8 prevCallbackValue) {
@@ -160,6 +164,11 @@ RECOMP_PATCH int NWtricky_animCallback(Object* self, Object* animObj, AnimObj_Da
 
     objdata = self->data;
     buttonMask = 0;
+
+    //@recomp: add end-of-sequence callback
+    if (animObjData->unkF4 == NULL) {
+        animObjData->unkF4 = NWtricky_animEndCallback;
+    }
     
     //@recomp: Reset flags if this is the beginning of the sequence
     if ((animObjData->time < 60) && (objdata->doneDemo & NWtricky_DEMO_Flag_Finished)) {
