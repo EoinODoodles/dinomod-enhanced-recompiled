@@ -208,11 +208,6 @@ _Bool configs_GetMenuTimerFractionConfig(void) {
 
 /* GRAPHICS */
 
-/* Checks whether 60fps mode is enabled. */
-_Bool configs_GetSixtyFPS(void) {
-    return recomp_get_config_u32("sixty_fps_mode") != 0;
-}
-
 /* Checks whether to use fancier Krazoa Spirit glow effects (more accurate camera-facing calculation, moving with pupil animation, and a basic occlusion check) */
 _Bool configs_GetSpiritGlows(void) {
     return recomp_get_config_u32("spirit_glows_enhanced") != 0;
