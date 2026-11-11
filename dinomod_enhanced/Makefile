@@ -18,6 +18,7 @@ C_SRCS := $(wildcard src/*.c)
 C_SRCS += $(wildcard src/core/*.c)
 C_SRCS += $(wildcard src/custom/*.c)
 C_SRCS += $(wildcard src/custom/dlls/*.c)
+C_SRCS += $(wildcard src/custom/chapter_select/*.c)
 C_SRCS += $(wildcard src/dlls/engine/*.c)
 C_SRCS += $(wildcard src/dlls/objects/*.c)
 C_SRCS := $(filter-out src/assets.c,$(C_SRCS))
@@ -27,6 +28,7 @@ INC_DEPS := $(wildcard src/inc/*)
 INC_DEPS += $(wildcard assets/*)
 
 BUILD_DIRS := $(BUILD_DIR) $(BUILD_DIR)/src $(BUILD_DIR)/src/core $(BUILD_DIR)/src/custom $(BUILD_DIR)/src/custom/dlls \
+			  $(BUILD_DIR)/src/custom/chapter_select \
 	          $(BUILD_DIR)/src/dlls $(BUILD_DIR)/src/dlls/engine $(BUILD_DIR)/src/dlls/objects
 
 $(TARGET): $(C_OBJS) $(BUILD_DIR)/assets.o $(LDSCRIPT)
