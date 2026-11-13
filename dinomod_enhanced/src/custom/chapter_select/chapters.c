@@ -832,6 +832,10 @@ static void ch_darkice_2(void) {
     chselect_move_setup(0x16FC, MAP_DARK_ICE_MINES_1, -8113.85f, -1492.0f, 4288.9f); // DIMPushBlock
     chselect_move_setup(0x30104, MAP_DARK_ICE_MINES_1, -7470.120605f, -1079.900024f, 6638.58252f); // DIMBoulder
 
+    chselect_simulate_task_bit(BIT_3D); // TriggerPlane 0x1879 (lava room at entrance)
+    chselect_simulate_task_bit(BIT_1FE); // ObjSeq 0x246 (horn of truth pad activation)
+    chselect_simulate_task_bit(BIT_1F0); // TriggerPlane 0x1F29, 0x1ECC (when on conveyor after bike)
+
     mainSetBits(BIT_DIM_Famished_SnowHorn_Met, 1);
     mainSetBits(BIT_DIM_Famished_SnowHorn_Fed_One_Alpine_Root, 1);
     mainSetBits(BIT_DIM_Used_Mine_Key, 1);
@@ -893,7 +897,7 @@ static void ch_darkice_2(void) {
     mainSetBits(BIT_4CE, 3); // DIMboulder times hit
     mainSetBits(BIT_Tricky_Talk_Sequence, 44);
     mainSetBits(BIT_Tricky_Spawns, 0); // bye bye
-    mainSetBits(BIT_540, 1); // ?
+    mainSetBits(BIT_540, 1); // TriggerPlane 0x1A51, set on DIM entrance (lava room)
     mainSetBits(BIT_DIM_Lit_Igloo_Fire_One, 1);
     mainSetBits(BIT_DIM_Lit_Igloo_Fire_Two, 1);
     mainSetBits(BIT_DIM_Lit_Igloo_Fire_Three, 1);
@@ -1668,6 +1672,8 @@ static void ch_desert_force_point_1(void) {
     /* golden plains */
     chselect_move_setup(0x33871, MAP_GOLDEN_PLAINS, -935.105469f, 113.410797f, 14225.819336f); // DIMPushBlock
 
+    chselect_simulate_task_bit(BIT_GP_ChimneySwipe_Lifted); // used for the "entered golden plains" task for some reason
+
     mainSetBits(BIT_Kyte_Flight_Curve, 93);
     mainSetBits(BIT_Spell_Portal, 1);
     mainSetBits(BIT_63E, 0); // tumbleweed meter?
@@ -1726,6 +1732,7 @@ static void ch_swapstone_hollow_4(void) {
     chselect_set_map_state(MAP_CLOUDRUNNER_DUNGEON, 1, G_None);
 
     /* walk back to swapstone circle */
+    chselect_simulate_task_bit(BIT_651); // krazoa mirage cutscene
     mainSetBits(BIT_Kyte_Flight_Curve, 55);
     // some of these might have been during dfp
     mainSetBits(BIT_5E3, 1);

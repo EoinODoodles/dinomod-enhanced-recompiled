@@ -63,3 +63,9 @@ void chselect_set_timesave(s32 uid, f32 time);
 
 void chselect_set_min_magic(s32 playerno, s32 magic);
 void chselect_set_min_scarabs(s32 playerno, s32 scarabs);
+
+/** 
+ * Mark the associated task as completed without actually setting the bit.
+ * For bits that are only temporarily set but have a task.
+ */
+void chselect_simulate_task_bit(s32 entry);

@@ -16,6 +16,8 @@
 #include "dll.h"
 #include "macros.h"
 
+extern BitTableEntry *gFile_BITTABLE;
+
 static s32 windowOpen = FALSE;
 static s32 queuedChapterSelect = -1;
 
@@ -96,6 +98,14 @@ void chselect_set_min_scarabs(s32 playerno, s32 scarabs) {
     }
 }
 
+void chselect_simulate_task_bit(s32 entry) {
+    if (gFile_BITTABLE[entry].field_0x2 & (1 << 5)) {
+        dll_task->MarkTaskCompleted(gFile_BITTABLE[entry].task);
+    } else {
+        recomp_eprintf("[chapter_select] Tried to simulate task bit 0x%X, but it doesn't have a task associated.", entry);
+    }
+}
+
 // pretty much the same as gplay_init_save
 static void init_save(Savegame* savegame, const char* filename) {
     savegame->file.playerno = PLAYER_KRYSTAL;
@@ -158,6 +168,8 @@ static void goto_chapter(s32 index) {
     bzero(savegame, sizeof(*savegame));
     init_save(savegame, prevFilename);
     savegame->file.timePlayed = prevTimePlayed + 1;
+
+    dll_task->LoadRecentlyCompleted(); // reset task DLL state
 
     s32 numChapters;
     Chapter* chapters = chselect_get_chapters(&numChapters);
@@ -253,6 +265,18 @@ static GameState* get_gplay_state(void) {
 }
 
 static void reload_from_gplay_state(void) {
+    // Sort recently task list, chapter callbacks don't necessarily mark tasks in the right order
+    s32 nextTask = mainGetBits(BIT_Next_Game_Task);
+    for (s32 i = 0; i < 5; i++) {
+        mainSetBits(BIT_Recent_Task_1 + i, 0);
+    }
+    for (s32 i = nextTask - 5, k = 0; i < nextTask; i++) {
+        if (i > 0) {
+            mainSetBits(BIT_Recent_Task_1 + k++, i);
+        }
+    }
+
+    // Sync gplay state with new savegame
     gDLL_29_Gplay->vtbl->restart_clear();
     bcopy(&sState.save, &sSavegame->asSave, sizeof(Savegame));
     
@@ -261,6 +285,7 @@ static void reload_from_gplay_state(void) {
 
     bzero(&sState.bitString, sizeof(sState.bitString));
 
+    // Start game
     mainUnpause();
 
     dll_task->LoadRecentlyCompleted();
