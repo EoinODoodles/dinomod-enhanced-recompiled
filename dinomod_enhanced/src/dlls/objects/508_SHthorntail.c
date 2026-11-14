@@ -357,7 +357,7 @@ RECOMP_PATCH void SHthorntail_commonControl(Object* self, SHthorntail_Data* objd
         numBranches = gDLL_26_Curves->vtbl->func_4F0(objdata->currentCurve, ignoreUID, branches);
         numNodeOptions = 0;
         for (i = 0; i < numBranches; i++) {
-            branch = gDLL_26_Curves->vtbl->func_39C(branches[i]);
+            branch = gDLL_26_Curves->vtbl->FindByUID(branches[i]);
             if (branch != NULL) {
                 allowBranch = FALSE;
                 switch (objdata->unk4E0) {

@@ -660,7 +660,7 @@ RECOMP_PATCH void trigger_process_commands(Object *self, Object *activator, s8 d
             break;
         case TRG_CMD_TRICKY_TALK_SEQ:
             // "Trigger [%d], Tricky talk sequence set to %d\n" (default.dol)
-            mainSetBits(BIT_Tricky_Talk_Sequence, cmd->param2 | (cmd->param1 << 8));
+            mainSetBits(BIT_Tricky_Walk_Group, cmd->param2 | (cmd->param1 << 8));
             break;
         case TRG_CMD_SAVE_POINT:
             // "Trigger [%d], Save Point\n" (default.dol)

@@ -149,14 +149,14 @@ static void WCBeacon_createLight(Object* self) {
     setup->base.x = objSetup->base.x - objData->sinYaw * 30;
     setup->base.y = self->srt.transl.y + 15;
     setup->base.z = objSetup->base.z - objData->cosYaw * 30;
-    setup->unk20 = 0;
-    setup->unk1E = rsLfxIndices[0];
-    setup->unk22 = -1;
-    setup->unk18 = 0;
-    setup->unk1A = 0;
-    setup->unk1C = 0;
-    setup->unk24 = 1;
-    setup->unk25 = 50;
+    setup->lifetime = 0;
+    setup->actionIndex = rsLfxIndices[0];
+    setup->enableBit = NO_GAMEBIT;
+    setup->rollRate = 0;
+    setup->pitchRate = 0;
+    setup->yawRate = 0;
+    setup->followCurve = TRUE;
+    setup->curveSpeed = 50;
     
     objData->lfxEmitter = objSetupObject(&setup->base, OBJINIT_STANDALONE | OBJINIT_FLAG4, self->mapID, -1, NULL);
 }

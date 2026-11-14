@@ -157,7 +157,7 @@ static void ch_snowhorn_wastes_1(void) {
     mainSetBits(BIT_Play_Seq_00EA_IM_Sabre_Falls_Into_Hot_Spring, 1);
     mainSetBits(BIT_37A, 1); // BIT_Played_Seq_00EA_IM_Sabre_Falls_Into_Hot_Spring
     mainSetBits(BIT_IM_Race_Ended, 1);
-    mainSetBits(BIT_Tricky_Talk_Sequence, 1);
+    mainSetBits(BIT_Tricky_Walk_Group, 1);
     mainSetBits(BIT_4E3, 255); // tricky related
 
     chselect_set_map_state(MAP_SNOWHORN_WASTES, 1, G_None);
@@ -211,7 +211,7 @@ static void ch_swapstone_hollow_1(void) {
     mainSetBits(BIT_Tricky_Ball_Unlocked, 1);
     mainSetBits(BIT_4D3, 1); // NWboulder 0x30398
     mainSetBits(BIT_4D4, 1); // set/used by NWtricky
-    mainSetBits(BIT_Tricky_Talk_Sequence, 145);
+    mainSetBits(BIT_Tricky_Walk_Group, 145);
     mainSetBits(BIT_4E3, 1); // tricky related
     mainSetBits(BIT_Tricky_Unlocked_Sidekick_Commands, 1);
     mainSetBits(BIT_SnowHorn_Tutorial_NumRootsFed, 2);
@@ -279,7 +279,7 @@ static void ch_swapstone_circle_1(void) {
     mainSetBits(BIT_485, 1); // VFP SHseqobject 0x30AFC played bit
     mainSetBits(BIT_Play_Seq_0298_Queen_Shows_VFPT, 1); // VFP SHseqobject 0x30AFA played bit
     mainSetBits(BIT_Play_Seq_0299_Queen_Shows_SpellStones, 1); // VFP SHseqobject 0x30AFC played bit
-    mainSetBits(BIT_Tricky_Talk_Sequence, 201);
+    mainSetBits(BIT_Tricky_Walk_Group, 201);
     mainSetBits(BIT_4E3, 255); // tricky related
     mainSetBits(BIT_658, 1); // ExplodeAnimator 0x348E6
     mainSetBits(BIT_659, 1); // ExplodeAnimator 0x348E9
@@ -794,7 +794,7 @@ static void ch_darkice_1(void) {
     mainSetBits(BIT_120, 1); // SnowClaw 0x41D81 defeated bit
     mainSetBits(BIT_121, 1); // SnowClaw 0x30A70 defeated bit
     mainSetBits(BIT_Garunda_Te_Weeds_Eaten, 10);
-    mainSetBits(BIT_Tricky_Talk_Sequence, 142);
+    mainSetBits(BIT_Tricky_Walk_Group, 142);
     mainSetBits(BIT_763, 142); // HitAnimator 0x15F4
 
     chselect_set_map_state(MAP_SWAPSTONE_HOLLOW, 1, G_None);
@@ -895,7 +895,7 @@ static void ch_darkice_2(void) {
     mainSetBits(BIT_Burned_DIMTent_7, 1);
     mainSetBits(BIT_Burned_DIMTent_6, 1);
     mainSetBits(BIT_4CE, 3); // DIMboulder times hit
-    mainSetBits(BIT_Tricky_Talk_Sequence, 44);
+    mainSetBits(BIT_Tricky_Walk_Group, 44);
     mainSetBits(BIT_Tricky_Spawns, 0); // bye bye
     mainSetBits(BIT_540, 1); // TriggerPlane 0x1A51, set on DIM entrance (lava room)
     mainSetBits(BIT_DIM_Lit_Igloo_Fire_One, 1);
@@ -986,7 +986,7 @@ static void ch_galadon(void) {
     mainSetBits(BIT_2C3, 1); // DIM2SeqObject 0x33EEA played
     mainSetBits(BIT_35F, 1); // IMSnowBike 0x3037B
     mainSetBits(BIT_40A, 1); // DIMBikeDoor 0x303B9
-    mainSetBits(BIT_Tricky_Talk_Sequence, 71);
+    mainSetBits(BIT_Tricky_Walk_Group, 71);
     mainSetBits(BIT_Tricky_Spawns, 1);
     mainSetBits(BIT_354, 1); // WallAnimator 0x2723 dug
 
@@ -1035,7 +1035,7 @@ static void ch_swapstone_hollow_river(void) {
     mainSetBits(BIT_186, 273); // ? map objbits?
     mainSetBits(BIT_SpellStone_DIM_Activated, 1);
     mainSetBits(BIT_22E, 1);
-    mainSetBits(BIT_Tricky_Talk_Sequence, 145);
+    mainSetBits(BIT_Tricky_Walk_Group, 145);
 
     /* snowhown wastes -> swapstone hollow tunnel */
     chselect_set_map_state(MAP_SNOWHORN_WASTES, 2, G19);
@@ -1073,7 +1073,7 @@ static void ch_swapstone_hollow_river(void) {
 static void ch_diamond_bay_1(void) {
     /* swapstone hollow */
     mainSetBits(BIT_14, 1); // SHseqobject 0x1CEB played bit
-    mainSetBits(BIT_Tricky_Talk_Sequence, 56);
+    mainSetBits(BIT_Tricky_Walk_Group, 56);
     mainSetBits(DINOMOD_BIT_920_SH_BoulderBlownUp, 1);
     mainSetBits(DINOMOD_BIT_921_SH_RiverUnblocked, 1);
     mainSetBits(DINOMOD_BIT_92C_SH_River_Seq_Has_Played, 1);
@@ -1134,7 +1134,7 @@ static void ch_volcano_force_point_1(void) {
     mainSetBits(BIT_44C, 1);
     mainSetBits(BIT_44D, 1);
     mainSetBits(BIT_4B4, 1);
-    mainSetBits(BIT_Tricky_Talk_Sequence, 210);
+    mainSetBits(BIT_Tricky_Walk_Group, 210);
     mainSetBits(BIT_4E6, 1);
     mainSetBits(BIT_83F, 1);
     mainSetBits(BIT_DB_Bay_Diamond, 1);
@@ -1175,7 +1175,7 @@ static void ch_volcano_force_point_1(void) {
 static void ch_db_shrine(void) {
     /* volcano force point/killbot area */
     mainSetBits(BIT_SpellStone_DIM, 1);
-    mainSetBits(BIT_Tricky_Talk_Sequence, 122);
+    mainSetBits(BIT_Tricky_Walk_Group, 122);
     mainSetBits(BIT_4E7, 1);
     mainSetBits(BIT_DB_Unlock_Act_Two, 1);
     mainSetBits(BIT_4EC, 1);
@@ -1256,7 +1256,7 @@ static void ch_warlock_mountain_spirit_2(void) {
 
     /* diamond bay -> swapstone hollow */
     mainSetBits(BIT_21F_Spirit_Collected, 1);
-    mainSetBits(BIT_Tricky_Talk_Sequence, 201);
+    mainSetBits(BIT_Tricky_Walk_Group, 201);
     mainSetBits(BIT_86F, 1);
     mainSetBits(BIT_872, 1);
     mainSetBits(BIT_873, 1);
@@ -1310,7 +1310,7 @@ static void ch_swapstone_circle_3(void) {
     mainSetBits(BIT_Spirit_2_Release_Sabre, 1);
     mainSetBits(BIT_Play_Seq_0107_Rocky_Intro_Unused, 0);
     mainSetBits(BIT_Spirit_Bits, 0);
-    mainSetBits(BIT_Tricky_Talk_Sequence, 35);
+    mainSetBits(BIT_Tricky_Walk_Group, 35);
     mainSetBits(BIT_WM_Sabre_Transporter_Visible, 1);
     mainSetBits(BIT_Sabre_Warp_Crystal, 1);
     mainSetBits(BIT_8A1, 1);
@@ -1506,7 +1506,7 @@ static void ch_crf_race(void) {
     mainSetBits(BIT_Kyte_Trapped, 0);
     //mainSetBits(BIT_Kyte_Flight_Curve, 18);
     mainSetBits(BIT_4DF, 1);
-    mainSetBits(BIT_Tricky_Talk_Sequence, 0); // wat ??
+    mainSetBits(BIT_Tricky_Walk_Group, 0); // wat ??
     //mainSetBits(BIT_CRF_Player_In_Treasure_Room, 1); // also the throne room apparently
     mainSetBits(BIT_8B2, 1);
     mainSetBits(BIT_8B3, 1);
@@ -1786,7 +1786,7 @@ static void ch_swapstone_hollow_4(void) {
     chselect_set_player(PLAYER_SABRE);
 
     mainSetBits(BIT_Play_Seq_0107_Rocky_Intro_Unused, 1);
-    mainSetBits(BIT_Tricky_Talk_Sequence, 201);
+    mainSetBits(BIT_Tricky_Walk_Group, 201);
     mainSetBits(BIT_Play_Seq_035F_Rocky_Intro, 0);
 
     chselect_set_map_state(MAP_SWAPSTONE_HOLLOW, 1, G0);
