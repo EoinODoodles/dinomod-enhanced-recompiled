@@ -2847,6 +2847,22 @@ static void dragon_rock_upper_modifications(void) {
         fxemit = reasset_map_objects_get(drTop, reasset_base_id(0x404B2), NULL);
         fxemit->id = 0x6DC;
     }
+
+    // Walk group fixes
+    {
+        CurveSetup* curve;
+
+        curve = GET_MAPS_OBJECT(drTop, 0x409C3); // entrance from wg
+        curve->unk1A = 16;
+        curve = GET_MAPS_OBJECT(drTop, 0x409D8); // before hill to laser cannon
+        curve->unk1A = 28;
+        curve = GET_MAPS_OBJECT(drTop, 0x409DA); // on hill with laser cannon
+        curve->unk1A = 12;
+        curve = GET_MAPS_OBJECT(drTop, 0x409E1); // before first breakable wall to the cloudrunner area
+        curve->unk1A = 10;
+        curve = GET_MAPS_OBJECT(drTop, 0x409FE); // in tunnel from cloudrunner area to dr bottom
+        curve->unk1A = 9;
+    }
 }
 
 static void dragon_rock_bottom_modifications(void) {
@@ -2859,6 +2875,18 @@ static void dragon_rock_bottom_modifications(void) {
     {
         ObjSetup* cfBarrel = reasset_map_objects_get(drBot, reasset_base_id(0x34AD3), NULL);
         cfBarrel->loadDistance = 127;
+    }
+
+    // Walk group fixes
+    {
+        CurveSetup* curve;
+
+        curve = GET_MAPS_OBJECT(drBot, 0x40A14); // in tunnel to main dr bottom area
+        curve->unk1A = 32;
+        curve = GET_MAPS_OBJECT(drBot, 0x40A04); // in earthwarrior room
+        curve->unk1A = 20;
+        curve = GET_MAPS_OBJECT(drBot, 0x40A06); // in earthwarrior room
+        curve->unk1A = 26;
     }
 }
 
@@ -3659,6 +3687,24 @@ static void swapstone_hollow_modifications(void) {
             sideload->options = SideLoad_OPTION_Repeatable;
         }
     }
+
+    // Walk group fixes
+    {
+        CurveSetup* curve;
+
+        curve = GET_MAPS_OBJECT(sHollow, 0x407F1); // by the thorntail next to the hollow
+        curve->unk1A = 16;
+        curve = GET_MAPS_OBJECT(sHollow, 0x407FE); // big long region next to the river
+        curve->unk1A = 12;
+        curve = GET_MAPS_OBJECT(sHollow, 0x4080E); // in river (needs patch for when river is drained)
+        curve->unk1A = 19;
+        curve = GET_MAPS_OBJECT(sHollow, 0x4080D); // in river (needs patch for when river is drained)
+        curve->unk1A = 20;
+        curve = GET_MAPS_OBJECT(sHollow, 0x4080C); // in river (needs patch for when river is drained)
+        curve->unk1A = 20;
+        curve = GET_MAPS_OBJECT(sHollow, 0x4080B); // in river (needs patch for when river is drained)
+        curve->unk1A = 18;
+    }
 }
 
 static void swapstone_hollow_well_additions(void) {
@@ -4160,6 +4206,16 @@ static void darkice_mines_modifications(void) {
             line->settingsA &= ~(Wall_Climb_No_Letting_Go | Wall_Climb_Stop_at_Bottom | Wall_Climb_Stop_at_Top);
         }
     }
+
+    // Walk group fixes
+    {
+        CurveSetup* curve;
+
+        curve = GET_MAPS_OBJECT(dim1MapID, 0x41D66); // on the boulder path to the alpine root
+        curve->unk1A = 7;
+        curve = GET_MAPS_OBJECT(dim1MapID, 0x41D68); // on the boulder path to the alpine root
+        curve->unk1A = 7;
+    }
 }
 
 /** 
@@ -4414,6 +4470,18 @@ static void diamond_bay_modifications(void) {
         WaterFallSpray_Setup_Dinomod* spray = reasset_map_objects_get(db, reasset_base_id(0x4205B), NULL);
         spray->gamebit = RIVER_BIT;
         spray->invertGamebit = TRUE;
+    }
+
+    // Walk group fixes
+    {
+        CurveSetup* curve;
+
+        curve = GET_MAPS_OBJECT(db, 0x40A81); // on path to vfp
+        curve->unk1A = 14;
+        curve = GET_MAPS_OBJECT(db, 0x420BF); // on path to vfp
+        curve->unk1A = 15;
+        curve = GET_MAPS_OBJECT(db, 0x420C0); // on path to vfp
+        curve->unk1A = 20;
     }
 }
 
@@ -7169,6 +7237,25 @@ static void vfp_modifications(void) {
         scorpRobo = reasset_map_objects_get(vfp, reasset_base_id(0x41851), NULL);
         scorpRobo->unk29 = 320 / 8;
     }
+
+    // Walk group fixes
+    {
+        CurveSetup* curve;
+
+        curve = GET_MAPS_OBJECT(vfp, 0x42457); // act 1 2nd big scorpion robo room
+        curve->unk1A = 15;
+        curve = GET_MAPS_OBJECT(vfp, 0x42458); // act 1 2nd big scorpion robo room
+        curve->unk1A = 14;
+        curve = GET_MAPS_OBJECT(vfp, 0x424B9); // act 2 2nd big scorpion robo room
+        curve->unk1A = 14;
+        curve = GET_MAPS_OBJECT(vfp, 0x424BA); // act 2 2nd big scorpion robo room
+        curve->unk1A = 14;
+        curve = GET_MAPS_OBJECT(vfp, 0x41744); // act 2 end tunnel
+        curve->unk1A = 7;
+        curve = GET_MAPS_OBJECT(vfp, 0x41743); // act 2 end tunnel
+        curve->unk18 = 4; // shift the whole thing down, it's floating
+        curve->unk1A = 16;
+    }
 }
 
 static void nw_modifications(void) {
@@ -7190,6 +7277,14 @@ static void nw_modifications(void) {
     {
         HitAnimator_Setup* blueSnowHornHitAnim = reasset_map_objects_get(nw, reasset_base_id(0xBE03007), NULL);
         blueSnowHornHitAnim->gamebitActivate = DINOMOD_BIT_92D_Blue_SnowHorn_HitAnimator;
+    }
+
+    // Walk group fixes
+    {
+        CurveSetup* curve;
+
+        curve = GET_MAPS_OBJECT(nw, 0x408D7); // by the the tree between garunda te and the tumbleweeds
+        curve->unk1A = 37;
     }
 }
 
