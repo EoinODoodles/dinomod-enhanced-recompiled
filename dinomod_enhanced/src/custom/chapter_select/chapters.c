@@ -532,7 +532,7 @@ static void ch_discovery_falls(void) {
     chselect_set_map_state(MAP_DISCOVERY_FALLS, 1, G1);
     chselect_set_map_state(MAP_SWAPSTONE_CIRCLE, 3, G_None);
 
-    chselect_set_location(PLAYER_KRYSTAL, -2097.08f, 160.27f, 18309.26f, 17408, 0);
+    chselect_set_location(PLAYER_KRYSTAL, -2097.08f, 152.0f, 18309.26f, 17408, 0);
 
     PlayerLightActions light = DEFAULT_LACTIONS;
     light.skylights[0] = 485;

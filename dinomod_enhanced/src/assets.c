@@ -4746,6 +4746,13 @@ static void discovery_falls_modifications(void) {
 
     //Approach (from SwapStone Circle)
     {
+        //Adjust initial save point/music activator
+        {
+            Trigger_Setup* plane = GET_MAPS_OBJECT(discoveryFalls, 0x000426cc);
+            plane->base.y = 152; //Snap to ground level
+            plane->sizeX = TRIGGER_SCALE(0.976); //Scale up (it used to be possible to miss the plane by hugging the wall)
+        }
+
         //Add texscrolls to the waterfalls' foam
         {
             TexScroll_Setup texScrollData[] = {
