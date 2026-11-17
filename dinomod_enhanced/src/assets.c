@@ -317,7 +317,17 @@ static ReAssetID shBarrelcreatorIndexID;
 static ReAssetID wcDialProjectileSwitchIndexID;
 static ReAssetID lodAnimatorIndexID;
 
+static ReAssetID shCustomCurve2ID;
+static ReAssetID shCustomCurve1ID;
+static ReAssetID shCustomCurve3ID;
+static ReAssetID shCustomCurve4ID;
+
 s32 UID_SH_BurrowsSharpClaw = 0x10000;
+
+static s32 UID_SH_CustomCurve1 = 0x1000000;
+static s32 UID_SH_CustomCurve2 = 0x1000001;
+static s32 UID_SH_CustomCurve3 = 0x1000002;
+static s32 UID_SH_CustomCurve4 = 0x1000003;
 
 REASSET_ON_INIT void dinomod_reasset_on_init(void) {
     dinomodNs = reasset_namespace("dinomod");
@@ -326,6 +336,11 @@ REASSET_ON_INIT void dinomod_reasset_on_init(void) {
     shBarrelcreatorIndexID = reasset_id(dinomodNs, OBJ_SHbarrelcreator);
     wcDialProjectileSwitchIndexID = reasset_id(dinomodNs, OBJ_WCDialProjectileSwitch);
     lodAnimatorIndexID = reasset_id(dinomodNs, OBJ_LODAnimator);
+
+    shCustomCurve1ID = reasset_id(dinomodNs, UID_SH_CustomCurve1);
+    shCustomCurve2ID = reasset_id(dinomodNs, UID_SH_CustomCurve2);
+    shCustomCurve3ID = reasset_id(dinomodNs, UID_SH_CustomCurve3);
+    shCustomCurve4ID = reasset_id(dinomodNs, UID_SH_CustomCurve4);
 }
 
 static void walled_city_additions(void) {
@@ -622,6 +637,55 @@ static void walled_city_modifications(void) {
                 );
             }
         }
+
+        // Walk group fixes
+        {
+            CurveSetup* curve;
+
+            curve = GET_MAPS_OBJECT(walledCity, 0x4108A); // tunnel on path from sh to wc
+            curve->unk1A = 26;
+            curve = GET_MAPS_OBJECT(walledCity, 0x4108B); // tunnel on path from sh to wc
+            curve->unk1A = 24;
+            curve = GET_MAPS_OBJECT(walledCity, 0x4108C); // tunnel on path from sh to wc
+            curve->unk1A = 16;
+        }
+
+        // Tricky curve fixes
+        {
+            CurveSetup* curve;
+
+            // Add missing links between tricky curves and walk groups. Not sure why these are missing
+            curve = GET_MAPS_OBJECT(walledCity, 0x40F03);
+            curve->base_type24.linkWalkGroups[0] = 179;
+            curve->base_type24.linkWalkGroups[1] = 178;
+            curve = GET_MAPS_OBJECT(walledCity, 0x40F02);
+            curve->base_type24.linkWalkGroups[0] = 180;
+            curve->base_type24.linkWalkGroups[1] = 179;
+            curve = GET_MAPS_OBJECT(walledCity, 0x40EFD);
+            curve->base_type24.linkWalkGroups[0] = 181;
+            curve->base_type24.linkWalkGroups[1] = 180;
+            curve = GET_MAPS_OBJECT(walledCity, 0x40EFB);
+            curve->base_type24.linkWalkGroups[0] = 182;
+            curve->base_type24.linkWalkGroups[1] = 181;
+            curve = GET_MAPS_OBJECT(walledCity, 0x40EF8);
+            curve->base_type24.linkWalkGroups[0] = 183;
+            curve->base_type24.linkWalkGroups[1] = 182;
+            curve = GET_MAPS_OBJECT(walledCity, 0x40EF6);
+            curve->base_type24.linkWalkGroups[0] = 184;
+            curve->base_type24.linkWalkGroups[1] = 183;
+            curve = GET_MAPS_OBJECT(walledCity, 0x40EE9);
+            curve->base_type24.linkWalkGroups[0] = 185;
+            curve->base_type24.linkWalkGroups[1] = 184;
+            curve = GET_MAPS_OBJECT(walledCity, 0x40EE8);
+            curve->base_type24.linkWalkGroups[0] = 185;
+            curve->base_type24.linkWalkGroups[1] = 186;
+            curve = GET_MAPS_OBJECT(walledCity, 0x40EE7);
+            curve->base_type24.linkWalkGroups[0] = 187;
+            curve->base_type24.linkWalkGroups[1] = 186;
+            curve = GET_MAPS_OBJECT(walledCity, 0x40EE6);
+            curve->base_type24.linkWalkGroups[0] = 188; // this link is broken, the linked curve doesn't seem to exist
+            curve->base_type24.linkWalkGroups[1] = 187;
+        }
     }
 
     //Jungle Door area
@@ -876,6 +940,46 @@ static void walled_city_modifications(void) {
             sideLoad->gamebitUnlocked = DINOMOD_BIT_96A_WC_Jungle_Door_Open;
         }
 
+        // Walk group fixes/patches
+        {
+            CurveSetup* curve;
+
+            curve = GET_MAPS_OBJECT(walledCity, 0x4108E); // right-side group
+            curve->unk1A = 16;
+            // setup patch group with left-side
+            curve->links[0] = 0x4108D;
+            curve->type26.unk34[0][0] = 3;
+            curve->type26.unk34[0][1] = -43;
+            curve->type26.unk34[0][2] = -15;
+            curve->type26.unk34[0][3] = 36;
+
+            curve = GET_MAPS_OBJECT(walledCity, 0x4108D); // left-side group
+            // setup patch group with right-side
+            curve->links[0] = 0x4108E;
+            curve->type26.unk34[0][0] = 37;
+            curve->type26.unk34[0][1] = 63;
+            curve->type26.unk34[0][2] = 14;
+            curve->type26.unk34[0][3] = -41;
+        }
+
+        // Tricky curve fixes
+        {
+            CurveSetup* curve;
+
+            // Add missing links between tricky curves and walk groups. Not sure why these are missing
+            curve = GET_MAPS_OBJECT(walledCity, 0x40F0F);
+            curve->base_type24.linkWalkGroups[1] = 176;
+            curve->type24.activeBit = DINOMOD_BIT_96A_WC_Jungle_Door_Open; // also disable the node under the door until it's open
+            curve = GET_MAPS_OBJECT(walledCity, 0x40F05);
+            curve->base_type24.linkWalkGroups[0] = 178;
+            curve->base_type24.linkWalkGroups[1] = 177;
+            curve = GET_MAPS_OBJECT(walledCity, 0x40F0B);
+            curve->base_type24.linkWalkGroups[0] = 176;
+            curve->base_type24.linkWalkGroups[1] = 177;
+            curve = GET_MAPS_OBJECT(walledCity, 0x40F0D);
+            curve->base_type24.linkWalkGroups[0] = 176;
+            curve->base_type24.linkWalkGroups[1] = 177;
+        }
     }
 
     //Act 1
@@ -2692,6 +2796,21 @@ static void walled_city_modifications(void) {
     }
 }
 
+static void walled_city_resolve(void) {
+    ReAssetID walledCity = reasset_base_id(MAP_WALLED_CITY);
+
+    ReAssetResolveMap curveResolveMap = reasset_map_objects_get_curve_resolve_map();
+    s32 customCurve1UID = reasset_resolve_map_lookup(curveResolveMap, shCustomCurve1ID);
+
+    // Link vanilla curves to custom curves in SH -> WC connection area
+    {
+        CurveSetup* curve;
+
+        curve = reasset_map_objects_get(walledCity, reasset_base_id(0x40EE6), NULL);
+        curve->links[0] = customCurve1UID;
+    }
+}
+
 static void shrine_fxemit_modifications(void) {
     // Remove 'disable' gamebit 0x5 for some shrine FXEmits. Ensures they don't get disabled after picking up a CCgrub.
     // The other shrines don't have disable gamebits for their emitters.
@@ -3688,6 +3807,12 @@ static void swapstone_hollow_modifications(void) {
         }
     }
 
+    // Remove sidekick unload trigger command on the way to WC
+    {
+        Trigger_Setup* trigger = GET_MAPS_OBJECT(sHollow, 0x32464A);
+        bzero(&trigger->commands[0], sizeof(trigger->commands[0]));
+    }
+
     // Walk group fixes
     {
         CurveSetup* curve;
@@ -3704,6 +3829,191 @@ static void swapstone_hollow_modifications(void) {
         curve->unk1A = 20;
         curve = GET_MAPS_OBJECT(sHollow, 0x4080B); // in river (needs patch for when river is drained)
         curve->unk1A = 18;
+    }
+
+    // New curves on the connection to WC
+    {
+        u8 trickyCurveData[0x34]; // sizeof tricky curve
+        CurveSetup* curve = (CurveSetup*)trickyCurveData;
+
+        bzero(trickyCurveData, sizeof(trickyCurveData));
+        curve->objId = OBJ_curve;
+        curve->unk3 = 0;
+        curve->base_type24.linkWalkGroups[0] = 189;
+        curve->base_type24.linkWalkGroups[1] = 188;
+        curve->pos.x = 322.42f;
+        curve->pos.y = -733.0f;
+        curve->pos.z = -635.25f;
+        curve->curveType = 0x24;
+        curve->unk1B = 0x1;
+        curve->links[0] = UID_SH_CustomCurve2;
+        curve->links[1] = 0x40EE6;
+        curve->links[2] = -1;
+        curve->links[3] = -1;
+        curve->unk2C = -128;
+        curve->unk2E = 64;
+        curve->unk2F = -1;
+        curve->type24.activeBit = NO_GAMEBIT;
+        curve->type24.usedBit = NO_GAMEBIT;
+        reasset_map_objects_set(sHollow, shCustomCurve1ID, trickyCurveData, sizeof(trickyCurveData));
+
+        bzero(trickyCurveData, sizeof(trickyCurveData));
+        curve->objId = OBJ_curve;
+        curve->unk3 = 0;
+        curve->base_type24.linkWalkGroups[0] = 190;
+        curve->base_type24.linkWalkGroups[1] = 189;
+        curve->pos.x = 322.42f;
+        curve->pos.y = -733.0f;
+        curve->pos.z = -337.89f;
+        curve->curveType = 0x24;
+        curve->unk1B = 0x1;
+        curve->links[0] = UID_SH_CustomCurve3;
+        curve->links[1] = UID_SH_CustomCurve1;
+        curve->links[2] = -1;
+        curve->links[3] = -1;
+        curve->unk2C = -128;
+        curve->unk2E = 64;
+        curve->unk2F = -1;
+        curve->type24.activeBit = NO_GAMEBIT;
+        curve->type24.usedBit = NO_GAMEBIT;
+        reasset_map_objects_set(sHollow, shCustomCurve2ID, trickyCurveData, sizeof(trickyCurveData));
+
+        bzero(trickyCurveData, sizeof(trickyCurveData));
+        curve->objId = OBJ_curve;
+        curve->unk3 = 0;
+        curve->base_type24.linkWalkGroups[0] = 191;
+        curve->base_type24.linkWalkGroups[1] = 190;
+        curve->pos.x = 322.42f;
+        curve->pos.y = -835.0f;
+        curve->pos.z = -187.81f;
+        curve->curveType = 0x24;
+        curve->unk1B = 0x1;
+        curve->links[0] = UID_SH_CustomCurve4;
+        curve->links[1] = UID_SH_CustomCurve2;
+        curve->links[2] = -1;
+        curve->links[3] = -1;
+        curve->unk2C = -128;
+        curve->unk2E = 64;
+        curve->unk2F = -1;
+        curve->type24.activeBit = BIT_DFP_Place_Spellstone_One; // only enable after the queen moves
+        curve->type24.usedBit = NO_GAMEBIT;
+        reasset_map_objects_set(sHollow, shCustomCurve3ID, trickyCurveData, sizeof(trickyCurveData));
+
+        bzero(trickyCurveData, sizeof(trickyCurveData));
+        curve->objId = OBJ_curve;
+        curve->unk3 = 0;
+        curve->base_type24.linkWalkGroups[0] = 191;
+        curve->base_type24.linkWalkGroups[1] = 69;
+        curve->base_type24.linkWalkGroups[2] = 69;
+        curve->pos.x = 322.42f;
+        curve->pos.y = -835.0f;
+        curve->pos.z = 82.30f;
+        curve->curveType = 0x24;
+        curve->unk1B = 0x6;
+        curve->links[0] = UID_SH_CustomCurve3;
+        curve->links[1] = 0x3311B;
+        curve->links[2] = 0x41441;
+        curve->links[3] = -1;
+        curve->unk2C = -128;
+        curve->unk2E = 64;
+        curve->unk2F = -1;
+        curve->type24.activeBit = NO_GAMEBIT;
+        curve->type24.usedBit = NO_GAMEBIT;
+        reasset_map_objects_set(sHollow, shCustomCurve4ID, trickyCurveData, sizeof(trickyCurveData));
+    }
+
+    // New walk groups on the connection to WC
+    {
+        u8 walkGroupCurveData[0x44]; // sizeof walk group curve
+        CurveSetup* curve = (CurveSetup*)walkGroupCurveData;
+
+        bzero(walkGroupCurveData, sizeof(walkGroupCurveData));
+        curve->objId = OBJ_curve;
+        curve->unk3 = 189; // unused walk group across both SH and WC
+        curve->base_type26.unk4 = 9;
+        curve->base_type26.unk5 = 26;
+        curve->base_type26.unk6 = -10;
+        curve->base_type26.unk7 = 26;
+        curve->pos.x = 322.42f;
+        curve->pos.y = -733.0f;
+        curve->pos.z = -496.26f;
+        curve->unk18 = 5;
+        curve->unk1A = 5;
+        curve->curveType = 0x26;
+        curve->links[0] = -1;
+        curve->links[1] = -1;
+        curve->links[2] = -1;
+        curve->links[3] = -1;
+        curve->type26.unk30 = -9;
+        curve->type26.unk31 = -24;
+        curve->type26.unk32 = 9;
+        curve->type26.unk33 = -24;
+        reasset_map_objects_set(sHollow, reasset_auto_id(dinomodNs), walkGroupCurveData, sizeof(walkGroupCurveData));
+
+        bzero(walkGroupCurveData, sizeof(walkGroupCurveData));
+        curve->objId = OBJ_curve;
+        curve->unk3 = 190; // unused walk group across both SH and WC
+        curve->base_type26.unk4 = 9;
+        curve->base_type26.unk5 = 13;
+        curve->base_type26.unk6 = -10;
+        curve->base_type26.unk7 = 13;
+        curve->pos.x = 322.42f;
+        curve->pos.y = -785.0f;
+        curve->pos.z = -265.75f;
+        curve->unk18 = 32;
+        curve->unk1A = 32;
+        curve->curveType = 0x26;
+        curve->links[0] = -1;
+        curve->links[1] = -1;
+        curve->links[2] = -1;
+        curve->links[3] = -1;
+        curve->type26.unk30 = -10;
+        curve->type26.unk31 = -12;
+        curve->type26.unk32 = 9;
+        curve->type26.unk33 = -12;
+        reasset_map_objects_set(sHollow, reasset_auto_id(dinomodNs), walkGroupCurveData, sizeof(walkGroupCurveData));
+
+        bzero(walkGroupCurveData, sizeof(walkGroupCurveData));
+        curve->objId = OBJ_curve;
+        curve->unk3 = 191; // unused walk group across both SH and WC
+        curve->base_type26.unk4 = 9;
+        curve->base_type26.unk5 = 26;
+        curve->base_type26.unk6 = -10;
+        curve->base_type26.unk7 = 26;
+        curve->pos.x = 322.42f;
+        curve->pos.y = -835.0f;
+        curve->pos.z = -67.10f;
+        curve->unk18 = 5;
+        curve->unk1A = 5;
+        curve->curveType = 0x26;
+        curve->links[0] = -1;
+        curve->links[1] = -1;
+        curve->links[2] = -1;
+        curve->links[3] = -1;
+        curve->type26.unk30 = -10;
+        curve->type26.unk31 = -20;
+        curve->type26.unk32 = 9;
+        curve->type26.unk33 = -20;
+        reasset_map_objects_set(sHollow, reasset_auto_id(dinomodNs), walkGroupCurveData, sizeof(walkGroupCurveData));
+    }
+}
+
+static void swapstone_hollow_resolve(void) {
+    ReAssetID sHollow = reasset_base_id(MAP_SWAPSTONE_HOLLOW);
+
+    ReAssetResolveMap curveResolveMap = reasset_map_objects_get_curve_resolve_map();
+    s32 customCurve4UID = reasset_resolve_map_lookup(curveResolveMap, shCustomCurve4ID);
+
+    // Link vanilla curves to custom curves in SH -> WC connection area
+    {
+        CurveSetup* curve;
+
+        curve = reasset_map_objects_get(sHollow, reasset_base_id(0x3311B), NULL);
+        curve->links[3] = customCurve4UID;
+        curve->base_type24.linkWalkGroups[3] = 69;
+        curve = reasset_map_objects_get(sHollow, reasset_base_id(0x41441), NULL);
+        curve->links[2] = customCurve4UID;
+        curve->base_type24.linkWalkGroups[2] = 69;
     }
 }
 
@@ -8333,4 +8643,7 @@ REASSET_ON_RESOLVE void dinomod_reasset_on_resolve(void) {
     OBJ_SHbarrelcreator = reasset_resolve_map_lookup(objIndexResolveMap, shBarrelcreatorIndexID);
     OBJ_WCDialProjectileSwitch = reasset_resolve_map_lookup(objIndexResolveMap, wcDialProjectileSwitchIndexID);
     OBJ_LODAnimator = reasset_resolve_map_lookup(objIndexResolveMap, lodAnimatorIndexID);
+
+    walled_city_resolve();
+    swapstone_hollow_resolve();
 }
