@@ -443,12 +443,14 @@ RECOMP_PATCH s32 tricky_func_53E4(Object* self, f32 arg1, Tricky_Data* objData) 
                     // @recomp: Let tricky reroute if he is stuck outside of a walk group but the goal has moved to a different group.
                     //          Without this, tricky will just be stuck pretty much forever. Don't try to continue direct-to-goal movement
                     //          if tricky was in the same group as the goal, instead the walk group bounds should be fixed.
-                    if (objData->currWalkGroup != 0 && goalWalkGroup != objData->currWalkGroup) {
-                        recomp_eprintf("[tricky] stuck outside of a walk group, rerouting...\n");
-                        objData->unk19 = 5;
-                        inWalkGroup = objData->currWalkGroup;
-                    } else {
-                        recomp_eprintf("[tricky] stuck outside of walk group %d! pls fix\n", objData->currWalkGroup);
+                    if (objData->currWalkGroup != 0) {
+                        if (goalWalkGroup != objData->currWalkGroup) {
+                            recomp_eprintf("[tricky] stuck outside of a walk group, rerouting...\n");
+                            objData->unk19 = 5;
+                            inWalkGroup = objData->currWalkGroup;
+                        } else {
+                            recomp_eprintf("[tricky] stuck outside of walk group %d! pls fix\n", objData->currWalkGroup);
+                        }
                     }
                 }
             }
@@ -501,12 +503,14 @@ RECOMP_PATCH s32 tricky_func_53E4(Object* self, f32 arg1, Tricky_Data* objData) 
                 // @recomp: Let tricky reroute if he is stuck outside of a walk group but the goal has moved to a different group.
                 //          Without this, tricky will just be stuck pretty much forever. Don't try to continue direct-to-goal movement
                 //          if tricky was in the same group as the goal, instead the walk group bounds should be fixed.
-                if (objData->currWalkGroup != 0 && goalWalkGroup != objData->currWalkGroup) {
-                    recomp_eprintf("[tricky] stuck outside of a walk group, rerouting...\n");
-                    objData->unk19 = 5;
-                    inWalkGroup = objData->currWalkGroup;
-                } else {
-                    recomp_eprintf("[tricky] stuck outside of walk group %d! pls fix\n", objData->currWalkGroup);
+                if (objData->currWalkGroup != 0) {
+                    if (goalWalkGroup != objData->currWalkGroup) {
+                        recomp_eprintf("[tricky] stuck outside of a walk group, rerouting...\n");
+                        objData->unk19 = 5;
+                        inWalkGroup = objData->currWalkGroup;
+                    } else {
+                        recomp_eprintf("[tricky] stuck outside of walk group %d! pls fix\n", objData->currWalkGroup);
+                    }
                 }
             }
         }
