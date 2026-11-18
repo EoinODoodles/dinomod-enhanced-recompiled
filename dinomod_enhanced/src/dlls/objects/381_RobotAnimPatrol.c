@@ -5,6 +5,9 @@
 #include "dlls/objects/210_player.h"
 #include "dlls/objects/338_LFXEmitter.h"
 #include "game/objects/object_id.h"
+#include "game/objects/setups/51_Generic.h"
+#include "game/objects/setups/102_LFXEmitter.h"
+#include "game/gamebits.h"
 #include "sys/camera.h"
 #include "sys/dll.h"
 #include "sys/gfx/projgfx.h"
@@ -20,16 +23,6 @@
 #include "gbi_extra.h"
 
 #include "recomp/dlls/objects/381_RobotAnimPatrol_recomp.h"
-
-typedef struct {
-/*00*/ ObjSetup base;
-/*18*/ s8 rotation;
-/*19*/ u8 unk19[0x1A - 0x19];
-/*1A*/ s16 unk1A;
-/*1C*/ u8 unk1C[0x1E - 0x1C];
-/*1E*/ s16 unk1E;
-/*20*/ s16 unk20;
-} RobotAnimPatrol_Setup;
 
 typedef struct {
 /*00*/ f32 unk0;
@@ -94,16 +87,116 @@ typedef struct {
 /*359*/ u8 unk359;
 } RobotAnimPatrol_Data;
 
+enum RobotAnimPatrolFlags {
+    ROBOTANIMPATROL_FLAGS_Destroyed = 1,
+    ROBOTANIMPATROL_FLAGS_Unk2 = 2,
+    ROBOTANIMPATROL_FLAGS_Unk4 = 4
+};
+
 // @recomp: fix one side of the laser pointer
 /*0x0*/ static DLTri sLaserTris[] = {
     {0x40, 0, 2, 1, {0}}, 
     {0x40, 1, 2, 0, {0}} // @recomp: just reverse the winding order, so the fadeout looks right 
 };
+extern Vec3f data_20[1];
+extern f32 data_2C[1];
 
 /*0x0*/ extern Texture* sRedLaserBeamTexture;
+/*0x4*/ extern Texture* sBlueLaserBeamTexture; // unused
+/*0x8*/ extern Texture* bss_8; // blue fireball? unused
 
+int RobotAnimPatrol_animCallback(Object* self, Object* animObj, AnimObj_Data* animObjData, s8);
 s32 RobotAnimPatrol_aimRaycast(Vec3f*, Vec3f*, Vec3f*, Object*);
 void RobotAnimPatrol_fireGun(Object* self, RobotAnimPatrol_Data* objdata);
+void RobotAnimPatrol_initStunState(RobotAnimPatrol_StunState*);
+
+RECOMP_PATCH void RobotAnimPatrol_obj_Setup(Object* self, RobotAnimPatrol_Setup* setup, s32 reset) {
+    RobotAnimPatrol_Data* objdata = self->data;
+    ObjSetup* beamSetup;
+    Object* beam;
+    ObjectShadow* beamShadow;
+    s32 _pad[7];
+    u8 sp3B;
+    
+    sp3B = 5;
+    objdata->flags = 0;
+    if ((setup->destroyedBit != -1) && (mainGetBits(setup->destroyedBit) != 0)) {
+        objdata->flags |= ROBOTANIMPATROL_FLAGS_Destroyed;
+        return;
+    }
+    objdata->flags &= ~ROBOTANIMPATROL_FLAGS_Destroyed;
+    objInitMesgQueue(self, 4);
+    self->animCallback = RobotAnimPatrol_animCallback;
+    if (sRedLaserBeamTexture == NULL) {
+        sRedLaserBeamTexture = texLoadTexture(TEXTABLE_127);
+    }
+    if (sBlueLaserBeamTexture == NULL) {
+        sBlueLaserBeamTexture = texLoadTexture(TEXTABLE_16B);
+    }
+    if (bss_8 == NULL) {
+        bss_8 = texLoadTexture(TEXTABLE_16E);
+    }
+    if (objdata->beam == NULL) {
+        beamSetup = objAllocSetup(sizeof(ObjSetup), OBJ_RobotBeam2);
+        beamSetup->x = self->srt.transl.x;
+        beamSetup->y = self->srt.transl.y;
+        beamSetup->z = self->srt.transl.z;
+        beamSetup->objId = OBJ_RobotBeam2;
+        beamSetup->loadFlags = OBJSETUP_LOAD_MANUAL;
+        beamSetup->fadeFlags = OBJSETUP_FADE_CAMERA;
+        beamSetup->fadeDistance = 255;
+        // @recomp: Add init flag 0x4 so that the ObjSetup is freed with the robo (originally by MusicalProgrammer)
+        beam = objSetupObject(beamSetup, OBJINIT_FLAG4, -1, -1, self->parent);
+        objdata->beam = beam;
+        beam->srt.scale = 0.35f;
+    }
+    camGetObjectChildPosition(objdata->beam, 
+        &objdata->beam->globalPosition.x, 
+        &objdata->beam->globalPosition.y, 
+        &objdata->beam->globalPosition.z);
+    beamShadow = objdata->beam->shadow;
+    if (beamShadow != NULL) {
+        beamShadow->flags |= OBJ_SHADOW_FLAG_CUSTOM_COLOR | OBJ_SHADOW_FLAG_CUSTOM_DIR;
+        beamShadow->r = 192;
+        beamShadow->g = 255;
+        beamShadow->b = 255;
+        beamShadow->a = 30;
+        beamShadow->scale = 3.5f;
+    }
+    objdata->spawnPos.x = setup->base.x;
+    objdata->spawnPos.y = setup->base.y;
+    objdata->spawnPos.z = setup->base.z;
+    objdata->spawnYaw = setup->yaw << 8;
+    objdata->unk38 = setup->unk1A;
+    objdata->unk24 = 0.2f;
+    objdata->unk3C = 0;
+    objdata->gunDeployState = 0;
+    objdata->chatterSfxTimer = mathRnd(240, 600);
+    objdata->target = NULL;
+    objdata->canSeePlayer = FALSE;
+    objdata->prevCanSeePlayer = FALSE;
+    objdata->unk51 = 0;
+    objdata->updateRate = 1;
+    objdata->unkA0 = self->srt.yaw;
+    objdata->unk9C = 0;
+    objdata->unkA4 = 0;
+    objdata->unk34 = 0x400;
+    objdata->unkAA = 0;
+    objdata->crashTick = 0;
+    objdata->unk359 = 0;
+    objdata->lfxEmitter = NULL;
+    objdata->lfxEmitter2 = 0;
+    objdata->unk2C = 2.0f;
+    objdata->unkB4 = 0.0f;
+    objdata->unkB8 = 0.0f;
+    objAnimSet(self, 0, 1.0f, 0);
+    gDLL_27->vtbl->init(&objdata->collider, DLL27FLAG_NONE, DLL27FLAG_40000 | DLL27FLAG_80 | DLL27FLAG_2 | DLL27FLAG_1, DLL27MODE_1);
+    gDLL_27->vtbl->setup_terrain_collider(&objdata->collider, 1, data_20, data_2C, &sp3B);
+    objAddObjectType(self, OBJTYPE_WindLiftable);
+    objAddObjectType(self, OBJTYPE_Baddie);
+    RobotAnimPatrol_initStunState(&objdata->stunState);
+    func_8002674C(self);
+}
 
 RECOMP_PATCH void RobotAnimPatrol_gunPrint(Object* self, ModelInstance* modelInst, Gfx** gdl, Mtx** mtxs, Vtx** vtxs, DLTri** tris) {
     Vec3f aimPoint;
@@ -239,4 +332,27 @@ RECOMP_PATCH void RobotAnimPatrol_gunPrint(Object* self, ModelInstance* modelIns
         }
         objdata->isGunAimed = FALSE;
     }
+}
+
+RECOMP_PATCH Object* RobotAnimPatrol_fireLfxEmitter(Object* self, s32 actionIndex, s32 lifetime, f32 velX, f32 velY, f32 velZ) {
+    LFXEmitter_Setup* emitterSetup;
+    Object* emitter;
+
+    emitterSetup = objAllocSetup(sizeof(LFXEmitter_Setup), OBJ_LFXEmitter);
+    emitterSetup->base.x = self->srt.transl.x;
+    emitterSetup->base.y = self->srt.transl.y;
+    emitterSetup->base.z = self->srt.transl.z;
+    emitterSetup->base.loadFlags = OBJSETUP_LOAD_MANUAL;
+    emitterSetup->base.fadeFlags = OBJSETUP_FADE_MANUAL;
+    emitterSetup->base.loadDistance = 255;
+    emitterSetup->base.fadeDistance = 255;
+    emitterSetup->lifetime = (s16) lifetime;
+    emitterSetup->actionIndex = (s16) actionIndex;
+    emitterSetup->enableBit = BIT_ALWAYS_1;
+    // @recomp: Add init flag 0x4 so that the ObjSetup is freed with the robo (originally by MusicalProgrammer)
+    emitter = objSetupObject(&emitterSetup->base, OBJINIT_STANDALONE | OBJINIT_FLAG4, self->mapID, -1, self->parent);
+    emitter->velocity.x = velX;
+    emitter->velocity.y = velY;
+    emitter->velocity.z = velZ;
+    return emitter;
 }
