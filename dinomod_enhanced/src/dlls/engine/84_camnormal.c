@@ -22,6 +22,11 @@
 
 #include "recomp/dlls/engine/84_camnormal_recomp.h"
 
+//TEMPORARY DEFINES
+#define CamNormal_TRACKFLAG_Do_Intersect_Check 1
+#define easeActive1stPerson unk118
+//END OF TEMPORARY DEFINES
+
 typedef struct {
     f32 unk0;
     f32 unk4;
@@ -76,6 +81,133 @@ typedef struct {
 } CamNormal;
 
 extern CamNormal* sState;
+
+extern void camnormal_func_2A5C(Cam* cam, Object* obj);
+extern void camnormal_func_1A58(Cam* cam, u32 flags, s32 arg2, f32* nearestFloorY, f32* nearestCeilingY);
+
+/**  
+  * Add a track intersect check when returning to camnormal from cam1stperson, to reduce the chances
+  * of the camera popping through walls and out of bounds when exiting 1st-person camera mode.
+  */
+RECOMP_PATCH void camnormal_func_A8(Cam* cam, s32 arg1, CamNormal_Params* data) {
+    Object* player;
+    s32 pad[2];
+    f32 sp48;
+    f32 sp44;
+    f32 sp40;
+    f32 sp3C;
+
+    player = cam->player;
+    
+    switch (arg1) {
+    case 0:
+        cam->srt.transl.x = player->srt.transl.x + (mathSinfInterp(player->srt.yaw) * data->unk1A);
+        cam->srt.transl.y = player->srt.transl.y + data->unk1F;
+        cam->srt.transl.z = player->srt.transl.z + (mathCosfInterp(player->srt.yaw) * data->unk1A);
+        cam->srt.yaw = 0;
+        cam->srt.pitch = 0;
+        cam->srt.roll = 0;
+        cam->fov = data->unk19;
+        bzero(sState, sizeof(CamNormal));
+        sState->unk30 = sState->unk0 = data->unk1C;
+        sState->unk38 = sState->unk4 = data->unk1A;
+        sState->unk40 = sState->unk8 = sState->unk98 = data->unk1F;
+        sState->unk48 = sState->unkC = sState->unk9C = data->unk1F;
+        sState->unk94 = sState->unk8C = data->unk1E;
+        sState->unk50 = sState->unk10 = 0.09f;
+        sState->unk58 = sState->unk14 = sState->unk54 = 0.04f;
+        sState->unk60 = sState->unk18 = 50.0f;
+        sState->unk68 = sState->unk1C = 30.0f;
+        sState->unk24 = -100000.0f;
+        sState->unk20 = 100000.0f;
+        sState->unkAD = 1;
+        sState->unk70 = cam->fov;
+        break;
+    case 4:
+        camnormal_func_2A5C(cam, player);
+        gDLL_2_Camera->vtbl->get_player_to_camera_distances(cam, &sp48, &sp44, &sp40, &sp3C, sState->unk8C);
+        sp44 = cam->srt.transl.y - (player->srt.transl.y + sState->unk8C);
+        cam->srt.pitch = mathAtan2f(sp44, sp3C);
+        cam->srt.roll = 0;
+        cam->positionMirror.x = cam->srt.transl.x;
+        cam->positionMirror.y = cam->srt.transl.y;
+        cam->positionMirror.z = cam->srt.transl.z;
+        cam->fov = sState->unk70;
+        sState->unk82 = 0;
+        break;
+    case 2:
+        if (data != NULL) {
+            sState->unk94 = data->unk5;
+            sState->unk40 = sState->unk98 = data->unk6;
+            sState->unk48 = sState->unk9C = data->unk8;
+            sState->unk30 = data->unk3;
+            sState->unk38 = data->unk4;
+            sState->unk70 = data->unk2;
+            sState->unk60 = data->unk9;
+            sState->unk68 = data->unkA;
+            if (data->unkB != 0) {
+                sState->unk50 = data->unkB / 255.0f;
+            } else {
+                sState->unk50 = 0.09f;
+            }
+            if (data->unkC != 0) {
+                sState->unk58 = data->unkC / 255.0f;
+            } else {
+                sState->unk58 = 0.09f;
+            }
+            sState->unk82 = data->unk1;
+            sState->unk84 = data->unk1;
+            cam->letterboxGoal = data->unk7;
+        } else {
+            sState->unk94 = sState->unk90;
+            sState->unk40 = sState->unk98 = sState->unk3C;
+            sState->unk48 = sState->unk9C = sState->unk44;
+            sState->unk30 = sState->unk2C;
+            sState->unk38 = sState->unk34;
+            sState->unk70 = sState->unk6C;
+            sState->unk60 = sState->unk5C;
+            sState->unk68 = sState->unk64;
+            sState->unk50 = sState->unk4C;
+            sState->unk58 = sState->unk54;
+            sState->unk82 = 60;
+            sState->unk84 = 60;
+        }
+        sState->unk90 = sState->unk8C;
+        sState->unk3C = sState->unk8;
+        sState->unk44 = sState->unkC;
+        sState->unk2C = sState->unk0;
+        sState->unk34 = sState->unk4;
+        sState->unk6C = cam->fov;
+        sState->unk5C = sState->unk18;
+        sState->unk64 = sState->unk1C;
+        sState->unk4C = sState->unk10;
+        sState->unk54 = sState->unk14;
+        break;
+    case 3:
+        STUBBED_PRINTF(" CUT CAM ");
+        cam->fov = sState->unk70;
+        cam->srt.transl.x = sState->unk74;
+        cam->srt.transl.y = sState->unk78;
+        cam->srt.transl.z = sState->unk7C;
+        cam->srt.yaw = sState->unk86;
+        cam->srt.pitch = sState->unk88;
+        cam->srt.roll = sState->unk8A;
+        cam->positionMirror.x = cam->srt.transl.x;
+        cam->positionMirror.y = cam->srt.transl.y;
+        cam->positionMirror.z = cam->srt.transl.z;
+        sState->unk82 = 0;
+        break;
+    case 1:
+        cam->fov = sState->unk70;
+
+        //@recomp: do an intersect check when returning to camnormal after using cam1stperson
+        camnormal_func_1A58(cam, CamNormal_TRACKFLAG_Do_Intersect_Check, 3, NULL, NULL);
+
+        break;
+    }
+
+    cam->easeActive1stPerson = TRUE;
+}
 
 // #define DEBUG_LOG_FOLLOW_Z
 static s32 rsLogZPrevYaw = 0;          //Used to check how quickly player's turning
