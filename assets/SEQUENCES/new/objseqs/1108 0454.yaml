@@ -29,7 +29,7 @@ curves:
   - { code_type: 6, val1: 0x25, val2: 1 } # 6 (TOGGLE_PLAYER_CONTROL | OFF)
 
   - { type: 0, delay: 0, params: 1 } # SETTIME
-  - { type: 6, delay: 0, params: 0xEB5A } # SFX   lock opening sound
+  - { type: 6, delay: 0, params: 0xEB58 } # SFX   lock opening sound
 
   #Camera shake (player distance independent)
   - { type: 0, delay: 0, params: 64 } # SETTIME
