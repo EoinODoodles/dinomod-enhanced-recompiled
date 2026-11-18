@@ -209,6 +209,81 @@ RECOMP_PATCH void camnormal_func_A8(Cam* cam, s32 arg1, CamNormal_Params* data) 
     cam->easeActive1stPerson = TRUE;
 }
 
+extern f32 bss_4;
+
+/** 
+  * Avoid a bug where a massive dx/dz delta value could rarely be added to the camera position 
+  * (near sharply convex wall corners for example), which could cause level unloads and crashes. 
+  * (Originally by MusicalProgrammer, modified slightly here by limiting the divisor.)
+  */
+RECOMP_PATCH void camnormal_func_ED4(Cam* cam, Object* player) {
+    f32 divisor;
+    f32 newDist;
+    f32 dx;
+    f32 dy;
+    f32 dz;
+    f32 dist;
+    f32 sp30;
+
+    sp30 = bss_4;
+    gDLL_2_Camera->vtbl->get_player_to_camera_distances(cam, &dx, &dy, &dz, &dist, sState->unk8C);
+    dist = SQ(dx) + SQ(dy) + SQ(dz);
+    if (dist > 0.0f) {
+        dist = sqrtf(dist);
+    }
+    if (dist < 5.0f) {
+        dist = 5.0f;
+    }
+
+    if (dist > (2.0f * sState->unk4)) {
+        camnormal_func_2A5C(cam, player);
+        cam->positionMirror.x = cam->srt.transl.x;
+        cam->positionMirror.y = cam->srt.transl.y;
+        cam->positionMirror.z = cam->srt.transl.z;
+        gDLL_2_Camera->vtbl->get_player_to_camera_distances(cam, &dx, &dy, &dz, &dist, sState->unk8C);
+        dist = SQ(dx) + SQ(dy) + SQ(dz);
+        if (dist > 0.0f) {
+            dist = sqrtf(dist);
+        }
+        if (dist < 5.0f) {
+            dist = 5.0f;
+        }
+    }
+
+    if (dist > sState->unk4) {
+        newDist = sState->unk4;
+    } else if (dist < sState->unk0) {
+        newDist = sState->unk0;
+    } else {
+        newDist = dist;
+    }
+
+    if ((newDist != dist) && (sState->unk10 != 0.0f)) {
+        if (dist < 1.0f) {
+            dist = 1.0f;
+        }
+        newDist = dist - newDist;
+        sp30 *= sState->unk10;
+        if (sp30 > 1.0f) {
+            sp30 = 1.0f;
+        }
+        newDist = newDist * sp30;
+        divisor = (dist + newDist) / dist;
+
+        //@recomp: limit how small the divisor can become, to prevent dx and dz's values exploding in size
+        //(Originally by MusicalProgrammer, tweaked in this implementation so the camera position still updates)
+        #define DIVISOR_LOWER_LIMIT 0.125f
+        if (divisor < DIVISOR_LOWER_LIMIT) {
+            divisor = DIVISOR_LOWER_LIMIT;
+        }
+
+        if (divisor > 0.0f) {
+            cam->srt.transl.x = (dx / divisor) + player->srt.transl.x;
+            cam->srt.transl.z = (dz / divisor) + player->srt.transl.z;
+        }
+    }
+}
+
 // #define DEBUG_LOG_FOLLOW_Z
 static s32 rsLogZPrevYaw = 0;          //Used to check how quickly player's turning
 static s32 rsLogZHoldTimer = 0;        //How long Z's been held (eventually caps out)
