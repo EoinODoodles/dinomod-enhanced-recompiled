@@ -172,6 +172,7 @@ INCBIN(block1101, "inc/blocks_1101_WC_boss_corner_ne.bin");
 INCBIN(block207, "inc/blocks_0207_DFPT_top_lift_entrance.bin");
 INCBIN(block772, "inc/blocks_0772_DFPT_bottom_central_hall.bin");
 INCBIN(block651, "inc/blocks_0651_SC_discovery_falls_entrance_pond.bin");
+INCBIN(block669, "inc/blocks_0669_CRF_dungeon_cells.bin");
 
 INCBIN(tex0_kiosk_gold_key,             "inc/tex0_kiosk_gold_key.bin");
 INCBIN(tex0_kiosk_silver_key,           "inc/tex0_kiosk_silver_key_custom.bin");
@@ -7778,6 +7779,7 @@ static void crf_modifications(void) {
     ReAssetID crfDungeon = reasset_base_id(MAP_CLOUDRUNNER_DUNGEON);
     ReAssetID crfTrkblk = reasset_base_id(18);
     ReAssetID crfTreasTrkblk = reasset_base_id(22);
+    ReAssetID crfDungeonTrkblk = reasset_base_id(24);
 
     // Remove part of the courtyard EWTrobotpatrol curve network that goes towards the entrance.
     // There's rubble blocking this path now, so if the robots are restored back into the game
@@ -7840,6 +7842,12 @@ static void crf_modifications(void) {
         };
 
         reasset_map_objects_set(crfDungeon, reasset_auto_id(dinomodNs), &magicPlant, sizeof(magicPlant));
+    }
+
+    // Enable collision on a section of the dungeon cells' walls that had none, fixing a bug where
+    // the camera could pass through the wall and unload the map.
+    {
+        BLOCKS_REPLACE_BASE(crfDungeonTrkblk, 668, 669, block669);
     }
 
     // Remove the door to the throne room from an objgroup so it doesn't unload as you walk by it
