@@ -39,6 +39,7 @@
 #### CRF: Dungeon
 - Fixed many softlocks, bugs, and jank involving the guardian.
 - Added a magic plant to the dungeon to prevent a softlock.
+- Fixed a few walls that were ignoring collision with the camera leading to the map unloading in some cases.
 
 #### CRF: Courtyard
 - Restored courtyard robot patrols.

@@ -10,7 +10,7 @@ Consider checking out the mod configuration to enable optional enhancements and 
 """
 short_description = "Enhancements and fixes for the December 2000 prototype"
 
-version = "0.9.3"
+version = "1.0.0"
 authors = [ "Banjeoin", "jeebs2kx", "LaminGaming", "MusicalProgrammer", "rustyspottedcat", "Shinx121", "nuggs" ]
 
 game_id = "dino-planet"
