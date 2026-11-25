@@ -2795,6 +2795,26 @@ static void walled_city_modifications(void) {
             DIRECTIONAL_OBJGROUP_TOGGLE(WC_ObjGroup9_Moon_Temple_Interior, plane, 2, 3);
         }
     }
+
+    // Fix curves down in the moonstone/sunstone holder room
+    {
+        CurveSetup* curve;
+
+        curve = GET_MAPS_OBJECT(walledCity, 0x40F39);
+        curve->base_type24.linkWalkGroups[1] = 132; // missing walk group link (lets tricky leave the room)
+
+        curve = GET_MAPS_OBJECT(walledCity, 0x40F3A);
+        curve->unk3 = 0;
+        curve->base_type24.linkWalkGroups[0] = 132;
+        // i'm not totally sure why this needs to be zero, but tricky can't enter the room otherwise. it really should
+        // be 1 i think but something about the route logic doesn't like that this is a dead-end.
+        curve->unk1B = 0;
+
+        // shrink walk group so tricky doesn't get stuck in mid-air on the boss room entrance
+        curve = GET_MAPS_OBJECT(walledCity, 0x410BB);
+        curve->base_type26.unk7 = -1;
+        curve->type26.unk31 = -1;
+    }
 }
 
 static void walled_city_resolve(void) {
