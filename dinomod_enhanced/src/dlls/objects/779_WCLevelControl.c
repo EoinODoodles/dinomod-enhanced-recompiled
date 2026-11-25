@@ -9,6 +9,7 @@
 
 #include "PR/os.h"
 #include "dll.h"
+#include "game/objects/object_id.h"
 #include "game/objects/object.h"
 #include "game/gamebits.h"
 #include "macros.h"
@@ -17,6 +18,7 @@
 #include "sys/main.h"
 #include "sys/menu.h"
 #include "sys/objects.h"
+#include "sys/objmsg.h"
 #include "sys/objtype.h"
 #include "sys/print.h"
 
@@ -33,7 +35,7 @@ typedef struct {
     u8 previousState;
     /* RECOMP */
     s8 timeBitsDelayTimer;      //Wait a short while before setting time-of-day related gamebits
-    u16 extraFlags;
+    u32 extraFlags;
     s32 challengeMusicTime;     //how long the challenge music has been playing for (outside of sequences)
     s32 musicFadeTimer;         //timer for fading out the challenge music when the player idles on the switch for a long while
     s32 musicPlayerNo;          //musicPlayerID for the challenge music
@@ -59,7 +61,10 @@ typedef enum {
     CUSTOM_FLAG_Challenge_Music_Fully_Faded_Out = 0x40,                  //Challenge music has fully faded out, and is ready to be replayed when the player leaves the switch (or the Walled City theme can play in the meantime, until they leave the switch)
     CUSTOM_FLAG_Stop_Challenge_Music = 0x80,                             //Challenge music will stop immediately - used when the challenge's completed successfully, or when swapping between Sun/Moon challenges
     CUSTOM_FLAG_Swapped_Back_to_Walled_City_Music = 0x100,               //Played Walled City's music after the timed challenge music stopped playing
-    CUSTOM_FLAG_Played_Walled_City_Music_While_Idling_on_Switch = 0x200  //Played Walled City's music while the timed challenge music is waiting to restart but the player has yet to leave the switch
+    CUSTOM_FLAG_Played_Walled_City_Music_While_Idling_on_Switch = 0x200, //Played Walled City's music while the timed challenge music is waiting to restart but the player has yet to leave the switch
+    CUSTOM_FLAG_Opened_Message_Queue = 0x400,                            //Act 1: opened message queue to receive messages from WCBeacon when kindled
+    CUSTOM_FLAG_Wait_for_Moon_Beacon_to_Finish_Lighting = 0x800,         //Act 1: stall until the beacon finishes lighting
+    CUSTOM_FLAG_Wait_for_Sun_Beacon_to_Finish_Lighting = 0x1000          //Act 1: stall until the beacon finishes lighting
 } WCLevelControl_CustomFlags;
 
 #define MUSIC_FLAGS (\
@@ -241,8 +246,8 @@ RECOMP_PATCH void WCLevelControl_obj_Setup(Object* self, ObjSetup* setup, s32 re
   *
   * - Set Act 1's gamebits when the level's in Act 2.
   */
-RECOMP_PATCH void WCLevelControl_obj_Control(Object *self) {
-    WCLevelControl_Data *objData = self->data;
+RECOMP_PATCH void WCLevelControl_obj_Control(Object* self) {
+    WCLevelControl_Data* objData = self->data;
     f32 time;
     u8 act;
 
@@ -294,6 +299,59 @@ RECOMP_PATCH void WCLevelControl_handleAct1(Object* self, WCLevelControl_Data* o
     /* RECOMP */
     _Bool switchesQOL = configs_GetWCPressureSwitchQOL();
 
+    //@recomp: receive a message from WCBeacon when the player starts lighting it
+    //(This handles a bug where WCBeacon can advance to its lit state after the countdown timer runs out, because of
+    //the 1.5s delay between the player hitting the beacon with a spell and WCBeacon advancing to its lit state.)
+    if (objData->state < STATE_3_WCSlabDoor_Opened) {
+        //Open the message queue if needed
+        if ((objData->extraFlags & CUSTOM_FLAG_Opened_Message_Queue) == FALSE) {
+            objInitMesgQueue(self, 1);
+            objData->extraFlags |= CUSTOM_FLAG_Opened_Message_Queue;
+        }
+    
+        //Check for WCBeacon messages
+        u32 outMesgID;
+        Object* sender;
+        s16* arg;
+        while (objRecvMesg(self, &outMesgID, &sender, (void*)&arg)) {
+            if (sender && sender->id == OBJ_WCBeacon && outMesgID == 0x57AB && arg != NULL) {
+                switch (*arg) {
+                case BIT_WC_Moon_Beacon_Lit:
+                    if (mainGetBits(BIT_WC_Moon_Beacon_Lit) == FALSE) {
+                        objData->extraFlags |= CUSTOM_FLAG_Wait_for_Moon_Beacon_to_Finish_Lighting;
+                    }
+                    break;
+                case BIT_WC_Sun_Beacon_Lit:
+                    if (mainGetBits(BIT_WC_Sun_Beacon_Lit) == FALSE) {
+                        objData->extraFlags |= CUSTOM_FLAG_Wait_for_Sun_Beacon_to_Finish_Lighting;
+                    }
+                    break;
+                }
+            }
+        }
+
+        //If a beacon's in the process of being lit, wait for it to finish lighting
+        if (objData->extraFlags & CUSTOM_FLAG_Wait_for_Moon_Beacon_to_Finish_Lighting) {
+            if (mainGetBits(BIT_WC_Moon_Beacon_Lit)) {
+                objData->extraFlags &= ~CUSTOM_FLAG_Wait_for_Moon_Beacon_to_Finish_Lighting;
+            } else {
+                if (objData->state != STATE_2_Moon_Beacon_Timed_Challenge) {
+                    objData->state = STATE_2_Moon_Beacon_Timed_Challenge;
+                }
+                return;
+            }
+        } else if (objData->extraFlags & CUSTOM_FLAG_Wait_for_Sun_Beacon_to_Finish_Lighting) {
+            if (mainGetBits(BIT_WC_Sun_Beacon_Lit)) {
+                objData->extraFlags &= ~CUSTOM_FLAG_Wait_for_Sun_Beacon_to_Finish_Lighting;
+            } else {
+                if (objData->state != STATE_1_Sun_Beacon_Timed_Challenge) {
+                    objData->state = STATE_1_Sun_Beacon_Timed_Challenge;
+                }
+                return;
+            }
+        }
+    }
+
     if (objData->flags & FLAG_2_Pressure_Switch_Challenge_Started) {
         return;
     }
@@ -340,12 +398,7 @@ RECOMP_PATCH void WCLevelControl_handleAct1(Object* self, WCLevelControl_Data* o
 
     switch (objData->state) {
     case STATE_1_Sun_Beacon_Timed_Challenge:
-        if (objData->flags & FLAG_1_Entered_ObjSeq) {
-            //Start a 60 second timed challenge
-            menu_func_8000F64C(0x11, PRESSURE_SWITCH_CHALLENGE_SECONDS);
-            menu_func_8000F6CC();
-            WCLevelControl_refillTimer(self);
-        } else if (mainGetBits(BIT_WC_Sun_Beacon_Lit)) {
+        if (mainGetBits(BIT_WC_Sun_Beacon_Lit)) { //@recomp: prioritise this condition
             //Success! Play a sequence when the player lights the beacon
             objData->flags |= FLAG_4_Sun_Beacon_Lit;
             menu_func_8000FAC8();
@@ -361,6 +414,11 @@ RECOMP_PATCH void WCLevelControl_handleAct1(Object* self, WCLevelControl_Data* o
 
             //@recomp: stop challenge music immediately
             objData->extraFlags |= CUSTOM_FLAG_Stop_Challenge_Music;
+        } else if (objData->flags & FLAG_1_Entered_ObjSeq) {
+            //Start a 60 second timed challenge
+            menu_func_8000F64C(0x11, PRESSURE_SWITCH_CHALLENGE_SECONDS);
+            menu_func_8000F6CC();
+            WCLevelControl_refillTimer(self);
         } else if (menu_func_8000FB1C()) { 
             //Failure... reset the gamebits and revert state
             mainSetBits(BIT_WC_Sun_Beacon_Raised, FALSE);
@@ -382,12 +440,7 @@ RECOMP_PATCH void WCLevelControl_handleAct1(Object* self, WCLevelControl_Data* o
         }
         break;
     case STATE_2_Moon_Beacon_Timed_Challenge:
-        if (objData->flags & FLAG_1_Entered_ObjSeq) {
-            //Start a 60 second timed challenge
-            menu_func_8000F64C(0x11, PRESSURE_SWITCH_CHALLENGE_SECONDS);
-            menu_func_8000F6CC();
-            WCLevelControl_refillTimer(self);
-        } else if (mainGetBits(BIT_WC_Moon_Beacon_Lit)) {
+         if (mainGetBits(BIT_WC_Moon_Beacon_Lit)) { //@recomp: prioritise this condition
             //Success! Play a sequence when the player lights the beacon
             objData->flags |= FLAG_8_Moon_Beacon_Lit;
             menu_func_8000FAC8();
@@ -403,6 +456,11 @@ RECOMP_PATCH void WCLevelControl_handleAct1(Object* self, WCLevelControl_Data* o
 
             //@recomp: stop challenge music immediately
             objData->extraFlags |= CUSTOM_FLAG_Stop_Challenge_Music;
+        } else if (objData->flags & FLAG_1_Entered_ObjSeq) {
+            //Start a 60 second timed challenge
+            menu_func_8000F64C(0x11, PRESSURE_SWITCH_CHALLENGE_SECONDS);
+            menu_func_8000F6CC();
+            WCLevelControl_refillTimer(self);
         } else if (menu_func_8000FB1C()) {
             //Failure... reset the gamebits and revert state
             mainSetBits(BIT_WC_Moon_Beacon_Raised, FALSE);

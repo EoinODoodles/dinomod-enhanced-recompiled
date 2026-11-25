@@ -19,6 +19,7 @@
 #include "sys/objects.h"
 #include "sys/objexpr.h"
 #include "sys/objhits.h"
+#include "sys/objmsg.h"
 #include "sys/print.h"
 #include "sys/rand.h"
 
@@ -237,7 +238,7 @@ static void WCBeacon_unloadFlame(Object* self) {
  * - Create light/fire effects.
  */
 RECOMP_PATCH void WCBeacon_obj_Control(Object* self) {
-    WCBeacon_Setup* objSetup;
+    WCBeacon_Setup_Dinomod* objSetup;
     WCBeacon_Data* objData;
     TextureAnimator* texAnim;
     s16 frameBlend;
@@ -248,7 +249,7 @@ RECOMP_PATCH void WCBeacon_obj_Control(Object* self) {
     u8 extraFX = configs_GetWCBeaconFlames();
 
     objData = self->data;
-    objSetup = (WCBeacon_Setup*)self->setup;
+    objSetup = (WCBeacon_Setup_Dinomod*)self->setup;
 
     damageType = func_80025F40(self, NULL, NULL, NULL);
 
@@ -361,6 +362,10 @@ RECOMP_PATCH void WCBeacon_obj_Control(Object* self) {
             if (player && (self->globalPosition.y - 50.0f > player->globalPosition.y)) {
                 break;
             }
+
+            //@recomp: send a message to WCLevelControl, so it knows the beacon will soon finish lighting
+            objSendMesgMany(OBJ_WCLevelControl, OBJMSG_SEND_FILTER_ID, self, 
+                0x57AB, &objSetup->gamebitLit);
 
             //@recomp: move sound plays elsewhere, so they also play when restoring lit state on revisit
             objData->state = WCBEACON_STATE_2_Lighting_Up;
