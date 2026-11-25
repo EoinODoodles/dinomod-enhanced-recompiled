@@ -1118,7 +1118,7 @@ static void ch_volcano_force_point_1(void) {
     mainSetBits(BIT_3A5, 1);
     mainSetBits(BIT_3A6, 1);
     mainSetBits(BIT_3A7, 1);
-    mainSetBits(BIT_3C0, 1);
+    mainSetBits(BIT_3C0, 1); // DBSpike 0x41834
     mainSetBits(BIT_DB_Picked_Up_Egg, 1);
     mainSetBits(BIT_406, 1);
     mainSetBits(BIT_407, 1);
@@ -1174,7 +1174,7 @@ static void ch_volcano_force_point_1(void) {
 
 static void ch_db_shrine(void) {
     /* volcano force point/killbot area */
-    mainSetBits(BIT_SpellStone_DIM, 1);
+    mainSetBits(BIT_SpellStone_DIM, 0);
     mainSetBits(BIT_Tricky_Walk_Group, 122);
     mainSetBits(BIT_4E7, 1);
     mainSetBits(BIT_DB_Unlock_Act_Two, 1);
@@ -1792,7 +1792,7 @@ static void ch_swapstone_hollow_4(void) {
     chselect_set_map_state(MAP_SWAPSTONE_HOLLOW, 1, G0);
 
     {
-        chselect_set_location(PLAYER_SABRE, -6571.54, -632.0f, -1607.57f, 0, 0);
+        chselect_set_location(PLAYER_SABRE, -6571.54f, -632.0f, -1607.57f, 0, 0);
 
         PlayerLightActions light = DEFAULT_LACTIONS;
         light.skylights[0] = 232;
@@ -1815,6 +1815,259 @@ static void ch_swapstone_hollow_4(void) {
         chselect_set_env(PLAYER_SABRE, &env);
 
         chselect_set_music(PLAYER_SABRE, 218, -1, 1, -1);
+    }
+}
+
+static void ch_walled_city_1(void) {
+    /* swapstone hollow */
+    // nothing really happens here
+
+    /* walled city entrance */
+    mainSetBits(BIT_WC_Sun_Temple_Maze_Illusory_Wall_1_Shown, 1);
+    mainSetBits(BIT_WC_Sun_Temple_Maze_Illusory_Wall_2_Hidden, 1);
+    mainSetBits(BIT_WC_Sun_Temple_Maze_Illusory_Wall_3_Hidden, 1);
+    mainSetBits(BIT_WC_Sun_Temple_Maze_Illusory_Wall_4_Hidden, 1);
+    mainSetBits(BIT_Tricky_Walk_Group, 177);
+    //mainSetBits(BIT_WC_Is_Daytime, 1);
+
+    chselect_set_map_state(MAP_WALLED_CITY, 1, G15 | G16);
+    chselect_set_map_state(MAP_SWAPSTONE_HOLLOW, 1, G8);
+
+    chselect_set_location(PLAYER_SABRE, -8190.716f, -881.256f, -5526.137f, 0, 0);
+
+    PlayerLightActions light = DEFAULT_LACTIONS;
+    light.skylights[0] = 591;
+    light.skylights[1] = 151;
+    light.skylights[2] = 402;
+    light.skylights[3] = 374;
+    light.trklights[0] = 629;
+    light.trklights[1] = 443;
+    light.cam = 1;
+    chselect_set_light(PLAYER_SABRE, &light);
+
+    PlayerEnvActions env = DEFAULT_ENVACTIONS;
+    env.unk4 = 507;
+    env.unk6 = 328;
+    env.unk8 = 329;
+    env.unkA = 451;
+    env.unkC = 300;
+    env.unk10 = 0; env.unk14 = 0; env.unk18 = 0;
+    env.unk1C = -7345; env.unk20 = -994; env.unk24 = 7317;
+    chselect_set_env(PLAYER_SABRE, &env);
+
+    chselect_set_music(PLAYER_SABRE, 218, -1, 128, -1);
+}
+
+static void ch_boss_klanadack(void) {
+    /* walled city */
+    mainSetBits(BIT_WC_Placed_Gold_RedEye_Tooth, 1);
+    mainSetBits(BIT_WC_Placed_Silver_RedEye_Tooth, 1);
+    mainSetBits(BIT_Tricky_Walk_Group, 132);
+    mainSetBits(BIT_WC_Sun_Pressure_Switch_Active, 1);
+    mainSetBits(BIT_WC_Moon_Pressure_Switch_Active, 1);
+    mainSetBits(BIT_WC_Sun_Beacon_Raised, 1);
+    mainSetBits(BIT_WC_Moon_Beacon_Raised, 1);
+    mainSetBits(BIT_7F4, 1); // WCMoonTempleDoo 0x411B4 restore bit
+    mainSetBits(BIT_WC_SlabDoor_Sun_Symbol_Lit, 1);
+    mainSetBits(BIT_WC_SlabDoor_Moon_Symbol_Lit, 1);
+    mainSetBits(BIT_WC_SlabDoor_Opened, 1);
+    mainSetBits(BIT_WC_Sun_Beacon_Lit, 1);
+    mainSetBits(BIT_WC_Moon_Beacon_Lit, 1);
+    mainSetBits(BIT_WC_Met_King_EarthWalker, 1);
+    mainSetBits(BIT_7FC, 1);
+    mainSetBits(BIT_WC_Boss_Door_Opened, 1);
+    mainSetBits(BIT_WC_Silver_Tooth, 1);
+    mainSetBits(BIT_WC_Gold_Tooth, 1);
+    mainSetBits(DINOMOD_BIT_964_WC_Jungle_Door_Lever_Moon, 1);
+    mainSetBits(DINOMOD_BIT_965_WC_Jungle_Door_Lever_Sun, 1);
+    mainSetBits(DINOMOD_BIT_96A_WC_Jungle_Door_Open, 1);
+
+    /* boss room entrance */
+    chselect_set_map_state(MAP_WALLED_CITY, 1, G4);
+
+    chselect_set_location(PLAYER_SABRE, -8000.185f, -1123.0f, -7381.531f, M_180_DEGREES, 0);
+
+    PlayerLightActions light = DEFAULT_LACTIONS;
+    light.skylights[0] = 591;
+    light.skylights[1] = 594;
+    light.skylights[2] = 402;
+    light.skylights[3] = 374;
+    light.trklights[0] = 629;
+    light.trklights[1] = 443;
+    light.cam = 1;
+    chselect_set_light(PLAYER_SABRE, &light);
+
+    PlayerEnvActions env = DEFAULT_ENVACTIONS;
+    env.unk4 = 507;
+    env.unk6 = 508;
+    env.unk8 = 509;
+    env.unkA = 451;
+    env.unkC = 300;
+    env.unk10 = 0; env.unk14 = 0; env.unk18 = 0;
+    env.unk1C = -7345; env.unk20 = -994; env.unk24 = 7317;
+    chselect_set_env(PLAYER_SABRE, &env);
+
+    chselect_set_music(PLAYER_SABRE, 218, -1, 260, -1);
+}
+
+static void ch_diamond_bay_2(void) {
+    /* boss klanadack */
+    mainSetBits(BIT_WC_King_EarthWalker_Rescued, 1);
+    mainSetBits(BIT_Tricky_Walk_Group, 56);
+    mainSetBits(BIT_572_KT_FightProgress, 7);
+    mainSetBits(BIT_7F2, 1); // WCSunTempleDoor 0x411B1 restored bit
+    mainSetBits(BIT_7F4, 0); // WCMoonTempleDoo 0x411B4 restore bit
+    mainSetBits(BIT_WC_King_EarthWalker_Cage_Opened, 1);
+    mainSetBits(BIT_SpellStone_WC, 1);
+
+    /* WC -> SH */
+    chselect_set_map_state(MAP_WALLED_CITY, 1, G_None);
+
+    /* before log to diamond bay */
+    chselect_set_map_state(MAP_SWAPSTONE_HOLLOW, 1, G7 | G8 | G11 | G12);
+
+    chselect_set_location(PLAYER_SABRE, -6746.6f, -804.093f, -2728.939f, 0x2F00, 0);
+
+    PlayerLightActions light = DEFAULT_LACTIONS;
+    light.skylights[0] = 591;
+    light.skylights[1] = 401;
+    light.skylights[2] = 402;
+    light.skylights[3] = 374;
+    light.trklights[0] = 629;
+    light.trklights[1] = 443;
+    light.cam = 1;
+    chselect_set_light(PLAYER_SABRE, &light);
+
+    PlayerEnvActions env = DEFAULT_ENVACTIONS;
+    env.unk4 = 97;
+    env.unk6 = 95;
+    env.unk8 = 96;
+    env.unkA = 451;
+    env.unkC = 300;
+    env.unk10 = 0; env.unk14 = 0; env.unk18 = 0;
+    env.unk1C = -7345; env.unk20 = -994; env.unk24 = 7317;
+    chselect_set_env(PLAYER_SABRE, &env);
+
+    chselect_set_music(PLAYER_SABRE, 281, -1, 1, -1);
+}
+
+static void ch_volcano_force_point_2(void) {
+    /* diamond bay */
+    mainSetBits(BIT_3C0, 0); // DBSpike 0x41834
+    mainSetBits(BIT_Tricky_Walk_Group, 210);
+    mainSetBits(BIT_83F, 2); // vfp door diamond count?
+
+    chselect_set_map_state(MAP_SWAPSTONE_HOLLOW, 1, G6 | G8 | G11 | G12);
+    chselect_set_map_state(MAP_DIAMOND_BAY, 2, G6);
+
+    /* vfp entrance */
+    chselect_set_map_state(MAP_VOLCANO_FORCE_POINT_TEMPLE, 1, G_None);
+
+    chselect_set_location(PLAYER_SABRE, -12298.08f, -1447.0f, -2237.22f, M_90_DEGREES, 0);
+
+    PlayerLightActions light = DEFAULT_LACTIONS;
+    light.skylights[0] = 591;
+    light.skylights[1] = 618;
+    light.skylights[2] = 619;
+    light.skylights[3] = 374;
+    light.trklights[0] = 629;
+    light.trklights[1] = 443;
+    light.cam = 1;
+    chselect_set_light(PLAYER_SABRE, &light);
+
+    PlayerEnvActions env = DEFAULT_ENVACTIONS;
+    env.unk4 = 487;
+    env.unk6 = 488;
+    env.unk8 = 489;
+    env.unkA = 451;
+    env.unkC = 300;
+    env.unk10 = 0; env.unk14 = 0; env.unk18 = 0;
+    env.unk1C = -7345; env.unk20 = -994; env.unk24 = 7317;
+    chselect_set_env(PLAYER_SABRE, &env);
+
+    chselect_set_music(PLAYER_SABRE, 218, -1, 195, -1);
+}
+
+static void ch_swapstone_circle_4(void) {
+    /* volcano force point */
+    mainSetBits(BIT_2B2, 0);
+    mainSetBits(BIT_Play_Seq_0107_Rocky_Intro_Unused, 0);
+    mainSetBits(BIT_Tricky_Walk_Group, 201);
+    mainSetBits(BIT_4F1, 1);
+    mainSetBits(BIT_4F2, 1);
+    mainSetBits(BIT_4F6, 1);
+    mainSetBits(BIT_4F7, 1);
+    mainSetBits(BIT_4F8, 1);
+    mainSetBits(BIT_4F9, 1);
+    mainSetBits(BIT_4FA, 1);
+    mainSetBits(BIT_515, 1);
+    mainSetBits(BIT_DB_Unlock_Act_Three, 1);
+    mainSetBits(BIT_Inventory_MoonSeeds, 1); // DINOMOD TEMP
+    mainSetBits(BIT_878, 1);
+    mainSetBits(BIT_Play_Seq_035F_Rocky_Intro, 1);
+    mainSetBits(BIT_Talking_to_Rocky, 1);
+    mainSetBits(BIT_88D, 1);
+
+    {
+        // sabre last state
+        chselect_set_location(PLAYER_SABRE, -6571.54f, -632.0f, -1607.57f, 0, 0);
+
+        PlayerLightActions light = DEFAULT_LACTIONS;
+        light.skylights[0] = 591;
+        light.skylights[1] = 401;
+        light.skylights[2] = 402;
+        light.skylights[3] = 373;
+        light.trklights[0] = 561;
+        light.trklights[1] = 443;
+        light.cam = 99;
+        chselect_set_light(PLAYER_SABRE, &light);
+
+        PlayerEnvActions env = DEFAULT_ENVACTIONS;
+        env.unk4 = 97;
+        env.unk6 = 95;
+        env.unk8 = 96;
+        env.unkA = 451;
+        env.unkC = 300;
+        env.unk10 = -6434; env.unk14 = -641; env.unk18 = -1830;
+        env.unk1C = -7345; env.unk20 = -994; env.unk24 = 7317;
+        chselect_set_env(PLAYER_SABRE, &env);
+
+        chselect_set_music(PLAYER_SABRE, 208, -1, 5, -1);
+    }
+
+    /* swap */
+    chselect_set_map_state(MAP_DIAMOND_BAY, 3, G_None);
+    chselect_set_map_state(MAP_SWAPSTONE_HOLLOW, 1, G_None);
+    chselect_set_map_state(MAP_VOLCANO_FORCE_POINT_TEMPLE, 2, G_None);
+
+    chselect_set_player(PLAYER_KRYSTAL);
+
+    {
+        chselect_set_location(PLAYER_KRYSTAL, -1119.43f, 302.10f, 17307.94f, 0x1400, 0);
+
+        PlayerLightActions light = DEFAULT_LACTIONS;
+        light.skylights[0] = 485;
+        light.skylights[1] = 486;
+        light.skylights[2] = 358;
+        light.skylights[3] = 570;
+        light.trklights[0] = 484;
+        light.trklights[1] = 634;
+        light.cam = 1;
+        chselect_set_light(PLAYER_KRYSTAL, &light);
+
+        PlayerEnvActions env = DEFAULT_ENVACTIONS;
+        env.unk4 = 434;
+        env.unk6 = 435;
+        env.unk8 = 436;
+        env.unkA = 451;
+        env.unkC = 67;
+        env.unkE = 92;
+        env.unk10 = -1073; env.unk14 = 394; env.unk18 = 17380;
+        env.unk1C = -10884; env.unk20 = 1876; env.unk24 = 18921;
+        env.unk28 = -10448; env.unk2C = 1501; env.unk30 = 18255;
+        chselect_set_env(PLAYER_KRYSTAL, &env);
+
+        chselect_set_music(PLAYER_KRYSTAL, 185, -1, 18, -1);
     }
 }
 
@@ -1865,9 +2118,14 @@ static Chapter chapters[] = {
     // Sabre Act 3 (SpellStone 3)
     { "RedEye Rampage", NULL },
     { "SwapStone Hollow 4", ch_swapstone_hollow_4 },
+    { "Walled City 1", ch_walled_city_1 },
+    { "Boss Klanadack", ch_boss_klanadack },
+    { "Diamond Bay 2", ch_diamond_bay_2 },
+    { "Volcano Force Point 2", ch_volcano_force_point_2 },
     
     // Krystal Act 4 (Spirit 3)
-    //{ "To The Moon", NULL },
+    { "To The Moon", NULL },
+    { "SwapStone Circle 4", ch_swapstone_circle_4 },
 
     // Sabre Act 4 (Spirit 4)
     //{ "Sun and Moon", NULL },
