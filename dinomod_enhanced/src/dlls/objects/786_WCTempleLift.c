@@ -55,11 +55,25 @@ RECOMP_PATCH void WCTempleLift_obj_Control(Object* self) {
                 obj = self->polyhits->unk100[i];
                 if (obj->id == OBJ_Sabre) {
                     player = objGetPlayer();
+
+                    //@recomp: NULL check, just in case
+                    if (player == NULL) {
+                        break;
+                    }
+
                     if ((objdata->cooldownTimer <= 0.0f) && (((DLL_210_Player*)player->dll)->vtbl->func70(player) == LIFT_TERRAIN_TYPE)) {
+                        //@recomp: don't activate the lift if the player's still moving, to avoid going up when trying to enter the temple
+                        if ((SQ(player->velocity.x) + SQ(player->velocity.z)) > SQ(0.1f)) {
+                            break;
+                        }
+
                         gDLL_3_Animation->vtbl->start_obj_sequence(WCTempleLift_OBJSEQ0_Up, self, -1);
                         objdata->state = Lift_STATE_Up;
                         objdata->cooldownTimer = LIFT_MOVE_COOLDOWN;
                     }
+
+                    //@recomp: stop processing objects after the player is found
+                    break;
                 }
             }
         }
@@ -69,11 +83,25 @@ RECOMP_PATCH void WCTempleLift_obj_Control(Object* self) {
                 obj = self->polyhits->unk100[i];
                 if (obj->id == OBJ_Sabre) {
                     player = objGetPlayer();
+
+                    //@recomp: NULL check, just in case
+                    if (player == NULL) {
+                        break;
+                    }
+
                     if ((objdata->cooldownTimer <= 0.0f) && (((DLL_210_Player*)player->dll)->vtbl->func70(player) == LIFT_TERRAIN_TYPE)) {
+                        //@recomp: don't activate the lift if the player's still moving, to avoid activating it unintentionally
+                        if ((SQ(player->velocity.x) + SQ(player->velocity.z)) > SQ(0.1f)) {
+                            break;
+                        }
+                        
                         gDLL_3_Animation->vtbl->start_obj_sequence(WCTempleLift_OBJSEQ1_Down, self, -1);
                         objdata->state = Lift_STATE_Down;
                         objdata->cooldownTimer = LIFT_MOVE_COOLDOWN;
                     }
+
+                    //@recomp: stop processing objects after the player is found
+                    break;
                 }
             }
         }
